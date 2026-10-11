@@ -2918,8 +2918,13 @@ if confirm PHANTOM_RECOMPILE y y "Run the final rebuild now?"; then
         # recompile.sh is interactive with no flags, so unattended runs do the
         # same work directly: the frontend was already built by build-all.sh,
         # so only the backend needs recompiling against the patched headers.
+        # --reconfigure first: the OpenCL step installs OpenCL/clFFT AFTER the
+        # first `meson setup`, and meson only looks for dependencies at setup
+        # time — a plain compile would build without OpenCL, and the server
+        # then dies with "OpenCL support is not compiled in".
         echo "Unattended — rebuilding the backend directly instead of recompile.sh."
-        if ( cd "$PHANTOM_DIR" && meson compile -j2 -C build ); then
+        if ( cd "$PHANTOM_DIR" && meson setup --reconfigure build \
+                 && patch_websocketpp && meson compile -j2 -C build ); then
             green "✅ Final rebuild finished"
             component "Final rebuild" "backend recompiled (unattended path)"
         else
@@ -2974,7 +2979,16 @@ step "Finishing the station" "FFT accelerator and start at boot — no input nee
 
 if [ "$USE_STATION" = true ]; then
     STATION_LAUNCHER_NOW="$(station_value STATION_LAUNCHER)"
-    if command -v clinfo >/dev/null 2>&1 && clinfo -l 2>/dev/null | grep -qi 'device'; then
+    # Both must hold: a device answers AND the binary was built with OpenCL.
+    # A device alone is not enough — if the backend was configured before the
+    # OpenCL packages arrived (final rebuild skipped), accelerator="opencl"
+    # makes spectrumserver throw "OpenCL support is not compiled in".
+    STATION_BIN_HAS_OPENCL=false
+    if ldd "$PHANTOM_DIR/build/spectrumserver" 2>/dev/null | grep -q 'libclFFT'; then
+        STATION_BIN_HAS_OPENCL=true
+    fi
+    if command -v clinfo >/dev/null 2>&1 && clinfo -l 2>/dev/null | grep -qi 'device' \
+       && [ "$STATION_BIN_HAS_OPENCL" = true ]; then
         STATION_ACC=opencl
     else
         STATION_ACC=none
@@ -2984,6 +2998,9 @@ if [ "$USE_STATION" = true ]; then
         if [ "$STATION_ACC" = opencl ]; then
             green "✅ FFT on the GPU (OpenCL)"
             component "FFT accelerator" "opencl — an OpenCL device answered"
+        elif [ "$STATION_BIN_HAS_OPENCL" != true ] && [ "$opencl_ok" = true ]; then
+            warn "FFT on the CPU (FFTW) — the backend was built before OpenCL was installed."
+            component "FFT accelerator" "none (FFTW) — run ./recompile.sh (backend), then: STATION_ACCELERATOR=opencl bash configure-station.sh --apply"
         else
             echo "FFT on the CPU (FFTW) — no OpenCL device answered."
             component "FFT accelerator" "none (FFTW) — after a reboot, if 'clinfo -l' lists a device: STATION_ACCELERATOR=opencl bash configure-station.sh --apply"
