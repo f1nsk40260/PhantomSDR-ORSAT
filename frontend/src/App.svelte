@@ -7282,8 +7282,14 @@
       //
       // 'SAM' is the /mobile page's name for AM with the synchronous
       // detector, which here is demodulation AM plus samEnabled.
+      //
+      // CWU and CWL are the KiwiSDR / UberSDR spellings of our CW and CW-L,
+      // so links copied from those receivers keep their CW mode here.
       const wantsSam = linkParameters.modulation === "SAM";
-      const asked = wantsSam ? "AM" : linkParameters.modulation;
+      const linkAlias = { CWU: "CW", "CW-U": "CW", CWL: "CW-L" };
+      const asked = wantsSam
+        ? "AM"
+        : linkAlias[linkParameters.modulation] || linkParameters.modulation;
       const usable = demodulators.indexOf(asked) !== -1 ? asked : null;
       if (usable) {
         samEnabled = wantsSam;

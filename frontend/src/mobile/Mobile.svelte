@@ -509,6 +509,7 @@
     if (!m) return null
     const up = String(m).toUpperCase()
     if (up === 'CWL') return 'CW-L'
+    if (up === 'CWU' || up === 'CW-U') return 'CW'   // KiwiSDR / UberSDR link spelling
     if (up === 'AM-ENV') return 'AM'
     if (up === 'AM-S') return 'QUAM'   // AM stereo == C-QUAM
     if (up === 'IQ') return null
