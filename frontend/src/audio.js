@@ -2641,7 +2641,7 @@ setAGC(newAGCSpeed) {
   // anfEnabled so the UI indicator still reflects what the user asked for.
   anfActive() {
     if (!this.anfEnabled) return false;
-    if (this.anfBypassCW && this.demodulation === 'CW') {
+    if (this.anfBypassCW && (this.demodulation === 'CW' || this.demodulation === 'CWL')) {
       if (!this._anfCWBypassLogged) {
         console.log('[ANF] bypassed in CW — the notch would cancel the CW tone itself');
         this._anfCWBypassLogged = true;
@@ -3365,6 +3365,7 @@ setAGC(newAGCSpeed) {
       case 'USB':
       case 'LSB':
       case 'CW':
+      case 'CWL':
         this.bassBoost.gain.value = 12
         this.bandpass.frequency.value = 1800
         this.bandpass.Q.value = 1.0              // was 1.2 — wider peak, less forward midrange
@@ -4116,11 +4117,31 @@ setAGC(newAGCSpeed) {
     }
   }
 
+  // CW rides on USB and CW-L on LSB with the carrier point (m) moved by the
+  // pitch, so a signal on the dial comes out as a pitch-Hz tone. The edges
+  // stay where the waterfall draws them, which centres the filter on the
+  // tone: ±250 Hz becomes 500-1000 Hz audio. (The old l-200/r-200 gave
+  // 300-800 Hz, leaving the 750 Hz tone 50 Hz from the top edge.) The pitch
+  // is taken from the caller's m - mOffset, so every setAudioRange() site
+  // keeps passing its usual offset triplet.
+  _cwWindow() {
+    const lsb = this.demodulation === 'CWL'
+    if (this.demodulation !== 'CW' && !lsb) return null
+    const pitch = this.audioM - this.audioMOffset
+    if (!Number.isFinite(pitch)) return null
+    return {
+      l: this.audioL,
+      m: this.audioM + (lsb ? pitch : -pitch),
+      r: this.audioR
+    }
+  }
+
   updateAudioParams() {
     // Built once and kept: storing the command rather than re-deriving it is
     // what keeps the CW offset window from being sent as the plain one.
-    this._lastWindowCmd = (this.demodulation == "CW")
-      ? { cmd: 'window', l: this.audioLOffset, m: this.audioMOffset, r: this.audioROffset }
+    const cw = this._cwWindow()
+    this._lastWindowCmd = cw
+      ? { cmd: 'window', ...cw }
       : { cmd: 'window', l: this.audioL, m: this.audioM, r: this.audioR }
     this._safeSend(this._lastWindowCmd)
 
@@ -4152,6 +4173,8 @@ setAGC(newAGCSpeed) {
       // filter/UI logic is unchanged; only the backend is told 'AM-ENV'.
       demodulation = 'AM';
       backendDemod = 'AM-ENV';
+    } else if (dUpper === 'CWL' || dUpper === 'CW-L') {
+      demodulation = 'CWL';
     } else {
       demodulation = d0;
     }
@@ -4166,6 +4189,10 @@ setAGC(newAGCSpeed) {
     if (this.aiNrEnabled) this.resetAiNoiseReduction();
     if (demodulation == "CW") {
       demodulation = "USB"
+    } else if (demodulation == "CWL") {
+      // The server has no CWL; unknown names are ignored and the previous
+      // mode would stay on.
+      demodulation = "LSB"
     }
     this.updateFilters()
     // The wire value, so AM-ENV goes out as AM-ENV rather than as the plain AM
@@ -4351,12 +4378,12 @@ setAGC(newAGCSpeed) {
   _diversityRetune() {
     const r = this.diversityRemote
     if (!r || !this.audioMaxSize) return
-    // Mirror updateAudioParams()'s choice: CW is tuned by the offset
-    // triplet, everything else by the plain one.
-    const cw = this.demodulation === 'CW'
-    const l = cw ? this.audioLOffset : this.audioL
-    const m = cw ? this.audioMOffset : this.audioM
-    const rr = cw ? this.audioROffset : this.audioR
+    // Mirror updateAudioParams()'s choice: CW/CW-L are tuned by the shifted
+    // window, everything else by the plain one.
+    const cw = this._cwWindow()
+    const l = cw ? cw.l : this.audioL
+    const m = cw ? cw.m : this.audioM
+    const rr = cw ? cw.r : this.audioR
     if (l == null || m == null || rr == null) return
     r.tune(this._binToHz(l), this._binToHz(m), this._binToHz(rr), this.demodulation)
   }

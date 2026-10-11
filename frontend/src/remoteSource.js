@@ -405,10 +405,11 @@ export class RemoteSource {
     }
     if (!this.canReceive(mHz)) return false
 
-    // CW is a client-side treatment of USB on this backend (audio.js
-    // setAudioDemodulation), so the wire value must be USB.
+    // CW/CW-L are client-side treatments of USB/LSB on this backend
+    // (audio.js setAudioDemodulation), so the wire value must be USB/LSB.
     let demod = String(demodulation || 'USB').toUpperCase()
     if (demod === 'CW') demod = 'USB'
+    else if (demod === 'CWL' || demod === 'CW-L') demod = 'LSB'
 
     this._send({ cmd: 'demodulation', demodulation: demod })
     this._send({

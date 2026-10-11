@@ -56,8 +56,8 @@ export function coverage (settings) {
  * does, and it reduces to the same l/m/r as the click path's USB/LSB
  * special-casing (USB has offsets[0] === 0, LSB has offsets[1] === 0).
  *
- * The second triple is the CW BFO-shifted passband, which the server expects
- * alongside the first — same -200/-750/-200 Hz shifts the desktop sends.
+ * The second triple carries the CW pitch (m - 750 Hz), same as the desktop
+ * sends; audio.js _cwWindow() moves the whole window by it for CW / CW-L.
  */
 export function tune (audio, frequency, mode, settings) {
   const def = DEMOD_DEFAULTS[mode] || DEMOD_DEFAULTS.USB
