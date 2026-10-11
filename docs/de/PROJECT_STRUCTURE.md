@@ -324,6 +324,7 @@ PhantomSDR-Plus
 │   │   │   ├── version.js             # VERSION + ORIGIN_URL für die Empfängerseite und /mobile
 │   │   │   ├── VersionSelector.svelte
 │   │   │   ├── VideoAreaSelector.svelte
+│   │   │   ├── wfAutoLevel.js         # Auto Adj.: Helligkeit und Kontrast des Wasserfalls
 │   │   │   └── wrappers.js
 │   │   ├── main.js
 │   │   ├── mobile
@@ -934,7 +935,7 @@ Das Verzeichnis `src/` enthält die C++-Implementierung des Backends.
 - FFT-Berechnung (CPU-/GPU-beschleunigt)
 - Demodulation (AM, FM, SSB, CW usw.)
 - Audiofilterung und Resampling
-- AGC und Rauschminderung
+- AGC pro Hörer — Auto (je Betriebsart abgestimmt) oder Fast / Medium / Slow wie am Transceiver, gewählt mit dem Befehl `agc_speed` (`utils/audioprocessing.cpp`) — und Rauschminderung
 
 #### 5. Webserver (`server/`)
 - WebSocket-Kommunikation
@@ -962,7 +963,7 @@ Die mit Svelte und Vite erstellte webbasierte Benutzeroberfläche.
 - **Versionszeile** — „PhantomSDR+ | v5.1.0 original from github.com/sv1btl/PhantomSDR-Plus“, die Adresse als Link; dieselbe Zeile steht auf der Seite /mobile. Versionsnummer und Adresse stehen in `lib/version.js`; die Zeile ist eine Urhebernennung nach `ADDITIONAL_TERMS.md`.
 
 #### 2. Wasserfallanzeige (`waterfall.js` + `lib/`)
-- Canvas-basierte Darstellung von Spektrum und Wasserfall, Farbpaletten und die adaptive Auto-Anpassung, alles in `waterfall.js` (reines JS, keine Komponente)
+- Canvas-basierte Darstellung von Spektrum und Wasserfall sowie Farbpaletten in `waterfall.js` (reines JS, keine Komponente); die Helligkeits-/Kontrast-Umrechnung von **Auto Adj.** ist `lib/wfAutoLevel.js`
 - Interaktive Abstimmung über `lib/PassbandTuner.svelte`
 - Bandplan- und Marker-Overlays über `lib/FrequencyMarkers.svelte`
 - Das Audio-Spektrogramm ist eine eigene Komponente: `lib/Spectrogram.svelte`
@@ -982,7 +983,7 @@ Die mit Svelte und Vite erstellte webbasierte Benutzeroberfläche.
 - WebSocket-Audiostrom
 - FLAC-/Opus-Dekodierung
 - Steuerung der Audiowiedergabe
-- Verteilt rohes PCM (vor AGC, Rauschminderung und Stummschaltung abgegriffen) an die Betriebsartendecoder
+- Verteilt rohes PCM (vor Rauschminderung und Stummschaltung des Browsers abgegriffen; die Server-AGC wird auf Slow gehalten, solange ein Decoder geöffnet ist) an die Betriebsartendecoder
 - KI-Rauschunterdrückung: `lib/rnnoise.js` lädt das RNNoise-WebAssembly-Modul (`@jitsi/rnnoise-wasm`) beim ersten Gebrauch; `audio.js` wendet es nur in Sprachbetriebsarten an, hinter dem Abgriff für die Decoder, sodass diese es nie hören
 - FLAC läuft über `flacLowLatency.js`, das jedes Paket in dem Moment decodiert, in dem es eintrifft, und die tatsächliche Rate des Streams (zum Beispiel 12016,3 Hz) mit einem 64-Tap-Resampler (2,7 ms Verzögerung) auf 12000 Hz bringt. Der WASM-Decoder in `modules/` gab den Ton in festen Blöcken von 1024 Samples frei und hielt rund 160 ms zurück; er wird weiterhin für Opus, für Diversity-Quellen und für FLAC verwendet, wenn die Seite mit `?flac=wasm` geöffnet wird
 - Steuerung des Wiedergabepuffers (`playoutControl.js`): `ArrivalMeter` misst, wie unregelmäßig die Pakete gemessen an der eigenen Zeitachse des Streams eintreffen, und die Drift zwischen dem Abtasttakt des Empfängers und der Soundkarte des Hörers; `CushionController` hält den kleinsten Pufferstand der letzten Minute nahe an der Reserve der gewählten Pufferstufe, indem er eine tonhöhengerechte Periode (`spliceOut` / `spliceIn`) des Tons zum Lautsprecher herausschneidet oder wiederholt. Decoder und Aufnahmen erhalten den unveränderten Stream. Gilt für den Pfad mit geplanten Puffern, den jeder Hörer einer reinen http-Station nutzt; `?drain=0` schaltet ihn ab, `?diag=1` zeigt seine Werte

@@ -324,6 +324,7 @@ PhantomSDR-Plus
 │   │   │   ├── version.js             # VERSION + ORIGIN_URL for the receiver page and /mobile
 │   │   │   ├── VersionSelector.svelte
 │   │   │   ├── VideoAreaSelector.svelte
+│   │   │   ├── wfAutoLevel.js         # Auto Adj.: waterfall brightness and contrast
 │   │   │   └── wrappers.js
 │   │   ├── main.js
 │   │   ├── mobile
@@ -934,7 +935,7 @@ The `src/` directory contains the C++ backend implementation.
 - FFT calculation (CPU/GPU accelerated)
 - Demodulation (AM, FM, SSB, CW, etc.)
 - Audio filtering and resampling
-- AGC and noise reduction
+- AGC per listener — Auto (tuned per mode) or transceiver-style Fast / Medium / Slow, chosen with the `agc_speed` command (`utils/audioprocessing.cpp`) — and noise reduction
 
 #### 5. Web Server (`server/`)
 - WebSocket communication
@@ -962,7 +963,7 @@ The web-based user interface built with Svelte and Vite.
 - **Version line** — "PhantomSDR+ | v5.1.0 original from github.com/sv1btl/PhantomSDR-Plus", with the address as a link; the same line is on the /mobile page. The version number and the address live in `lib/version.js`; the line is an author attribution covered by `ADDITIONAL_TERMS.md`.
 
 #### 2. Waterfall Display (`waterfall.js` + `lib/`)
-- Canvas-based spectrum and waterfall rendering, colormaps and the adaptive auto-adjust, all in `waterfall.js` (plain JS, not a component)
+- Canvas-based spectrum and waterfall rendering and colormaps in `waterfall.js` (plain JS, not a component); the **Auto Adj.** brightness/contrast remap is `lib/wfAutoLevel.js`
 - Interactive tuning through `lib/PassbandTuner.svelte`
 - Band plan and marker overlays through `lib/FrequencyMarkers.svelte`
 - The audio spectrogram is a separate component, `lib/Spectrogram.svelte`
@@ -983,7 +984,7 @@ The web-based user interface built with Svelte and Vite.
 - FLAC/Opus decoding. FLAC goes through `flacLowLatency.js`, which decodes each packet the moment it arrives and corrects the stream's true rate (for example 12016.3 Hz) to 12000 Hz with a 64-tap resampler (2.7 ms of delay). The WASM decoder in `modules/` released audio in fixed 1024-sample chunks and held back about 160 ms; it is still used for Opus, for diversity sources, and for FLAC when the page is opened with `?flac=wasm`
 - Audio playback control
 - Playback buffer control (`playoutControl.js`): `ArrivalMeter` measures how irregularly packets arrive against the stream's own timeline, and the drift between the receiver's sample clock and the listener's sound card; `CushionController` keeps the smallest buffer seen in the last minute close to the buffer preset's margin, by cutting or repeating one pitch-matched period (`spliceOut` / `spliceIn`) of the audio going to the loudspeaker. Decoders and recordings get the untouched stream. Applies to the scheduled-buffer path that every listener on a plain-http station uses; `?drain=0` switches it off, `?diag=1` shows its figures
-- Distributes raw PCM (taken before AGC, noise reduction and mute) to the mode decoders
+- Distributes raw PCM (taken before the browser's noise reduction and mute; the server AGC is held on Slow while a decoder is open) to the mode decoders
 - AI noise reduction: `lib/rnnoise.js` loads the RNNoise WebAssembly module (`@jitsi/rnnoise-wasm`) on first use; `audio.js` runs it on voice modes only, after the decoder tap, so the decoders never hear it
 
 #### 4a. Mode decoders and their workers

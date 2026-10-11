@@ -9,222 +9,7 @@ import { eventBus } from './eventBus';
 import { siteRegion } from './siteInfo.js';
 import { bands, MODES } from './bands-config.js';
 import { ConnectionRefused, isRefusal } from './refused'
-
-// ============================================================================
-// ADAPTIVE AUTO-ADJUST CLASS
-// Real-time noise monitoring with automatic parameter adjustment
-// Keeps weak signals visible even when noise levels change
-// ============================================================================
-
-class WaterfallAutoAdjust {
-  constructor() {
-    this.config = {
-      noiseFloorPercentile: 10,
-      signalCeilingPercentile: 99,
-      noiseSuppressionFactor: 0.15,
-      brightnessFactor: 0.3,
-      smoothingFrames: 8,
-      // ADAPTIVE parameters
-      adaptiveEnabled: true,         // Enable real-time adaptation
-      adaptationSpeed: 0.3,          // How fast to adapt (0-1)
-      adaptationInterval: 1000       // Check every 1 second
-    };
-
-    // Adaptive tracking
-    this.noiseHistory = [];
-    this.snrHistory = [];
-    this.lastAdaptation = Date.now();
-  }
-
-  // Derived from config, consumed by SpectrumWaterfall's per-bin noise
-  // suppressor. These never touch minWaterfall/maxWaterfall/waterfallColourShift
-  // — only how hard a bin classified as background noise gets pushed down.
-  suppressionDb() {
-    // noiseSuppressionFactor 0.08–0.16 (after adaptParameters' narrowed
-    // range) → ~9–15 dB of push-down, applied ONLY to bins the floor
-    // tracker classifies as noise. Softened again — the previous 13–24 dB
-    // range was too strong once real measured data started driving it.
-    return 8 + this.config.noiseSuppressionFactor * 40;
-  }
-
-  classifyThresholdDb() {
-    // noiseFloorPercentile 8–15 (after adaptParameters' narrowed range) →
-    // how many dB above the tracked per-bin floor a bin can sit and still
-    // be classified as noise. Smaller → catches more bins as noise; larger
-    // → gentler, only very-close-to-floor bins get suppressed. Raised again
-    // so even the most aggressive setting stays conservative.
-    return Math.max(3, this.config.noiseFloorPercentile * 0.4);
-  }
-  
-  // Pick a percentile from an ALREADY-sorted (ascending) array. Same index
-  // math as percentile() below — factored out so a caller that needs several
-  // percentiles of the same data can sort ONCE and index many times instead
-  // of re-sorting per percentile.
-  percentileSorted(sorted, p) {
-    if (!sorted || sorted.length === 0) return 0;
-    const idx = Math.floor((p / 100) * sorted.length);
-    return sorted[Math.min(idx, sorted.length - 1)];
-  }
-
-  percentile(arr, p) {
-    if (!arr || arr.length === 0) return 0;
-    const sorted = [...arr].sort((a, b) => a - b);
-    return this.percentileSorted(sorted, p);
-  }
-
-  // PERF (#4): `sorted` is the caller's already-sorted copy. This used to call
-  // percentile() five times, each of which re-copied AND re-sorted the same
-  // array — up to 5 full O(n log n) sorts per invocation. Now the sort happens
-  // once in calculate() and every percentile is a plain index lookup. Output
-  // is byte-for-byte identical (same comparator, same index formula).
-  analyzeConditions(sorted) {
-    const p5 = this.percentileSorted(sorted, 5);
-    const p10 = this.percentileSorted(sorted, 10);
-    const p50 = this.percentileSorted(sorted, 50);
-    const p90 = this.percentileSorted(sorted, 90);
-    const ceiling = this.percentileSorted(sorted, this.config.signalCeilingPercentile);
-
-    const noiseLevel = (p5 + p10) / 2;
-    const signalLevel = p90;
-    const snr = signalLevel - noiseLevel;
-
-    this.noiseHistory.push(noiseLevel);
-    if (this.noiseHistory.length > 20) this.noiseHistory.shift();
-
-    this.snrHistory.push(snr);
-    if (this.snrHistory.length > 20) this.snrHistory.shift();
-
-    const avgSNR = this.snrHistory.length > 0
-      ? this.snrHistory.reduce((a, b) => a + b, 0) / this.snrHistory.length
-      : snr;
-
-    return { snr, avgSNR, noiseLevel, signalLevel, median: p50, ceiling };
-  }
-  
-  // Targets are a continuous function of the MEASURED noise/signal spread
-  // for the currently visible band — not a snap to one of a few hardcoded
-  // presets. A wide spread (quiet band, strong signals well clear of the
-  // noise) means it's safe to classify aggressively and cut deep; a narrow
-  // spread (noisy band, weak signals close to the floor) means classification
-  // has to stay conservative and the cut shallow, or real signal starts
-  // getting nibbled. avgSNR still drives the human-readable condition label.
-  adaptParameters(conditions) {
-    const { avgSNR, noiseLevel, signalLevel } = conditions;
-    // Once the accumulateAdjustmentData fix started feeding real dB data
-    // instead of degenerate colormap-index values, the swings this drives
-    // got a lot more noticeable — this half-speed damping keeps the
-    // response gentle even though the underlying measurement is now
-    // accurate.
-    const speed = this.config.adaptationSpeed * 0.5;
-    const spreadDb = Math.max(0, signalLevel - noiseLevel);
-
-    let condition;
-    if (avgSNR > 50) condition = "EXCELLENT";
-    else if (avgSNR > 35) condition = "GOOD";
-    else if (avgSNR > 25) condition = "MODERATE";
-    else if (avgSNR > 15) condition = "POOR";
-    else condition = "VERY_POOR";
-
-    // classifyThresholdDb (via noiseFloorPercentile) — how close to its own
-    // floor a bin must sit to be called "noise". Scale with spread: on a
-    // wide-spread band this can be tight (catch only bins genuinely at the
-    // floor); on a narrow-spread band it needs to stay generous so
-    // borderline-weak real signal doesn't get caught. Floor raised again —
-    // stays conservative even at the widest measured spreads.
-    const targetNoiseFloor = Math.max(8, Math.min(15, 15 - spreadDb * 0.08));
-
-    // suppressionDb (via noiseSuppressionFactor) — how hard classified-noise
-    // bins get pushed down. More headroom (bigger spread) → safe to cut
-    // deeper without the depth itself being audible/visible as a hole next
-    // to real signal. Range narrowed further — even the widest measured
-    // spread stays well short of the most aggressive setting.
-    const targetSuppression = Math.max(0.08, Math.min(0.16, 0.08 + spreadDb * 0.002));
-
-    this.config.noiseFloorPercentile =
-      this.config.noiseFloorPercentile * (1 - speed) + targetNoiseFloor * speed;
-    this.config.noiseSuppressionFactor =
-      this.config.noiseSuppressionFactor * (1 - speed) + targetSuppression * speed;
-
-    return { condition, avgSNR, spreadDb };
-  }
-  
-  // Tunes suppressionDb()/classifyThresholdDb() via the adaptive condition
-  // tracker — this does NOT rescale real signal, see SpectrumWaterfall's
-  // per-bin noise-floor suppressor, which is what actually applies these
-  // values.
-  //
-  // Also returns displayMin/displayMax: the measured floor/ceiling, purely
-  // for showing the user what auto-adjust is seeing (e.g. moving a slider
-  // to match). These are NOT applied to minWaterfall/maxWaterfall — the
-  // colormap's gamma curve means shrinking the real color-mapping range
-  // toward these values makes signals look far more intense than with
-  // auto-adjust off (see SpectrumWaterfall.adjustWaterfallLimits), so the
-  // caller must treat displayMin/displayMax as read-only telemetry.
-  calculate(magnitudes) {
-    if (!magnitudes || magnitudes.length === 0) {
-      return { suppressionDb: this.suppressionDb(), classifyThresholdDb: this.classifyThresholdDb(), displayMin: null, displayMax: null };
-    }
-
-    // PERF (#4): sort ONCE here, then every percentile below (and inside
-    // analyzeConditions) is a plain index lookup on this same sorted copy.
-    // Previously calculate() + analyzeConditions() re-sorted this array up to
-    // 7 times per call. `[...magnitudes]` matches the copy percentile() made,
-    // and the comparator is identical, so results are unchanged.
-    const sorted = [...magnitudes].sort((a, b) => a - b);
-
-    if (this.config.adaptiveEnabled) {
-      const now = Date.now();
-      if (now - this.lastAdaptation >= this.config.adaptationInterval) {
-        this.adaptParameters(this.analyzeConditions(sorted));
-        this.lastAdaptation = now;
-      }
-    }
-
-    const floor = this.percentileSorted(sorted, 10);
-    const ceiling = this.percentileSorted(sorted, this.config.signalCeilingPercentile);
-    const targetMin = floor - 3;
-    const targetMax = ceiling + 6;
-
-    const levelSpeed = 0.025; // very slow, deliberate glide
-    this._emaMin = this._emaMin == null ? targetMin : this._emaMin + levelSpeed * (targetMin - this._emaMin);
-    this._emaMax = this._emaMax == null ? targetMax : this._emaMax + levelSpeed * (targetMax - this._emaMax);
-
-    return { suppressionDb: this.suppressionDb(), classifyThresholdDb: this.classifyThresholdDb(), displayMin: this._emaMin, displayMax: this._emaMax };
-  }
-
-  setConfig(cfg) {
-    this.config = { ...this.config, ...cfg };
-  }
-
-  reset() {
-    this.noiseHistory = [];
-    this.snrHistory = [];
-    this._emaMin = null;
-    this._emaMax = null;
-  }
-
-  getStatus() {
-    const avgSNR = this.snrHistory.length > 0
-      ? this.snrHistory.reduce((a, b) => a + b, 0) / this.snrHistory.length
-      : 0;
-
-    let condition = "UNKNOWN";
-    if (avgSNR > 50) condition = "EXCELLENT";
-    else if (avgSNR > 35) condition = "GOOD";
-    else if (avgSNR > 25) condition = "MODERATE";
-    else if (avgSNR > 15) condition = "POOR";
-    else if (this.snrHistory.length > 0) condition = "VERY_POOR";
-
-    return {
-      adaptiveEnabled: this.config.adaptiveEnabled,
-      condition,
-      avgSNR: avgSNR.toFixed(1),
-      noiseFloor: this.classifyThresholdDb().toFixed(1),
-      suppression: this.suppressionDb().toFixed(0),
-      brightness: "0"
-    };
-  }
-}
+import WaterfallAutoLevel from './lib/wfAutoLevel.js'
 
 export default class SpectrumWaterfall {
   constructor(endpoint, settings) {
@@ -236,30 +21,11 @@ export default class SpectrumWaterfall {
 
     this.zoomFactor = 1
 
+    // "Auto Adj." — automatic brightness/contrast, see lib/wfAutoLevel.js.
+    // minWaterfall/maxWaterfall stay frozen while it runs.
     this.autoAdjust = false;
-    this.adjustmentBuffer = []; // Buffer to accumulate data for adjustment
-    this.bufferSize = 50; // Number of data points to accumulate before adjusting
-
-    // Initialize smart auto-adjust
-    this.autoAdjuster = new WaterfallAutoAdjust();
-
-    // Per-bin background-noise floor for the waterfall, keyed by the
-    // absolute spectrum bin index (curL + i), so it stays valid across
-    // zoom/pan. Only bins classified as sitting close to their own tracked
-    // floor get pushed down — real signal bins pass through with their
-    // original value untouched, and minWaterfall/maxWaterfall/
-    // waterfallColourShift (your manual level/brightness controls) are
-    // never modified by this.
-    this.wfNoiseFloor = null
-    this.wfFloorSeeded = false
-    this.wfDownTimeConstant = 4    // seconds — floor can fall this fast to find real gaps
-    this.wfUpTimeConstant = 60     // seconds — far slower rise, won't mistake signal for louder noise
-    this.wfClassifyMarginDb = 4    // soft-knee half-width around the classify threshold
-    this._wfSuppressionDb = 26     // updated by adjustWaterfallLimits() when adaptive tuning runs
-    this._wfClassifyThresholdDb = 6
-    this._wfLastFrameTime = null
-    // Measured floor/ceiling for UI display only — never applied to
-    // minWaterfall/maxWaterfall. See adjustWaterfallLimits().
+    this.autoLevel = new WaterfallAutoLevel();
+    // Measured floor/ceiling for the (disabled) Min/Max sliders — telemetry only.
     this.autoAdjustDisplayMin = null
     this.autoAdjustDisplayMax = null
 
@@ -612,105 +378,6 @@ export default class SpectrumWaterfall {
     }
   }
 
-  accumulateAdjustmentData(waterfallArray) {
-    // BUG FIX (STACK OVERFLOW): `push(...waterfallArray)` spreads typed-array
-    // elements as individual function arguments.  With large buffers (>~65k
-    // elements, common after a few seconds of waterfall data) this throws
-    // RangeError: Maximum call stack size exceeded, which propagates out of the
-    // rAF loop and silently freezes the entire waterfall.  Use a for-loop — it
-    // is O(n) and unbounded by the call-stack argument limit.
-    for (let i = 0; i < waterfallArray.length; i++) {
-      this.adjustmentBuffer.push(waterfallArray[i]);
-    }
-    if (this.adjustmentBuffer.length >= this.bufferSize) {
-      this.adjustWaterfallLimits(this.adjustmentBuffer);
-      this.adjustmentBuffer = [];
-    }
-  }
-
-  // Only re-tunes how aggressively the per-bin noise suppressor pushes
-  // noise-classified bins down (_wfSuppressionDb / _wfClassifyThresholdDb).
-  // Deliberately does NOT touch minWaterfall/maxWaterfall/
-  // waterfallColourShift — those are your manual level/brightness controls
-  // and real signal bins must render exactly as they would with auto-adjust
-  // off.
-  // Deliberately does NOT touch minWaterfall/maxWaterfall. The colormap
-  // (see lib/colormaps.js turboColormap) applies its own gamma curve on top
-  // of whatever range [min, max] normalizes into — shrinking that range
-  // toward the measured floor/ceiling pushes real signal much further up
-  // the curve than the default wide range would, making it look far more
-  // intense/saturated than with auto-adjust off. Keeping min/max exactly
-  // as the user/band left them means any bin that ISN'T classified as
-  // noise renders with exactly the same color it would without auto-adjust
-  // at all; only the per-bin suppressor's noise-classified bins change.
-  adjustWaterfallLimits(bufferedData) {
-    if (!this.autoAdjuster) return;
-    const params = this.autoAdjuster.calculate(bufferedData);
-    this._wfSuppressionDb = params.suppressionDb;
-    this._wfClassifyThresholdDb = params.classifyThresholdDb;
-    // Read-only telemetry for the UI (e.g. sliders) to show what auto-adjust
-    // is measuring. Deliberately NOT applied to minWaterfall/maxWaterfall —
-    // see the comment on WaterfallAutoAdjust.calculate().
-    this.autoAdjustDisplayMin = params.displayMin;
-    this.autoAdjustDisplayMax = params.displayMax;
-  }
-
-  // Per-bin noise-floor tracker + soft-knee suppression, mirroring the
-  // audio background-noise-suppression design: each absolute bin index
-  // gets its own slow-tracked floor (fast to fall into genuine quiet
-  // gaps, far slower to rise so a strong signal can't drag its own
-  // "noise" reference up to meet it). A bin only gets pushed down if it
-  // sits close to ITS OWN floor; anything that stands out above that is
-  // passed through with its original dB value completely unchanged.
-  _suppressWaterfallNoise(waterfallArray, curL) {
-    const n = waterfallArray.length
-    const maxSize = this.waterfallMaxSize || (curL + n)
-    if (!this.wfNoiseFloor || this.wfNoiseFloor.length < maxSize) {
-      this.wfNoiseFloor = new Float32Array(maxSize)
-      this.wfFloorSeeded = false
-    }
-
-    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now())
-    const dt = this._wfLastFrameTime != null ? Math.max(0, (now - this._wfLastFrameTime) / 1000) : 0.05
-    this._wfLastFrameTime = now
-    const downAlpha = 1 - Math.exp(-dt / this.wfDownTimeConstant)
-    const upAlpha = 1 - Math.exp(-dt / this.wfUpTimeConstant)
-
-    const floor = this.wfNoiseFloor
-    const suppressionDb = this._wfSuppressionDb
-    const loDb = this._wfClassifyThresholdDb - this.wfClassifyMarginDb
-    const hiDb = this._wfClassifyThresholdDb + this.wfClassifyMarginDb
-
-    // PERF: reuse an n-keyed output buffer instead of allocating one per frame.
-    // The loop writes every out[i] (including the pass-through branch), so no
-    // clear is needed; the result is consumed read-only downstream and never
-    // retained across frames, so reuse is safe and output is identical.
-    if (!this._wfSuppressOut || this._wfSuppressOut.length !== n) {
-      this._wfSuppressOut = new Float32Array(n)
-    }
-    const out = this._wfSuppressOut
-    for (let i = 0; i < n; i++) {
-      const idx = curL + i
-      const v = waterfallArray[i]
-      if (idx < 0 || idx >= maxSize) { out[i] = v; continue }
-
-      if (!this.wfFloorSeeded) {
-        floor[idx] = v
-      } else {
-        const f = floor[idx]
-        floor[idx] = v < f ? f + downAlpha * (v - f) : f + upAlpha * (v - f)
-      }
-
-      const diff = v - floor[idx]   // how far this bin sits above its own floor
-      let t = (diff - loDb) / (hiDb - loDb)
-      t = t < 0 ? 0 : (t > 1 ? 1 : t)
-      const smooth = t * t * (3 - 2 * t)   // 0 = noise, 1 = signal — smoothstep, no hard cut
-      out[i] = v - suppressionDb * (1 - smooth)
-    }
-    this.wfFloorSeeded = true
-    return out
-  }
-
   // ── ka9q-style SNR estimation ─────────────────────────────────────────
   // Noise is estimated per waterfall frame as the MEDIAN of the spectrum
   // bins flanking the tuned passband (guard band excluded).  The median is
@@ -912,15 +579,26 @@ export default class SpectrumWaterfall {
   }
 
   // Drawing functions
-  calculateOffsets(waterfallArray, curL, curR) {
+  // live=false for history lines being redrawn: they are levelled with the
+  // current auto-adjust state but must not feed back into it.
+  calculateOffsets(waterfallArray, curL, curR, live = false) {
     // Correct for zooming or shifting
     const pxPerIdx = this.canvasWidth / (this.waterfallR - this.waterfallL)
     const pxL = (curL - this.waterfallL) * pxPerIdx
     const pxR = (curR - this.waterfallL) * pxPerIdx
 
-    // Auto-adjust suppresses background noise per-bin before color mapping;
-    // real signal bins reach transformValue with their value unchanged.
-    const source = this.autoAdjust ? this._suppressWaterfallNoise(waterfallArray, curL) : waterfallArray
+    let source = waterfallArray
+    if (this.autoAdjust) {
+      const now = (typeof performance !== 'undefined' ? performance.now() : Date.now())
+      source = this.autoLevel.process(waterfallArray, curL + ':' + curR, this.minWaterfall, this.maxWaterfall, now, live)
+      if (live) {
+        const st = this.autoLevel.stats
+        if (Number.isFinite(st.floorDb)) {
+          this.autoAdjustDisplayMin = st.floorDb - 3
+          this.autoAdjustDisplayMax = st.ceilingDb
+        }
+      }
+    }
 
     const arr = new Uint8Array(source.length)
     for (let i = 0; i < arr.length; i++) {
@@ -944,22 +622,20 @@ export default class SpectrumWaterfall {
       }
 
       const { data: waterfallArray, l: curL, r: curR } = this.waterfallQueue.pop();
-      const [arr, pxL, pxR] = this.calculateOffsets(waterfallArray, curL, curR);
-
-      if (this.autoAdjust) {
-        // Feed the raw dB magnitude data, not `arr` (the already-clamped
-        // 0-255 colormap-index output of calculateOffsets). Percentiles
-        // over colormap indices are meaningless as dB levels — most
-        // background pixels quantize to index 0, which is why the floor
-        // kept landing at 0 and min_waterfall always settled on exactly -3.
-        this.accumulateAdjustmentData(waterfallArray);
-      }
+      const [arr, pxL, pxR] = this.calculateOffsets(waterfallArray, curL, curR, true);
 
       if (this.waterfall) {
         this.drawWaterfall(arr, pxL, pxR, curL, curR);
       }
       if (this.spectrum) {
-        this.drawSpectrum(arr, pxL, pxR, curL, curR);
+        // Auto Adj. levels the waterfall only: the spectrum trace keeps its
+        // true dB shape so it still lines up with its dB scale.
+        let specArr = arr
+        if (this.autoAdjust) {
+          specArr = new Uint8Array(waterfallArray.length)
+          for (let i = 0; i < specArr.length; i++) specArr[i] = this.transformValue(waterfallArray[i])
+        }
+        this.drawSpectrum(specArr, pxL, pxR, curL, curR);
       }
 
       requestAnimationFrame(draw);
@@ -1752,32 +1428,33 @@ export default class SpectrumWaterfall {
   }
 
   setAutoAdjustConfig(config) {
-    if (this.autoAdjuster) {
-      this.autoAdjuster.setConfig(config);
-      console.log('Smart auto-adjust config updated:', config);
-    }
+    this.autoLevel.setConfig(config);
   }
 
   enableAutoAdjust(config) {
     this.autoAdjust = true;
-    if (config && this.autoAdjuster) {
-      this.autoAdjuster.setConfig(config);
-    }
-    if (this.autoAdjuster) {
-      this.autoAdjuster.reset();
-    }
-    // Reseed the per-bin floor tracker rather than carrying over whatever
-    // it last held (stale band, or never-initialized) — snaps straight to
-    // the current spectrum on the next frame instead of climbing from zero.
-    this.wfFloorSeeded = false;
-    console.log('Adaptive auto-adjust enabled');
+    if (config) this.autoLevel.setConfig(config);
+    // Start from the current spectrum, not whatever an earlier run or
+    // another band left behind.
+    this.autoLevel.reset();
+    this.autoLevel.setColormap(this.colormap);
   }
 
   getAutoAdjustStatus() {
-    if (this.autoAdjuster) {
-      return this.autoAdjuster.getStatus();
+    const st = this.autoLevel.stats
+    if (!Number.isFinite(st.snrDb)) return { adaptiveEnabled: true, condition: "WAITING", avgSNR: "0.0" }
+    let condition = "VERY_POOR"
+    if (st.snrDb > 50) condition = "EXCELLENT"
+    else if (st.snrDb > 35) condition = "GOOD"
+    else if (st.snrDb > 25) condition = "MODERATE"
+    else if (st.snrDb > 15) condition = "POOR"
+    return {
+      adaptiveEnabled: true,
+      condition,
+      avgSNR: st.snrDb.toFixed(1),
+      noiseFloor: st.floorDb.toFixed(1),
+      sigma: st.sigmaDb.toFixed(1),
     }
-    return null;
   }
 
   setAlpha(alpha) {
@@ -1786,6 +1463,7 @@ export default class SpectrumWaterfall {
 
   setColormapArray(colormap) {
     this.colormap = computeColormapArray(colormap)
+    this.autoLevel.setColormap(this.colormap)
   }
 
   setColormap(name) {

@@ -130,6 +130,21 @@ struct glz::meta<agc_enable_cmd>
     );
 };
 
+// AGC speed command: 0 = Auto (legacy server AGC), 1 = Fast, 2 = Medium,
+// 3 = Slow (transceiver-style hang AGC, see AGC::setTrxSpeed).
+struct agc_speed_cmd {
+    int speed;
+};
+
+template <>
+struct glz::meta<agc_speed_cmd>
+{
+    using T = agc_speed_cmd;
+    static constexpr auto value = object(
+        "speed", &T::speed
+    );
+};
+
 // Codec capability command: the client advertises which codecs it can decode.
 // Currently only Opus support is negotiable; when false the server keeps this
 // client on FLAC even for C-QUAM (see AudioClient::set_am_stereo).
@@ -164,7 +179,7 @@ struct glz::meta<set_codec_cmd>
 
 using msg_variant = std::variant<window_cmd, demodulation_cmd, userid_cmd, mute_cmd, chat_cmd,
                                   noise_gate_enable_cmd, noise_gate_preset_cmd, agc_enable_cmd,
-                                  codec_caps_cmd, set_codec_cmd>;
+                                  codec_caps_cmd, set_codec_cmd, agc_speed_cmd>;
 
 template <>
 struct glz::meta<msg_variant>
@@ -180,7 +195,8 @@ struct glz::meta<msg_variant>
         "noise_gate_preset",
         "agc_enable",
         "codec_caps",
-        "set_codec"
+        "set_codec",
+        "agc_speed"
     };
 };
 
@@ -226,6 +242,9 @@ void Client::on_message(std::string &msg) {
             },
             [&](set_codec_cmd &cmd) {
                 on_set_codec_message(cmd.codec);
+            },
+            [&](agc_speed_cmd &cmd) {
+                on_agc_speed_message(cmd.speed);
             }
         },
         msg_parsed);
@@ -247,3 +266,4 @@ void Client::on_mute(bool mute) { this->mute = mute; }
 void Client::on_noise_gate_enable_message(bool) {}
 void Client::on_noise_gate_preset_message(std::string &) {}
 void Client::on_agc_enable_message(bool) {}
+void Client::on_agc_speed_message(int) {}

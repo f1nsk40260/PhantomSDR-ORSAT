@@ -1336,6 +1336,10 @@ async init() {
     // Advertise codec capabilities before any mode change can trigger C-QUAM.
     // Older servers ignore unknown commands, so this is backward-compatible.
     this._safeSend({ cmd: 'codec_caps', opus: OPUS_ENABLED })
+    // A new /audio connection starts on the server's Auto AGC; re-apply the
+    // listener's Fast/Medium/Slow choice.
+    this._sentAgcSpeed = 0   // a new connection starts on Auto
+    this._syncAgcSpeed()
   }
   this.audioSocket.onerror = (evt) => this._handleSocketTerminal('error', evt)
   this.audioSocket.onclose = (evt) => this._handleSocketTerminal('close', evt)
@@ -1528,103 +1532,17 @@ async init() {
     }
   }
 
+  // The browser-side level rider is retired: Fast / Medium / Slow are now real
+  // transceiver AGC timings inside the server's AGC (see setAGC), so the
+  // rider stays in bypass for every mode.
   _configureAudioLevelMode(mode) {
     this.audioLevelMode = mode;
     this.audioLevelHoldCounter = 0;
     this.audioLevelDetectorFast = 0.0;
     this.audioLevelDetectorSlow = 0.0;
-    this.audioLevelDetectorPeak = 0.0;  // smoothed peak follower — reset on every mode switch
-    this.audioLevelSilenceRms = 0.0;    // 0 = no silence gate; modes opt in below
-
-    switch (mode) {
-      case 1: // Fast — real transceiver VERY FAST AGC
-          // Attack and release both essentially instant (one frame): the gain follows
-          // the signal envelope packet by packet. Level is nailed down hard, every
-          // syllable comes out the same loudness, and the gain is back to unity the
-          // moment a signal stops. This is the "FAST/QSK" end of the range — best for
-          // CW, pileups and rapid QSB, at the price of an audibly busy, dense sound.
-          // Peak-driven: reacts to peaks, not RMS average.
-          // Silence is never amplified: max boost is unity, and below
-          // audioLevelSilenceRms the release is frozen so band noise stays where it is.
-          this.audioLevelEnabled    = true;
-          this.audioLevelTarget     = 0.38;
-          this.audioLevelMinGain    = 0.45;
-          this.audioLevelMaxBoost   = 1.00;   // never boosts above unity — silence stays quiet
-          this.audioLevelSilenceRms = 0.006;  // below this the release is frozen entirely
-          this.audioLevelAttack     = 0.95;   // ~1 frame — clamps within a single packet
-          this.audioLevelRelease    = 0.92;   // ~1 frame — gain snaps back immediately
-          this.audioLevelHoldFrames = 0;      // no hold at all — releases the instant level drops
-          this.audioLevelPeakWeight = 0.95;   // almost purely peak-driven
-          this.audioLevelFastCoeff  = 0.75;   // fast detector ≈ 1 frame
-          this.audioLevelSlowCoeff  = 0.20;   // slow detector ≈ 0.8s
-          this.audioLevelPeakCoeff  = 0.90;   // peak follower tracks per-packet peaks
-          break;
-
-      case 2: // Medium — real transceiver MEDIUM AGC
-          // Attack: fast (as always). Release: ~1.2s T63 — the classic "MED" position.
-          // It rides QSB and holds the level steady across a sentence, but unlike Slow
-          // it does recover between overs, so a weak station following a loud one is
-          // audible after a second or two rather than a dozen.
-          // Detectors sit halfway between Fast and Slow: they follow the envelope of
-          // speech, not individual syllables.
-          // Silence is never amplified: max boost is unity, and below
-          // audioLevelSilenceRms the release is frozen so band noise stays where it is.
-          // The program-dependent branch in _updateAudioLevelControl still shifts timing
-          // around this medium centre based on crest factor and signal dynamics.
-          this.audioLevelEnabled    = true;
-          this.audioLevelTarget     = 0.38;
-          this.audioLevelMinGain    = 0.42;
-          this.audioLevelMaxBoost   = 1.00;   // never boosts above unity — silence stays quiet
-          this.audioLevelSilenceRms = 0.008;  // below this the release is frozen entirely
-          this.audioLevelAttack     = 0.85;   // T63 ≈ 85ms — fast attack
-          this.audioLevelRelease    = 0.13;   // T63 ≈ 1.2s — medium release
-          this.audioLevelHoldFrames = 9;      // ~1.4s hold before release starts
-          this.audioLevelPeakWeight = 0.80;
-          this.audioLevelFastCoeff  = 0.15;   // fast detector ≈ 1s — speech envelope
-          this.audioLevelSlowCoeff  = 0.03;   // slow detector ≈ 5s — band level
-          this.audioLevelPeakCoeff  = 0.20;   // peak follower ≈ 0.8s
-          break;
-
-      case 3: // Slow — real transceiver VERY SLOW AGC
-          // Attack: fast (same as Fast mode — all hardware AGCs attack fast).
-          // Release: ~13s T63 — the gain essentially does not recover between words,
-          // between overs, or across a whole QSO. Once a strong station has pulled the
-          // gain down, the noise floor stays buried for ten seconds or more after it
-          // stops. This is the "SLOW/LONG" position of a collins-style / K3 hang AGC:
-          // rock-steady loudness, zero pumping, at the price of losing weak signals
-          // for a while after a loud one.
-          // Detectors are deliberately sluggish too, so single loud packets set the
-          // level and short gaps never leak through.
-          // Silence is never amplified: max boost is unity, and below audioLevelSilenceRms
-          // the release is frozen outright so the noise floor cannot creep back up.
-          this.audioLevelEnabled    = true;
-          this.audioLevelTarget     = 0.38;
-          this.audioLevelMinGain    = 0.55;
-          this.audioLevelMaxBoost   = 1.00;   // never boosts above unity — silence stays quiet
-          this.audioLevelSilenceRms = 0.010;  // below this the release is frozen entirely
-          this.audioLevelAttack     = 0.85;   // T63 ≈ 85ms — same fast attack as Fast mode
-          this.audioLevelRelease    = 0.012;  // T63 ≈ 13s — extremely slow recovery
-          this.audioLevelHoldFrames = 100;    // ~16s hang before release even starts
-          this.audioLevelPeakWeight = 0.75;
-          this.audioLevelFastCoeff  = 0.025;  // fast detector ≈ 6s — barely "fast" at all
-          this.audioLevelSlowCoeff  = 0.004;  // slow detector ≈ 40s — long-term band level
-          this.audioLevelPeakCoeff  = 0.035;  // peak follower decays over several seconds
-          break;
-
-      case 0: // Auto = bypass frontend audio-level
-      default:
-        this.audioLevelEnabled = false;
-        this.audioLevelTarget = 0.20;
-        this.audioLevelMinGain = 1.0;
-        this.audioLevelMaxBoost = 2.0;
-        this.audioLevelAttack = 0.0;
-        this.audioLevelRelease = 0.0;
-        this.audioLevelHoldFrames = 0;
-        this.audioLevelPeakWeight = 0.0;
-        this.audioLevelFastCoeff = 0.0;
-        this.audioLevelSlowCoeff = 0.0;
-        break;
-    }
+    this.audioLevelDetectorPeak = 0.0;
+    this.audioLevelSilenceRms = 0.0;
+    this.audioLevelEnabled = false;
   }
 
   _updateAudioLevelControl(pcmArray) {
@@ -1732,24 +1650,56 @@ async init() {
 
    // Frontend audio-level parameters (backend AGC remains enabled)
 
+// AGC buttons: 0 = Auto (the server's own mode-dependent AGC), 1 = Fast,
+// 2 = Medium, 3 = Slow — transceiver-style hang AGC in the server
+// (AGC::setTrxSpeed), same output level as Auto. Servers without the
+// agc_speed command ignore it and stay on Auto.
 setAGC(newAGCSpeed) {
   if (typeof this.decoder?.set_agc_enable === 'function') {
     this.decoder.set_agc_enable(true);
   }
 
   this.mute = false;
-  this._configureAudioLevelMode(newAGCSpeed);
+  this.agcSpeed = [1, 2, 3].includes(newAGCSpeed) ? newAGCSpeed : 0;
+  this._syncAgcSpeed();
+  this._configureAudioLevelMode(0);
   this._resetAudioLevelControl();
 
-  const modeNames = {
-    0: 'Audio Level Auto (Bypass)',
-    1: 'Audio Level Fast (Very Fast / QSK)',
-    2: 'Audio Level Medium (Program Dependent)',
-    3: 'Audio Level Slow (Very Slow / Hang)'
-  };
-
-  console.log('Backend AGC ENABLED | Frontend mode = ' + (modeNames[newAGCSpeed] || ('Unknown ' + newAGCSpeed)));
+  const modeNames = { 0: 'Auto', 1: 'Fast', 2: 'Medium', 3: 'Slow' };
+  console.log('AGC: ' + modeNames[this.agcSpeed]);
 }
+
+  // While any decoder is open the server AGC is held on Slow, whatever the
+  // AGC button says: the decoders share the listener's single audio stream,
+  // and a fast AGC moving the gain mid-transmission hurts them. The button
+  // choice comes back as soon as the last decoder closes. Called on every
+  // audio packet; only sends when the effective speed actually changes.
+  _decoderWantsSteadyAgc() {
+    return !!(this.decodeFT8 || this.decodeFT4 || this.decodeFT2 || this.decodeWSPR ||
+              this.decodeJS8 || this.decodeFAX || this.decodeSSTV || this.decodeNAVTEX ||
+              this.decodeFSK || this.decodeCW || this.decodeModeID || this.decodeRADE ||
+              this.qrssEnabled);
+  }
+
+  // cb(true) while a decoder is overriding the listener's AGC choice (so the
+  // page can say "Slow (decoder)"), cb(false) once it no longer is.
+  setAgcHoldCallback(cb) {
+    this.agcHoldCallback = cb;
+    this._agcHeld = undefined;
+    this._syncAgcSpeed();
+  }
+
+  _syncAgcSpeed() {
+    const decoderHold = this._decoderWantsSteadyAgc();
+    const held = decoderHold && (this.agcSpeed || 0) !== 3;
+    if (held !== this._agcHeld) {
+      this._agcHeld = held;
+      try { this.agcHoldCallback?.(held); } catch (e) { console.warn('[AGC] hold callback', e); }
+    }
+    const want = decoderHold ? 3 : (this.agcSpeed || 0);
+    if (want === (this._sentAgcSpeed ?? 0)) return;
+    if (this._safeSend({ cmd: 'agc_speed', speed: want })) this._sentAgcSpeed = want;
+  }
 
   smoothMaxgain(maxgain) {
     // Legacy helper kept for compatibility. It now only limits
@@ -5927,6 +5877,7 @@ js8Pending() {
     // pcmArray is the combined one destined for the speaker; otherwise the
     // two are the same object and this is exactly what it always was.
     const rawPcm = decoderPcm || pcmArray;
+    this._syncAgcSpeed();
 
     // Open any FTx capture window whose slot boundary has arrived, before the
     // appends below — so the block that crosses the boundary is captured too.

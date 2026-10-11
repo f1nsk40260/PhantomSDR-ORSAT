@@ -235,6 +235,7 @@ class AudioClient : public Client,
 
     // AGC control methods
     void on_agc_enable_message(bool enabled);
+    void on_agc_speed_message(int speed);
 
     // Codec capability: false means this client cannot decode Opus, so C-QUAM
     // stays on FLAC for it (see set_am_stereo).

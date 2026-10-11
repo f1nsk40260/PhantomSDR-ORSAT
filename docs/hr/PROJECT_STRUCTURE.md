@@ -324,6 +324,7 @@ PhantomSDR-Plus
 │   │   │   ├── version.js             # VERSION + ORIGIN_URL za stranicu prijemnika i /mobile
 │   │   │   ├── VersionSelector.svelte
 │   │   │   ├── VideoAreaSelector.svelte
+│   │   │   ├── wfAutoLevel.js         # Auto Adj.: svjetlina i kontrast slapa
 │   │   │   └── wrappers.js
 │   │   ├── main.js
 │   │   ├── mobile
@@ -934,7 +935,7 @@ Direktorij `src/` sadrži implementaciju pozadinskog dijela u C++-u.
 - Izračun FFT-a (ubrzan CPU-om/GPU-om)
 - Demodulacija (AM, FM, SSB, CW itd.)
 - Filtriranje i ponovno uzorkovanje zvuka
-- AGC i smanjenje šuma
+- AGC po slušatelju — Auto (podešen po načinu rada) ili Fast / Medium / Slow kao na primopredajniku, odabran naredbom `agc_speed` (`utils/audioprocessing.cpp`) — i smanjenje šuma
 
 #### 5. Web-poslužitelj (`server/`)
 - Komunikacija putem WebSocketa
@@ -962,7 +963,7 @@ Web-sučelje izgrađeno pomoću Sveltea i Vitea.
 - **Redak verzije** — „PhantomSDR+ | v5.1.0 original from github.com/sv1btl/PhantomSDR-Plus”, s adresom kao poveznicom; isti redak nalazi se i na stranici /mobile. Broj verzije i adresa nalaze se u `lib/version.js`; redak je navođenje autorstva obuhvaćeno datotekom `ADDITIONAL_TERMS.md`.
 
 #### 2. Prikaz slapa (`waterfall.js` + `lib/`)
-- Iscrtavanje spektra i slapa na platnu (canvas), palete boja i prilagodljivo automatsko podešavanje — sve u `waterfall.js` (čisti JS, nije komponenta)
+- Iscrtavanje spektra i slapa na platnu (canvas) i palete boja u `waterfall.js` (čisti JS, nije komponenta); preračunavanje svjetline/kontrasta za **Auto Adj.** je `lib/wfAutoLevel.js`
 - Interaktivno ugađanje putem `lib/PassbandTuner.svelte`
 - Preklopi plana pojaseva i oznaka putem `lib/FrequencyMarkers.svelte`
 - Audio spektrogram zasebna je komponenta: `lib/Spectrogram.svelte`
@@ -982,7 +983,7 @@ Web-sučelje izgrađeno pomoću Sveltea i Vitea.
 - Audiotok putem WebSocketa
 - Dekodiranje FLAC-a/Opusa
 - Upravljanje reprodukcijom zvuka
-- Distribuira sirovi PCM (uzet prije AGC-a, smanjenja šuma i utišavanja) dekoderima načina rada
+- Distribuira sirovi PCM (uzet prije smanjenja šuma i utišavanja u pregledniku; AGC poslužitelja drži se na Slow dok je dekoder otvoren) dekoderima načina rada
 - Smanjenje šuma umjetnom inteligencijom: `lib/rnnoise.js` učitava RNNoise WebAssembly modul (`@jitsi/rnnoise-wasm`) pri prvoj uporabi; `audio.js` ga primjenjuje samo u govornim načinima, iza odvojka za dekodere, pa ga oni nikad ne čuju
 - FLAC ide kroz `flacLowLatency.js`, koji dekodira svaki paket u trenutku kad stigne i stvarnu brzinu toka (na primjer 12016,3 Hz) svodi na 12000 Hz resamplerom sa 64 koeficijenta (2,7 ms kašnjenja). WASM dekoder u `modules/` puštao je zvuk u fiksnim blokovima od 1024 uzorka i zadržavao oko 160 ms; i dalje se koristi za Opus, za izvore diversity prijema i za FLAC kad se stranica otvori s `?flac=wasm`
 - Upravljanje spremnikom reprodukcije (`playoutControl.js`): `ArrivalMeter` mjeri koliko nepravilno paketi stižu u odnosu na vlastitu vremensku os toka te odstupanje između takta uzorkovanja prijamnika i zvučne kartice slušatelja; `CushionController` drži najmanju popunjenost spremnika u posljednjoj minuti blizu rezerve odabranog koraka spremnika tako što izreže ili ponovi jednu periodu usklađenu s visinom tona (`spliceOut` / `spliceIn`) u zvuku koji ide prema zvučniku. Dekoderi i snimke dobivaju netaknut tok. Vrijedi za put s planiranim spremnicima koji koristi svaki slušatelj stanice na običnom http-u; `?drain=0` ga isključuje, `?diag=1` prikazuje njegove vrijednosti

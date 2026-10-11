@@ -286,12 +286,14 @@ Some stations run more than one receiver — for example one for HF and one for 
 
 ### Auto Gain Control (AGC)
 
-AGC automatically adjusts audio levels:
+AGC keeps the audio at a steady level. The four buttons work like the AGC switch on a transceiver: all four give the same loudness, and they differ only in how quickly the gain comes back up when a signal gets weaker or stops.
 
-- **Off**: No automatic gain adjustment
-- **Slow**: Gradual level changes (best for SSB)
-- **Medium**: Balanced response
-- **Fast**: Quick adjustment (best for AM)
+- **Auto**: the receiver's own AGC, tuned separately for SSB, AM and C-QUAM. This is the default.
+- **Fast**: no hang; the gain recovers in about 0.3 s. The noise comes up between words, and rapid fading is followed closely. Good for CW and for picking a weak station out between strong ones.
+- **Medium**: holds for 0.25 s, then recovers in about 1.2 s. A good everyday setting for SSB.
+- **Slow**: holds for 1 s, then recovers in about 3 s. The background stays down between words and between overs; a weak station right after a strong one sounds quieter for a few seconds.
+
+**While a decoder is open** the AGC is held on Slow, whichever button is selected: the decoder hears the same audio as you and needs a steady gain. A small **Slow (decoder)** note appears next to the AGC heading, and your own choice returns as soon as the last decoder is closed.
 
 **Recommendation**: Start with "Fast" for AM, "Slow" for SSB.
 
@@ -390,6 +392,10 @@ Magnifies the waterfall display:
 - **8x**: 8× magnification
 
 **Use when**: You need to see signals more clearly or tune precisely.
+
+### Auto Adj. (waterfall)
+
+The **Auto Adj.** switch under Waterfall Controls sets the waterfall's brightness and contrast for you. It measures the noise floor across the visible span and turns it into an even, dark background — also where the noise differs from one part of the span to another — and stretches everything above it, so that weak signals stand out and the strongest reach the top colours. It works the same with every colour map, and only the waterfall changes: the spectrum trace keeps its true dB scale. While it is on, the Min and Max sliders are locked and show the measured noise floor and peak; switching it off returns them to the band's own settings.
 
 ### Transceiver control (CAT)
 
@@ -559,7 +565,7 @@ The quickest way in is the **Decoders** button row on the main panel, just below
 
 **RADEL** and **RADEU** (RADE v1 digital voice) have their own buttons next to the **Modes selector** heading and inside the **Modes** and **Bands** popup windows, and work the same press-on / press-off way.
 
-The SSTV, HF FAX, NAVTEX, FSK/RTTY and CW decoders each run on their own background thread, so switching a decoder on or off never interrupts the audio, and the waterfall stays smooth while decoding. They are fed audio taken before AGC, noise reduction and mute — you can mute the receiver and decoding continues unaffected.
+The SSTV, HF FAX, NAVTEX, FSK/RTTY and CW decoders each run on their own background thread, so switching a decoder on or off never interrupts the audio, and the waterfall stays smooth while decoding. They are fed audio taken before the noise reduction and mute of your browser — you can mute the receiver and decoding continues unaffected. While a decoder is open the AGC is held on Slow, so the gain stays steady for it.
 
 **While a decoder runs it holds the mode and the passband.** Normally the mode follows the band plan — tune into a segment marked LSB or AM and the receiver switches to it. A running decoder overrides that, keeping the mode and the narrow passband it needs even if you tune to another band. The band's own mode returns as soon as you switch the decoder off, and the mode buttons still work at any time if you want to take over. The CW decoder is the exception: it decodes in whatever mode you are listening in.
 

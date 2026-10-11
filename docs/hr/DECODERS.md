@@ -70,7 +70,7 @@ Dekoder koji već radi ostaje uključen. `CW` ostaje običan način rada prijemn
 >
 > **QRSS grabber** nije dio ovog izbornika — ima vlastiti odjeljak **QRSS** i može raditi istodobno s nekim dekoderom.
 
-**Dekodiranje se odvija u pozadini.** SSTV, HF FAX, NAVTEX, FLDIGI i CW rade svaki u zasebnoj dretvi Web Workera, pa se dekodiranje nikada ne natječe s reprodukcijom zvuka ni sa slapom. Pokretanje ili zaustavljanje dekodera ne prekida zvuk, a sučelje ostaje odzivno dok se prima slika ili stranica. Svi dekoderi dobivaju sirovi zvuk uzet *prije* AGC-a, smanjenja šuma i utišavanja — utišavanje prijamnika ili prilagodba tih postavki vlastitom uhu stoga ne utječe na dekodiranje.
+**Dekodiranje se odvija u pozadini.** SSTV, HF FAX, NAVTEX, FLDIGI i CW rade svaki u zasebnoj dretvi Web Workera, pa se dekodiranje nikada ne natječe s reprodukcijom zvuka ni sa slapom. Pokretanje ili zaustavljanje dekodera ne prekida zvuk, a sučelje ostaje odzivno dok se prima slika ili stranica. Svi dekoderi dobivaju sirovi zvuk uzet *prije* smanjenja šuma i utišavanja — utišavanje prijamnika ili prilagodba tih postavki vlastitom uhu stoga ne utječe na dekodiranje. S AGC-om je drukčije: primjenjuje ga prijamnik prije nego što zvuk stigne u vaš preglednik, pa ga dekoderi dijele s vama. Zato se, dok je otvoren bilo koji dekoder, drži na **Slow**, bez obzira na odabranu tipku AGC-a, a to pokazuje mala napomena *Slow (decoder)* pokraj naslova AGC; vaš se izbor vraća kad se zatvori posljednji dekoder.
 
 **Dekoder koji radi drži način rada i propusni pojas.** Uobičajeno način rada slijedi plan opsega iz `bands-config.js`: pomaknite ugađanje u odsječak označen kao LSB ili AM i prijamnik se prebaci na njega. Dok dekoder radi, toga više nema. Dekoder zadržava način rada koji mu treba (USB kod većine, vlastiti kod RADE-a) i propusni pojas koji mu treba — PSK31 oko ±100 Hz, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber i MT63 svoju punu širinu, RTTY svoj shift — i oboje preživljava preugađanje, uključujući skok na drugi opseg. Bez toga bi FT8 na 40 m prebacio prijamnik na LSB čim se ugađanje pomakne, a uski propusni pojasi dekodera opet bi se raširili na puni SSB filtar.
 
@@ -377,7 +377,7 @@ Postavka brža od svjetionika troši osjetljivost — trag ispadne tanak i šuml
 
 Frekvencijske oznake teku uz lijevi rub, najviša frekvencija je na vrhu. Ispod platna statusni redak pokazuje odabranu brzinu, stvarno korištenu razlučivost (npr. `0.183 Hz/bin · 5.5 s window`) i brzinu stupaca (npr. `2.7 s/column`).
 
-Paleta boja referencirana je na **trenutačni** šum, koji se neprekidno mjeri iz praznih dijelova svakog stupca, a ne na apsolutnu razinu. Promjene glasnoće, AGC-a, antene ili opsega zato ne traže ponovno namještanje Gaina — prikaz zadržava stalan kontrast prema šumu opsega kakav god bio. Kao i kod dekodera, zvuk se uzima prije AGC-a, smanjenja šuma i utišavanja, pa prijamnik možete utišati i i dalje gledati.
+Paleta boja referencirana je na **trenutačni** šum, koji se neprekidno mjeri iz praznih dijelova svakog stupca, a ne na apsolutnu razinu. Promjene glasnoće, AGC-a, antene ili opsega zato ne traže ponovno namještanje Gaina — prikaz zadržava stalan kontrast prema šumu opsega kakav god bio. Kao i kod dekodera, zvuk se uzima prije smanjenja šuma i utišavanja, pa prijamnik možete utišati i i dalje gledati.
 
 Što znače oblici:
 

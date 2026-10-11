@@ -324,6 +324,7 @@ PhantomSDR-Plus
 │   │   │   ├── version.js             # VERSION + ORIGIN_URL para la página del receptor y /mobile
 │   │   │   ├── VersionSelector.svelte
 │   │   │   ├── VideoAreaSelector.svelte
+│   │   │   ├── wfAutoLevel.js         # Auto Adj.: brillo y contraste de la cascada
 │   │   │   └── wrappers.js
 │   │   ├── main.js
 │   │   ├── mobile
@@ -934,7 +935,7 @@ El directorio `src/` contiene la implementación del backend en C++.
 - Cálculo de la FFT (acelerado por CPU/GPU)
 - Demodulación (AM, FM, SSB, CW, etc.)
 - Filtrado y remuestreo de audio
-- AGC y reducción de ruido
+- AGC por oyente — Auto (ajustado por modo) o Fast / Medium / Slow como en un transceptor, elegido con la orden `agc_speed` (`utils/audioprocessing.cpp`) — y reducción de ruido
 
 #### 5. Servidor web (`server/`)
 - Comunicación por WebSocket
@@ -962,7 +963,7 @@ La interfaz de usuario web construida con Svelte y Vite.
 - **Línea de versión** — «PhantomSDR+ | v5.1.0 original from github.com/sv1btl/PhantomSDR-Plus», con la dirección como enlace; la misma línea aparece en la página /mobile. El número de versión y la dirección están en `lib/version.js`; la línea es una atribución de autoría cubierta por `ADDITIONAL_TERMS.md`.
 
 #### 2. Cascada (`waterfall.js` + `lib/`)
-- Representación del espectro y de la cascada en canvas, mapas de color y el ajuste automático adaptativo, todo en `waterfall.js` (JS puro, no un componente)
+- Representación del espectro y de la cascada en canvas y mapas de color en `waterfall.js` (JS puro, no un componente); el reajuste de brillo/contraste de **Auto Adj.** es `lib/wfAutoLevel.js`
 - Sintonía interactiva mediante `lib/PassbandTuner.svelte`
 - Superposiciones del plan de bandas y de los marcadores mediante `lib/FrequencyMarkers.svelte`
 - El espectrograma de audio es un componente aparte: `lib/Spectrogram.svelte`
@@ -982,7 +983,7 @@ La interfaz de usuario web construida con Svelte y Vite.
 - Flujo de audio por WebSocket
 - Decodificación FLAC/Opus
 - Control de la reproducción de audio
-- Distribuye el PCM en bruto (tomado antes del AGC, la reducción de ruido y el silenciado) a los decodificadores de modo
+- Distribuye el PCM en bruto (tomado antes de la reducción de ruido y el silenciado del navegador; el AGC del servidor se mantiene en Slow mientras haya un decodificador abierto) a los decodificadores de modo
 - Reducción de ruido por IA: `lib/rnnoise.js` carga el módulo WebAssembly de RNNoise (`@jitsi/rnnoise-wasm`) en el primer uso; `audio.js` lo aplica solo en modos de voz, después de la toma de los decodificadores, así que estos nunca lo oyen
 - FLAC pasa por `flacLowLatency.js`, que decodifica cada paquete en el momento en que llega y lleva la frecuencia real del flujo (por ejemplo 12016,3 Hz) a 12000 Hz con un remuestreador de 64 coeficientes (2,7 ms de retardo). El decodificador WASM de `modules/` entregaba el audio en bloques fijos de 1024 muestras y retenía unos 160 ms; se sigue usando para Opus, para las fuentes de diversidad y para FLAC cuando la página se abre con `?flac=wasm`
 - Control del búfer de reproducción (`playoutControl.js`): `ArrivalMeter` mide lo irregular que es la llegada de los paquetes respecto a la propia línea de tiempo del flujo, y la deriva entre el reloj de muestreo del receptor y la tarjeta de sonido del oyente; `CushionController` mantiene el menor búfer del último minuto cerca del margen del paso de búfer elegido, recortando o repitiendo un periodo ajustado al tono (`spliceOut` / `spliceIn`) del audio que va al altavoz. Los decodificadores y las grabaciones reciben el flujo intacto. Se aplica a la ruta de búferes programados que usa todo oyente de una estación en http simple; `?drain=0` lo desactiva y `?diag=1` muestra sus cifras

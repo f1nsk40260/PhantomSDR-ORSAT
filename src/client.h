@@ -115,6 +115,7 @@ class Client {
     virtual void on_noise_gate_enable_message(bool enabled);
     virtual void on_noise_gate_preset_message(std::string &preset);
     virtual void on_agc_enable_message(bool enabled);
+    virtual void on_agc_speed_message(int speed);
 
     // Client codec capability (AudioClient overrides). opus_supported=false
     // keeps the client on FLAC even for C-QUAM.

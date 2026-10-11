@@ -287,12 +287,14 @@ Manche Stationen betreiben mehr als einen Empfänger — zum Beispiel einen für
 
 ### Automatische Verstärkungsregelung (AGC)
 
-Die AGC passt die Audiopegel automatisch an:
+Die AGC hält den Ton auf gleichmäßigem Pegel. Die vier Tasten arbeiten wie der AGC-Schalter eines Transceivers: Alle vier ergeben dieselbe Lautstärke und unterscheiden sich nur darin, wie schnell die Verstärkung wieder ansteigt, wenn ein Signal schwächer wird oder verschwindet.
 
-- **Off**: keine automatische Verstärkungsanpassung
-- **Slow**: allmähliche Pegeländerungen (am besten für SSB)
-- **Medium**: ausgewogenes Verhalten
-- **Fast**: schnelle Anpassung (am besten für AM)
+- **Auto**: die empfängereigene AGC, getrennt abgestimmt für SSB, AM und C-QUAM. Das ist die Voreinstellung.
+- **Fast**: keine Haltezeit; die Verstärkung erholt sich in etwa 0,3 s. Zwischen den Worten kommt das Rauschen hoch, schnelles Fading wird eng verfolgt. Gut für CW und um eine schwache Station zwischen starken herauszuhören.
+- **Medium**: hält 0,25 s, erholt sich dann in etwa 1,2 s. Eine gute Alltagseinstellung für SSB.
+- **Slow**: hält 1 s, erholt sich dann in etwa 3 s. Der Hintergrund bleibt zwischen Worten und Durchgängen unten; eine schwache Station direkt nach einer starken klingt einige Sekunden lang leiser.
+
+**Solange ein Decoder geöffnet ist**, wird die AGC auf Slow gehalten, egal welche Taste gewählt ist: Der Decoder hört denselben Ton wie Sie und braucht eine gleichmäßige Verstärkung. Neben der AGC-Überschrift erscheint der kleine Hinweis **Slow (decoder)**, und Ihre eigene Wahl kehrt zurück, sobald der letzte Decoder geschlossen ist.
 
 **Empfehlung**: Beginnen Sie mit „Fast" für AM und „Slow" für SSB.
 
@@ -391,6 +393,10 @@ Vergrößert die Wasserfallanzeige:
 - **8x**: 8-fache Vergrößerung
 
 **Verwenden, wenn**: Sie Signale deutlicher sehen oder genauer abstimmen möchten.
+
+### Auto Adj. (Wasserfall)
+
+Der Schalter **Auto Adj.** unter den Wasserfall-Bedienelementen stellt Helligkeit und Kontrast des Wasserfalls selbst ein. Er misst das Grundrauschen über die sichtbare Spanne und macht daraus einen gleichmäßigen, dunklen Hintergrund – auch dort, wo das Rauschen in einem Teil der Spanne anders ist als im anderen – und spreizt alles darüber, sodass schwache Signale hervortreten und die stärksten die obersten Farben erreichen. Das funktioniert mit jeder Farbpalette gleich, und nur der Wasserfall ändert sich: Die Spektrumkurve behält ihre echte dB-Skala. Solange er eingeschaltet ist, sind die Regler Min und Max gesperrt und zeigen das gemessene Grundrauschen und die Spitze; beim Ausschalten kehren sie zu den Einstellungen des Bandes zurück.
 
 ### Transceiver-Steuerung (CAT)
 
@@ -560,7 +566,7 @@ Der schnellste Weg ist die Tastenreihe **Decoders** im Hauptpanel, direkt unter 
 
 **RADEL** und **RADEU** (RADE v1 Digital Voice) haben eigene Tasten neben der Überschrift **Modes selector** sowie in den Popup-Fenstern **Modes** und **Bands** und arbeiten nach demselben Prinzip: drücken zum Starten, erneut drücken zum Stoppen.
 
-Die Decoder für SSTV, HF-FAX, NAVTEX, FSK/RTTY und CW laufen jeweils in einem eigenen Hintergrund-Thread, sodass das Ein- oder Ausschalten eines Decoders den Ton nie unterbricht und der Wasserfall während des Dekodierens flüssig bleibt. Sie erhalten das Audiosignal vor AGC, Rauschminderung und Stummschaltung – Sie können den Empfänger stummschalten, und die Dekodierung läuft unbeeinflusst weiter.
+Die Decoder für SSTV, HF-FAX, NAVTEX, FSK/RTTY und CW laufen jeweils in einem eigenen Hintergrund-Thread, sodass das Ein- oder Ausschalten eines Decoders den Ton nie unterbricht und der Wasserfall während des Dekodierens flüssig bleibt. Sie erhalten das Audiosignal vor der Rauschminderung und Stummschaltung Ihres Browsers – Sie können den Empfänger stummschalten, und die Dekodierung läuft unbeeinflusst weiter. Solange ein Decoder geöffnet ist, wird die AGC auf Slow gehalten, damit die Verstärkung für ihn gleichmäßig bleibt.
 
 **Solange ein Decoder läuft, hält er Betriebsart und Durchlassbereich.** Normalerweise folgt die Betriebsart dem Bandplan — stimmen Sie in einen als LSB oder AM markierten Abschnitt, schaltet der Empfänger um. Ein laufender Decoder setzt sich darüber hinweg und behält die Betriebsart und den schmalen Durchlassbereich, die er braucht, selbst wenn Sie auf ein anderes Band gehen. Die bandeigene Betriebsart kehrt zurück, sobald Sie den Decoder abschalten, und die Mode-Schaltflächen greifen jederzeit, wenn Sie übernehmen wollen. Der CW-Decoder ist die Ausnahme: Er dekodiert in der Betriebsart, in der Sie gerade hören.
 

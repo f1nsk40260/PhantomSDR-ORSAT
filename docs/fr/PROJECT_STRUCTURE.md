@@ -324,6 +324,7 @@ PhantomSDR-Plus
 │   │   │   ├── version.js             # VERSION + ORIGIN_URL pour la page du récepteur et /mobile
 │   │   │   ├── VersionSelector.svelte
 │   │   │   ├── VideoAreaSelector.svelte
+│   │   │   ├── wfAutoLevel.js         # Auto Adj. : luminosité et contraste de la cascade
 │   │   │   └── wrappers.js
 │   │   ├── main.js
 │   │   ├── mobile
@@ -934,7 +935,7 @@ Le répertoire `src/` contient l'implémentation du backend en C++.
 - Calcul de FFT (accéléré par CPU/GPU)
 - Démodulation (AM, FM, BLU, CW, etc.)
 - Filtrage et rééchantillonnage audio
-- AGC et réduction de bruit
+- AGC par auditeur — Auto (réglée par mode) ou Fast / Medium / Slow comme sur un transceiver, choisie par la commande `agc_speed` (`utils/audioprocessing.cpp`) — et réduction de bruit
 
 #### 5. Serveur web (`server/`)
 - Communication WebSocket
@@ -962,7 +963,7 @@ L'interface utilisateur web construite avec Svelte et Vite.
 - **Ligne de version** — « PhantomSDR+ | v5.1.0 original from github.com/sv1btl/PhantomSDR-Plus », l'adresse servant de lien ; la même ligne figure sur la page /mobile. Le numéro de version et l'adresse se trouvent dans `lib/version.js` ; la ligne est une attribution d'auteur couverte par `ADDITIONAL_TERMS.md`.
 
 #### 2. Affichage en cascade (`waterfall.js` + `lib/`)
-- Rendu du spectre et de la cascade sur canevas, palettes de couleurs et ajustement automatique adaptatif, le tout dans `waterfall.js` (JS pur, pas un composant)
+- Rendu du spectre et de la cascade sur canevas et palettes de couleurs dans `waterfall.js` (JS pur, pas un composant) ; le remappage luminosité/contraste de **Auto Adj.** est `lib/wfAutoLevel.js`
 - Accord interactif via `lib/PassbandTuner.svelte`
 - Superpositions du plan de bandes et des marqueurs via `lib/FrequencyMarkers.svelte`
 - Le spectrogramme audio est un composant distinct : `lib/Spectrogram.svelte`
@@ -982,7 +983,7 @@ L'interface utilisateur web construite avec Svelte et Vite.
 - Flux audio WebSocket
 - Décodage FLAC/Opus
 - Contrôle de la lecture audio
-- Distribue le PCM brut (prélevé avant l'AGC, la réduction de bruit et la coupure du son) aux décodeurs de modes
+- Distribue le PCM brut (prélevé avant la réduction de bruit et la coupure du son du navigateur ; l'AGC du serveur est maintenue sur Slow tant qu'un décodeur est ouvert) aux décodeurs de modes
 - Réduction de bruit par IA : `lib/rnnoise.js` charge le module WebAssembly RNNoise (`@jitsi/rnnoise-wasm`) à la première utilisation ; `audio.js` ne l'applique qu'aux modes phonie, après la prise des décodeurs, qui ne l'entendent donc jamais
 - Le FLAC passe par `flacLowLatency.js`, qui décode chaque paquet dès qu'il arrive et ramène la fréquence réelle du flux (par exemple 12016,3 Hz) à 12000 Hz avec un rééchantillonneur à 64 coefficients (2,7 ms de retard). Le décodeur WASM de `modules/` livrait le son par blocs fixes de 1024 échantillons et retenait environ 160 ms ; il sert encore pour Opus, pour les sources de diversité et pour le FLAC quand la page est ouverte avec `?flac=wasm`
 - Contrôle du tampon de lecture (`playoutControl.js`) : `ArrivalMeter` mesure l'irrégularité d'arrivée des paquets par rapport à la chronologie propre du flux, ainsi que la dérive entre l'horloge d'échantillonnage du récepteur et la carte son de l'auditeur ; `CushionController` maintient le plus petit tampon de la dernière minute près de la marge du cran de tampon choisi, en coupant ou en répétant une période accordée à la hauteur du son (`spliceOut` / `spliceIn`) dans l'audio envoyé au haut-parleur. Les décodeurs et les enregistrements reçoivent le flux intact. S'applique au chemin à tampons planifiés qu'utilise tout auditeur d'une station en http simple ; `?drain=0` le désactive, `?diag=1` affiche ses valeurs

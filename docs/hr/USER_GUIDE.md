@@ -286,12 +286,14 @@ Neke stanice imaju više od jednog prijemnika — na primjer jedan za kratki val
 
 ### Automatska regulacija pojačanja (AGC)
 
-AGC automatski podešava razine zvuka:
+AGC drži zvuk na ujednačenoj razini. Četiri tipke rade kao preklopnik AGC-a na primopredajniku: sve četiri daju istu glasnoću i razlikuju se samo po tome koliko se brzo pojačanje ponovno podiže kad signal oslabi ili prestane.
 
-- **Off**: bez automatske regulacije pojačanja
-- **Slow**: postupne promjene razine (najbolje za SSB)
-- **Medium**: uravnotežen odziv
-- **Fast**: brzo podešavanje (najbolje za AM)
+- **Auto**: vlastiti AGC prijamnika, zasebno podešen za SSB, AM i C-QUAM. To je zadana postavka.
+- **Fast**: bez zadržavanja; pojačanje se oporavlja za oko 0,3 s. Šum se podiže između riječi, a brzi feding prati se izbliza. Dobro za CW i za izdvajanje slabe stanice između jakih.
+- **Medium**: zadržava 0,25 s, zatim se oporavlja za oko 1,2 s. Dobra svakodnevna postavka za SSB.
+- **Slow**: zadržava 1 s, zatim se oporavlja za oko 3 s. Pozadina ostaje niska između riječi i između javljanja; slaba stanica odmah nakon jake nekoliko sekundi zvuči tiše.
+
+**Dok je dekoder otvoren**, AGC se drži na Slow, bez obzira na odabranu tipku: dekoder čuje isti zvuk kao i vi i treba mu ujednačeno pojačanje. Pokraj naslova AGC pojavljuje se mala napomena **Slow (decoder)**, a vaš se izbor vraća čim se zatvori posljednji dekoder.
 
 **Preporuka**: počnite s „Fast" za AM i „Slow" za SSB.
 
@@ -390,6 +392,10 @@ Uvećava prikaz slapa:
 - **8x**: uvećanje ×8
 
 **Koristite kada**: trebate jasnije vidjeti signale ili se precizno ugoditi.
+
+### Auto Adj. (slap)
+
+Prekidač **Auto Adj.** među kontrolama slapa sam podešava svjetlinu i kontrast slapa. Mjeri razinu šuma preko cijelog vidljivog raspona i pretvara je u jednoliku, tamnu pozadinu — i ondje gdje se šum razlikuje od jednog dijela raspona do drugog — a sve iznad nje razvlači, tako da se slabi signali ističu, a najjači dosežu gornje boje. Radi jednako sa svakom paletom boja, a mijenja se samo slap: krivulja spektra zadržava svoju stvarnu dB ljestvicu. Dok je uključen, klizači Min i Max su zaključani i prikazuju izmjerenu razinu šuma i vrh; isključivanjem se vraćaju na postavke opsega.
 
 ### Upravljanje primopredajnikom (CAT)
 
@@ -559,7 +565,7 @@ Najbrži je put red gumba **Decoders** na glavnoj ploči, odmah ispod **Wheel Tu
 
 **RADEL** i **RADEU** (RADE v1 digitalni glas) imaju vlastite gumbe uz naslov **Modes selector** te u skočnim prozorima **Modes** i **Bands**, i rade na isti način: pritisak za pokretanje, ponovni pritisak za zaustavljanje.
 
-Dekoderi za SSTV, HF FAX, NAVTEX, FSK/RTTY i CW rade svaki u vlastitoj pozadinskoj dretvi, pa uključivanje ili isključivanje dekodera nikada ne prekida zvuk, a slap ostaje gladak tijekom dekodiranja. Dobivaju zvuk uzet prije AGC-a, smanjenja šuma i utišavanja — možete utišati prijamnik, a dekodiranje se nastavlja bez smetnji.
+Dekoderi za SSTV, HF FAX, NAVTEX, FSK/RTTY i CW rade svaki u vlastitoj pozadinskoj dretvi, pa uključivanje ili isključivanje dekodera nikada ne prekida zvuk, a slap ostaje gladak tijekom dekodiranja. Dobivaju zvuk uzet prije smanjenja šuma i utišavanja u vašem pregledniku — možete utišati prijamnik, a dekodiranje se nastavlja bez smetnji. Dok je dekoder otvoren, AGC se drži na Slow, kako bi pojačanje za njega ostalo ujednačeno.
 
 **Dok dekoder radi, drži način rada i propusni pojas.** Uobičajeno način rada slijedi plan opsega — ugodite u odsječak označen kao LSB ili AM i prijamnik se prebaci. Dekoder koji radi nadjačava to i zadržava način rada i uski propusni pojas koji mu treba, čak i ako odete na drugi opseg. Vlastiti način rada opsega vraća se čim isključite dekoder, a gumbi načina rada rade u svakom trenutku ako želite preuzeti upravljanje. CW dekoder je iznimka: dekodira u načinu rada u kojem slušate.
 

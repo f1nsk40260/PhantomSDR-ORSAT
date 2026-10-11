@@ -1191,6 +1191,11 @@ void AudioClient::on_agc_enable_message(bool enabled) {
     agc_enabled = enabled;
 }
 
+void AudioClient::on_agc_speed_message(int speed) {
+    std::scoped_lock lk(agc_mtx_);
+    agc.setTrxSpeed(speed);
+}
+
 void AudioClient::on_codec_caps_message(bool opus_supported) {
     // Remember whether the browser can decode Opus.  If C-QUAM is already
     // active when this arrives, re-run the codec selection so a no-Opus client

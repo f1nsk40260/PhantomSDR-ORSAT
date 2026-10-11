@@ -335,6 +335,52 @@ void AGC::process(float *arr, size_t len) {
         applyNoiseBlanker(buffer);
     }
 
+    // --- TRANSCEIVER-STYLE AGC (Fast / Medium / Slow) ---
+    // A classic hang AGC on the look-ahead peak: the envelope jumps up to any
+    // new peak within ~2 ms (and, thanks to the look-ahead window, BEFORE that
+    // peak reaches the output, so there is no overshoot or click), holds for
+    // the hang time while the signal is still there, then decays
+    // exponentially (constant dB per second). Gain = target / envelope, capped
+    // at the same +20 dB ceiling as the legacy AGC, and the output peak target
+    // equals the legacy AGC's (desired_level × 0.01), so switching between
+    // Auto and Fast/Medium/Slow keeps the same loudness.
+    if (trx_speed != 0) {
+        const float target   = desired_level * 0.01f;
+        const float max_g    = max_gain * 0.01f;
+        const float floor_lv = target / max_g;   // below this, noise is not boosted further
+        for (size_t i = 0; i < len; ++i) {
+            float current_sample;
+            float env;
+            if (look_ahead_samples == 0) {
+                current_sample = buffer[i];
+                env = std::fabs(current_sample);
+            } else {
+                push(buffer[i]);
+                if (lookahead_buffer.size() < look_ahead_samples) { arr[i] = 0.0f; continue; }
+                current_sample = lookahead_buffer.front();
+                env = max();
+            }
+
+            if (trx_level == 0.0f) {
+                trx_level = env;   // first sample after a reset: start on the signal
+            }
+            if (env > trx_level) {
+                trx_level += (env - trx_level) * trx_attack_coeff;
+                trx_hang_counter = trx_hang_samples;
+            } else if (trx_hang_counter > 0) {
+                trx_hang_counter--;
+            } else {
+                trx_level = std::max(env, trx_level * trx_decay_mult);
+            }
+
+            const float desired = target / std::max(trx_level, floor_lv);
+            // Gain falls fast with the envelope, rises at most as fast as it.
+            trx_gain += (desired - trx_gain) * (desired < trx_gain ? 1.0f : trx_gain_coeff);
+            arr[i] = current_sample * trx_gain;
+        }
+        return;
+    }
+
     // --- ZERO-LOOKAHEAD / MINIMUM-LATENCY PATH ---
     if (look_ahead_samples == 0) {
         for (size_t i = 0; i < len; ++i) {
@@ -465,7 +511,28 @@ void AGC::applyProgressiveAGC(float desired_gain) {
     }
 }
 
+// Icom-style timings: Fast = no hang, 0.3 s decay; Medium = 0.25 s hang,
+// 1.2 s decay; Slow = 1 s hang, 3 s decay (decay = time to recover 40 dB). Attack is ~2 ms in all three
+// (the look-ahead window already lets the gain drop before a peak arrives).
+void AGC::setTrxSpeed(int speed) {
+    const int new_speed = (speed >= 1 && speed <= 3) ? speed : 0;
+    if (new_speed != trx_speed) trx_level = 0.0f;   // re-acquire on the current signal
+    trx_speed = new_speed;
+    float hang_s = 0.0f, decay_s = 0.3f;
+    if (trx_speed == 2) { hang_s = 0.25f; decay_s = 1.2f; }
+    if (trx_speed == 3) { hang_s = 1.0f;  decay_s = 3.0f; }
+    trx_attack_coeff = 1.0f - std::exp(-1.0f / (0.002f * sample_rate));
+    // decay_s = time to recover 40 dB once the hang has expired (how rigs
+    // quote it), i.e. an exponential with time constant decay_s / ln(100).
+    trx_decay_mult   = std::exp(-std::log(100.0f) / (decay_s * sample_rate));
+    trx_hang_samples = static_cast<size_t>(hang_s * sample_rate);
+    trx_gain_coeff   = 1.0f - std::exp(-1.0f / (0.005f * sample_rate));
+}
+
 void AGC::reset() {
+    trx_level = 0.0f;
+    trx_hang_counter = 0;
+    trx_gain = 1.0f;
     std::fill(gains.begin(), gains.end(), 1.0f);
     lookahead_buffer.clear();
     lookahead_max.clear();

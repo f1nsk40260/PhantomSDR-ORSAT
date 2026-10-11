@@ -287,12 +287,14 @@ Algunas estaciones tienen más de un receptor — por ejemplo uno para HF y otro
 
 ### Control automático de ganancia (AGC)
 
-El AGC ajusta automáticamente los niveles de audio:
+El AGC mantiene el audio a un nivel estable. Los cuatro botones funcionan como el conmutador de AGC de un transceptor: los cuatro dan el mismo volumen y solo se diferencian en lo rápido que vuelve a subir la ganancia cuando una señal se debilita o desaparece.
 
-- **Off**: sin ajuste automático de ganancia
-- **Slow**: cambios de nivel graduales (ideal para SSB)
-- **Medium**: respuesta equilibrada
-- **Fast**: ajuste rápido (ideal para AM)
+- **Auto**: el AGC propio del receptor, ajustado por separado para SSB, AM y C-QUAM. Es el valor predeterminado.
+- **Fast**: sin retención; la ganancia se recupera en unos 0,3 s. El ruido sube entre palabras y el desvanecimiento rápido se sigue de cerca. Bueno para CW y para distinguir una estación débil entre otras fuertes.
+- **Medium**: retiene 0,25 s y luego se recupera en unos 1,2 s. Un buen ajuste de uso diario para SSB.
+- **Slow**: retiene 1 s y luego se recupera en unos 3 s. El fondo se mantiene bajo entre palabras y entre pasadas; una estación débil justo después de una fuerte suena más baja durante unos segundos.
+
+**Mientras haya un decodificador abierto**, el AGC se mantiene en Slow, sea cual sea el botón seleccionado: el decodificador oye el mismo audio que usted y necesita una ganancia estable. Junto al título AGC aparece una pequeña nota **Slow (decoder)**, y su propia elección vuelve en cuanto se cierra el último decodificador.
 
 **Recomendación**: empiece con «Fast» para AM y «Slow» para SSB.
 
@@ -390,6 +392,10 @@ Amplía la cascada:
 - **8x**: ampliación ×8
 
 **Úsela cuando**: necesite ver las señales con más claridad o sintonizar con precisión.
+
+### Auto Adj. (cascada)
+
+El interruptor **Auto Adj.** de los controles de la cascada ajusta por usted el brillo y el contraste de la cascada. Mide el ruido de fondo en todo el tramo visible y lo convierte en un fondo oscuro y uniforme —también donde el ruido difiere de una parte del tramo a otra— y estira todo lo que queda por encima, de modo que las señales débiles destacan y las más fuertes llegan a los colores superiores. Funciona igual con cualquier mapa de color, y solo cambia la cascada: la traza del espectro conserva su escala real en dB. Mientras está activo, los controles Min y Max quedan bloqueados y muestran el ruido de fondo y el pico medidos; al desactivarlo vuelven a los ajustes de la banda.
 
 ### Control del transceptor (CAT)
 
@@ -559,7 +565,7 @@ La vía más rápida es la fila de botones **Decoders** del panel principal, jus
 
 **RADEL** y **RADEU** (voz digital RADE v1) tienen sus propios botones junto al encabezado **Modes selector** y dentro de las ventanas emergentes **Modes** y **Bands**, y funcionan del mismo modo: pulsar para iniciar, volver a pulsar para detener.
 
-Los decodificadores de SSTV, FAX de HF, NAVTEX, FSK/RTTY y CW se ejecutan cada uno en su propio hilo en segundo plano, de modo que activar o desactivar un decodificador nunca interrumpe el audio y la cascada sigue fluida mientras se decodifica. Reciben audio tomado antes del AGC, la reducción de ruido y el silenciado: puede silenciar el receptor y la decodificación continúa sin verse afectada.
+Los decodificadores de SSTV, FAX de HF, NAVTEX, FSK/RTTY y CW se ejecutan cada uno en su propio hilo en segundo plano, de modo que activar o desactivar un decodificador nunca interrumpe el audio y la cascada sigue fluida mientras se decodifica. Reciben audio tomado antes de la reducción de ruido y el silenciado de su navegador: puede silenciar el receptor y la decodificación continúa sin verse afectada. Mientras haya un decodificador abierto, el AGC se mantiene en Slow para que la ganancia sea estable para él.
 
 **Mientras un decodificador está en marcha, retiene el modo y el paso de banda.** Normalmente el modo sigue el plan de bandas: sintonice un segmento marcado LSB o AM y el receptor cambia. Un decodificador en marcha manda por encima de eso y conserva el modo y el paso de banda estrecho que necesita, aunque se vaya a otra banda. El modo propio de la banda vuelve en cuanto apaga el decodificador, y los botones de modo funcionan en todo momento si quiere tomar el mando. El decodificador de CW es la excepción: decodifica en el modo en que usted esté escuchando.
 

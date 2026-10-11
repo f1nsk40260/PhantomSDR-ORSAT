@@ -286,12 +286,14 @@ Certaines stations ont plus d'un récepteur — par exemple un pour les ondes co
 
 ### Contrôle automatique de gain (AGC)
 
-L'AGC ajuste automatiquement les niveaux audio :
+L'AGC maintient l'audio à un niveau stable. Les quatre boutons fonctionnent comme le commutateur d'AGC d'un transceiver : tous les quatre donnent le même volume et ne diffèrent que par la vitesse à laquelle le gain remonte lorsqu'un signal faiblit ou s'arrête.
 
-- **Off** : aucun réglage automatique du gain
-- **Slow** : variations de niveau progressives (idéal pour la BLU)
-- **Medium** : réponse équilibrée
-- **Fast** : ajustement rapide (idéal pour l'AM)
+- **Auto** : l'AGC propre au récepteur, réglée séparément pour la BLU, l'AM et le C-QUAM. C'est le réglage par défaut.
+- **Fast** : pas de maintien ; le gain remonte en 0,3 s environ. Le bruit remonte entre les mots et le fading rapide est suivi de près. Bien pour la CW et pour extraire une station faible entre des fortes.
+- **Medium** : maintient 0,25 s, puis remonte en 1,2 s environ. Un bon réglage de tous les jours pour la BLU.
+- **Slow** : maintient 1 s, puis remonte en 3 s environ. Le fond reste bas entre les mots et entre les passages ; une station faible juste après une forte paraît plus faible pendant quelques secondes.
+
+**Tant qu'un décodeur est ouvert**, l'AGC est maintenue sur Slow, quel que soit le bouton choisi : le décodeur entend le même audio que vous et a besoin d'un gain stable. Une petite mention **Slow (decoder)** apparaît à côté du titre AGC, et votre propre choix revient dès que le dernier décodeur est fermé.
 
 **Recommandation** : commencez par « Fast » pour l'AM, « Slow » pour la BLU.
 
@@ -391,6 +393,10 @@ Agrandit l'affichage en cascade :
 - **8x** : grossissement ×8
 
 **À utiliser quand** : vous devez mieux voir les signaux ou vous accorder finement.
+
+### Auto Adj. (cascade)
+
+L'interrupteur **Auto Adj.** des commandes de la cascade règle pour vous la luminosité et le contraste de la cascade. Il mesure le bruit de fond sur toute l'étendue visible et en fait un fond sombre et régulier — y compris là où le bruit diffère d'une partie de l'étendue à l'autre — puis étire tout ce qui se trouve au-dessus, si bien que les signaux faibles ressortent et que les plus forts atteignent les couleurs du haut. Il fonctionne de la même façon avec toutes les palettes, et seule la cascade change : la trace du spectre garde sa véritable échelle en dB. Tant qu'il est actif, les curseurs Min et Max sont verrouillés et affichent le bruit de fond et le pic mesurés ; en le désactivant, ils reviennent aux réglages de la bande.
 
 ### Pilotage du transceiver (CAT)
 
@@ -560,7 +566,7 @@ Le plus rapide est la rangée de boutons **Decoders** du panneau principal, just
 
 **RADEL** et **RADEU** (voix numérique RADE v1) disposent de leurs propres boutons à côté du titre **Modes selector** ainsi que dans les fenêtres **Modes** et **Bands**, et fonctionnent de la même manière : une pression pour démarrer, une seconde pour arrêter.
 
-Les décodeurs SSTV, FAX HF, NAVTEX, FSK/RTTY et CW s'exécutent chacun sur leur propre thread d'arrière-plan : activer ou désactiver un décodeur n'interrompt jamais l'audio, et la cascade reste fluide pendant le décodage. Ils reçoivent l'audio prélevé avant l'AGC, la réduction de bruit et la coupure du son — vous pouvez couper le son du récepteur, le décodage se poursuit sans être affecté.
+Les décodeurs SSTV, FAX HF, NAVTEX, FSK/RTTY et CW s'exécutent chacun sur leur propre thread d'arrière-plan : activer ou désactiver un décodeur n'interrompt jamais l'audio, et la cascade reste fluide pendant le décodage. Ils reçoivent l'audio prélevé avant la réduction de bruit et la coupure du son de votre navigateur — vous pouvez couper le son du récepteur, le décodage se poursuit sans être affecté. Tant qu'un décodeur est ouvert, l'AGC est maintenue sur Slow pour que le gain reste stable pour lui.
 
 **Tant qu'un décodeur tourne, il conserve le mode et la bande passante.** Normalement le mode suit le plan de bande : accordez dans un segment marqué LSB ou AM et le récepteur bascule. Un décodeur en marche l'emporte sur ce comportement et garde le mode et la bande passante étroite qu'il lui faut, même si vous partez sur une autre bande. Le mode propre à la bande revient dès que vous arrêtez le décodeur, et les boutons de mode restent utilisables à tout moment si vous voulez reprendre la main. Le décodeur CW fait exception : il décode dans le mode où vous écoutez.
 

@@ -50,6 +50,17 @@ class AGC {
     size_t hang_counter;
     float hang_threshold;
 
+    // Transceiver-style AGC (Fast / Medium / Slow buttons). 0 = the legacy
+    // mode-dependent AGC above ("Auto"), which stays the default.
+    int    trx_speed = 0;
+    float  trx_level = 0.0f;          // tracked peak envelope (linear)
+    float  trx_attack_coeff = 0.0f;   // per-sample, ~2 ms
+    float  trx_decay_mult = 1.0f;     // per-sample exponential decay of the envelope
+    size_t trx_hang_samples = 0;
+    size_t trx_hang_counter = 0;
+    float  trx_gain = 1.0f;           // smoothed applied gain (no zipper noise)
+    float  trx_gain_coeff = 0.0f;
+
     // Shared-gain stereo AGC state used by C-QUAM so both channels track
     // exactly the same gain and the stereo image stays stable.
     float stereo_level;
@@ -95,6 +106,8 @@ public:
     void configureForSSB();
     void configureForAM();
     void configureForQUAM();
+    // 0 = Auto (legacy AGC), 1 = Fast, 2 = Medium, 3 = Slow.
+    void setTrxSpeed(int speed);
 };
 
 #endif

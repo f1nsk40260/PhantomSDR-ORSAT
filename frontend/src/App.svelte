@@ -868,6 +868,11 @@
     if (audio) audio.setEqGains(eqGains);
   }
 
+  // True while an open decoder holds the server AGC on Slow (audio.js
+  // _syncAgcSpeed) although the listener picked another speed.
+  let agcHeldByDecoder = false;
+  audio.setAgcHoldCallback((held) => (agcHeldByDecoder = held));
+
   // This function was added to enable AGC to the client //
   function handleAGCChange(newAGC) {
     currentAGC = newAGC;
@@ -10250,7 +10255,11 @@ Slider: share of denoised audio, the rest is the original"
 
                   <!-- AGC Selection in Desktop -->
                   <div class="flex w-full items-center justify-between mb-2">
-                    <h3 class="text-white text-base font-semibold">AGC</h3>
+                    <h3 class="text-white text-base font-semibold">AGC{#if agcHeldByDecoder}<span
+                      class="text-xs text-amber-300 ml-2 font-normal"
+                      title="A decoder is open: the AGC is held on Slow so the gain stays steady for it. Your choice returns when the decoder closes."
+                      >Slow (decoder)</span
+                    >{/if}</h3>
                     <div class="flex items-center gap-2">
                       <button
                         class={`retro-button text-white font-bold h-6 px-3 text-xs rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out ${
@@ -15916,7 +15925,11 @@ Slider: share of denoised audio, the rest is the original"
                         <div
                           class="flex w-full items-center justify-between gap-2 mb-2 flex-wrap"
                         >
-                          <h3 class="text-white text-base font-semibold">AGC</h3>
+                          <h3 class="text-white text-base font-semibold">AGC{#if agcHeldByDecoder}<span
+                      class="text-xs text-amber-300 ml-2 font-normal"
+                      title="A decoder is open: the AGC is held on Slow so the gain stays steady for it. Your choice returns when the decoder closes."
+                      >Slow (decoder)</span
+                    >{/if}</h3>
                           <!-- Compressor + Equalizer buttons in Mobile -->
                           <div class="flex items-center gap-2">
                             <button
