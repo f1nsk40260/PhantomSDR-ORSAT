@@ -1,6 +1,6 @@
 # Varios receptores — Manual del sysop
 
-> **Números de puerto.** Los ejemplos de abajo usan los puertos de una estación configurada antes de las preguntas de la estación (8900, 8901, …). En una estación configurada con `configure-station.sh`, `proxy.py` ya ocupa el puerto público 9000 y el receptor principal está en 9001, así que dé a los receptores siguientes 9002, 9003, etc.
+> **Números de puerto.** Los ejemplos de abajo usan los puertos de una estación configurada antes de las preguntas de la estación (8900, 8901, …). En una estación configurada con `configure-station.sh`, `proxy.py` ya ocupa el puerto público 9000 y el receptor principal está en 9001, así que dé a los receptores siguientes 9002, 9003, etc. Las preguntas de la estación mantienen `receivers.toml` al día: cuando cambia un puerto o la dirección, `configure-station.sh` lleva el receptor principal a su nuevo puerto y escribe cada enlace como `<dirección>/?rx=<id>` — un enlace sin `?rx=` dejaría al visitante en el receptor que recuerda la cookie `rx`. Nunca dé a un receptor el propio puerto público: el proxy se reenviaría a sí mismo, por eso ahora lo rechaza.
 
 **Dos o más receptores en un mismo ordenador, con un selector de receptor en la página.**
 

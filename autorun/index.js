@@ -24,7 +24,7 @@ import { dirname, join } from 'node:path';
 import { AutorunManager } from './manager.js';
 import { PskReporter } from './pskreporter.js';
 import { WsprNet } from './wsprnet.js';
-import { parseFtxSpot, parseJs8Spot } from './spotparse.js';
+import { parseFtxSpot, parseJs8Spot, reporterGrid } from './spotparse.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -49,6 +49,13 @@ function loadConfig() {
             callsign = callsign || si.siteSysop;
             grid = grid || (si.siteGridSquare || '').slice(0, 6);
         } catch (e) { console.error(`[autorun] cannot read site_information.json: ${e.message}`); }
+    }
+    // The reporters take a 4- or 6-character locator only; a longer one (the
+    // page may show KM17VX69JA) or a mistyped one makes them refuse the spots.
+    const given = String(grid || '').trim();
+    grid = reporterGrid(given);
+    if (given && grid !== given) {
+        console.warn(`[autorun] grid "${given}" → ${grid ? `"${grid}"` : 'none'}: the reporters take 4 or 6 characters`);
     }
 
     // Slots: config.slots[enabled], else AUTORUN_SLOTS env ("band:mode,band:mode").

@@ -292,6 +292,19 @@ next_free_port() {
     done
 }
 
+# Just the host: "http://my.host:8900/" → "my.host". The page, the directories
+# and the relay add the scheme and port themselves.
+clean_host() {
+    local h="${1//[[:space:]]/}"
+    h="${h#*://}"; h="${h%%/*}"
+    case "$h" in
+        \[*\]*) h="${h%%]*}]" ;;   # [IPv6]:port → [IPv6]
+        *:*:*) ;;                  # bare IPv6: leave it alone
+        *:*) h="${h%%:*}" ;;       # host:port → host
+    esac
+    printf '%s' "$h"
+}
+
 # Suggest a port: the saved one is kept (even while our own service holds it),
 # otherwise the first free one from the map's default upwards.
 suggest_port() {  # suggest_port <VAR> <map default>
@@ -530,9 +543,21 @@ ask_everything() {
     title "4/5  Internet"
     say "  The address listeners type to reach you: your public IP address or a"
     say "  DNS name (e.g. myname.ddns.net). Leave it empty if you do not know yet."
-    ask STATION_PUBLIC_HOST "Public address" ""
-    STATION_PUBLIC_HOST="${STATION_PUBLIC_HOST#http://}"; STATION_PUBLIC_HOST="${STATION_PUBLIC_HOST#https://}"
-    STATION_PUBLIC_HOST="${STATION_PUBLIC_HOST%%/*}"
+    while true; do
+        ask STATION_PUBLIC_HOST "Public address" ""
+        STATION_PUBLIC_HOST="$(clean_host "$STATION_PUBLIC_HOST")"
+        # The port is asked for in step 5; a bare number here is a port typed
+        # in the wrong place, and it would end up as the host name everywhere
+        # (sdr-list, websdr.org, the page's own links).
+        if [[ $STATION_PUBLIC_HOST =~ ^[0-9]+$ ]]; then
+            warn "\"$STATION_PUBLIC_HOST\" looks like a port, not an address — the port comes in step 5."
+            say "    Type a DNS name (myname.ddns.net) or an IP address, or leave it empty."
+            STATION_PUBLIC_HOST=""
+            [ "$PHANTOM_NONINTERACTIVE" = "1" ] && break
+            continue
+        fi
+        break
+    done
     local list_def=n
     [ -n "$STATION_PUBLIC_HOST" ] && list_def=y
     ask_yn STATION_SDR_LIST "List the receiver on sdr-list.xyz?" "$list_def"
@@ -559,7 +584,11 @@ ask_everything() {
     # ── 5. ports and extras ──────────────────────────────────────────────────
     title "5/5  Ports and extras"
     ask_yn STATION_ADMIN "Admin panel (dashboard, logs, settings, users)?" y
-    ask_yn STATION_RADE "FreeDV RADE decoder? (large: ~1 GB download, +20 min install)" y
+    if [ -f "${RADAE_DIR:-$HOME/radae}/radae_rxe.py" ]; then
+        say "  RADE is already installed here and keeps decoding whatever you answer;"
+        say "  'n' only means it is not downloaded and installed again."
+    fi
+    ask_yn STATION_RADE "Install the FreeDV RADE decoder? (large: ~1 GB download, +20 min install)" y
     ask_yn STATION_STATS "CPU / memory / temperature box on the page?" y
     ask_yn STATION_RELAY "WebSDR diversity relay (advanced, most stations leave it off)?" n
     ask_yn STATION_AUTOSTART "Start the receiver automatically when the computer boots?" y
@@ -618,6 +647,35 @@ ask_everything() {
     suggest_port PORT_RADE  $((PORT_PUBLIC + 12))
     suggest_port PORT_RELAY $((PORT_PUBLIC + 13))
     suggest_port PORT_TLS   $((PORT_PUBLIC + 14))
+    show_ports
+    CHANGE_PORTS=n
+    ask_yn CHANGE_PORTS "Change any of the internal ports (e.g. keep the old numbers)?" n
+    if [ "$CHANGE_PORTS" = y ]; then
+        local pv pvs=(PORT_SDR PORT_ADMIN PORT_STATS PORT_RADE PORT_RELAY)
+        [ "${STATION_HTTPS:-n}" != n ] && pvs+=(PORT_TLS)
+        # Each port is checked against the public one and the ones already
+        # answered, so two services can never be handed the same port.
+        TAKEN=([$PORT_PUBLIC]=1)
+        for pv in "${pvs[@]}"; do
+            while true; do
+                ask "$pv" "  $pv" "${!pv}"
+                if ! [[ ${!pv} =~ ^[0-9]+$ ]] || [ "${!pv}" -lt 1024 ] || [ "${!pv}" -gt 65535 ]; then
+                    warn "Use a port from 1024 to 65535."
+                elif [ -n "${TAKEN[${!pv}]:-}" ]; then
+                    warn "Port ${!pv} is already given to another service here."
+                else
+                    break
+                fi
+                [ "$PHANTOM_NONINTERACTIVE" = "1" ] && die "$pv=${!pv} cannot be used"
+                printf -v "$pv" '%s' ""
+            done
+            TAKEN[${!pv}]=1
+        done
+        show_ports
+    fi
+}
+
+show_ports() {
     printf '\n    %-6s %s\n' "$PORT_PUBLIC" "public — the receiver page; forward this one"
     printf '    %-6s %s\n' "$PORT_SDR"   "spectrumserver (inside this computer)"
     printf '    %-6s %s\n' "$PORT_ADMIN" "admin panel    (reached as /admin)"
@@ -629,18 +687,6 @@ ask_everything() {
         printf '    %-6s %s\n' "443, 80" "https, and the certificate check — forward these too"
     fi
     say ""
-    CHANGE_PORTS=n
-    ask_yn CHANGE_PORTS "Change any of the internal ports?" n
-    if [ "$CHANGE_PORTS" = y ]; then
-        local pv
-        for pv in PORT_SDR PORT_ADMIN PORT_STATS PORT_RADE PORT_RELAY; do
-            while true; do
-                ask "$pv" "  $pv" "${!pv}"
-                [[ ${!pv} =~ ^[0-9]+$ ]] && [ "${!pv}" -ge 1 ] && [ "${!pv}" -le 65535 ] && break
-                warn "A port is a number from 1 to 65535."
-            done
-        done
-    fi
 }
 
 mhz() {           # Hz → "145.024" (three decimals), integer arithmetic only
@@ -681,6 +727,7 @@ apply_files() {
     . "$STATION_CONF"
     set +a
     STATION_SIGNAL="${RX_SIGNAL[$STATION_RECEIVER]:-iq}" PHANTOMDIR="$PHANTOMDIR" STAMP="$stamp" \
+    OLD_HOST="${SAVED_HOST:-}" \
     python3 - <<'PY' || die "writing the config files failed (nothing was half-written)"
 import json, os, re, shutil, sys
 from pathlib import Path
@@ -709,7 +756,24 @@ def tq(s):   # a TOML basic string
     return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 yes = lambda k: E.get(k, "n").lower().startswith("y")
-host = E.get("STATION_PUBLIC_HOST", "").strip()
+
+def clean_host(h):
+    """Just the host: "http://my.host:8900/" → "my.host" (same as the shell's)."""
+    h = re.sub(r"\s", "", str(h or ""))
+    h = re.sub(r"^[a-z]+://", "", h, flags=re.I).split("/", 1)[0]
+    if h.startswith("["):
+        return h.split("]", 1)[0] + "]"
+    return h.split(":", 1)[0] if h.count(":") == 1 else h
+
+host = clean_host(E.get("STATION_PUBLIC_HOST", ""))
+# A bare number is a port typed where the address belongs (it happened: "8900"
+# went into sdr-list, websdr.org and every link of the page). Nothing is
+# better than that.
+if re.fullmatch(r"\d+", host):
+    print(f"  ! STATION_PUBLIC_HOST=\"{host}\" is a port, not an address — left empty;"
+          " set it with: bash configure-station.sh")
+    host = ""
+old_host = clean_host(E.get("OLD_HOST", ""))
 call = E.get("STATION_CALLSIGN", "").strip()
 port_public = int(E["PORT_PUBLIC"])
 port_sdr = int(E["PORT_SDR"])
@@ -804,6 +868,42 @@ elif s is not None:
 
 write(cfg, "\n".join(lines) + "\n")
 
+# The page embeds {siteIP}/users.html; an http frame inside an https page is
+# blocked, so with https on, siteIP is the https address.
+site_ip = ((f"https://{host}" if E.get("STATION_HTTPS") == "y" else f"http://{host}:{port_public}")
+           if host else "")
+
+# Names this station is known by: now, before, and in the links of the
+# receivers that run on this computer (those are ours by definition).
+LOCAL = ("", "127.0.0.1", "localhost", "::1")
+our_hosts = {host.lower(), old_host.lower(), "localhost", "127.0.0.1", ""}
+try:
+    import tomllib
+    for r in tomllib.loads((root / "receivers.toml").read_text()).get("receiver", []):
+        if str(r.get("host", "")) in LOCAL and re.match(r"^https?://", str(r.get("url", "")), re.I):
+            our_hosts.add(clean_host(r["url"]).lower())
+except Exception:
+    pass
+
+def names_us(url):
+    """True when url points at this station: relative, or a host that is ours
+    now, was ours before, is local, or is a port typed as a host ("8900")."""
+    url = str(url or "").strip()
+    if not re.match(r"^https?://", url, re.I):
+        return True
+    h = clean_host(url).lower()
+    return h in our_hosts or re.fullmatch(r"\d+", h) is not None
+
+def fix_list(d):
+    """Every page here is served through proxy.py, which answers
+    /receivers.json on whatever address the page was opened with (public
+    name, LAN IP, localhost). A full address of our own only breaks that: it
+    goes stale when a port or the name changes, and a page opened under
+    another name hides the picker. A list on another machine is kept."""
+    v = d.get("siteReceiversList")
+    if isinstance(v, str) and re.match(r"^https?://", v, re.I) and names_us(v):
+        d["siteReceiversList"] = ""
+
 # ── frontend/site_information.json ───────────────────────────────────────────
 si = root / "frontend" / "site_information.json"
 base = si if si.exists() else root / "frontend" / "site_information.example.json"
@@ -814,18 +914,23 @@ if E["STATION_SIGNAL"] == "real":
 else:
     sdr_base, sdr_bw = max(0, freq - sps // 2), sps
 name = E.get("STATION_NAME", "").strip()
+# The page may show a finer locator than the 4 or 6 characters the directories
+# take (KM17VX69JA for KM17vx): kept while it is the same square, refined.
+loc = E.get("STATION_LOCATOR", "")
+page_loc = str(info.get("siteGridSquare", "")).strip()
+if (loc and len(page_loc) > len(loc) and page_loc.upper().startswith(loc.upper())
+        and re.fullmatch(r"[A-R]{2}[0-9]{2}([A-X]{2}([0-9]{2}([A-X]{2})?)?)?", page_loc.upper())):
+    loc = page_loc
 info.update({
     "siteSysop": f"{name}, {call}" if name and call else (call or name or "Sysop"),
     "siteSysopEmailAddress": E.get("STATION_EMAIL", ""),
-    "siteGridSquare": E.get("STATION_LOCATOR", ""),
+    "siteGridSquare": loc,
     "siteCity": E.get("STATION_CITY", ""),
     "siteReceiver": {"rx888mk2": "RX888 MkII", "rtl": "RTL-SDR Blog V4" if yes("STATION_RTL_V4") else "RTL-SDR",
                      "rsp1a": "SDRplay RSP1A", "airspyhf": "Airspy HF+", "hackrf": "HackRF One",
                      "fobos": "RigExpert Fobos SDR", "fobos-hf": "RigExpert Fobos SDR"}.get(E["STATION_RECEIVER"], ""),
     "siteAntenna": E.get("STATION_ANTENNA", ""),
-    # The page embeds {siteIP}/users.html; an http frame inside an https page is
-    # blocked, so with https on, siteIP is the https address.
-    "siteIP": (f"https://{host}" if E.get("STATION_HTTPS") == "y" else f"http://{host}:{port_public}") if host else "",
+    "siteIP": site_ip,
     "siteStats": "/stats" if yes("STATION_STATS") else "",
     "siteRade": "/rade",
     "siteRelay": "/relay",
@@ -850,6 +955,7 @@ maker = {"rx888mk2": "https://www.rx-888.com/rx/", "rtl": "https://www.rtl-sdr.c
 url = str(info.get("siteReceiverURL", "")).strip()
 if not re.match(r"^https?://", url, re.I) or url in maker.values():
     info["siteReceiverURL"] = maker.get(E["STATION_RECEIVER"], "")
+fix_list(info)
 write(si, json.dumps(info, indent="\t", ensure_ascii=False) + "\n")
 
 # ── websdr_relay.json (only when the relay is on) ───────────────────────────
@@ -858,10 +964,90 @@ if yes("STATION_RELAY"):
     ex = root / "websdr_relay.json.example"
     relay = json.loads((rj if rj.exists() else ex).read_text()) if (rj.exists() or ex.exists()) else {}
     relay.update({"port": int(E["PORT_RELAY"]), "bind": "127.0.0.1",
-                  "site": f"http://{host}:{port_public}" if host else relay.get("site", ""),
+                  # Without an address the old one stays — unless it is a port
+                  # typed as a host ("http://8900:8900"), which is worse than none.
+                  "site": f"http://{host}:{port_public}" if host else
+                          ("" if re.fullmatch(r"\d+", clean_host(relay.get("site", ""))) else relay.get("site", "")),
                   "operator": " ".join(x for x in (call, f"<{E['STATION_EMAIL']}>" if E.get("STATION_EMAIL") else "") if x)
                               or relay.get("operator", "")})
     write(rj, json.dumps(relay, indent=2) + "\n")
+
+# ── receivers.toml (several receivers behind the proxy) ─────────────────────
+# proxy.py forwards to the port each [[receiver]] names, so a main receiver
+# whose port moved has to move here too: left on the public port, the proxy
+# forwarded to itself and the station went down (2026-10-11). Every link a
+# picker shows carries ?rx=<id>: the proxy remembers the last receiver in a
+# cookie, and a link without ?rx= would keep a 2 m visitor on 2 m.
+# Line-based, like the .toml above, so the sysop's comments stay.
+rt = root / "receivers.toml"
+if rt.exists():
+    rl = rt.read_text().splitlines()
+    HDR = re.compile(r"^\s*\[")
+    def kv(key):
+        return re.compile(r"^(\s*)" + key + r"(\s*)=(\s*)(\"(?:[^\"\\]|\\.)*\"|[^#\s]*)(.*)$")
+    def find(s, e, key):
+        for i in range(s + 1, e):
+            m = kv(key).match(rl[i])
+            if m:
+                return i, m
+        return None, None
+    def unq(v):
+        v = v.strip()
+        return json.loads(v) if v.startswith('"') else v
+    def put(s, e, key, value):
+        i, m = find(s, e, key)
+        if m:
+            rl[i] = f"{m.group(1)}{key}{m.group(2)}={m.group(3)}{value}{m.group(5)}"
+        else:
+            j = s + 1
+            for k in range(s + 1, e):
+                if rl[k].strip() and not rl[k].strip().startswith("#"):
+                    j = k + 1
+            rl.insert(j, f"{key} = {value}")
+    starts = [i for i, l in enumerate(rl) if re.match(r"^\s*\[\[receiver\]\]\s*(#.*)?$", l)]
+    for s in reversed(starts):          # bottom up: an insert never shifts a block still to do
+        e = next((j for j in range(s + 1, len(rl)) if HDR.match(rl[j])), len(rl))
+        _, m = find(s, e, "id")
+        rid = unq(m.group(4)) if m else ""
+        _, m = find(s, e, "host")
+        local = (unq(m.group(4)) if m else "") in LOCAL
+        main = find(s, e, "instance")[1] is None
+        if main and local:
+            put(s, e, "port", str(port_sdr))
+        # A receiver on this computer is reached through this proxy, so its
+        # link is always ours to write; one on another machine keeps its own.
+        _, m = find(s, e, "url")
+        if rid and (local or names_us(unq(m.group(4)) if m else "")):
+            put(s, e, "url", tq(f"{site_ip}/?rx={rid}"))
+    text = "\n".join(rl) + "\n"
+    try:
+        import tomllib
+        parsed = tomllib.loads(text)
+    except Exception as ex:
+        parsed = None
+        print(f"  ! receivers.toml would not parse after the update ({ex}) — left as it was;"
+              f" its main receiver must be on port {port_sdr}")
+    if parsed is not None:
+        for r in parsed.get("receiver", []):
+            if str(r.get("host", "127.0.0.1")) in ("127.0.0.1", "localhost", "::1") \
+                    and int(r.get("port", 0)) == port_public:
+                print(f"  ! receivers.toml: \"{r.get('id')}\" is on the public port {port_public} — "
+                      "the proxy would forward to itself; give it its own port")
+        write(rt, text)
+
+# ── instances/<id>/www/site_information.json (the other receivers' pages) ────
+# A second receiver's page reads its own copy, so the address, the side
+# services and the receiver list follow the main page's here.
+for p in sorted(root.glob("instances/*/www/site_information.json")):
+    try:
+        raw = p.read_text()
+        d = json.loads(raw)
+    except Exception as ex:
+        print(f"  ! {p.relative_to(root)}: {ex} — left as it was")
+        continue
+    d.update({k: info[k] for k in ("siteIP", "siteStats", "siteRade", "siteRelay")})
+    fix_list(d)
+    write(p, json.dumps(d, indent="\t" if "\n\t" in raw else 2, ensure_ascii=False) + "\n")
 
 Path(root / ".station-changed").write_text("\n".join(changed) + ("\n" if changed else ""))
 PY

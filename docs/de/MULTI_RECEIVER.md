@@ -1,6 +1,6 @@
 # Mehrere Empfänger — Sysop-Handbuch
 
-> **Portnummern.** Die Beispiele unten verwenden die Ports einer Station, die vor den Stationsfragen eingerichtet wurde (8900, 8901, …). Auf einer mit `configure-station.sh` eingerichteten Station belegt `proxy.py` bereits den öffentlichen Port 9000 und der Hauptempfänger 9001; geben Sie weiteren Empfängern also 9002, 9003 und so weiter.
+> **Portnummern.** Die Beispiele unten verwenden die Ports einer Station, die vor den Stationsfragen eingerichtet wurde (8900, 8901, …). Auf einer mit `configure-station.sh` eingerichteten Station belegt `proxy.py` bereits den öffentlichen Port 9000 und der Hauptempfänger 9001; geben Sie weiteren Empfängern also 9002, 9003 und so weiter. Die Stationsfragen halten `receivers.toml` aktuell: Ändert sich ein Port oder die Adresse, setzt `configure-station.sh` den Hauptempfänger auf seinen neuen Port und schreibt jeden Link als `<Adresse>/?rx=<id>` — ein Link ohne `?rx=` würde einen Besucher auf dem Empfänger halten, den sich das `rx`-Cookie merkt. Einem Empfänger nie den öffentlichen Port selbst geben: Der Proxy würde an sich selbst weiterleiten, deshalb lehnt er das jetzt ab.
 
 **Zwei oder mehr Empfänger auf einem Rechner, mit einer Empfängerauswahl auf der Seite.**
 

@@ -4117,13 +4117,22 @@ def _resolve_node():
         return p
     return "node"
 
+def _reporter_grid(g):
+    """The locator PSK Reporter and WSPRnet accept: 4 or 6 characters. A finer
+    one (KM17VX69JA) is cut to its square; anything else gives ""."""
+    s = str(g or "").strip()
+    for n in (6, 4):
+        if len(s) >= n and re.fullmatch(r"[A-Ra-r]{2}[0-9]{2}([A-Xa-x]{2})?", s[:n]):
+            return s[:n]
+    return ""
+
 def _autorun_default_identity():
     base = get_sdr_dir()
     call, grid = "", ""
     try:
         si = json.loads(read_file_safe(base / "frontend" / "site_information.json"))
         call = (si.get("siteSysop") or "")
-        grid = (si.get("siteGridSquare") or "")[:6]
+        grid = _reporter_grid(si.get("siteGridSquare"))
     except Exception:
         pass
     return call, grid
@@ -4181,9 +4190,14 @@ def api_autorun_config():
         return jsonify({"ok": False, "msg": f"{enabled_count} slots enabled exceeds cap of {max_slots}"})
     ident = req.get("identity") or {}
     call = (ident.get("callsign") or "").strip().upper()
-    grid = (ident.get("grid") or "").strip()[:6]
+    grid_in = (ident.get("grid") or "").strip()
+    grid = _reporter_grid(grid_in)
     if not re.match(r'^[A-Z0-9/]{3,12}$', call):
         return jsonify({"ok": False, "msg": "invalid callsign format"})
+    # The reporters refuse spots with any other locator, so it is 4 or 6
+    # characters (KM17 or KM17VX) or nothing.
+    if grid_in and not grid:
+        return jsonify({"ok": False, "msg": "grid must be a 4 or 6 character locator, e.g. KM17 or KM17VX"})
     rep = req.get("reporting") or {}
     out = {
         "identity": {"callsign": call, "grid": grid},

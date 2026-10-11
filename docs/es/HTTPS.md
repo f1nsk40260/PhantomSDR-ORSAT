@@ -135,6 +135,7 @@ STATION_HTTPS=y bash configure-station.sh
 | `no certificate yet` | El nombre DNS debe apuntar a su dirección pública (`ping myname.ddns.net` desde fuera de su red), y el router debe redirigir 443 y 80 a este ordenador. Caddy sigue intentándolo solo; su log: `sudo journalctl -u caddy -n 50`. |
 | El proveedor bloquea el puerto 80 | Caddy también demuestra el nombre solo por el 443, así que en la mayoría de los casos basta el 443; deje el 80 redirigido si puede. |
 | `too many failed authorizations` en el log de Caddy | Let's Encrypt permite pocos fallos por hora. Corrija la causa, espere una hora y luego `sudo systemctl restart caddy`. |
+| El log de Caddy muestra `Invalid response … /.well-known/acme-challenge/…` (un 502 o la página del receptor) o `Timeout during connect` | El router envía el 80 o el 443 a otro sitio — a menudo al puerto público del receptor. Las reglas deben ser TCP 80 → este ordenador, puerto **80**, y TCP 443 → este ordenador, puerto **443**; desactive la administración remota del propio router en esos puertos. Después `sudo systemctl restart caddy` para que lo intente de nuevo enseguida. |
 | https funciona en casa pero no desde fuera | El router redirige el 443 a otro ordenador, o no lo redirige. |
 | La lista de oyentes o el panel de usuarios están vacíos por https | Ejecute una vez `bash configure-station.sh` y responda sí a la recompilación: la página debe conocer su dirección https. |
 | `Port 443 is already used by another web server` | Vea arriba *Ya hay un servidor web en este ordenador*. |

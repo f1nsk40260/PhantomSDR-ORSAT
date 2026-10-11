@@ -335,34 +335,59 @@ if [ -n "${MAIN_LAUNCHER:-}" ]; then
 else
     MAIN_CONFIG=""
 fi
-for f in $MAIN_CONFIG config-rx888mk2.toml config.toml; do
+# station.conf first (the wizard's answer), then the [websdr] hostname. A bare
+# number is a port that was typed as the address — never offer it.
+if [ -f station.conf ]; then
+    HOST_DEF="$( . ./station.conf 2>/dev/null; printf '%s' "${STATION_PUBLIC_HOST:-}" )"
+    [[ $HOST_DEF =~ ^[0-9]*$ ]] && HOST_DEF=""
+fi
+[ -n "$HOST_DEF" ] || for f in $MAIN_CONFIG config-rx888mk2.toml config.toml; do
     [ -f "$f" ] || continue
     h="$(toml_get "$f" websdr hostname)"
-    case "$h" in ""|*" "*) ;; *) HOST_DEF="$h"; break ;; esac
+    case "$h" in ""|*" "*) ;; *[!0-9]*) HOST_DEF="$h"; break ;; esac
 done
 [ -n "$HOST_DEF" ] || HOST_DEF="$(hostname -I 2>/dev/null | awk '{print $1}')"
 echo ""
-ask HOST "This station's public address (host name or IP)" "${HOST_DEF:-localhost}"
-# Just the name: the links below add http:// and the port themselves, so a
-# pasted address ("http://my.host:8900/") would otherwise become
-# "http://http://my.host:8900/:8899" — and the receiver picker then fetches an
-# address that does not exist and shows no buttons.
-HOST="$(printf '%s' "$REPLY_VALUE" | tr -d '[:space:]')"
-HOST="${HOST#*://}"      # scheme, whatever it is
-HOST="${HOST%%/*}"       # path and trailing slash
-case "$HOST" in
-    \[*\]*) HOST="${HOST%%]*}]" ;;   # [IPv6]:port -> [IPv6]
-    *:*:*) ;;                        # bare IPv6: leave it alone
-    *:*) HOST="${HOST%%:*}" ;;       # host:port -> host
-esac
-[ -n "$HOST" ] || die "No address given."
+while true; do
+    ask HOST "This station's public address (host name or IP)" "${HOST_DEF:-localhost}"
+    # Just the name: the links below add http:// and the port themselves, so a
+    # pasted address ("http://my.host:8900/") would otherwise become
+    # "http://http://my.host:8900/:8899" — and the receiver picker then fetches an
+    # address that does not exist and shows no buttons.
+    HOST="$(printf '%s' "$REPLY_VALUE" | tr -d '[:space:]')"
+    HOST="${HOST#*://}"      # scheme, whatever it is
+    HOST="${HOST%%/*}"       # path and trailing slash
+    case "$HOST" in
+        \[*\]*) HOST="${HOST%%]*}]" ;;   # [IPv6]:port -> [IPv6]
+        *:*:*) ;;                        # bare IPv6: leave it alone
+        *:*) HOST="${HOST%%:*}" ;;       # host:port -> host
+    esac
+    [ -n "$HOST" ] || die "No address given."
+    # A bare number is a port typed as the address; it became the host of
+    # every link ("http://8900:8900/?rx=…") on 2026-10-11.
+    [[ $HOST =~ ^[0-9]+$ ]] || break
+    warn "\"$HOST\" is a port, not an address — type a DNS name or an IP address."
+    [ "$INTERACTIVE" = 1 ] && [ -z "${ADD_RX_HOST:-}" ] || die "ADD_RX_HOST must be a name or an IP address."
+done
 [ "$HOST" = "$REPLY_VALUE" ] || echo "  → using \"$HOST\""
 
+# On a station set up by configure-station.sh the proxy IS the public port and
+# the main receiver sits behind it, so every page is served through the proxy:
+# the picker reads /receivers.json from the address the page was opened with
+# (no list address to go stale), and the main receiver's link goes through the
+# proxy too, with ?rx= — the proxy remembers the last receiver in a cookie,
+# and a plain link would keep a 2 m visitor on 2 m.
+FRONT=0
+if [ -n "$PROXY_PORT" ] && [ -f station.conf ] \
+   && [ "$( . ./station.conf 2>/dev/null; printf '%s' "${PORT_PUBLIC:-}" )" = "$PROXY_PORT" ]; then
+    FRONT=1
+fi
 if [ -n "$PROXY_PORT" ]; then
     BIND_HOST="127.0.0.1"
     RX_PUBLIC_URL="http://$HOST:$PROXY_PORT/?rx=$NAME"
     LIST_URL="http://$HOST:$PROXY_PORT/receivers.json"
     SITE_IP="http://$HOST:$PROXY_PORT"
+    [ "$FRONT" = 1 ] && LIST_URL=""
 else
     warn "No proxy found (proxy_port in admin_config.json). proxy.py comes with the admin"
     warn "panel (setup_admin.sh); without it this receiver is published on its own port"
@@ -540,7 +565,11 @@ if [ ! -f receivers.toml ]; then
         echo "port     = $MAIN_PORT"
         echo "default  = true"
         echo "launcher = \"$MAIN_LAUNCHER\""
-        echo "url      = \"http://$HOST:$MAIN_PORT/\""
+        if [ "$FRONT" = 1 ]; then
+            echo "url      = \"http://$HOST:$PROXY_PORT/?rx=main\""
+        else
+            echo "url      = \"http://$HOST:$MAIN_PORT/\""
+        fi
     } > receivers.toml
     green "✅ receivers.toml created, with your main receiver ($MAIN_LAUNCHER, port $MAIN_PORT)"
 fi

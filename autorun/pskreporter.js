@@ -11,6 +11,7 @@
  * for >= 5 min between uploads). Each datagram stays under a safe UDP MTU.
  */
 import dgram from 'node:dgram';
+import { reporterGrid } from './spotparse.js';
 
 const PEN = 30351;                 // PSK Reporter private enterprise number
 const TX_TEMPLATE_ID = 0x1140;     // sender / spot record
@@ -47,7 +48,7 @@ export class PskReporter {
                   software = 'PhantomSDR-Plus', antenna = '' } = {}) {
         if (!callsign) throw new Error('PskReporter: callsign required');
         this.callsign = callsign;
-        this.grid = grid || '';
+        this.grid = reporterGrid(grid);   // 4 or 6 characters, or none
         this.host = host;
         this.port = port;
         this.software = software;

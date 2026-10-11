@@ -47,7 +47,12 @@ if [ -f "$PHANTOMDIR/station.conf" ] && { [ -z "${INSTANCE:-}" ] || [ "${INSTANC
         export RADE_HELPER_PORT="${RADE_HELPER_PORT:-$PORT_RADE}"
         export RADE_HELPER_HOST="${RADE_HELPER_HOST:-127.0.0.1}"
     fi
-    if [ "${STATION_RADE:-}" = "n" ]; then RADE_ENABLED="${RADE_ENABLED:-0}"; fi
+    # "No" in the wizard means "do not install RADE". A station that already
+    # has ~/radae keeps decoding, as it always did; RADE_ENABLED=0 still
+    # switches it off on purpose.
+    if [ "${STATION_RADE:-}" = "n" ] && [ ! -f "${RADAE_DIR:-$HOME/radae}/radae_rxe.py" ]; then
+        RADE_ENABLED="${RADE_ENABLED:-0}"
+    fi
 fi
 
 # ── instance: several receivers on one box ───────────────────────────────────

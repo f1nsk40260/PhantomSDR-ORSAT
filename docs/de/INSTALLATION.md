@@ -415,7 +415,7 @@ Die Installation läuft in 22 nummerierten Schritten. Da die Stationsfragen am A
 | 1 | Welcher Empfänger | Der angeschlossene wird erkannt und vorgeschlagen (RX888, RTL-SDR, RSP1A, Airspy HF+, HackRF, Fobos). Bei einem RTL-SDR wird zusätzlich gefragt, ob es ein Blog V4 ist. |
 | 2 | Was empfangen werden soll | Fertige Auswahl je Empfänger (z. B. *HF 0–30 MHz* für den RX888, *2 m* für einen RTL-SDR) oder eigene Mittenfrequenz und Abtastrate. |
 | 3 | Ihre Station | Rufzeichen, Name, E-Mail, QTH-Locator, Ort und Land, Antenne, Computer, ITU-Region (aus dem Locator vorgeschlagen). |
-| 4 | Internet | Ihre öffentliche Adresse (IP oder DNS-Name) und ob der Empfänger bei sdr-list.xyz und auf der websdr.org-Karte erscheinen soll. Außerdem, ob der Empfänger zusätzlich über https:// angeboten wird (braucht einen DNS-Namen). |
+| 4 | Internet | Ihre öffentliche Adresse (IP oder DNS-Name) und ob der Empfänger bei sdr-list.xyz und auf der websdr.org-Karte erscheinen soll. Außerdem, ob der Empfänger zusätzlich über https:// angeboten wird (braucht einen DNS-Namen). Einen Namen oder eine IP eingeben, keinen Port — der Port kommt in Schritt 5. |
 | 5 | Ports und Zusatzmodule | Admin-Panel, FreeDV RADE, Statistik, WebSDR-Relay, Start beim Booten — und der öffentliche Port. |
 
 Die Antworten werden in **`station.conf`** gespeichert, und daraus schreibt der Assistent alles, was zueinander passen muss: die `config-<empfänger>.toml` des Empfängers (Abtastrate, Frequenz, Port, Verzeichniseinträge, websdr.org), `frontend/site_information.json` und die Einstellungen des Relays. Die Startskripte lesen Frequenz und Abtastrate selbst aus `station.conf`, sie werden also nie bearbeitet. Geändert werden nur die Einstellungen, die dem Assistenten gehören, und jede Datei wird vorher nach `<name>.bak-<datum>` kopiert.
@@ -615,7 +615,7 @@ Er wird vollständig über den Reiter **Admin-Panel → „Spot Reporting"** ges
 | **Node.js 22+** | Dieselbe Laufzeitumgebung, die der Frontend-Build ohnehin braucht — im [Node.js-Schritt](#nodejs-und-npm-installieren) installiert. |
 | **npm-Pakete `ws` + `cbor-x`** | Werden über `autorun/node_modules` aufgelöst, einen Symlink auf das `node_modules` des Frontends (beide Pakete sind in `frontend/package.json` deklariert). |
 | **`util-linux`** (`taskset`) | Die Schaltfläche „Start" im Admin-Bereich bindet den Daemon per `taskset` an die E-Cores. Praktisch auf jeder Distribution vorhanden; die Installer fügen es ausdrücklich hinzu. |
-| **Rufzeichen + Locator** | Werden aus `frontend/site_information.json` gelesen (`siteSysop` / `siteGridSquare`), sofern nicht im Admin-Reiter überschrieben. Spots werden unter diesem Rufzeichen hochgeladen. |
+| **Rufzeichen + Locator** | Werden aus `frontend/site_information.json` gelesen (`siteSysop` / `siteGridSquare`), sofern nicht im Admin-Reiter überschrieben. Spots werden unter diesem Rufzeichen hochgeladen. PSK Reporter und WSPRnet erhalten nur einen Locator mit 4 oder 6 Zeichen — ein längerer (KM17VX69JA) wird auf sein Feld gekürzt (KM17VX). |
 
 > ⚠️ **Melden Sie nur, was Sie tatsächlich empfangen.** Spots werden unter Ihrem Rufzeichen in öffentliche Netze hochgeladen — aktivieren Sie nur Bänder/Betriebsarten, die Ihr Empfänger wirklich hört, und verwenden Sie Ihren korrekten Locator.
 

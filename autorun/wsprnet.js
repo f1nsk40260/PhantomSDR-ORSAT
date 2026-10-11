@@ -8,6 +8,7 @@
  * sparse — a handful every 2 min). WSPR goes ONLY here, not to PSK Reporter
  * (PSK Reporter's WSPR data arrives via a wsprnet bridge; sending both duplicates).
  */
+import { reporterGrid } from './spotparse.js';
 const ENDPOINT = 'http://wsprnet.org/post';
 
 function utcDateTime(unixSec) {
@@ -22,7 +23,7 @@ export class WsprNet {
     constructor({ callsign, grid, software = 'PhantomSDR-Plus', endpoint = ENDPOINT } = {}) {
         if (!callsign) throw new Error('WsprNet: callsign required');
         this.rcall = callsign;
-        this.rgrid = (grid || '').slice(0, 6);
+        this.rgrid = reporterGrid(grid);  // 4 or 6 characters, or none
         this.software = software;
         this.endpoint = endpoint;
         this.queue = [];

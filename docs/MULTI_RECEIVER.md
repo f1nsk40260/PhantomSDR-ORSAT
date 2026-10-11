@@ -1,6 +1,6 @@
 # Several Receivers — Sysop Manual
 
-> **Port numbers.** The examples below use the ports of a station set up before the station questions (8900, 8901, …). On a station set up with `configure-station.sh`, `proxy.py` already owns the public port 9000 and the main receiver is on 9001, so give further receivers 9002, 9003 and so on.
+> **Port numbers.** The examples below use the ports of a station set up before the station questions (8900, 8901, …). On a station set up with `configure-station.sh`, `proxy.py` already owns the public port 9000 and the main receiver is on 9001, so give further receivers 9002, 9003 and so on. The station questions keep `receivers.toml` in step: when a port or the address changes, `configure-station.sh` moves the main receiver to its new port and writes every link as `<address>/?rx=<id>` — a link without `?rx=` would keep a visitor on the receiver the `rx` cookie remembers. Never give a receiver the public port itself: the proxy would forward to itself, so it now refuses that.
 
 **Running two or more receivers on one computer, with a receiver picker on the page.**
 

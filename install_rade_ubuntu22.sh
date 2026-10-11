@@ -543,6 +543,15 @@ echo ""
 # =============================================================================
 # ROUTER / FIREWALL REMINDER
 # =============================================================================
+# A station set up by the wizard (station.conf) runs RADE on its own
+# PORT_RADE behind the proxy, so there is nothing to forward; an older one
+# still needs 8074 open.
+STATION_RADE_PORT="$( [[ -f "$PHANTOM_DIR/station.conf" ]] && . "$PHANTOM_DIR/station.conf" 2>/dev/null; printf '%s' "${PORT_RADE:-}" )"
+if [[ -n "$STATION_RADE_PORT" ]]; then
+echo -e "  ${GREEN}✔${NC}  RADE listens on port $STATION_RADE_PORT inside this computer and is"
+echo -e "     reached as /rade on the public port — nothing extra to forward."
+echo ""
+else
 echo -e "${YELLOW}┌─────────────────────────────────────────────────────────────┐${NC}"
 echo -e "${YELLOW}│  ⚠  ROUTER PORT FORWARD REQUIRED                            │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
@@ -551,6 +560,7 @@ echo -e "${YELLOW}│  RADE WebSocket clients connect on port 8074.             
 echo -e "${YELLOW}│  Without this, remote RADE decoding will NOT work.          │${NC}"
 echo -e "${YELLOW}└─────────────────────────────────────────────────────────────┘${NC}"
 echo ""
+fi
 
 # =============================================================================
 # TROUBLESHOOTING QUICK REFERENCE

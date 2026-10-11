@@ -2291,12 +2291,20 @@ fi
 # RADE / FreeDV sidecar
 # ------------------------------------------------------------------------------
 
+# A station set up by the wizard runs RADE on its own PORT_RADE (9012 on the
+# map); an older one keeps the fixed 8074.
+RADE_PORT=8074
+if [ "$USE_STATION" = true ]; then
+    RADE_PORT="$(station_value PORT_RADE)"
+    RADE_PORT="${RADE_PORT:-8074}"
+fi
+
 if [ -f "$PHANTOM_DIR/install_rade.sh" ]; then
     step "RADE / FreeDV decoder (optional)" "$(ask_hint "⌨️  YOU WILL BE ASKED — and setup asks its own questions")"
     echo ""
     echo "RADE (Radio Autoencoder) decodes FreeDV RADE V1 voice in the browser."
     echo "It builds the radae repository into ~/radae and runs as a small Python"
-    echo "sidecar on port 8074, controlled by ./rade.sh."
+    echo "sidecar on port $RADE_PORT, controlled by ./rade.sh."
     echo ""
     yellow "   Installed by default — answer 'n' to skip it."
     yellow "   Packages come from apt / pacman / dnf / zypper, whichever this"

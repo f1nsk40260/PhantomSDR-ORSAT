@@ -1,6 +1,6 @@
 # Više prijemnika — Priručnik za sysopa
 
-> **Brojevi portova.** Primjeri niže koriste portove stanice postavljene prije pitanja o stanici (8900, 8901, …). Na stanici postavljenoj s `configure-station.sh`, `proxy.py` već drži javni port 9000, a glavni prijemnik je na 9001, pa daljnjim prijemnicima dajte 9002, 9003 i tako dalje.
+> **Brojevi portova.** Primjeri niže koriste portove stanice postavljene prije pitanja o stanici (8900, 8901, …). Na stanici postavljenoj s `configure-station.sh`, `proxy.py` već drži javni port 9000, a glavni prijemnik je na 9001, pa daljnjim prijemnicima dajte 9002, 9003 i tako dalje. Pitanja o stanici drže `receivers.toml` usklađenim: kad se promijeni port ili adresa, `configure-station.sh` premješta glavni prijemnik na njegov novi port i zapisuje svaku poveznicu kao `<adresa>/?rx=<id>` — poveznica bez `?rx=` zadržala bi posjetitelja na prijemniku koji pamti kolačić `rx`. Nikad ne dajte prijemniku sam javni port: proxy bi prosljeđivao sam sebi, pa to sada odbija.
 
 **Dva ili više prijemnika na jednom računalu, s izbornikom prijemnika na stranici.**
 

@@ -415,7 +415,7 @@ L'installation se déroule en 22 étapes numérotées. Les questions de la stati
 | 1 | Quel récepteur | Celui qui est branché est reconnu et proposé (RX888, RTL-SDR, RSP1A, Airspy HF+, HackRF, Fobos). Pour un RTL-SDR, il demande aussi s'il s'agit d'un Blog V4. |
 | 2 | Que recevoir | Des choix tout prêts pour chaque récepteur (par exemple *HF 0–30 MHz* pour le RX888, *2 m* pour un RTL-SDR), ou votre propre fréquence centrale et votre taux d'échantillonnage. |
 | 3 | Votre station | Indicatif, nom, e-mail, QTH locator, ville et pays, antenne, ordinateur, région UIT (proposée d'après le locator). |
-| 4 | Internet | Votre adresse publique (IP ou nom DNS), et si le récepteur doit figurer sur sdr-list.xyz et sur la carte de websdr.org. Et aussi s'il faut servir le récepteur en https:// (nécessite un nom DNS). |
+| 4 | Internet | Votre adresse publique (IP ou nom DNS), et si le récepteur doit figurer sur sdr-list.xyz et sur la carte de websdr.org. Et aussi s'il faut servir le récepteur en https:// (nécessite un nom DNS). Saisissez un nom ou une IP, pas un port — le port est demandé à l'étape 5. |
 | 5 | Ports et compléments | Panneau d'administration, FreeDV RADE, statistiques, relais WebSDR, démarrage au boot — et le port public. |
 
 Les réponses sont enregistrées dans **`station.conf`**, et l'assistant en tire tout ce qui doit concorder : le `config-<récepteur>.toml` du récepteur (taux d'échantillonnage, fréquence, port, inscriptions aux annuaires, websdr.org), `frontend/site_information.json` et les réglages du relais. Les scripts de démarrage lisent eux-mêmes la fréquence et le taux d'échantillonnage dans `station.conf` ; on ne les modifie donc jamais. Seuls les réglages qui appartiennent à l'assistant changent, et chaque fichier est copié en `<nom>.bak-<date>` avant d'être modifié.
@@ -615,7 +615,7 @@ Il se pilote entièrement depuis l'onglet **panneau d'administration → « Spot
 | **Node.js 22+** | Le même environnement d'exécution que la compilation du frontend — installé à l'[étape Node.js](#installation-de-nodejs-et-npm). |
 | **Paquets npm `ws` + `cbor-x`** | Résolus via `autorun/node_modules`, un lien symbolique vers le `node_modules` du frontend (les deux paquets sont déclarés dans `frontend/package.json`). |
 | **`util-linux`** (`taskset`) | Le bouton « Start » de l'admin épingle le démon sur les E-cores avec `taskset`. Présent sur pratiquement toutes les distributions ; les installateurs l'ajoutent explicitement. |
-| **Indicatif + locator** | Lus dans `frontend/site_information.json` (`siteSysop` / `siteGridSquare`) sauf s'ils sont remplacés dans l'onglet d'administration. Les spots sont téléversés sous cet indicatif. |
+| **Indicatif + locator** | Lus dans `frontend/site_information.json` (`siteSysop` / `siteGridSquare`) sauf s'ils sont remplacés dans l'onglet d'administration. Les spots sont téléversés sous cet indicatif. PSK Reporter et WSPRnet ne reçoivent qu'un locator de 4 ou 6 caractères — un plus long (KM17VX69JA) est coupé à son carré (KM17VX). |
 
 > ⚠️ **Ne rapportez que ce que vous recevez réellement.** Les spots sont téléversés vers des réseaux publics sous votre indicatif — n'activez que les bandes/modes que votre récepteur entend véritablement, et utilisez le bon locator.
 

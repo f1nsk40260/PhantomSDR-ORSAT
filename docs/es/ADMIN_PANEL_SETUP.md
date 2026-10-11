@@ -669,7 +669,7 @@ El demonio autorun necesita Node.js 22+, los paquetes npm `ws` + `cbor-x` (resue
 
 ### Uso de la pestaña
 
-1. **Identidad** — indicativo y localizador. Se rellenan previamente desde `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, recortado a 6 caracteres); modifíquelos aquí si es necesario.
+1. **Identidad** — indicativo y localizador. Se rellenan previamente desde `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, recortado a 6 caracteres); modifíquelos aquí si es necesario. Los reporters solo aceptan un locator de 4 o 6 caracteres (KM17 o KM17VX): uno más largo se recorta a su cuadrado de 6 caracteres, y lo que no sea un locator se rechaza al guardar.
 2. **Matriz banda × modo** — marque las combinaciones que desea decodificar. Las filas son bandas y las columnas FT8 / FT4 / JS8 / WSPR; las celdas no admitidas están desactivadas. WSPR cubre además las bandas de LF/MF (2200 m, 630 m) y un canal adicional de 80 m para Europa.
 3. **Destinos** — active **PSK Reporter** y/o **wsprnet** (ambos desactivados por defecto).
 4. **Max slots** — límite de seguridad sobre cuántas ranuras banda/modo pueden ejecutarse a la vez.

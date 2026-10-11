@@ -135,6 +135,7 @@ STATION_HTTPS=y bash configure-station.sh
 | `no certificate yet` | DNS ime mora pokazivati na vašu javnu adresu (`ping myname.ddns.net` izvan vaše mreže), a usmjernik mora prosljeđivati 443 i 80 na ovo računalo. Caddy sam nastavlja pokušavati; njegov log: `sudo journalctl -u caddy -n 50`. |
 | Davatelj usluge blokira port 80 | Caddy dokazuje ime i samo preko porta 443, pa je u većini slučajeva dovoljan 443; ostavite 80 proslijeđen ako možete. |
 | `too many failed authorizations` u Caddyjevu logu | Let's Encrypt dopušta tek nekoliko neuspjeha na sat. Uklonite uzrok, pričekajte sat vremena, zatim `sudo systemctl restart caddy`. |
+| Caddyjev log prikazuje `Invalid response … /.well-known/acme-challenge/…` (502 ili stranicu prijemnika) ili `Timeout during connect` | Router šalje 80 ili 443 negdje drugdje — često na javni port prijemnika. Pravila moraju biti TCP 80 → ovo računalo, port **80**, i TCP 443 → ovo računalo, port **443**; isključite udaljeno upravljanje samog routera na tim portovima. Zatim `sudo systemctl restart caddy` da odmah pokuša ponovno. |
 | https radi kod kuće, ali ne izvana | Usmjernik prosljeđuje 443 na drugo računalo, ili nikamo. |
 | Popis slušatelja ili ploča korisnika prazni su preko https-a | Jednom pokrenite `bash configure-station.sh` i potvrdite ponovnu izgradnju: stranica mora znati svoju https adresu. |
 | `Port 443 is already used by another web server` | Vidi gore *Na ovom računalu već radi web-poslužitelj*. |

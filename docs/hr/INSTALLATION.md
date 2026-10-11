@@ -416,7 +416,7 @@ Instalacija se odvija u 22 numerirana koraka. Budući da se pitanja o stanici od
 | 1 | Koji prijemnik | Prepoznaje i predlaže onaj koji je priključen (RX888, RTL-SDR, RSP1A, Airspy HF+, HackRF, Fobos). Za RTL-SDR pita i je li to Blog V4. |
 | 2 | Što primati | Gotovi izbori za svaki prijemnik (npr. *HF 0–30 MHz* za RX888, *2 m* za RTL-SDR) ili vlastita središnja frekvencija i brzina uzorkovanja. |
 | 3 | Vaša stanica | Pozivni znak, ime, e-pošta, QTH lokator, grad i država, antena, računalo, ITU regija (predložena prema lokatoru). |
-| 4 | Internet | Vaša javna adresa (IP ili DNS ime) te treba li prijemnik biti na sdr-list.xyz i na karti websdr.org. Također hoće li se prijemnik posluživati i preko https:// (treba DNS ime). |
+| 4 | Internet | Vaša javna adresa (IP ili DNS ime) te treba li prijemnik biti na sdr-list.xyz i na karti websdr.org. Također hoće li se prijemnik posluživati i preko https:// (treba DNS ime). Upišite ime ili IP, ne port — port se pita u koraku 5. |
 | 5 | Portovi i dodaci | Administratorska ploča, FreeDV RADE, statistika, WebSDR relay, pokretanje pri podizanju sustava — i javni port. |
 
 Odgovori se spremaju u **`station.conf`**, a iz njega čarobnjak zapisuje sve što se mora slagati: `config-<prijemnik>.toml` prijemnika (brzina uzorkovanja, frekvencija, port, upisi u imenike, websdr.org), `frontend/site_information.json` i postavke relaya. Skripte za pokretanje same čitaju frekvenciju i brzinu uzorkovanja iz `station.conf`, pa se nikad ne uređuju. Mijenjaju se samo postavke koje pripadaju čarobnjaku, a svaka se datoteka prije promjene kopira u `<ime>.bak-<datum>`.
@@ -616,7 +616,7 @@ Upravlja se u cijelosti s kartice **administratorska ploča → „Spot Reportin
 | **Node.js 22+** | Isto radno okruženje koje već treba izgradnja sučelja — instalira se u [koraku Node.js](#instalacija-nodejs-a-i-npm-a). |
 | **npm paketi `ws` + `cbor-x`** | Razrješavaju se preko `autorun/node_modules`, simboličke poveznice na `node_modules` sučelja (oba su paketa navedena u `frontend/package.json`). |
 | **`util-linux`** (`taskset`) | Gumb „Start" u administraciji veže daemon uz E-jezgre pomoću naredbe `taskset`. Prisutan je u gotovo svakoj distribuciji; instalacijske skripte dodaju ga izričito. |
-| **Pozivni znak + lokator** | Čitaju se iz `frontend/site_information.json` (`siteSysop` / `siteGridSquare`), osim ako se ne promijene na administratorskoj kartici. Spotovi se šalju pod tim pozivnim znakom. |
+| **Pozivni znak + lokator** | Čitaju se iz `frontend/site_information.json` (`siteSysop` / `siteGridSquare`), osim ako se ne promijene na administratorskoj kartici. Spotovi se šalju pod tim pozivnim znakom. PSK Reporter i WSPRnet dobivaju samo lokator od 4 ili 6 znakova — dulji (KM17VX69JA) skraćuje se na svoj kvadrat (KM17VX). |
 
 > ⚠️ **Prijavljujte samo ono što doista primate.** Spotovi se šalju u javne mreže pod vašim pozivnim znakom — uključite samo pojaseve/načine rada koje vaš prijamnik stvarno čuje i koristite ispravan lokator.
 

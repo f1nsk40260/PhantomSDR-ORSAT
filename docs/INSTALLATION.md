@@ -416,7 +416,7 @@ The installation runs in 22 numbered steps. With the station questions answered 
 | 1 | Which receiver | The one plugged in is recognised and suggested (RX888, RTL-SDR, RSP1A, Airspy HF+, HackRF, Fobos). For an RTL-SDR it also asks whether it is a Blog V4. |
 | 2 | What to receive | Ready choices for each receiver (for example *HF 0–30 MHz* for the RX888, *2 m* for an RTL-SDR), or your own centre frequency and sample rate. |
 | 3 | Your station | Callsign, name, e-mail, QTH locator, city and country, antenna, computer, ITU region (suggested from the locator). |
-| 4 | Internet | Your public address (IP or DNS name), and whether to list the receiver on sdr-list.xyz and on the websdr.org map. Also whether to serve the receiver over https:// as well (needs a DNS name). |
+| 4 | Internet | Your public address (IP or DNS name), and whether to list the receiver on sdr-list.xyz and on the websdr.org map. Also whether to serve the receiver over https:// as well (needs a DNS name). Type a name or an IP, not a port — the port comes in step 5. |
 | 5 | Ports and extras | Admin panel, FreeDV RADE, statistics, WebSDR relay, start at boot — and the public port. |
 
 The answers are saved in **`station.conf`**, and from it the wizard writes everything that has to agree: the receiver's `config-<receiver>.toml` (sample rate, frequency, port, directory listings, websdr.org), `frontend/site_information.json` and the relay's settings. The start scripts read the frequency and sample rate from `station.conf` themselves, so they are never edited. Only the settings the wizard owns are changed, and each file is copied to `<name>.bak-<date>` before it is touched.
@@ -616,7 +616,7 @@ It is controlled entirely from the **admin panel → "Spot Reporting"** tab, and
 | **Node.js 22+** | Same runtime the frontend build already needs — installed in the [Node.js step](#installing-nodejs-and-npm). |
 | **`ws` + `cbor-x` npm packages** | Resolved through `autorun/node_modules`, a symlink to the frontend's `node_modules` (both packages are declared in `frontend/package.json`). |
 | **`util-linux`** (`taskset`) | The admin "Start" button pins the daemon to the E-cores with `taskset`. Present on virtually every distro; the installers add it explicitly. |
-| **Callsign + grid** | Read from `frontend/site_information.json` (`siteSysop` / `siteGridSquare`) unless overridden in the admin tab. Spots are uploaded under this callsign. |
+| **Callsign + grid** | Read from `frontend/site_information.json` (`siteSysop` / `siteGridSquare`) unless overridden in the admin tab. Spots are uploaded under this callsign. PSK Reporter and WSPRnet get a 4- or 6-character locator only — a longer one (KM17VX69JA) is cut to its square (KM17VX). |
 
 > ⚠️ **Report only what you actually receive.** Spots are uploaded to public networks under your callsign — only enable bands/modes your receiver genuinely hears, and use your correct grid square.
 

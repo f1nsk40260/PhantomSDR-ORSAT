@@ -2660,11 +2660,19 @@ else
     RADE_SCRIPT="$PHANTOM_DIR/install_rade.sh"
 fi
 
+# A station set up by the wizard runs RADE on its own PORT_RADE (9012 on the
+# map); an older one keeps the fixed 8074.
+RADE_PORT=8074
+if [ "$USE_STATION" = true ]; then
+    RADE_PORT="$(station_value PORT_RADE)"
+    RADE_PORT="${RADE_PORT:-8074}"
+fi
+
 if [ -f "$RADE_SCRIPT" ]; then
     echo ""
     echo "RADE (Radio Autoencoder) decodes FreeDV RADE V1 voice in the browser."
     echo "It builds the radae repository into ~/radae and runs as a small Python"
-    echo "sidecar on port 8074, controlled by ./rade.sh."
+    echo "sidecar on port $RADE_PORT, controlled by ./rade.sh."
     echo ""
     yellow "   Installed by default — answer 'n' to skip it."
     if [ "$RADE_SCRIPT" = "$PHANTOM_DIR/install_rade_ubuntu22.sh" ]; then
@@ -2688,7 +2696,7 @@ if [ -f "$RADE_SCRIPT" ]; then
                 PHANTOM_SKIP_ADMIN_OFFER=1 "$RADE_SCRIPT" ) < "$SUB_IN"; then
             RADE_INSTALLED=true
             green "✅ RADE installed"
-            component "RADE / FreeDV" "installed via $(basename "$RADE_SCRIPT") — sidecar on port 8074"
+            component "RADE / FreeDV" "installed via $(basename "$RADE_SCRIPT") — sidecar on port $RADE_PORT"
         else
             step_state PARTIAL "$(basename "$RADE_SCRIPT") did not finish"
             warn "RADE setup did not finish — run ./install_rade.sh again later"

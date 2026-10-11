@@ -36,6 +36,21 @@ function isGrid(tok)  { return GRID_RE.test(tok) && !REPORT_RE.test(tok); }
 function isCall(tok)  { return CALL_RE.test(tok) && /[0-9]/.test(tok) && /[A-Z]/i.test(tok); }
 
 /**
+ * The receiver's own locator as PSK Reporter and WSPRnet accept it: 4 or 6
+ * characters, nothing longer. A finer page locator (KM17VX69JA) is cut to its
+ * 6-character square; anything that is not a locator becomes '' (spots then
+ * go out without a receiver grid rather than being rejected).
+ * @param {string} g
+ * @returns {string}
+ */
+export function reporterGrid(g) {
+    const s = String(g || '').trim();
+    if (GRID_RE.test(s.slice(0, 6)) && s.length >= 6) return s.slice(0, 6);
+    if (GRID_RE.test(s.slice(0, 4)) && s.length >= 4) return s.slice(0, 4);
+    return '';
+}
+
+/**
  * @param {string} text raw FT8/FT4 message
  * @returns {{call:string, grid:string|null}|null}
  */

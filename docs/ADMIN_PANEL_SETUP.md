@@ -665,7 +665,7 @@ The autorun daemon needs Node.js 22+, the `ws` + `cbor-x` npm packages (resolved
 
 ### Using the tab
 
-1. **Identity** — callsign and grid. Pre-filled from `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, truncated to 6 chars); override here if needed.
+1. **Identity** — callsign and grid. Pre-filled from `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, truncated to 6 chars); override here if needed. The reporters take a 4- or 6-character locator only (KM17 or KM17VX): a longer one is cut to its 6-character square, and anything that is not a locator is refused when you save.
 2. **Band × mode matrix** — tick the combinations to decode. Rows are bands, columns are FT8 / FT4 / JS8 / WSPR; unsupported cells are disabled. WSPR additionally covers the LF/MF bands (2200m, 630m) and an extra 80m EU channel.
 3. **Destinations** — enable **PSK Reporter** and/or **wsprnet** (both off by default).
 4. **Max slots** — a safety cap on how many band/mode slots can run at once.

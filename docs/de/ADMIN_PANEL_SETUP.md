@@ -669,7 +669,7 @@ Der Autorun-Daemon benötigt Node.js 22+, die npm-Pakete `ws` + `cbor-x` (aufgel
 
 ### Den Reiter verwenden
 
-1. **Identität** — Rufzeichen und Locator. Vorausgefüllt aus `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, auf 6 Zeichen gekürzt); hier bei Bedarf überschreiben.
+1. **Identität** — Rufzeichen und Locator. Vorausgefüllt aus `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, auf 6 Zeichen gekürzt); hier bei Bedarf überschreiben. Die Reporter nehmen nur einen Locator mit 4 oder 6 Zeichen (KM17 oder KM17VX): Ein längerer wird auf sein 6-stelliges Feld gekürzt, und alles, was kein Locator ist, wird beim Speichern abgelehnt.
 2. **Band-×-Betriebsart-Matrix** — kreuzen Sie die zu dekodierenden Kombinationen an. Zeilen sind Bänder, Spalten FT8 / FT4 / JS8 / WSPR; nicht unterstützte Felder sind deaktiviert. WSPR deckt zusätzlich die LF-/MF-Bänder (2200 m, 630 m) und einen zusätzlichen 80-m-EU-Kanal ab.
 3. **Ziele** — aktivieren Sie **PSK Reporter** und/oder **wsprnet** (beide standardmäßig aus).
 4. **Max slots** — eine Sicherheitsgrenze dafür, wie viele Band-/Betriebsart-Slots gleichzeitig laufen dürfen.

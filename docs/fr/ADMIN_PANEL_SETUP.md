@@ -669,7 +669,7 @@ Le démon autorun nécessite Node.js 22+, les paquets npm `ws` + `cbor-x` (réso
 
 ### Utiliser l'onglet
 
-1. **Identité** — indicatif et locator. Pré-remplis depuis `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, tronqué à 6 caractères) ; remplacez-les ici si nécessaire.
+1. **Identité** — indicatif et locator. Pré-remplis depuis `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, tronqué à 6 caractères) ; remplacez-les ici si nécessaire. Les reporters n'acceptent qu'un locator de 4 ou 6 caractères (KM17 ou KM17VX) : un locator plus long est coupé à son carré de 6 caractères, et ce qui n'est pas un locator est refusé à l'enregistrement.
 2. **Matrice bande × mode** — cochez les combinaisons à décoder. Les lignes sont les bandes, les colonnes FT8 / FT4 / JS8 / WSPR ; les cases non prises en charge sont désactivées. WSPR couvre en outre les bandes LF/MF (2200 m, 630 m) et un canal 80 m EU supplémentaire.
 3. **Destinations** — activez **PSK Reporter** et/ou **wsprnet** (désactivés par défaut).
 4. **Max slots** — limite de sécurité sur le nombre de créneaux bande/mode simultanés.

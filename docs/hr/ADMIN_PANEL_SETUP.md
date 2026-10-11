@@ -669,7 +669,7 @@ Autorun daemon treba Node.js 22+, npm pakete `ws` + `cbor-x` (razrješavaju se p
 
 ### Korištenje kartice
 
-1. **Identitet** — pozivni znak i lokator. Unaprijed popunjeni iz `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, skraćeno na 6 znakova); ovdje ih po potrebi zamijenite.
+1. **Identitet** — pozivni znak i lokator. Unaprijed popunjeni iz `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, skraćeno na 6 znakova); ovdje ih po potrebi zamijenite. Reporteri primaju samo lokator od 4 ili 6 znakova (KM17 ili KM17VX): dulji se skraćuje na svoj kvadrat od 6 znakova, a ono što nije lokator odbija se pri spremanju.
 2. **Matrica pojas × način rada** — označite kombinacije za dekodiranje. Retci su pojasevi, stupci FT8 / FT4 / JS8 / WSPR; nepodržane ćelije su onemogućene. WSPR dodatno pokriva LF/MF pojaseve (2200 m, 630 m) i dodatni europski kanal na 80 m.
 3. **Odredišta** — uključite **PSK Reporter** i/ili **wsprnet** (oboje prema zadanom isključeno).
 4. **Max slots** — sigurnosno ograničenje broja mjesta pojas/način rada koja mogu raditi istodobno.

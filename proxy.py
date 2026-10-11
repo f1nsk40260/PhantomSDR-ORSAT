@@ -107,6 +107,11 @@ LISTEN_HOST    = "0.0.0.0"
 LISTEN_PORT    = int(_cfg["proxy_port"])
 ADMIN_UPSTREAM = f"http://127.0.0.1:{int(_cfg['port'])}"
 SDR_UPSTREAM   = f"http://{_sdr_host}:{_sdr_port}"
+if _sdr_port == LISTEN_PORT and _sdr_host in ("127.0.0.1", "localhost", "::1"):
+    print(f"[ERROR] admin_config.json: public_port (spectrumserver) and proxy_port are "
+          f"both {LISTEN_PORT} — the proxy would forward to itself.", file=sys.stderr)
+    print("        Give spectrumserver its own port: bash configure-station.sh", file=sys.stderr)
+    sys.exit(1)
 
 # ── Side services behind the same public port ──────────────────────────────────
 # A station set up with configure-station.sh forwards ONE port on its router.
@@ -157,17 +162,35 @@ if _rx_path.exists():
     except Exception as _e:
         print(f"[ERROR] {_rx_path.name}: {_e}", file=sys.stderr)
         sys.exit(1)
+    # Ports this proxy itself listens on. A receiver on this computer that
+    # names one of them would make the proxy forward to itself: every request
+    # opens another connection to us until nothing answers (2026-10-11, after
+    # the main receiver moved behind the proxy and receivers.toml kept 8900).
+    _own_ports = {LISTEN_PORT, int(_rxcfg.get("front", {}).get("port", 0) or 0)}
     for _r in _rxcfg.get("receiver", []):
         _id = str(_r.get("id", "")).strip()
         if not re.fullmatch(r"[A-Za-z0-9_-]+", _id) or "port" not in _r:
             print(f"[ERROR] {_rx_path.name}: every [[receiver]] needs an id "
                   f"(letters, digits, - and _) and a port", file=sys.stderr)
             sys.exit(1)
+        _port = int(_r["port"])
+        if (str(_r.get("host", _sdr_host)) in ("127.0.0.1", "localhost", "::1")
+                and _port in _own_ports):
+            if "instance" not in _r and _sdr_port not in _own_ports:
+                print(f"[WARN]  {_rx_path.name}: receiver '{_id}' names port {_port}, "
+                      f"which is this proxy's — using spectrumserver's {_sdr_port} "
+                      f"(fix it with: bash configure-station.sh --apply)", file=sys.stderr)
+                _port = _sdr_port
+            else:
+                print(f"[ERROR] {_rx_path.name}: receiver '{_id}' names port {_port}, "
+                      f"which is this proxy's — left out; give it its own port",
+                      file=sys.stderr)
+                continue
         RECEIVERS[_id] = {
             "name":      str(_r.get("name", _id)),
-            "upstream":  f"http://{_r.get('host', _sdr_host)}:{int(_r['port'])}",
+            "upstream":  f"http://{_r.get('host', _sdr_host)}:{_port}",
             "host":      str(_r.get("host", _sdr_host)),
-            "port":      int(_r["port"]),
+            "port":      _port,
             "hostnames": [str(h).lower() for h in _r.get("hostnames", [])],
             # Where the page's receiver picker sends a visitor. Absolute when
             # the receiver has its own public port; else this proxy + ?rx=.
