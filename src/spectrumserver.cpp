@@ -693,10 +693,16 @@ void broadcast_server::stop() {
 // ============================================================================
 
 void broadcast_server::start_websdr_updates() {
-    websdr_running = true;
-    websdr_thread  = std::thread(&broadcast_server::update_websdr_list, this);
+    // The two listings are independent switches. websdr.org used to start only
+    // from inside the sdr-list branch, so a station that said no to sdr-list
+    // and yes to websdr.org was never registered -- while the launcher still
+    // announced "websdr.org: ENABLED" and waited for an OK that never came.
+    if (config["websdr"]["register_online"].value_or(false)) {
+        websdr_running = true;
+        websdr_thread  = std::thread(&broadcast_server::update_websdr_list, this);
+    }
 
-    // Also start WebSDR.org registration if [websdr.org] enabled = true
+    // WebSDR.org registration if [websdr.org] enabled = true
     const auto *org_cfg = config["websdr"]["org"].as_table();
     if (org_cfg && (*org_cfg)["enabled"].value_or(false)) {
         websdr_org_running_ = true;
@@ -1112,13 +1118,13 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    int  port            = config["server"]["port"].value_or(9002);
-    bool register_online = config["websdr"]["register_online"].value_or(false);
+    int port = config["server"]["port"].value_or(9002);
 
     broadcast_server server(std::move(driver), config);
 
-    if (register_online)
-        server.start_websdr_updates();
+    // sdr-list ([websdr] register_online) and websdr.org ([websdr.org]
+    // enabled); each one is checked inside.
+    server.start_websdr_updates();
 
     // Signal handling is performed inside broadcast_server::run() via
     // boost::asio::signal_set, which is async-signal-safe.
