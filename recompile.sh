@@ -180,6 +180,28 @@ EOF
 # NOTE: request.hpp is websocketpp's http/impl/request.hpp, NOT http/request.hpp
 # — copying it over the latter replaces the class declaration and breaks the
 # build with "request_type does not name a type".
+# websocketpp : le meson.build que WrapDB fournissait (patch websocketpp_0.8.2-1)
+# est livré dans subprojects/packagefiles/websocketpp/. S'il a disparu (ancienne
+# version du nettoyage, copie partielle), on le recrée : sans lui 'meson setup'
+# échoue avec « patch directory does not exist: websocketpp ».
+ensure_wspp_packagefile() {
+    local f="subprojects/packagefiles/websocketpp/meson.build"
+    [ -f "$f" ] && return 0
+    mkdir -p "$(dirname "$f")"
+    cat > "$f" << 'WSPP_EOF'
+project(
+  'websocketpp',
+  'cpp',
+  version: '0.8.2',
+)
+
+websocketpp_dep = declare_dependency(
+  include_directories: include_directories('.'),
+)
+WSPP_EOF
+    echo "   websocketpp : subprojects/packagefiles/websocketpp/meson.build recréé"
+}
+
 WSPP_PATCHES=(
     "request.hpp|websocketpp/http/impl/request.hpp"
     "connection_impl.hpp|websocketpp/impl/connection_impl.hpp"
@@ -228,6 +250,7 @@ recompile_backend() {
     echo "Removing old build directory..."
     rm -rf build
     
+    ensure_wspp_packagefile
     echo "Setting up new build with Meson..."
     meson setup build
     

@@ -1041,6 +1041,28 @@ restart_stopped_phantom() {
 #
 # which says nothing about what to do. Remove such a directory so meson clones
 # it again on this run.
+# websocketpp : le meson.build que WrapDB fournissait (patch websocketpp_0.8.2-1)
+# est livré dans subprojects/packagefiles/websocketpp/. S'il a disparu (ancienne
+# version du nettoyage, copie partielle), on le recrée : sans lui 'meson setup'
+# échoue avec « patch directory does not exist: websocketpp ».
+ensure_wspp_packagefile() {
+    local f="subprojects/packagefiles/websocketpp/meson.build"
+    [ -f "$f" ] && return 0
+    mkdir -p "$(dirname "$f")"
+    cat > "$f" << 'WSPP_EOF'
+project(
+  'websocketpp',
+  'cpp',
+  version: '0.8.2',
+)
+
+websocketpp_dep = declare_dependency(
+  include_directories: include_directories('.'),
+)
+WSPP_EOF
+    echo "   websocketpp : subprojects/packagefiles/websocketpp/meson.build recréé"
+}
+
 clean_stale_subprojects() {
     local d name
     for d in subprojects/*/; do
@@ -1819,6 +1841,7 @@ check_clock_skew
 
 echo "Configuring with Meson..."
 clean_stale_subprojects
+ensure_wspp_packagefile
 check_subproject_network
 # --wipe reconfigures an existing valid build tree.
 # On a fresh clone or after 'rm -rf build', there is no valid tree and
