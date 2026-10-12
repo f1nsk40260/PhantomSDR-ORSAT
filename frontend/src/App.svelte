@@ -97,6 +97,7 @@
   import FrequencyMarkers from "./lib/FrequencyMarkers.svelte";
   import MagicEyeIndicator from "./lib/MagicEyeIndicator.svelte";
   import ModeIdChip from "./lib/ModeIdChip.svelte";
+  import HfdlPanel from "./lib/HfdlPanel.svelte";
   import {
     RELIABLE_LO_HZ,
     RELIABLE_HI_HZ,
@@ -3308,6 +3309,55 @@
     navtexStatusText = "";
   }
 
+  // ── HFDL (HF Data Link) ───────────────────────────────────────────────────
+  // dumphfdl en WebAssembly (hfdl.worker.js). Le panneau HfdlPanel reçoit les
+  // trames ; ici on ne fait que piloter le récepteur : USB, filtre FI large
+  // (la sous-porteuse HFDL est à 1440 Hz, ±1,2 kHz) et étiquette de fréquence.
+  let hfdlEnabled = false;
+
+  $: hfdlDialKhz = Number(frequency) || 0;
+  $: if (hfdlEnabled && audio && typeof audio.setHFDLDial === "function")
+    audio.setHFDLDial(Math.round(hfdlDialKhz * 1000));
+
+  function _hfdlActivate() {
+    tick().then(async () => {
+      // USB d'abord, comme NAVTEX : changer de mode resynchronise le flux.
+      if (demodulation !== "USB") {
+        demodulation = "USB";
+        handleDemodulationChange(null, true);
+        await tick();
+        await new Promise((resolve) => setTimeout(resolve, 60));
+      }
+      audio.setHFDLDial(Math.round((Number(frequency) || 0) * 1000));
+      audio.setHFDLDecoding(true);
+      _modeIdApplyReceiverDefaults("hfdl");
+    });
+  }
+
+  function _hfdlDeactivate() {
+    if (!hfdlEnabled) return;
+    hfdlEnabled = false;
+    audio.setHFDLDecoding(false);
+    demodulation = _bandDefaultMode();
+    handleDemodulationChange(null, true);
+    if (audio && typeof audio.updateFilters === "function")
+      audio.updateFilters();
+  }
+
+  /** Accorde sur une fréquence HFDL (kHz) : USB, la fréquence affichée = celle de la liste. */
+  function hfdlTune(khz) {
+    const hz = Math.round(Number(khz) * 1000);
+    if (!(hz > 0)) return;
+    try {
+      tuneToUserFrequency(hz, "USB");
+    } catch (e) {
+      console.warn("[HFDL] tune error", e);
+    }
+    audio.setHFDLDial(hz);
+    audio.resetHFDL();
+    _modeIdApplyReceiverDefaults("hfdl");
+  }
+
   // Auto-scroll is handled centrally for every decoder pane — see the
   // "Decoder pane auto-scroll" block further down.
 
@@ -4925,6 +4975,7 @@
       faxEnabled ||
       sstvEnabled ||
       navtexEnabled ||
+      hfdlEnabled ||
       fskEnabled ||
       radeEnabled
     );
@@ -5027,6 +5078,10 @@
     // NAVTEX
     if (navtexEnabled) {
       _navtexDeactivate();
+    }
+    // HFDL
+    if (hfdlEnabled) {
+      _hfdlDeactivate();
     }
     // FSK / RTTY
     if (fskEnabled) {
@@ -5223,6 +5278,9 @@
     } else if (d === "navtex") {
       navtexEnabled = true;
       _navtexActivate();
+    } else if (d === "hfdl") {
+      hfdlEnabled = true;
+      _hfdlActivate();
     } else if (d === "fsk") {
       _fskActivate();
     } else if (d === "radel" || d === "radeu") {
@@ -5349,6 +5407,7 @@
     js8: { mode: "USB", passband: [0, 3000] },
     wspr: { mode: "USB", passband: [1350, 1650] },
     navtex: { mode: "USB", passband: [250, 750] },
+    hfdl: { mode: "USB", passband: [150, 2750] },
     hffax: { mode: "USB", passband: [800, 2700] },
     sstv: { mode: null, passband: [900, 2600] },
     cw: { mode: "CW", passband: [-250, 250] },
@@ -5543,6 +5602,11 @@
     { key: "hffax", label: "FAX", title: "HF FAX / WEFAX" },
     { key: "sstv", label: "SSTV", title: "SSTV" },
     { key: "navtex", label: "NAVTX", title: "NAVTEX" },
+    {
+      key: "hfdl",
+      label: "HFDL",
+      title: "HFDL — HF Data Link : messages ACARS des avions sur ondes courtes",
+    },
     {
       key: "fsk",
       label: "FLDIGI",
@@ -13190,6 +13254,11 @@ Cliquez à nouveau pour désactiver"
                   {/if}
                   <!-- END NAVTEX Panel -->
 
+                  <!-- ── HFDL Decoder Panel ───────────────────────────────── -->
+                  {#if decoderOn && hfdlEnabled}
+                    <HfdlPanel {audio} dialKhz={hfdlDialKhz} onTune={hfdlTune} />
+                  {/if}
+
                   <!-- ── RADE v1 Digital Voice Panel ──────────────────────── -->
                   {#if decoderOn && radeEnabled}
                     <div
@@ -16890,6 +16959,7 @@ Slider: share of denoised audio, the rest is the original"
                         <option value="hffax">HF FAX / WEFAX</option>
                         <option value="sstv">SSTV</option>
                         <option value="navtex">NAVTEX</option>
+                        <option value="hfdl">HFDL</option>
                         <option value="fsk">FLDIGI</option>
                         <option value="radel">RADE v1 — RADEL (LSB)</option>
                         <option value="radeu">RADE v1 — RADEU (USB)</option>
@@ -17890,6 +17960,11 @@ Slider: share of denoised audio, the rest is the original"
                     </div>
                   {/if}
                   <!-- END NAVTEX Panel -->
+
+                  <!-- ── HFDL Decoder Panel ───────────────────────────────── -->
+                  {#if decoderOn && hfdlEnabled}
+                    <HfdlPanel {audio} dialKhz={hfdlDialKhz} onTune={hfdlTune} />
+                  {/if}
 
                   <!-- ── RADE v1 Digital Voice Panel ──────────────────────── -->
                   {#if decoderOn && radeEnabled}

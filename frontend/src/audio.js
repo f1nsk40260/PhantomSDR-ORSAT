@@ -80,6 +80,7 @@ import { FAXWorkerProxy }  from './faxWorkerProxy.js';
 // NAVTEX and FSK/RTTY are one shared engine (fsk.js); each role gets its own
 // decoder instance and its own worker.  See fsk.worker.js.
 import { FSKWorkerProxy }  from './fskWorkerProxy.js';
+import { HFDLWorkerProxy } from './hfdlWorkerProxy.js';
 // fsk.js is in this bundle already (the proxy's in-thread fallback imports it).
 import { FLDIGI_MODEMS } from './fsk.js';
 const FSK_MODEM_VARIANTS = Object.keys(FLDIGI_MODEMS);
@@ -879,6 +880,21 @@ export default class SpectrumAudio {
       }
     });
 
+    // ── HFDL (HF Data Link) decoder state ────────────────────────────────
+    // dumphfdl compiled to WebAssembly, in hfdl.worker.js.  It reads the USB
+    // audio before NR/NB/NS/AN, like every other decoder here.
+    this.decodeHFDL   = false;
+    this.hfdlCallback = null;
+    // audioOutputSps, not trueAudioSps: the FLAC path hands the decoders audio
+    // already brought to the output rate (see flacLowLatency.js).  The decoder
+    // still searches ±1 % around it, which also covers the other paths.
+    this._hfdlDecoder = new HFDLWorkerProxy({
+      sampleRate: () => this.audioOutputSps || this.trueAudioSps || 12000,
+      callback: (event) => {
+        if (typeof this.hfdlCallback === 'function') this.hfdlCallback(event);
+      }
+    });
+
     // ── RADE v1 digital voice decoder state ──────────────────────────────
     this.decodeRADE    = false;
     this._radeSideband = 'USB';
@@ -1489,6 +1505,13 @@ async init() {
     if (this._sstvDecoder && typeof this._sstvDecoder.destroy === 'function') {
       try { this._sstvDecoder.destroy(); } catch (e) { console.warn('[SSTV] destroy error', e); }
     }
+
+    // Clear HFDL state
+    if (this.decodeHFDL) { this.decodeHFDL = false; this._hfdlDecoder.setEnabled(false); }
+    if (this._hfdlDecoder) {
+      try { this._hfdlDecoder.destroy(); } catch (e) { console.warn('[HFDL] destroy error', e); }
+    }
+    this.hfdlCallback = null;
 
     // Clear generic FSK state
     if (this.decodeFSK) { this.decodeFSK = false; this._fskDecoder.setEnabled(false); }
@@ -5967,6 +5990,12 @@ js8Pending() {
       catch(e) { console.error('[NAVTEX] feed error', e); }
     }
 
+    // HFDL tap — raw PCM before any DSP (mono: the decoder wants one channel)
+    if (this.decodeHFDL) {
+      try { this._hfdlDecoder.feedPCM(this._monoForDisplay(rawPcm)); }
+      catch(e) { console.error('[HFDL] feed error', e); }
+    }
+
     // Generic Kiwi-style FSK tap — raw PCM before any DSP
     if (this.decodeFSK) {
       try { this._fskFeedPCM(rawPcm); }
@@ -7338,6 +7367,29 @@ js8Pending() {
   _navtexFeedPCM(pcm) {
     if (!this.decodeNAVTEX) return;
     this._navtexDecoder.feedPCM(pcm);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  HFDL (HF Data Link) — dumphfdl in WebAssembly, see hfdl.worker.js
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  setHFDLDecoding(enabled) {
+    this.decodeHFDL = !!enabled;
+    this._hfdlDecoder.setEnabled(this.decodeHFDL);
+    console.log('[HFDL]', enabled ? '▶ ENABLED' : '■ DISABLED');
+  }
+
+  setHFDLCallback(fn) {
+    this.hfdlCallback = fn || null;
+  }
+
+  /** USB dial frequency in Hz — the label the decoded frames carry. */
+  setHFDLDial(hz) {
+    this._hfdlDecoder.setDial(hz);
+  }
+
+  resetHFDL() {
+    this._hfdlDecoder.reset();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

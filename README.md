@@ -118,6 +118,7 @@ Nous proposons aussi un large éventail de **fonctions** supplémentaires :
 - La prise en charge des SDR à haut débit d'échantillonnage (70 MSPS en réel, 35 MSPS en IQ).
 - Les données IQ comme réelles.
 - Une prise en charge complète des décodeurs.
+- Un décodeur **HFDL** (HF Data Link, messages ACARS des avions en ondes courtes) dans l'interface F1NSK : bouton HFDL de « Decoders Control », liste des stations sol et de leurs fréquences, position des avions quand elle est transmise. Il repose sur dumphfdl compilé en WebAssembly (voir `jsdsp/hfdl_wasm`).
 - Une vue mobile légère à l'adresse **/mobile**, pour les téléphones aux forfaits de données limités.
 
 ## Performances mesurées
