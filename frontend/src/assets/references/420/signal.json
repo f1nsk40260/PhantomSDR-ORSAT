@@ -1,0 +1,1 @@
+{"id": 420, "title": "ECG Telemetry", "cat": ["Utility"], "freqs": [403959000.0], "fmin": 403959000.0, "fmax": 403959000.0, "bw": 1000.0, "mod": ["FSK"], "mode": ["FM"], "acf": [], "loc": ["Australia"], "short": "ECG Telemetry from a pacemaker.", "desc": "", "page": "https://www.sigidwiki.com/wiki/ECG_Telemetry", "img": [183, 365], "dur": 30, "has_img": true, "has_snd": true}

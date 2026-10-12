@@ -1,0 +1,1 @@
+{"id": 6926, "title": "CDMA420", "cat": ["Commercial", "Digital"], "freqs": [410000000.0, 425000000.0], "fmin": 410000000.0, "fmax": 425000000.0, "bw": 2500000.0, "mod": ["QPSK"], "mode": ["AM"], "acf": [], "loc": ["Poland"], "short": "", "desc": "", "page": "https://www.sigidwiki.com/wiki/CDMA420", "img": [1124, 766], "dur": 30, "has_img": true, "has_snd": true}

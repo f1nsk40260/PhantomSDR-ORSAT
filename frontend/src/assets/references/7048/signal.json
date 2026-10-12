@@ -1,0 +1,1 @@
+{"id": 7048, "title": "LTE420 MCX", "cat": ["Commercial", "Digital"], "freqs": [423700000.0], "fmin": 423700000.0, "fmax": 423700000.0, "bw": 1080000.0, "mod": ["QAM", "OFDM"], "mode": ["AM"], "acf": [], "loc": ["Poland"], "short": "Band 88 FDD", "desc": "", "page": "https://www.sigidwiki.com/wiki/LTE420_MCX", "img": [779, 889], "dur": 30, "has_img": true, "has_snd": true}
