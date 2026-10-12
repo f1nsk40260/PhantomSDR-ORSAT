@@ -19476,7 +19476,7 @@ Slider: share of denoised audio, the rest is the original"
   /* Here you can Change the Background of WebSDR, Picture must be in assets folder*/
   .bg-custom-dark {
     /* background-color: #1c1c1c; /* Original: A very dark gray with a tiny hint of warmth */
-    background: url("./assets/background.jpg") no-repeat center center fixed;
+    background: url("./assets/background.original.jpg") no-repeat center center fixed;
     background-size: cover;
   }
 
