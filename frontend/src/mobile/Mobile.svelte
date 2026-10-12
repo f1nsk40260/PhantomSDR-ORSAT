@@ -8,7 +8,7 @@
   import { loadReceivers, mobileUrl } from '../lib/receivers'
   import { sUnitLiftDb, meterGated } from '../lib/sUnits.js'
   import siteInfo from '../siteInfo.js'
-  import { VERSION, ORIGIN_URL } from '../lib/version.js'
+  import { VERSION, ORIGIN_URL, MODIFIED_NOTE, MODIFIED_URL } from '../lib/version.js'
   import copy from 'copy-to-clipboard'
   import {
     parseChatLine, replyMarker, replySnippet, splitReply, stripReplyMarker, threadMessages,
@@ -1778,6 +1778,8 @@
       PhantomSDR+ | v{VERSION} original from
       <a href={ORIGIN_URL} target="_blank" rel="noopener noreferrer"
         >{ORIGIN_URL.replace('https://', '')}</a>
+      — {MODIFIED_NOTE} (<a href={MODIFIED_URL} target="_blank" rel="noopener noreferrer"
+        >{MODIFIED_URL.replace('https://', '')}</a>)
     </div>
   {/if}
 </div>
