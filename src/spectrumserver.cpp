@@ -910,7 +910,11 @@ void broadcast_server::update_websdr_org() {
     while (websdr_org_running_) {
         if (fd < 0) {
             struct addrinfo hints{}, *res = nullptr;
-            hints.ai_family   = AF_UNSPEC;
+            // IPv4 only: the callback goes to public_host, which normally
+            // resolves to IPv4 alone, so the ping must come from that same
+            // address. Over IPv6 the ping got 200 OK but websdr.org never
+            // connected back and the station was never listed.
+            hints.ai_family   = AF_INET;
             hints.ai_socktype = SOCK_STREAM;
 
             if (getaddrinfo(org_host.c_str(), "80", &hints, &res) == 0) {

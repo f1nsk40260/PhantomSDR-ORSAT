@@ -598,7 +598,9 @@ async def handle(request: web.Request) -> web.StreamResponse:
 _QUIET_PATHS = ("/admin/api/status", "/admin/api/thermal", "/admin/api/logs",
                 "/admin/api/logs/clear",
                 "/admin/api/autorun/status", "/admin/api/users", "/admin/api/sdr-users",
-                "/admin/api/graph-stats", "/admin/api/chat")
+                "/admin/api/graph-stats", "/admin/api/chat",
+                # websdr.org's registration check, every 10 s while listed
+                "/~~orgstatus")
 _ACCESS_RE = re.compile(r'"[A-Z]+ (?P<path>[^ ?"]+)[^"]*" (?P<status>\d{3})')
 
 
@@ -608,6 +610,70 @@ class QuietPollFilter(logging.Filter):
         if not m or m.group("status") != "200":
             return True
         return m.group("path") not in _QUIET_PATHS
+
+
+# ── websdr.org callback: HTTP/1.1 without a Host header ────────────────────────
+# websdr.org confirms a registration by connecting back and sending
+# "GET /~~orgstatus HTTP/1.1" with no Host line. aiohttp refuses that (400,
+# "Missing 'Host' header") in both its C and Python parsers, so the request
+# never reached spectrumserver and the station was never listed. The first
+# request on each connection is inspected: when it carries a Host header (every
+# browser does) the connection is left alone from then on; when it does not,
+# "Host: localhost" is added, and for as long as that client sends bodiless
+# GET/HEADs on the kept-alive connection, each of them gets the same treatment.
+from aiohttp import web_protocol as _wp
+
+_HOSTFIX_MAX = 16384
+_orig_data_received = _wp.RequestHandler.data_received
+_orig_connection_lost = _wp.RequestHandler.connection_lost
+_hostfix_state: "dict[int, dict]" = {}   # RequestHandler has __slots__: keyed by id()
+
+
+def _hostfix_data_received(self, data: bytes) -> None:
+    st = _hostfix_state.setdefault(id(self), {"on": True, "buf": b""})
+    if not st["on"]:
+        return _orig_data_received(self, data)
+    buf = st["buf"] + data
+    out = b""
+    while st["on"]:
+        end = buf.find(b"\r\n\r\n")
+        sep = 4
+        if end < 0:
+            end, sep = buf.find(b"\n\n"), 2
+        if end < 0:
+            if len(buf) > _HOSTFIX_MAX:      # not a header we can read: let aiohttp judge
+                st["on"] = False
+            break
+        head, buf = buf[:end], buf[end + sep:]
+        lines = [l.rstrip(b"\r") for l in head.split(b"\n")]
+        names = [l.split(b":", 1)[0].strip().lower() for l in lines[1:]]
+        if b"host" in names:
+            st["on"] = False                 # an ordinary client
+        elif lines[0].rstrip().endswith(b"HTTP/1.1"):
+            lines.insert(1, b"Host: localhost")
+        bodiless = (lines[0].split(b" ", 1)[0] in (b"GET", b"HEAD")
+                    and b"content-length" not in names
+                    and b"transfer-encoding" not in names
+                    and b"upgrade" not in names)
+        if not bodiless:
+            st["on"] = False
+        out += b"\r\n".join(lines) + b"\r\n\r\n"
+    if not st["on"]:
+        out, buf = out + buf, b""
+        _hostfix_state[id(self)] = {"on": False, "buf": b""}
+    else:
+        st["buf"] = buf
+    if out:
+        _orig_data_received(self, out)
+
+
+def _hostfix_connection_lost(self, exc) -> None:
+    _hostfix_state.pop(id(self), None)
+    _orig_connection_lost(self, exc)
+
+
+_wp.RequestHandler.data_received   = _hostfix_data_received
+_wp.RequestHandler.connection_lost = _hostfix_connection_lost
 
 
 async def main():
