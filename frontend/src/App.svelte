@@ -177,6 +177,7 @@
     siteRegion,
     siteChatEnabled,
     siteRade,
+    siteInfo,
   } from "./siteInfo.js";
   import { sideServiceWhere } from "./lib/sideService.js";
   // End of Information Area import //
@@ -1221,19 +1222,130 @@
     time = `${hours}:${minutes} (UTC) • ${localHours}:${localMinutes} (Local)`;
   }
 
-  // Function added to toggle the Additional Info menu //
+  // MENU INFORMATIONS COMPLÉMENTAIRES
+  let infoMenuOpen = false;
   function toggleMenu() {
-    const menu = document.getElementById("collapsible-menu");
-    const label = document.getElementById("menu-toggle-label");
+    infoMenuOpen = !infoMenuOpen;
+  }
 
-    if (menu.classList.contains("hidden")) {
-      menu.classList.remove("hidden");
-      label.innerText = "Close Additional Info";
-    } else {
-      menu.classList.add("hidden");
-      label.innerText = "Open Additional Info";
+  // PAGES HAMDASH
+  // hamdash garde indicatif et locator dans le navigateur du visiteur : on les
+  // affiche pour qu'il les colle une fois. Surchargeables dans site_information.json.
+  // Par défaut : l'indicatif et le locator du sysop (siteSysop, siteGridSquare).
+  const hamdashCallsign = siteInfo.siteHamdashCallsign ?? siteSysop;
+  const hamdashLocator = siteInfo.siteHamdashLocator ?? siteGridSquare;
+  // Icônes SVG maison (24x24, trait), colorées par currentColor.
+  const hamdashPages = [
+    { label: "Propagation", path: "propagation", icon: '<circle cx="12" cy="9" r="1.5"/><path d="M12 10.5V21M8 21h8M9 6.5a3.5 3.5 0 0 0 0 5M15 6.5a3.5 3.5 0 0 1 0 5M6 4a7 7 0 0 0 0 10M18 4a7 7 0 0 1 0 10"/>', title: "Prévisions de propagation HF" },
+    { label: "Space Weather", path: "space-weather", icon: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>', title: "Météo spatiale : vent solaire, indices K et A, éruptions" },
+    { label: "Weather & Alerts", path: "weather-safety", icon: '<path d="M7 16.5A4 4 0 0 1 6.5 8.6 5.5 5.5 0 0 1 17.2 9.5 3.5 3.5 0 0 1 18 16.5"/><path d="M13 12l-3 5h4l-3 5"/>', title: "Météo locale et alertes orages" },
+    { label: "DX Cluster", path: "dx-spots", icon: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/>', title: "Spots du DX cluster en direct" },
+    { label: "Live Map", path: "live-map", icon: '<path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>', title: "Carte des bandes et des stations en direct" },
+    { label: "Contests", path: "contests", icon: '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M9 18h6M8 21h8"/>', title: "Calendrier des concours" },
+    { label: "Satellites", path: "satellites", icon: '<rect x="9.5" y="8.5" width="5" height="7" rx="1"/><rect x="2" y="10" width="5" height="4"/><rect x="17" y="10" width="5" height="4"/><path d="M7 12h2.5M14.5 12H17M12 8.5V5"/><circle cx="12" cy="4" r="1"/>', title: "Passages des satellites radioamateurs" },
+  ];
+  let hamdashCopied = false;
+  function copyHamdashStation() {
+    navigator.clipboard?.writeText(`${hamdashCallsign} ${hamdashLocator}`).then(() => {
+      hamdashCopied = true;
+      setTimeout(() => (hamdashCopied = false), 1500);
+    });
+  }
+
+  // FENÊTRE DX CLUSTER
+  // Spots DX Summit relayés par le serveur (/api/dxspots, fréquences en kHz).
+  // Un clic sur une fréquence accorde le récepteur ; la fenêtre reste ouverte.
+  const DX_BANDS = ["ALL", "160", "80", "60", "40", "30", "20", "17", "15", "12", "10", "6"];
+  let showDxCluster = false;
+  let dxBand = "ALL";
+  let dxwSpots = [];
+  let dxwLoading = false;
+  let dxwError = "";
+  let dxTunedKey = "";
+  let dxTimer = null;
+  let dxPos = { x: null, y: 90 };
+
+  async function loadDxSpots() {
+    dxwLoading = true;
+    try {
+      const r = await fetch(`/api/dxspots?band=${dxBand}&limit=60`, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      dxwSpots = Array.isArray(data) ? data : [];
+      dxwError = "";
+    } catch (e) {
+      dxwError = "Spots indisponibles pour le moment.";
+    } finally {
+      dxwLoading = false;
     }
   }
+
+  function openDxCluster() {
+    showDxCluster = true;
+    loadDxSpots();
+    clearInterval(dxTimer);
+    dxTimer = setInterval(loadDxSpots, 30000);
+  }
+
+  function closeDxCluster() {
+    showDxCluster = false;
+    clearInterval(dxTimer);
+    dxTimer = null;
+  }
+
+  function dxSpotInRange(spot) {
+    const hz = Number(spot.frequency) * 1000;
+    if (!audio || !audio.totalBandwidth) return true;
+    return hz >= audio.baseFreq && hz <= audio.baseFreq + audio.totalBandwidth;
+  }
+
+  // Mode deviné d'après le commentaire du spot ; sinon celui de la bande.
+  function dxSpotMode(spot) {
+    const info = String(spot.info || "").toUpperCase();
+    if (/\bCW\b/.test(info)) return "CW";
+    if (/\bLSB\b/.test(info)) return "LSB";
+    if (/\b(USB|SSB|FT8|FT4|JS8|RTTY|PSK\d*|DIGI)\b/.test(info)) return "USB";
+    if (/\bAM\b/.test(info)) return "AM";
+    if (/\bFM\b/.test(info)) return "FM";
+    return null;
+  }
+
+  function tuneToDxSpot(spot) {
+    if (!dxSpotInRange(spot)) return;
+    tuneToUserFrequency(Number(spot.frequency) * 1000, dxSpotMode(spot));
+    dxTunedKey = dxSpotKey(spot);
+  }
+
+  function dxSpotKey(spot) {
+    return `${spot.dx_call}|${spot.frequency}|${spot.time}`;
+  }
+
+  function onDxClusterKey(e) {
+    if (showDxCluster && e.key === "Escape") closeDxCluster();
+  }
+
+  // La fenêtre se déplace en tirant sur son en-tête.
+  function startDxDrag(e) {
+    if (e.button !== 0 || e.target.closest("button, select")) return;
+    const win = e.currentTarget.closest(".dx-window");
+    const rect = win.getBoundingClientRect();
+    const dx = e.clientX - rect.left;
+    const dy = e.clientY - rect.top;
+    const move = (ev) => {
+      dxPos = {
+        x: Math.max(0, Math.min(window.innerWidth - 120, ev.clientX - dx)),
+        y: Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - dy)),
+      };
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  onDestroy(() => clearInterval(dxTimer));
   // End of Site Information addition //
 
   function toggleRecording() {
@@ -1899,6 +2011,12 @@
     if (showManualPopup && (e.key === "Escape" || e.code === "Escape")) {
       e.preventDefault();
       closeManual();
+      return;
+    }
+    // Fermeture de la fenêtre DX Cluster avec Échap
+    if (showDxCluster && (e.key === "Escape" || e.code === "Escape")) {
+      e.preventDefault();
+      closeDxCluster();
       return;
     }
 
@@ -9373,21 +9491,55 @@
 
                   <!-- Collapsible Menu -->
                   <div>
-                    <!-- Toggle Button -->
                     <center>
                       <button
-                        class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors ring-2 ring-blue-500 s-XsEmFtvddWTw"
+                        title={infoMenuOpen
+                          ? "Fermer les fenêtres"
+                          : "Ouvrir Météo - Alertes - Infos - Propagation - DXcluster et Manuels utilisateur"}
+                        class="glass-button gold-button py-2 px-4 rounded-lg flex items-center"
+                        class:blink-attention={!infoMenuOpen}
                         on:click={() => toggleMenu()}
                         style="margin-top: 15px;"
                       >
-                        <span id="menu-toggle-label">Open Additional Info</span>
+                        <span id="menu-toggle-label">{infoMenuOpen
+                          ? "Close Windows"
+                          : "Open Meteo - Alerts - Infos - Propagation - DXcluster and User Manuals"}</span>
                       </button>
                     </center>
 
 <!-- @@COLLAPSIBLE_MENU_START@@ -->
 
-               <!-- Collapsible Content -->
-               <div id="collapsible-menu" class="hidden mt-3 p-3 rounded decoder-window">
+               <div id="collapsible-menu" class="mt-3 p-3 rounded decoder-window" class:hidden={!infoMenuOpen}>
+                <div class="hamdash-menu">
+                  <div class="hamdash-station">
+                    hamdash : indicatif <b class="hamdash-value">{hamdashCallsign}</b> · locator <b class="hamdash-value">{hamdashLocator}</b>
+                    <button
+                      type="button"
+                      class="glass-button gold-button gold-button-sm py-1 px-2 ml-2 rounded text-xs"
+                      style="color:rgba(207, 181, 59, 0.993);"
+                      title="Copier l'indicatif et le locator pour les coller dans hamdash"
+                      on:click={copyHamdashStation}
+                    >{hamdashCopied ? "Copié !" : "Copier"}</button>
+                  </div>
+                  <div class="hamdash-buttons">
+                    {#each hamdashPages as page}
+                      <a
+                        href={`https://hamdash.com/${page.path}`}
+                        target="_blank"
+                        rel="noopener"
+                        class="glass-button gold-button py-1 px-3 rounded-lg"
+                        style="color:rgba(207, 181, 59, 0.993);"
+                        title={page.title}
+                      ><svg class="hamdash-icon" viewBox="0 0 24 24" aria-hidden="true">{@html page.icon}</svg>{page.label}</a>
+                    {/each}
+                  </div>
+                  <button
+                    type="button"
+                    class="glass-button gold-button dx-sync-button"
+                    title="Accorder le récepteur sur une fréquence du DX cluster"
+                    on:click={openDxCluster}
+                  ><svg class="hamdash-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4M5.5 22v-4h4"/><circle cx="12" cy="12" r="2"/></svg>Sync the receiver with the DX cluster</button>
+                </div>
                 <div class="columns">
                   <div class="first-column">
                     <ul style="font-size: 0.91rem; text-align: left;">
@@ -19272,6 +19424,66 @@ Slider: share of denoised audio, the rest is the original"
       {/if}
     {/if}
   </div>
+{#if showDxCluster}
+  <div
+    class="dx-window"
+    role="dialog"
+    aria-labelledby="dx-window-title"
+    style={dxPos.x === null ? `top:${dxPos.y}px; right:24px;` : `top:${dxPos.y}px; left:${dxPos.x}px;`}
+  >
+    <div class="dx-window-header" on:pointerdown={startDxDrag}>
+      <h2 id="dx-window-title">DX Cluster · DX Summit</h2>
+      <select bind:value={dxBand} on:change={loadDxSpots} title="Filtrer par bande">
+        {#each DX_BANDS as b}
+          <option value={b}>{b === "ALL" ? "Toutes bandes" : `${b} m`}</option>
+        {/each}
+      </select>
+      <button
+        type="button"
+        class="glass-button gold-button gold-button-sm py-1 px-2 rounded"
+        title="Rafraîchir les spots"
+        on:click={loadDxSpots}
+      >{dxwLoading ? "…" : "↻"}</button>
+      <button class="close-btn" on:click={closeDxCluster} title="Fermer la fenêtre" aria-label="Close">×</button>
+    </div>
+    <div class="dx-window-body">
+      {#if dxwError}
+        <p class="dx-empty">{dxwError}</p>
+      {:else if !dxwSpots.length}
+        <p class="dx-empty">{dxwLoading ? "Chargement des spots…" : "Aucun spot pour cette bande."}</p>
+      {:else}
+        <table class="dx-table">
+          <thead>
+            <tr><th>UTC</th><th>kHz</th><th>DX</th><th>Spotter</th><th>Commentaire</th></tr>
+          </thead>
+          <tbody>
+            {#each dxwSpots as spot (dxSpotKey(spot))}
+              <tr class:dx-tuned={dxTunedKey === dxSpotKey(spot)} class:dx-out={!dxSpotInRange(spot)}>
+                <td>{spot.time_utc_hhmm || ""}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="dx-freq"
+                    disabled={!dxSpotInRange(spot)}
+                    title={dxSpotInRange(spot)
+                      ? "Accorder le récepteur sur cette fréquence"
+                      : "Hors de la plage du récepteur actif"}
+                    on:click={() => tuneToDxSpot(spot)}
+                  >{Number(spot.frequency).toFixed(1)}</button>
+                </td>
+                <td class="dx-call">{spot.dx_call}</td>
+                <td>{spot.de_call}</td>
+                <td class="dx-info">{spot.info}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      {/if}
+    </div>
+    <p class="hint dx-hint">Cliquez une fréquence bleue pour accorder le récepteur. Mise à jour toutes les 30 s.</p>
+  </div>
+{/if}
+
 </main>
 
 <svelte:head>

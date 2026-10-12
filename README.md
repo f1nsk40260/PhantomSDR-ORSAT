@@ -557,6 +557,21 @@ Derrière les deux réglages qu'il modifie dans `frontend/src/lib/SMeterAnalog.s
 Il ne touche jamais au backend et ne réécrit jamais `frontend/variant.json` : la variante de S-mètre et de présentation reste exactement celle choisie dans `recompile.sh`. Détails dans **[Modifier les variantes](docs/EDITING_VARIANTS.md)**.
 
 
+## L'interface de bureau : F1NSK ou originale
+Cette version française livre **deux interfaces de bureau**, au choix :
+
+- **[1] F1NSK** (par défaut) — `frontend/src/App.svelte` : thème or, infobulles en français, boutons **Manuel Utilisateur** FR / EN / ES, menu **hamdash** (propagation, météo spatiale, alertes, DX cluster, carte, concours, satellites) et **synchronisation du récepteur avec le DX cluster**, disposition revue (section Audio DSP, Scanner à part, Decoders Control, QRSS et enregistrement dans la colonne de gauche).
+- **[2] Originale** — `frontend/src/App.original.svelte` : l'interface de SV1BTL, PhantomSDR+ v5.1.0, sans modification.
+
+**install.sh** pose la question au début de l'installation (en mode sans surveillance : `PHANTOM_INTERFACE=1` ou `2`). Une réinstallation propose par défaut le choix déjà fait. <br />
+Pour changer d'interface ensuite, lancez **interface.sh** depuis le dossier racine : <br />
+```
+./interface.sh
+```
+Il indique l'interface actuelle, propose les deux, puis la recompilation du frontend (`build-all.sh`). Vous pouvez aussi nommer directement l'interface : `./interface.sh original --build` ou `./interface.sh f1nsk --no-build`. <br />
+Le choix est enregistré dans `frontend/interface.json`, que **update.sh** conserve lors des mises à jour. Il ne change ni la variante de S-mètre (`frontend/variant.json`) ni la page **/mobile**, identique dans les deux cas. <br />
+Le menu hamdash affiche par défaut l'indicatif (`siteSysop`) et le locator (`siteGridSquare`) du fichier `site_information.json` ; on peut en imposer d'autres avec les clés `siteHamdashCallsign` et `siteHamdashLocator`. La synchronisation DX cluster utilise le relais `/api/dxspots` du serveur.
+
 ## L'outil de surveillance
 C'est une fonction facultative, qui ajoute à PhantomSDR une surveillance du serveur en temps réel par un script d'installation automatique.<br />
 Reportez-vous au **[mode d'emploi](docs/sdr-stats/README.md)** pour les instructions détaillées.

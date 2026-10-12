@@ -254,7 +254,7 @@ TIER_A=(
     # it out of this list would reset a working site to "your name or callsign".
     'frontend/site_information.json' 'users.json' '*/users.json'
     'autorun.json' 'autorun-status.json' 'autorun-totals.json'
-    'frontend/variant.json' '.tap_token'
+    'frontend/variant.json' 'frontend/interface.json' '.tap_token'
     # The relay's own config: the .example beside it is what gets distributed.
     'websdr_relay.json' 'websdr_relay.json.bak'
     # our own marker, which must never travel to a copy — a copy that had it

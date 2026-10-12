@@ -5,11 +5,14 @@ import { preloadSiteInfo } from './lib/rx'
 // "Which S-meter variant is this?" block in vite.config.js.  Keeping this file
 // constant is what lets build-all.sh build the variants in parallel.
 //
+// @phantom/app is App.svelte (F1NSK) or App.original.svelte (sv1btl), picked
+// at build time by vite.config.js from interface.json.
+//
 // App is imported only after preloadSiteInfo(): several modules read the
 // site information at load time, and on a page for a second receiver it has
 // to be that receiver's (see siteInfo.js).
 preloadSiteInfo().then(async () => {
-  const { default: App } = await import('./App.svelte')
+  const { default: App } = await import('@phantom/app')
   new App({
     target: document.getElementById('app'),
     props: { smeter: __PHANTOM_SMETER__, layout: __PHANTOM_LAYOUT__ }

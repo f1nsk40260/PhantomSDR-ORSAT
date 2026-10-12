@@ -74,6 +74,7 @@ set -euo pipefail
 #   PHANTOM_STATS=y|n          statistics server(default y interactive, n unattended)
 #   PHANTOM_KIWI=y|n           Kiwi client emulation  (default y interactive, n unattended)
 #   PHANTOM_RECOMPILE=y|n      final rebuild                      (default y)
+#   PHANTOM_INTERFACE=1|2      desktop interface: F1NSK | original sv1btl (default 1)
 #   PHANTOM_ADD_RECEIVER=y|n   offer add-receiver.sh at the end   (default n)
 #   PHANTOM_START_RECEIVER=y|n start the receiver at the end, after the
 #                              station questions                (default y)
@@ -1537,6 +1538,32 @@ if [ -f "$STATION_WIZARD" ] && [ "${PHANTOM_CLASSIC:-0}" != "1" ]; then
         ( while kill -0 $$ 2>/dev/null; do sudo -n true 2>/dev/null; sleep 50; done ) &
     fi
 fi
+
+# ------------------------------------------------------------------------------
+# Interface de bureau (version française F1NSK)
+# ------------------------------------------------------------------------------
+# Deux interfaces de bureau sont livrées : celle de F1NSK (src/App.svelte) et
+# l'originale de sv1btl (src/App.original.svelte). Le choix va dans
+# frontend/interface.json, que vite.config.js lit à la compilation ; une
+# réinstallation garde le choix déjà fait. Changer plus tard : ./interface.sh
+INTERFACE_FILE="$SCRIPT_DIR/frontend/interface.json"
+INTERFACE_DEF=1
+if [ -f "$INTERFACE_FILE" ] && grep -q '"original"' "$INTERFACE_FILE"; then
+    INTERFACE_DEF=2
+fi
+banner "Interface"
+echo ""
+echo "Which desktop interface should the WebSDR use? / Quelle interface de bureau ?"
+echo "  [1] F1NSK     — thème or, infobulles en français, manuels FR/EN/ES,"
+echo "                  hamdash et synchro DX cluster, disposition F1NSK"
+echo "  [2] Original  — interface sv1btl PhantomSDR+ v5.1.0, sans modification"
+ask_menu PHANTOM_INTERFACE "$INTERFACE_DEF" "Select an option [1-2]"
+case "$MENU_ANSWER" in
+    2|original|sv1btl) PHANTOM_UI_CHOICE="original" ;;
+    *)                 PHANTOM_UI_CHOICE="f1nsk" ;;
+esac
+printf '{\n  "ui": "%s"\n}\n' "$PHANTOM_UI_CHOICE" > "$INTERFACE_FILE"
+fact "Desktop interface" "$PHANTOM_UI_CHOICE (change later with: ./interface.sh)"
 
 if [ "$USE_STATION" = true ]; then
 banner "Ready to install"

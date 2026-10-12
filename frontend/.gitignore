@@ -1,2 +1,4 @@
 node_modules/
 dist/
+# Choix de l'interface (install.sh / interface.sh), propre à chaque station
+interface.json

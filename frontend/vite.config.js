@@ -57,6 +57,28 @@ function readVariantDefaults () {
 }
 
 const variantDefaults = readVariantDefaults()
+
+// ── Quelle interface de bureau ? ────────────────────────────────────────────
+// Version française F1NSK : deux interfaces de bureau au choix.
+//   "f1nsk"    → src/App.svelte           (thème or, infobulles en français,
+//                                          manuels, disposition F1NSK)
+//   "original" → src/App.original.svelte  (interface sv1btl d'origine)
+// Priorité : PHANTOM_UI (variable d'environnement) > interface.json (écrit par
+// install.sh / interface.sh) > "f1nsk". La page /mobile n'est pas concernée.
+function readInterface () {
+  const env = (process.env.PHANTOM_UI || '').trim().toLowerCase()
+  if (env === 'f1nsk' || env === 'original') return env
+  try {
+    const path = fileURLToPath(new URL('./interface.json', import.meta.url))
+    const ui = String(JSON.parse(readFileSync(path, 'utf8')).ui || '').toLowerCase()
+    if (ui === 'f1nsk' || ui === 'original') return ui
+  } catch {}
+  return 'f1nsk'
+}
+const phantomInterface = readInterface()
+const appFile = fileURLToPath(new URL(
+  phantomInterface === 'original' ? './src/App.original.svelte' : './src/App.svelte',
+  import.meta.url))
 const variant = {
   smeter: process.env.PHANTOM_SMETER || variantDefaults.smeter || 'analog',
   layout: process.env.PHANTOM_LAYOUT || variantDefaults.layout || 'v1'
@@ -120,6 +142,10 @@ export default defineConfig({
     })
       */
   ],
+  resolve: {
+    // main.js importe « @phantom/app » : l'interface choisie ci-dessus.
+    alias: { '@phantom/app': appFile }
+  },
   server: {
     proxy: {
       '/audio': {
