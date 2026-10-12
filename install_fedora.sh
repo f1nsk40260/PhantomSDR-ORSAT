@@ -123,7 +123,7 @@ clean_stale_subprojects() {
         [ -d "$d" ] || continue          # unexpanded glob when there are none
         name="$(basename "$d")"
         case "$name" in
-            packagecache) continue ;;
+            packagecache|packagefiles) continue ;;
         esac
         # A subproject is usable if it has something meson can build from.
         if [ -f "$d/CMakeLists.txt" ] || [ -f "$d/meson.build" ]; then
