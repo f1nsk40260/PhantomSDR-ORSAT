@@ -1,219 +1,219 @@
-# PhantomSDR-Plus — Receive Diversity
+# PhantomSDR-Plus — Diversité de réception
 
-> **On a station set up with the station questions (`configure-station.sh`)** the WebSDR relay listens only inside the computer, on `PORT_RELAY` (9013), and the page reaches it as `/relay` on the public port through `proxy.py` — there is no relay port to forward, and the frontend needs no rebuild for it. On a station set up before the wizard, the port settings below apply as written.
+> **Sur une station configurée avec les questions de la station (`configure-station.sh`)**, le relais WebSDR n'écoute qu'à l'intérieur de l'ordinateur, sur `PORT_RELAY` (9013), et la page le joint sous `/relay` sur le port public via `proxy.py` ; il n'y a aucun port de relais à rediriger, et le frontend n'a pas besoin d'être recompilé pour cela. Sur une station configurée avant l'assistant, les réglages de port ci-dessous s'appliquent tels quels.
 
-Combine your receiver with a **second receiver somewhere else** and listen to whichever of the two currently has the better signal. When one site drops into a fade, the other usually has not, and you keep copy through it.
+Associez votre récepteur à un **second récepteur situé ailleurs** et écoutez celui des deux qui a, à cet instant, le meilleur signal. Quand l'un des sites tombe dans un évanouissement, l'autre en général non, et la copie continue.
 
-The second receiver can be another PhantomSDR-Plus, a KiwiSDR, an UberSDR or a WebSDR. For the first three, everything runs in the browser: no server changes, no configuration files, nothing to install, and no special access to the other receiver. A WebSDR is the exception and needs one small piece of software on your own server — see [Using a WebSDR](#using-a-websdr) below.
+Le second récepteur peut être un autre PhantomSDR-Plus, un KiwiSDR, un UberSDR ou un WebSDR. Pour les trois premiers, tout s'exécute dans le navigateur : aucune modification du serveur, aucun fichier de configuration, rien à installer et aucun accès particulier à l'autre récepteur. Le WebSDR fait exception et demande un petit programme sur votre propre serveur — voir [Utiliser un WebSDR](#utiliser-un-websdr) plus bas.
 
 ---
 
-## What it does, and what it does not
+## Ce que cela fait, et ne fait pas
 
-Diversity here means **selection**: at any moment you are listening to one site or the other, with a short crossfade when it switches. It is not a phased array and it does not add the two signals together.
+Ici, diversité signifie **sélection** : à chaque instant vous écoutez l'un ou l'autre site, avec un bref fondu au changement. Ce n'est pas un réseau d'antennes en phase et les deux signaux ne sont pas additionnés.
 
-That is a deliberate choice, and the reason is physics rather than software. Two receivers hundreds of kilometres apart hear the same transmission over different ionospheric paths. The two audio waveforms arrive with unrelated phase and slightly different Doppler, so adding them sounds hollow and comb-filtered — the classic "phasey" artefact. True coherent combining needs two receivers on a **common clock**, sample-aligned; two independent receivers connected over the internet can never provide that.
+C'est un choix délibéré, et la raison relève de la physique, pas du logiciel. Deux récepteurs distants de centaines de kilomètres entendent la même émission par des trajets ionosphériques différents. Les deux formes d'onde arrivent avec des phases sans rapport et un Doppler légèrement différent ; les additionner donne un son creux, filtré en peigne — l'effet « phasey » bien connu. Une vraie combinaison cohérente exige deux récepteurs sur une **horloge commune**, alignés à l'échantillon ; deux récepteurs indépendants reliés par internet ne pourront jamais l'offrir.
 
-So what you gain is **continuity, not raw signal strength**:
+Ce que l'on gagne est donc de la **continuité, pas de la puissance de signal** :
 
-- On a stable path where one receiver is simply better, you will hear that receiver and gain nothing. This is normal.
-- On a fluttery path with deep QSB, fades at two distant sites are largely uncorrelated. Site A drops out for three seconds, site B does not, and the audio carries on. Expect *"I stopped losing words"*, not *"S3 became S7"*.
-- The second win is often **local noise and QRM**. Two sites have different neighbours, different power lines and different broadcast splatter. On a noisy band this can matter more than the fading.
+- Sur un trajet stable où un récepteur est simplement meilleur, vous entendrez celui-là et ne gagnerez rien. C'est normal.
+- Sur un trajet à QSB profond, les évanouissements de deux sites éloignés sont largement décorrélés. Le site A disparaît trois secondes, le site B non, et l'audio continue. Attendez-vous à *« j'ai cessé de perdre des mots »*, pas à *« on est passé de S3 à S7 »*.
+- Le second bénéfice tient souvent au **bruit local et au QRM**. Deux sites ont des voisins différents, des réseaux électriques différents et des éclaboussures différentes. Sur une bande bruyante, cela peut compter davantage que l'évanouissement.
 
-There is a cost: you listen **one to three seconds behind real time**, because the earlier stream has to be delayed to match the later one. That is irrelevant for listening and decoding, and unhelpful if you are trying to work a station.
+Il y a un prix : vous écoutez **avec une à trois secondes de retard**, car le flux en avance doit être retardé pour coïncider avec l'autre. Sans importance pour l'écoute et le décodage, gênant si vous cherchez à trafiquer.
 
 > [!NOTE]
-> The digital decoders (FT8, JS8, WSPR, RADE and the rest) deliberately keep using your **local** receiver, not the combined audio. Those modes integrate coherently across a whole transmission slot, and switching sites in the middle of a slot is a phase discontinuity that can cost you the very decode diversity was meant to save. Diversity serves the speaker; the decoders keep the continuous local stream.
+> Les décodeurs numériques (FT8, JS8, WSPR, RADE et les autres) continuent délibérément d'utiliser votre récepteur **local**, pas l'audio combiné. Ces modes intègrent de façon cohérente sur tout un intervalle, et changer de site au milieu d'un intervalle constitue une discontinuité de phase qui peut vous coûter précisément le décodage que la diversité devait sauver. La diversité sert le haut-parleur ; les décodeurs conservent le flux local continu.
 
 ---
 
-## Quick start
+## Prise en main rapide
 
-1. Open the **Receive Diversity** panel — it sits just below the decoder windows, collapsed, showing `Receive Diversity — off`. Click it to expand.
-2. Choose what the second receiver is: **PhantomSDR+**, **KiwiSDR**, **UberSDR** or **WebSDR**.
-3. Type its address — or pick one you have saved — and press **Start**.
-4. Tune your own receiver normally. The second receiver **follows automatically** — frequency, mode and passband — every time you retune.
+1. Ouvrez le panneau **Receive Diversity** — il se trouve juste en dessous des fenêtres de décodeurs, replié, affichant `Receive Diversity — off`. Cliquez pour le déplier.
+2. Choisissez ce qu'est le second récepteur : **PhantomSDR+**, **KiwiSDR**, **UberSDR** ou **WebSDR**.
+3. Saisissez son adresse — ou choisissez-en une déjà enregistrée — et appuyez sur **Start**.
+4. Accordez votre propre récepteur normalement. Le second **suit automatiquement** — fréquence, mode et bande passante — à chaque changement d'accord.
 
-That is the whole setup. There is nothing to configure on the other receiver, and no separate tuning control: it always tracks you.
+C'est toute la configuration. Rien à régler sur l'autre récepteur, et pas de commande d'accord séparée : il vous suit toujours.
 
-### Addresses
+### Adresses
 
-| Second receiver | What to type | Notes |
+| Second récepteur | Ce qu'il faut saisir | Remarques |
 |---|---|---|
-| PhantomSDR+ | `host:8900` | The receiver's normal port |
-| KiwiSDR | `host:8073` | The KiwiSDR's own port |
-| UberSDR | `host` | Its **normal web port**, not 8073 |
-| WebSDR | `host:8901` | The site's own port. Needs the relay — see below |
+| PhantomSDR+ | `host:8900` | Le port normal du récepteur |
+| KiwiSDR | `host:8073` | Le port propre au KiwiSDR |
+| UberSDR | `host` | Son **port web normal**, pas le 8073 |
+| WebSDR | `host:8901` | Le port propre du site. Nécessite le relais — voir plus bas |
 
-A bare hostname, an `http://` URL or a full `ws://` URL are all accepted. If the other receiver is served over HTTPS, type the hostname and it will use a secure connection.
+Un simple nom d'hôte, une adresse `http://` ou une adresse `ws://` complète sont tous acceptés. Si l'autre récepteur est servi en HTTPS, saisissez le nom d'hôte et la connexion sera sécurisée.
 
-### Saved receivers
+### Récepteurs enregistrés
 
-Every address you connect to is remembered, in a list of its own for each receiver type — a KiwiSDR address is never a useful suggestion when the selector says WebSDR. The lists live in your own browser: they are not sent anywhere, and every listener has their own.
+Chaque adresse utilisée est mémorisée, dans une liste propre à chaque type de récepteur — une adresse KiwiSDR n'est jamais une suggestion utile quand le sélecteur affiche WebSDR. Les listes restent dans votre propre navigateur : elles ne sont envoyées nulle part, et chaque auditeur a la sienne.
 
-The **☰** button beside the address box opens the list.
+Le bouton **☰** à côté du champ d'adresse ouvre la liste.
 
-- **Names.** Any entry can be given a name — `Twente` reads better than `websdr.ewi.utwente.nl:8901`. Named entries appear in green above their address, and the name shows beside the address in the drop-down as you type. An entry is identified by its address, so naming one never puts the same station in the list twice. While diversity is running, the receiver it is running against shows its name **bold and slowly blinking**, so the list also says which one you are actually hearing.
-- **add** enters a receiver by hand, without connecting to it first. **✎** corrects a name and address in place, **✕** removes one entry, and **clear all** empties the list for the type on screen. Enter saves, Escape cancels.
-- **🌍** opens that receiver's own web page in a new tab. The address stored is the one the software dials, so it is turned back into a browsable one first — `ws://` becomes `http://`, and the `/audio`, `/ws` or KiwiSDR `/kiwi/…/SND` path each kind of receiver needs is trimmed away, since the site's own page is at the root. It is a real link, so a middle click or a long press behaves as usual.
-- **The order is yours.** Move a row with **▲▼**, or drag it and drop it where it belongs. That is the order in which the drop-down offers the addresses.
-- **⭳ export and ⭱ import.** The lists are held in the browser's own storage, which is thrown away when you clear the site's data — this is what protects against that. Export writes all four lists, names included, to a JSON file you can keep or carry to another browser or machine. Import reads it back and asks whether to **merge** it with what is saved or **replace** everything.
-- **▦ QR.** Draws every list as a QR code on the screen, for carrying it to a phone — see "On a phone" below. A list too large to scan falls back to the text beside it, which can be copied and pasted anywhere.
+- **Les noms.** Toute entrée peut recevoir un nom — `Twente` se lit mieux que `websdr.ewi.utwente.nl:8901`. Les entrées nommées apparaissent en vert au-dessus de leur adresse, et le nom s'affiche à côté de l'adresse dans la liste déroulante pendant la saisie. Une entrée est identifiée par son adresse : la nommer ne fait donc jamais figurer la même station deux fois. Tant que la diversité fonctionne, le récepteur auquel elle est reliée affiche son nom **en gras et clignotant lentement**, si bien que la liste indique aussi lequel vous entendez réellement.
+- **add** saisit un récepteur à la main, sans s'y connecter d'abord. **✎** corrige le nom et l'adresse sur place, **✕** retire une entrée, et **clear all** vide la liste du type affiché. Entrée valide, Échap annule.
+- **🌍** ouvre la page web propre à ce récepteur dans un nouvel onglet. Ce qui est enregistré, c'est l'adresse que le logiciel appelle : elle est donc d'abord retransformée en adresse consultable — `ws://` devient `http://`, et le chemin `/audio`, `/ws` ou, pour un KiwiSDR, `/kiwi/…/SND` dont chaque type de récepteur a besoin est retiré, puisque la page du site se trouve à la racine. C'est un vrai lien : clic du milieu et appui long se comportent comme d'habitude.
+- **L'ordre est le vôtre.** Déplacez une ligne avec **▲▼**, ou faites-la glisser à la place qui lui revient. C'est dans cet ordre que la liste déroulante propose les adresses.
+- **⭳ export et ⭱ import.** Les listes sont conservées dans le stockage du navigateur, effacé en même temps que les données du site — c'est précisément ce contre quoi ceci protège. Export écrit les quatre listes, noms compris, dans un fichier JSON que vous pouvez garder ou emporter vers un autre navigateur ou une autre machine. Import le relit et demande s'il faut le **fusionner** (merge) avec l'enregistré ou tout **remplacer** (replace).
+- **▦ QR.** Dessine toutes les listes en code QR à l'écran, pour les emporter sur un téléphone — voir « Sur un téléphone » plus bas. Une liste trop grande pour être scannée se rabat sur le texte à côté, qui se copie et se colle n'importe où.
 
-There is no limit on how many receivers you keep.
+Le nombre de récepteurs conservés n'est pas limité.
 
-### On a phone
+### Sur un téléphone
 
-The `/mobile` page has the same feature in a **Div** tab, beside Audio, Bands, Marks, Users and Chat: the receiver type, the address, Start and Stop, the saved receivers as a tap-to-pick list, the live figures and the SNR trim. Each row also carries the **🌍** link to that receiver's own page. The second receiver follows the phone's tuning by itself, exactly as on the desktop page. What it leaves out is the editing — renaming, reordering, deleting — which stays on the desktop page, where there is room for it.
+La page `/mobile` offre la même fonction dans un onglet **Div**, à côté d'Audio, Bands, Marks, Users et Chat : type de récepteur, adresse, Start et Stop, les récepteurs enregistrés en liste à toucher, les valeurs en direct et la correction de SNR. Chaque ligne porte aussi le lien **🌍** vers la page propre du récepteur. Le second récepteur suit l'accord du téléphone tout seul, exactement comme sur la page de bureau. Ce qui manque, c'est l'édition — renommer, réordonner, supprimer — qui reste sur la page de bureau, où la place ne manque pas.
 
-The saved list belongs to one browser, so a phone starts with an empty one however many receivers are saved on the desktop. That is what the QR code is for: press **☰** then **▦ QR** on the desktop, scan the code with the phone's camera, and paste the text into **Import** on the Div tab. It asks whether to merge or replace, and Export on the phone sends a list back the other way.
+La liste enregistrée appartient à un navigateur : un téléphone commence donc avec une liste vide, quel que soit le nombre de récepteurs enregistrés sur l'ordinateur. C'est à cela que sert le code QR : sur l'ordinateur appuyez sur **☰** puis **▦ QR**, scannez le code avec l'appareil photo du téléphone et collez le texte dans **Import** de l'onglet Div. Il demande de fusionner ou de remplacer, et Export sur le téléphone envoie une liste dans l'autre sens.
 
 ---
 
-## Using a WebSDR
+## Utiliser un WebSDR
 
-A WebSDR — the software written by Pieter-Tjerk de Boer, PA3FWM, that runs at Twente and several hundred other sites — can be used as the second receiver, but not directly from the browser.
+Un WebSDR — le logiciel écrit par Pieter-Tjerk de Boer, PA3FWM, qui fonctionne à Twente et sur plusieurs centaines d'autres sites — peut servir de second récepteur, mais pas directement depuis le navigateur.
 
-The reason is a deliberate check on their side. A WebSDR refuses its audio connection unless the `Origin` header names its own site, and `Origin` is a *forbidden header name*: the browser sets it from the page you are on and no script is permitted to change it. There is no client-side way around this, and there should not be.
+La raison est un contrôle délibéré de leur côté. Un WebSDR refuse la connexion audio si l'en-tête `Origin` ne nomme pas son propre site, et `Origin` est un *nom d'en-tête interdit* : le navigateur le fixe d'après la page où vous êtes et aucun script n'a le droit de le modifier. Il n'existe aucun contournement côté client, et il ne devrait pas en exister.
 
-So the connection is made by a small program on your own server instead, `websdr_relay.py`. Your browser talks to the relay, and the relay talks to the WebSDR.
+La connexion est donc établie par un petit programme sur votre propre serveur, `websdr_relay.py`. Votre navigateur parle au relais, et le relais parle au WebSDR.
 
-### Installing the relay
+### Installer le relais
 
-The four distribution installers offer it as an optional step. To add it to an existing installation:
+Les quatre installateurs de distribution le proposent en étape facultative. Pour une installation déjà en place :
 
 ```
 cd ~/PhantomSDR-Plus
 ./setup_websdr_relay.sh
 ```
 
-It asks for a port, takes your callsign and site address from `frontend/site_information.json`, and offers to install a systemd service so the relay starts at boot. Settings live in `websdr_relay.json` and can be changed at any time.
+Il demande un port, reprend votre indicatif et l'adresse de votre station depuis `frontend/site_information.json`, et propose d'installer un service systemd pour que le relais démarre au boot. Les réglages sont dans `websdr_relay.json` et se modifient à tout moment.
 
-**One thing the installer cannot do for you: forward the relay's port on your router.** Visitors' browsers connect to the relay directly — it is not proxied through the receiver — so without that forward, WebSDR diversity works only from inside your own network. The other three receiver types are unaffected.
+**Une chose que l'installateur ne peut pas faire à votre place : ouvrir le port du relais sur votre routeur.** Les navigateurs des auditeurs se connectent directement au relais — il ne passe pas par le récepteur — sans cette redirection, la diversité avec un WebSDR ne fonctionne donc que depuis votre propre réseau. Les trois autres types de récepteur ne sont pas concernés.
 
-If the admin panel is installed, its dashboard shows a **WebSDR Diversity Relay** card with the relay's state, the port, how many sessions are running and to which sites.
+Si le panneau d'administration est installé, son tableau de bord affiche une carte **WebSDR Diversity Relay** avec l'état, le port, le nombre de sessions en cours et vers quels sites.
 
-### Being a good guest
+### Être un invité correct
 
-The relay connects to other people's receivers from your server rather than from each listener's own address, so it is built to behave:
+Le relais se connecte aux récepteurs des autres depuis votre serveur et non depuis l'adresse de chaque auditeur ; il est donc conçu pour bien se tenir :
 
-- **A cap of ten concurrent sessions to any one WebSDR**, and sixty overall. This is what stops a busy day at your site from looking like an attack on someone else's.
-- **A `User-Agent` naming your station and its operator**, so an operator who would rather not be used this way knows exactly who to write to. Please fill it in honestly.
-- **Only tuning commands are forwarded.** The connection cannot be used to send anything else.
-- **Private, loopback and carrier-NAT addresses are refused**, so a visitor cannot aim the relay at something inside your machine or your LAN.
+- **Une limite de dix sessions simultanées vers un même WebSDR**, et soixante au total. C'est ce qui évite qu'une journée chargée chez vous ressemble à une attaque chez quelqu'un d'autre.
+- **Un `User-Agent` nommant votre station et son opérateur**, pour qu'un opérateur qui préfère ne pas être utilisé ainsi sache exactement à qui écrire. Remplissez-le honnêtement.
+- **Seules les commandes d'accord sont transmises.** La connexion ne peut servir à envoyer autre chose.
+- **Les adresses privées, de loopback et de NAT opérateur sont refusées**, afin qu'aucun visiteur ne puisse pointer le relais vers quelque chose dans votre machine ou votre réseau local.
 
 > [!IMPORTANT]
-> The `Origin` check exists because the WebSDR authors did not want their receivers driven from other people's pages. Using the relay is a considered decision, not an oversight on their part. Keep the cap where it is, keep the User-Agent honest, and stop if an operator asks you to.
+> Le contrôle d'`Origin` existe parce que les auteurs de WebSDR ne voulaient pas que leurs récepteurs soient pilotés depuis les pages d'autrui. Utiliser le relais est une décision réfléchie, pas un oubli de leur part. Laissez la limite où elle est, gardez le User-Agent honnête, et arrêtez si un opérateur vous le demande.
 
-### What is different about a WebSDR
+### Ce qui change avec un WebSDR
 
-- **Many sites cover a few narrow slices of spectrum**, not a continuous range — a 256 kHz window on 40 m, for example. Diversity engages only inside them, and the panel reads the site's own band list to know where those are.
-- **The audio sample rate varies** with the filter width and sits further from nominal than the other receiver types, so alignment can take a little longer.
-- **CW is not adjusted** for WebSDR's convention, which places the passband entirely below the carrier. SSB and AM are correct.
+- **Beaucoup de sites ne couvrent que quelques tranches étroites du spectre**, et non une plage continue — par exemple une fenêtre de 256 kHz sur 40 m. La diversité ne s'engage qu'à l'intérieur, et le panneau lit la liste des bandes du site pour savoir où elles se trouvent.
+- **La fréquence d'échantillonnage audio varie** avec la largeur du filtre et s'écarte davantage du nominal que chez les autres types : l'alignement peut donc être un peu plus long.
+- **La CW n'est pas adaptée** à la convention de WebSDR, qui place la bande passante entièrement sous la porteuse. La BLU et l'AM sont correctes.
 
 ---
 
-## Reading the panel
+## Lire le panneau
 
-Once running, the panel shows a small table:
+En fonctionnement, le panneau affiche un petit tableau :
 
-| Row | Meaning |
+| Ligne | Signification |
 |---|---|
-| **link** | The connection to the second receiver. `ready` is what you want. A failure shows the server's own error text and the WebSocket close code |
-| **aligned** | The measured delay between the two streams once they are locked together, or `searching` |
-| **corr** | How strongly the two streams correlate. Only meaningful once aligned |
-| **remote audio** | Decoded audio arriving from the second receiver. `none` in amber means nothing is being decoded |
-| **SNR local / remote** | The two signal-to-noise estimates being compared |
-| **switches** | How many times it has changed site |
+| **link** | La connexion au second récepteur. `ready` est l'objectif. En cas d'échec, le texte d'erreur du serveur distant et le code de fermeture WebSocket s'affichent |
+| **aligned** | Le décalage mesuré entre les deux flux une fois verrouillés, sinon `searching` |
+| **corr** | La force de corrélation des deux flux. Significatif seulement après l'alignement |
+| **remote audio** | Audio décodé en provenance du second récepteur. `none` en ambre signifie que rien n'est décodé |
+| **SNR local / remote** | Les deux estimations de rapport signal/bruit comparées |
+| **switches** | Le nombre de changements de site |
 
-Beside the title, one word tells you where you stand:
+À côté du titre, un mot vous dit où vous en êtes :
 
 | | |
 |---|---|
-| `off` (grey) | not running |
-| **`Please wait…`** (amber) | connecting, or connected and still aligning |
-| **`Ready`** (green) | linked, locked and following the better site |
-| the receiver's own error (red) | it has failed and will not recover on its own |
+| `off` (gris) | à l'arrêt |
+| **`Please wait…`** (ambre) | en cours de connexion, ou connecté et encore en alignement |
+| **`Ready`** (vert) | relié, verrouillé et suivant le meilleur site |
+| l'erreur du récepteur distant (rouge) | échec, et cela ne se rétablira pas tout seul |
 
-The distinction between amber and red is the one that saves time: amber means keep waiting, red means stop waiting and read the message.
+La distinction entre ambre et rouge est celle qui fait gagner du temps : ambre veut dire continuez d'attendre, rouge veut dire cessez d'attendre et lisez le message.
 
-The coloured dot adds which site you are actually hearing — green for your own receiver, cyan for the remote.
+Le point coloré ajoute quel site vous entendez réellement — vert votre propre récepteur, cyan le distant.
 
-### Alignment takes about 15 seconds
+### L'alignement demande environ 15 secondes
 
-This is normal and worth expecting. The two streams are aligned by correlating their **audio envelopes**, and that needs a window of audio to work with. The search runs in two stages: a narrow ±1.5 second search can start once about 9 seconds of audio has been gathered, and a second, independent measurement five seconds later has to **agree** with the first before the alignment is trusted. When the two sites are further apart in time than that — a second or two of extra buffering somewhere along the path — the full ±4 second search takes over at about 14 seconds and confirmation follows at 19.
+C'est normal. Les deux flux sont alignés en corrélant leurs **enveloppes audio**, ce qui exige une fenêtre de son. La recherche se fait en deux temps : une recherche étroite de ±1,5 seconde peut démarrer dès qu'environ 9 secondes de son ont été réunies, et une seconde mesure indépendante, cinq secondes plus tard, doit **concorder** avec la première avant que l'alignement soit accepté. Lorsque les deux stations sont plus éloignées que cela dans le temps — une ou deux secondes de tampon supplémentaire quelque part sur le trajet —, la recherche complète de ±4 secondes prend le relais vers 14 secondes et la confirmation suit à 19.
 
-The confirmation step matters. When two sites fade in antiphase — never both carrying the signal at the same moment — a single correlation will happily lock onto a confident, completely wrong delay, which sounds like an echo. Requiring two independent measurements to agree rejects that.
+Cette étape de confirmation compte. Lorsque deux sites s'évanouissent en opposition — sans jamais porter le signal en même temps —, une corrélation unique se verrouille volontiers sur un décalage parfaitement faux mais assuré, qui s'entend comme un écho. Exiger deux mesures indépendantes concordantes l'écarte.
 
-A second thing has to be right before a lock can hold: the two receivers' sample rates. Two receivers are two clocks and two decimation chains, so their audio streams do **not** arrive at quite the same rate even when both declare 12 kHz — 2% apart is normal, which is 240 samples a second of creep, far more than the alignment tolerance. The remote stream is therefore continuously resampled to match your own receiver's rate. That ratio is measured by **counting samples**, not by correlating, so it needs no lock of its own and is settled within the first few seconds — before the first alignment search even runs. A weak or intermittent signal can still take two or three tries to align, so 30 seconds is not a cause for concern; a minute with nothing to show is.
+Une seconde chose doit être juste avant qu'un verrouillage tienne : les cadences d'échantillonnage des deux récepteurs. Deux récepteurs, ce sont deux horloges et deux chaînes de décimation : leurs flux audio n'arrivent **pas** tout à fait à la même cadence, même lorsque tous deux annoncent 12 kHz — 2% d'écart est normal, soit 240 échantillons de dérive par seconde, bien au-delà de la tolérance d'alignement. Le flux distant est donc rééchantillonné en continu à la cadence de votre propre récepteur. Ce rapport est obtenu en **comptant les échantillons**, non par corrélation : il n'a donc pas besoin de son propre verrouillage et il est établi dès les premières secondes — avant même la première recherche d'alignement. Un signal faible ou intermittent peut demander deux ou trois tentatives ; 30 secondes ne sont donc pas inquiétantes, une minute sans rien l'est.
 
-While `searching`, both SNR figures read `0.0`. That is by design: the two signal-to-noise estimates are measured on **content-aligned** samples, so nothing is measured until there is an alignment. `0.0 / 0.0` means "not locked yet", not "no signal".
+Pendant `searching`, les deux valeurs de SNR affichent `0.0`. C'est voulu : les deux estimations sont mesurées sur des échantillons **alignés en contenu**, donc rien n'est mesuré avant qu'il y ait alignement. `0.0 / 0.0` veut dire « pas encore verrouillé », pas « pas de signal ».
 
 ---
 
 ## Remote SNR trim
 
-This slider biases the choice between the two sites. It is added to the remote receiver's measured SNR before the comparison — positive favours the remote, negative favours your own. It changes **nothing else**: not the audio level, not the combining, only which site wins.
+Ce curseur pondère le choix entre les deux sites. Il est ajouté au SNR mesuré du récepteur distant avant la comparaison — positif favorise le distant, négatif le vôtre. Il ne change **rien d'autre** : ni le niveau audio, ni la combinaison, seulement le site retenu.
 
-It exists because the two SNR figures are not always comparable. Both are measured the same way — a percentile spread of the audio — but a receiver whose codec floors its own noise reads lower than it deserves. A KiwiSDR applies strong gain and a limiter, which compresses the spread; a lossy codec sets a noise floor the signal never gets below.
+Il existe parce que les deux valeurs de SNR ne sont pas toujours comparables. Toutes deux sont mesurées de la même façon — comme un écart entre centiles de l'audio — mais un récepteur dont le codec relève son propre plancher de bruit affiche moins qu'il ne le mérite. Un KiwiSDR applique un fort gain et un limiteur, ce qui comprime l'écart ; un codec avec pertes fixe un plancher de bruit sous lequel le signal ne descend jamais.
 
-**How to set it:**
+**Comment le régler :**
 
-1. Tune both receivers to a signal that is reliably present, and wait for `aligned`.
-2. Watch the two SNR figures for half a minute. Note the typical gap.
-3. Use the extremes as a listening test: **+15** forces the remote site live, **−15** forces your own. Listen to each for a few seconds. This is the only way to hear one site in isolation.
-4. If the remote reads, say, 5 dB lower but sounds just as good, set **+5**. You are making the two readings agree when the two sites sound equal.
-5. Watch the **switches** counter over ten minutes of listening. Constant flipping means the trim is too close to a tie; never switching even when your own receiver audibly fades means it is too far the other way.
+1. Accordez les deux récepteurs sur un signal présent de façon fiable et attendez `aligned`.
+2. Observez les deux valeurs de SNR pendant une demi-minute. Notez l'écart habituel.
+3. Utilisez les extrémités comme test d'écoute : **+15** impose le site distant, **−15** le vôtre. Écoutez chacun quelques secondes. C'est le seul moyen d'entendre un site isolément.
+4. Si le distant affiche par exemple 5 dB de moins mais sonne aussi bien, réglez **+5**. Vous faites concorder les deux lectures quand les deux sites sonnent pareil.
+5. Surveillez le compteur **switches** sur dix minutes d'écoute. Des bascules incessantes signifient que le réglage est trop proche de l'égalité ; ne jamais basculer alors que votre récepteur s'évanouit audiblement signifie qu'il est trop décalé dans l'autre sens.
 
-Starting points: **0** for another PhantomSDR-Plus, which uses an identical audio path and is comparable by construction; a small **positive** value for a KiwiSDR or UberSDR.
+Points de départ : **0** pour un autre PhantomSDR-Plus, qui emploie une chaîne audio identique et est comparable par construction ; une petite valeur **positive** pour un KiwiSDR ou un UberSDR.
 
 > [!TIP]
-> If you need more than about ±8 dB, stop trimming. At that point the honest explanation is usually that one receiver really is worse for that path, and biasing past a real difference just means listening to the weaker site.
+> S'il vous faut plus de ±8 dB environ, arrêtez de corriger. À ce stade, l'explication honnête est en général qu'un récepteur est réellement moins bon pour ce trajet, et pondérer au-delà d'une différence réelle revient simplement à écouter le site le plus faible.
 
-The setting applies immediately and is remembered in your browser.
+Le réglage s'applique immédiatement et est mémorisé dans votre navigateur.
 
 ---
 
-## Choosing a second receiver
+## Choisir un second récepteur
 
-**Distance matters.** Fades decorrelate with distance — a few hundred kilometres on HF is a good target. Two receivers in the same city fade together and buy you nothing. Too far apart and the second receiver may not hear your signal at all.
+**La distance compte.** Les évanouissements se décorrèlent avec la distance — quelques centaines de kilomètres en HF constituent un bon objectif. Deux récepteurs dans la même ville s'évanouissent ensemble et n'apportent rien. Trop éloignés, et le second récepteur risque de ne pas entendre votre signal du tout.
 
-**Both must actually hear the signal.** This is the requirement no software can work around. If the second receiver cannot hear what you are listening to, the correlation stays low and it will refuse to lock — deliberately, because a wrong alignment sounds worse than no diversity at all.
+**Les deux doivent réellement entendre le signal.** Aucune logiciel ne contourne cette exigence. Si le second récepteur n'entend pas ce que vous écoutez, la corrélation reste faible et il ne se verrouillera pas — volontairement, car un alignement erroné sonne plus mal que pas de diversité du tout.
 
-**Coverage.** A second PhantomSDR-Plus or a KiwiSDR announces the frequency range it covers, and the panel warns you if you tune outside it. A WebSDR announces its bands, which are often narrow slices rather than a continuous range. UberSDR does not announce coverage, so there the refusal to lock is your only signal.
+**Couverture.** Un second PhantomSDR-Plus ou un KiwiSDR annonce la plage de fréquences qu'il couvre, et le panneau vous avertit si vous vous accordez en dehors. Un WebSDR annonce ses bandes, souvent des tranches étroites plutôt qu'une plage continue. UberSDR n'annonce pas sa couverture : là, le refus de se verrouiller est votre seul indice.
 
 > [!IMPORTANT]
-> Public receivers are run by volunteers and have a limited number of listener slots. A diversity session occupies one of them for as long as it runs, just as a human listener would. Please be considerate about leaving one connected indefinitely, and ask the operator if you intend to use their receiver heavily.
+> Les récepteurs publics sont tenus par des bénévoles et disposent d'un nombre limité de places d'écoute. Une session de diversité en occupe une tant qu'elle dure, exactement comme un auditeur humain. Soyez prévenant avant d'en laisser une connectée indéfiniment, et demandez à l'opérateur si vous comptez utiliser son récepteur intensivement.
 
 ---
 
-## Troubleshooting
+## Dépannage
 
-**`link` never leaves `connecting`, or cycles connect/close** The address or port is probably wrong. Check the table above — in particular, UberSDR uses its normal web port, not 8073. The panel shows the WebSocket close code, and the browser console (F12) shows the underlying error.
+**`link` ne quitte jamais `connecting`, ou enchaîne connexion/fermeture** L'adresse ou le port sont probablement erronés. Voyez le tableau ci-dessus — en particulier, UberSDR utilise son port web normal, pas le 8073. Le panneau affiche le code de fermeture WebSocket, et la console du navigateur (F12) l'erreur sous-jacente.
 
-**`link` shows an error with text after it** That text comes from the other receiver. It is usually specific: a refused session, a full server, or a receiver that does not accept outside clients.
+**`link` affiche une erreur suivie d'un texte** Ce texte vient de l'autre récepteur et il est généralement précis : session refusée, serveur plein, ou récepteur qui n'accepte pas les clients extérieurs.
 
-**KiwiSDR refuses the connection** Some KiwiSDRs require a password, and on an UberSDR the KiwiSDR-compatible endpoint is switched off by default. For an UberSDR, use the **UberSDR** source type instead — that path is always available.
+**Le KiwiSDR refuse la connexion** Certains KiwiSDR exigent un mot de passe, et sur un UberSDR le point d'accès compatible KiwiSDR est désactivé par défaut. Pour un UberSDR, utilisez le type **UberSDR** — cette voie est toujours disponible.
 
-**WebSDR: `the WebSDR relay is not reachable`** The relay is not running, or your browser cannot reach its port. It must be reachable at the **same hostname the receiver page is served from**, because the browser connects to it directly rather than through the receiver. Open `http://<that hostname>:<relay port>/status` in the same browser to see which. If it answers on your LAN but not from outside, the port is not forwarded on the router.
+**WebSDR : `the WebSDR relay is not reachable`** Le relais ne tourne pas, ou votre navigateur n'atteint pas son port. Il doit être joignable sur le **même nom d'hôte que celui qui sert la page du récepteur**, car le navigateur s'y connecte directement et non à travers le récepteur. Ouvrez `http://<ce nom d'hôte>:<port du relais>/status` dans le même navigateur pour savoir lequel des deux. S'il répond sur votre réseau local mais pas depuis l'extérieur, le port n'est pas redirigé sur le routeur.
 
-**WebSDR: an error mentioning a refused connection** That site has locked things down further than the standard `Origin` check, or its operator has blocked this station.
+**WebSDR : une erreur mentionnant une connexion refusée** Ce site est verrouillé plus strictement que le contrôle d'`Origin` habituel, ou son opérateur a bloqué cette station.
 
-**`link` is `ready` but `remote audio` shows `none`** Audio is not being decoded. Reload the page; if it persists, the browser console will show which decoder failed.
+**`link` est `ready` mais `remote audio` indique `none`** Aucun audio n'est décodé. Rechargez la page ; si cela persiste, la console du navigateur indiquera quel décodeur a échoué.
 
-**Audio arrives but it never aligns** The two receivers are not hearing the same thing. Try a strong broadcast station, or a band where both sites have good propagation. A quiet band with only noise at both ends will never correlate — and should not.
+**L'audio arrive mais ne s'aligne jamais** Les deux récepteurs n'entendent pas la même chose. Essayez une station de radiodiffusion puissante, ou une bande où les deux sites bénéficient d'une bonne propagation. Une bande calme avec seulement du bruit des deux côtés ne corrélera jamais — et c'est très bien ainsi.
 
-**It switches back and forth constantly** The two sites are too close in SNR. Adjust the trim slightly so one is consistently preferred.
+**Cela bascule sans arrêt** Les deux sites sont trop proches en SNR. Décalez légèrement le trim pour qu'un site soit préféré de façon stable.
 
-**It never uses the second receiver** Check `remote audio` is climbing and that the SNR figures look sensible. If the remote reads much lower than it sounds, that is what the trim is for.
+**Le second récepteur n'est jamais utilisé** Vérifiez que `remote audio` augmente et que les valeurs de SNR paraissent cohérentes. Si le distant affiche bien moins qu'il ne sonne, c'est précisément à cela que sert le trim.
 
 ---
 
-## Limitations
+## Limites
 
-- **Not coherent.** No phasing, no nulling, no direction finding. Cancelling a noise source needs two antennas on one clock at one site; this is a different technique for a different problem.
-- **One to three seconds of delay**, unavoidably.
-- **Two receivers only.**
-- **Mono.** If your receiver is in a stereo mode such as C-QUAM, the audio passes through untouched and diversity does not engage.
-- **Alignment needs signal.** Under about 10 dB SNR at one of the two sites, expect it to sit at `searching`.
-- **A WebSDR needs the relay** on your own server, and its port forwarded. The other three receiver types need neither.
+- **Ce n'est pas cohérent.** Pas de phasing, pas de nulling, pas de radiogoniométrie. Annuler une source de bruit exige deux antennes sur une même horloge et un même site ; c'est une autre technique pour un autre problème.
+- **Une à trois secondes de retard**, inévitablement.
+- **Deux récepteurs seulement.**
+- **Mono.** Si votre récepteur est dans un mode stéréo comme le C-QUAM, l'audio passe sans modification et la diversité ne s'engage pas.
+- **L'alignement exige du signal.** En dessous d'environ 10 dB de SNR sur l'un des deux sites, attendez-vous à rester sur `searching`.
+- **Un WebSDR exige le relais** sur votre propre serveur, et son port redirigé. Les trois autres types de récepteur n'ont besoin ni de l'un ni de l'autre.

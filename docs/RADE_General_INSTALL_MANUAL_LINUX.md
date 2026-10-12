@@ -1,20 +1,20 @@
-# RADE v1 — Manual Installation Guide
+# RADE v1 — Guide d'installation manuelle
 
-> **On a station set up with the station questions (`configure-station.sh`)** the sidecar listens only inside the computer, on `PORT_RADE` (9012), and the page reaches it as `/rade` on the public port through `proxy.py` — port 8074 below is then neither used nor forwarded. On a station set up before the wizard, everything below applies as written.
-### All Linux — Ubuntu / Debian / Fedora / Arch / Raspberry Pi OS · PhantomSDR-Plus
+> **Sur une station configurée avec les questions de la station (`configure-station.sh`)**, le sidecar n'écoute qu'à l'intérieur de l'ordinateur, sur `PORT_RADE` (9012), et la page le joint sous `/rade` sur le port public via `proxy.py` ; le port 8074 ci-dessous n'est alors ni utilisé ni redirigé. Sur une station configurée avant l'assistant, tout ce qui suit s'applique tel quel.
+### Tout Linux — Ubuntu / Debian / Fedora / Arch / Raspberry Pi OS · PhantomSDR-Plus
 
-> **Pre-condition:** The patched files (`rade_helper.py`, `rade.sh`, `audio.js`, `App.svelte`) are already placed in the PhantomSDR-Plus directory tree. This guide builds everything around them.
+> **Prérequis :** les fichiers corrigés (`rade_helper.py`, `rade.sh`, `audio.js`, `App.svelte`) sont déjà en place dans l'arborescence de PhantomSDR-Plus. Ce guide construit tout le reste autour d'eux.
 
 > [!IMPORTANT]
-> **You do not need this guide for a normal installation.** `./install_rade.sh` in the PhantomSDR-Plus folder does every step below for you — system packages, the Python modules, the radae build, the model-weights check and the sidecar start — and it works on apt, pacman, dnf and zypper systems alike. `./install.sh` (and the four distro installers) offer to run it for you as part of the normal installation. Follow this guide only for a manual setup, for a system the script does not cover, or to repair one step by hand.
+> **Vous n'avez pas besoin de ce guide pour une installation normale.** `./install_rade.sh`, dans le dossier PhantomSDR-Plus, effectue pour vous chacune des étapes ci-dessous — paquets système, modules Python, compilation de radae, vérification des poids du modèle et démarrage du sidecar — et fonctionne aussi bien sur les systèmes apt, pacman, dnf que zypper. `./install.sh` et les quatre installateurs par distribution proposent de le lancer pendant l'installation normale. Ne suivez ce guide que pour une installation manuelle, pour un système que le script ne couvre pas, ou pour réparer une étape à la main.
 
-> **Raspberry Pi users:** this is your guide too. Raspberry Pi OS is Debian, so follow the Debian blocks throughout, and read the **Raspberry Pi / Bookworm** notes where they appear — they cover the two things that differ on a Pi: PEP 668 and the CPU-only torch wheel.
+> **Utilisateurs de Raspberry Pi :** ce guide est aussi le vôtre. Raspberry Pi OS est un Debian : suivez donc partout les blocs Debian et lisez les notes **Raspberry Pi / Bookworm** là où elles apparaissent — elles couvrent les deux points qui diffèrent sur un Pi : la PEP 668 et la roue torch CPU seule.
 
 ---
 
-## Step 1 — System packages
+## Étape 1 — Paquets système
 
-Choose the block that matches your distribution.
+Choisissez le bloc correspondant à votre distribution.
 
 ### Ubuntu / Debian / Raspberry Pi OS
 
@@ -47,15 +47,15 @@ sudo pacman -Sy --needed \
     alsa-utils
 ```
 
-### Node.js version check (all distros)
+### Vérification de la version de Node.js (toutes distributions)
 
-RADE's frontend build requires Node.js 22 or later:
+La compilation du frontend de RADE nécessite Node.js 22 ou plus récent :
 
 ```bash
 node --version
 ```
 
-If below 22.x, install it with `nvm` (any distro, no root needed):
+Si la version est inférieure à 22.x, installez-le avec `nvm` (toutes distributions, sans root) :
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
@@ -64,15 +64,15 @@ export NVM_DIR="$HOME/.nvm"
 nvm install 22 && nvm use 22 && nvm alias default 22
 ```
 
-> **Not NodeSource.** `deb.nodesource.com` and `rpm.nodesource.com` now answer HTTP 403 on every repository path, so the old `curl -fsSL https://deb.nodesource.com/setup_NN.x | sudo -E bash -` line no longer works — and on Debian/Ubuntu it leaves an apt source behind that breaks every later `apt update`. The install scripts use `nvm` for the same reason.
+> **Pas via NodeSource.** `deb.nodesource.com` et `rpm.nodesource.com` renvoient désormais HTTP 403 sur tous les chemins du dépôt : l'ancienne ligne `curl -fsSL https://deb.nodesource.com/setup_NN.x | sudo -E bash -` ne fonctionne donc plus, et sous Debian/Ubuntu elle laisse une source apt qui casse tous les `apt update` suivants. C'est pour cette raison que les scripts d'installation utilisent `nvm`.
 
 ---
 
-## Step 2 — Python packages
+## Étape 2 — Paquets Python
 
-### Ubuntu 24.04 and earlier / Fedora / Arch
+### Ubuntu 24.04 et antérieurs / Fedora / Arch
 
-Plain `pip3 install` works on these systems:
+Un `pip3 install` simple fonctionne sur ces systèmes :
 
 ```bash
 pip3 install websockets matplotlib numpy scipy
@@ -82,11 +82,11 @@ pip3 install websockets matplotlib numpy scipy
 pip3 install torch --index-url https://download.pytorch.org/whl/cpu
 ```
 
-> If your server **does** have an NVIDIA GPU and CUDA installed, you can omit `--index-url` to get the full CUDA build. There is no performance benefit for RADE — `radae_rxe.py` uses PyTorch for CPU matrix ops only.
+> Si votre serveur **dispose** bien d'un GPU NVIDIA avec CUDA installé, vous pouvez omettre `--index-url` pour obtenir la version CUDA complète. Cela n'apporte aucun gain de performance pour RADE — `radae_rxe.py` n'utilise PyTorch que pour des opérations matricielles sur CPU.
 
-### Ubuntu 23.04+ / Debian Bookworm+ / Raspberry Pi OS (PEP 668 systems)
+### Ubuntu 23.04+ / Debian Bookworm+ / Raspberry Pi OS (systèmes PEP 668)
 
-These distributions block bare `pip3 install`. Add the flag:
+Ces distributions bloquent un `pip3 install` nu. Ajoutez l'option :
 
 ```bash
 # All packages except torch
@@ -97,12 +97,14 @@ pip3 install --break-system-packages torch \
     --index-url https://download.pytorch.org/whl/cpu
 ```
 
-> **Raspberry Pi / Bookworm — two rules that bite:**
+> **Raspberry Pi / Bookworm — deux règles qui mordent :**
 >
-> 1. Every `pip3 install` requires `--break-system-packages` (PEP 668 enforcement). Without it the install is blocked entirely.
-> 2. Plain `pip3 install torch` downloads the CUDA wheel (~3 GB). On a Pi there is no CUDA — the `--index-url` above is what gets you the lean ARM64 wheel (~150 MB) instead.
+> 1. Chaque `pip3 install` exige `--break-system-packages` (application de la
+> PEP 668). Sans cela, l'installation est totalement bloquée.
+> 2. Un simple `pip3 install torch` télécharge la version CUDA (~3 Go).
+> Sur un Pi il n'y a pas de CUDA — utilisez l'index CPU seul pour obtenir la version ARM64 allégée (~150 Mo).
 
-Alternatively, use a virtual environment to avoid the flag entirely:
+Vous pouvez également utiliser un environnement virtuel pour éviter complètement cette option :
 
 ```bash
 python3 -m venv ~/rade-venv
@@ -111,24 +113,24 @@ pip install websockets matplotlib numpy scipy torch \
     --index-url https://download.pytorch.org/whl/cpu
 ```
 
-> If using a venv, prefix all subsequent `python3` calls in this guide with `source ~/rade-venv/bin/activate` or use the full path `~/rade-venv/bin/python3`.
+> Si vous utilisez un venv, faites précéder tous les appels `python3` de ce guide de `source ~/rade-venv/bin/activate`, ou utilisez le chemin complet `~/rade-venv/bin/python3`.
 
-### Verify
+### Vérification
 
 ```bash
 python3 -c "import websockets, matplotlib, torch, numpy, scipy; print('All OK')"
 ```
 
-Expected output:
+Sortie attendue :
 ```
 All OK
 ```
 
 ---
 
-## Step 3 — Clone and build the radae repository
+## Étape 3 — Cloner et compiler le dépôt radae
 
-The RADE decoder lives in a separate repository from codec2. `freedv_rx` from codec2 does **not** support RADE v1.
+Le décodeur RADE se trouve dans un dépôt distinct de codec2. `freedv_rx` de codec2 ne prend **pas** en charge RADE v1.
 
 ```bash
 # Remove any previous incomplete clone
@@ -144,33 +146,33 @@ cmake ..
 make -j$(nproc)
 ```
 
-### Verify lpcnet_demo was built
+### Vérifiez que lpcnet_demo a été compilé
 
 ```bash
 ls -la ~/radae/build/src/lpcnet_demo
 ```
 
-Expected: the binary is present and executable.
+Attendu : le binaire est présent et exécutable.
 
-### Verify model weights are present
+### Vérifiez la présence des poids du modèle
 
 ```bash
 ls ~/radae/model19_check3/checkpoints/checkpoint_epoch_100.pth
 ```
 
-Expected: the `.pth` file is listed. The weights are bundled in the repository — no separate download needed.
+Attendu : le fichier `.pth` est listé. Les poids sont fournis dans le dépôt — aucun téléchargement séparé n'est nécessaire.
 
 ---
 
-## Step 4 — Verify the decode pipeline
+## Étape 4 — Vérifier la chaîne de décodage
 
-This step confirms the full offline pipeline works before wiring it to the browser. Run from `~/radae`:
+Cette étape confirme que la chaîne hors ligne complète fonctionne avant de la relier au navigateur. À exécuter depuis `~/radae` :
 
 ```bash
 cd ~/radae
 ```
 
-### 4a — Generate a RADE-encoded test signal
+### 4a — Générer un signal de test encodé en RADE
 
 ```bash
 ./inference.sh model19_check3/checkpoints/checkpoint_epoch_100.pth \
@@ -179,12 +181,12 @@ cd ~/radae
     --write_rx rx.f32 --auxdata
 ```
 
-Wait for it to finish. The last lines printed should be:
+Attendez la fin du traitement. Les dernières lignes affichées doivent être :
 ```
 loss: 0.741 Auxdata BER: 0.012
 ```
 
-### 4b — Decode and play
+### 4b — Décoder et écouter
 
 ```bash
 cat rx.f32 \
@@ -194,22 +196,22 @@ cat rx.f32 \
     | aplay -f S16_LE -r 16000
 ```
 
-You should hear a voice. The output shows sync acquisition:
+Vous devriez entendre une voix. La sortie montre l'acquisition de la synchronisation :
 ```
   1 state: search     ...
   5 state: sync       ... SNRdB:  4.03 uw_err: 0
 Playing raw data 'stdin' : Signed 16 bit Little Endian, Rate 16000 Hz, Mono
 ```
 
-> **`underrun!!!` messages during this test are expected and harmless.** They occur because `radae_rxe.py` processes slower than file I/O. They do not appear during live reception — the browser feeds audio at real-time rate.
+> **Les messages `underrun!!!` pendant ce test sont normaux et sans conséquence.** Ils surviennent parce que `radae_rxe.py` traite plus lentement que les entrées/sorties du fichier. Ils n'apparaissent pas en réception en direct — le navigateur fournit l'audio au rythme temps réel.
 
-### 4c — Verify the sidecar starts correctly
+### 4c — Vérifier que le sidecar démarre correctement
 
 ```bash
 python3 ~/PhantomSDR-Plus/rade_helper.py
 ```
 
-Expected output (no WARNING lines):
+Sortie attendue (aucune ligne WARNING) :
 ```
 [RADE] helper starting on ws://0.0.0.0:8074
 [RADE] radae_rx.py    : /home/<user>/radae/radae_rxe.py
@@ -221,13 +223,13 @@ Expected output (no WARNING lines):
 [RADE] listening — waiting for PhantomSDR-Plus clients
 ```
 
-Press **Ctrl+C** to stop.
+Appuyez sur **Ctrl+C** pour arrêter.
 
-> `<user>` in the paths above is whichever account you are logged in as — on a stock Raspberry Pi OS image that makes them `/home/pi/radae/...`.
+> `<user>` dans les chemins ci-dessus désigne le compte avec lequel vous êtes connecté — sur une image standard de Raspberry Pi OS, ils deviennent `/home/pi/radae/...`.
 
 ---
 
-## Step 5 — Build the PhantomSDR-Plus frontend
+## Étape 5 — Compiler le frontend de PhantomSDR-Plus
 
 ```bash
 cd ~/PhantomSDR-Plus/frontend
@@ -239,21 +241,20 @@ cd ~/PhantomSDR-Plus
 ./recompile.sh
 ```
 
-Watch for Vite/acorn parser errors. The patched files deliberately avoid `?.`, `??`, and bare `catch {}` to comply with the acorn constraint.
+Surveillez les erreurs de l'analyseur Vite/acorn. Les fichiers corrigés évitent délibérément `?.`, `??` et les `catch {}` nus, afin de respecter la contrainte d'acorn.
 
 ---
 
-## Step 6 — Sidecar control
+## Étape 6 — Contrôle du sidecar
 
-**You normally do not need a separate RADE control script.** The start scripts (`start-rx888mk2.sh`, `start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos-hf.sh`, `start-fobos.sh`, `start-hackrf.sh`) start the sidecar themselves once the server is up, restart it if it exits, and report its state; `stop-websdr.sh` stops it along with the server. Go straight to Step 7.
+**Vous n'avez normalement pas besoin d'un script de contrôle distinct pour RADE.** Les scripts de démarrage (`start-rx888mk2.sh`, `start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos-hf.sh`, `start-fobos.sh`, `start-hackrf.sh`) démarrent eux-mêmes le sidecar dès que le serveur tourne, le relancent s'il s'arrête et signalent son état ; `stop-websdr.sh` l'arrête en même temps que le serveur. Passez directement à l'étape 7.
 
-`rade.sh` still ships for standalone use — running the sidecar without the PhantomSDR-Plus launcher, or testing it on its own. Its commands, its log, and the watchdog caveats that go with it are in [Sidecar control](RADE_README.md#sidecar-control).
-
+`rade.sh` reste fourni pour un usage autonome — faire tourner le sidecar sans le lanceur PhantomSDR-Plus, ou le tester seul. Ses commandes, son journal et les pièges du chien de garde qui vont avec figurent dans [Contrôle du sidecar](RADE_README.md#contrôle-du-sidecar).
 ---
 
-## Step 7 — Open port 8074
+## Étape 7 — Ouvrir le port 8074
 
-The sidecar listens on TCP port **8074**. The browser connects directly to this port. You must open it manually.
+Le sidecar écoute sur le port TCP **8074**. Le navigateur se connecte directement à ce port. Vous devez l'ouvrir manuellement.
 
 ### ufw (Ubuntu / Debian / Raspberry Pi OS)
 
@@ -268,7 +269,7 @@ sudo firewall-cmd --add-port=8074/tcp --permanent
 sudo firewall-cmd --reload
 ```
 
-### iptables (any distro, permanent)
+### iptables (toutes distributions, permanent)
 
 ```bash
 sudo iptables -I INPUT -p tcp --dport 8074 -j ACCEPT
@@ -281,17 +282,17 @@ sudo netfilter-persistent save
 sudo service iptables save
 ```
 
-### Router
+### Routeur
 
-Add a NAT/port-forward rule: **TCP 8074 → server LAN IP : 8074**
+Ajoutez une règle NAT / redirection de port : **TCP 8074 → IP LAN du serveur : 8074**
 
-### Test from outside
+### Test depuis l'extérieur
 
-Use **https://portchecker.co** and check port 8074 against your public hostname. Do **not** test with `curl` from the server itself — NAT hairpin gives false "Connection refused" results even when the port is open.
+Utilisez **https://portchecker.co** et vérifiez le port 8074 sur votre nom d'hôte public. Ne testez **pas** avec `curl` depuis le serveur lui-même — le NAT hairpin donne de faux résultats « Connection refused » même lorsque le port est ouvert.
 
-### Alternative — Nginx proxy (if port 8074 is blocked by ISP)
+### Alternative — proxy Nginx (si le port 8074 est bloqué par le FAI)
 
-Add inside your existing `server {}` block:
+Ajoutez à l'intérieur de votre bloc `server {}` existant :
 
 ```nginx
 location /rade {
@@ -308,7 +309,7 @@ location /rade {
 sudo nginx -t && sudo nginx -s reload
 ```
 
-Then edit `audio.js` inside `setRADEDecoding()`:
+Modifiez ensuite `audio.js` dans `setRADEDecoding()` :
 
 ```js
 // Change:
@@ -317,13 +318,13 @@ var helperUri = uri || ('ws://' + window.location.hostname + ':8074');
 var helperUri = uri || ('ws://' + window.location.host + '/rade');
 ```
 
-Rebuild the frontend after this change (`./recompile.sh`).
+Recompilez le frontend après cette modification (`./recompile.sh`).
 
 ---
 
-## Step 8 — Start the server
+## Étape 8 — Démarrer le serveur
 
-Start PhantomSDR-Plus as usual. The launcher starts RADE for you, once the receiver and `spectrumserver` are both confirmed running:
+Démarrez PhantomSDR-Plus comme d'habitude. RADE n'est **pas** lancé automatiquement :
 
 ```bash
 cd ~/PhantomSDR-Plus
@@ -333,23 +334,20 @@ cd ~/PhantomSDR-Plus
                          # start-hackrf.sh
 ```
 
-Use the launcher that matches your receiver. Each one includes its own watchdog and log; `./stop-websdr.sh` stops whichever is running, RADE included.
-
-The launcher mirrors its log to the terminal and finishes with a summary line for the sidecar — `✔ RADE sidecar running`, or a `·` note explaining why it was not activated (not installed, `RADE_ENABLED=0`, or no `python3`). A missing sidecar never stops the server from starting.
+Utilisez le lanceur correspondant à votre récepteur. Chacun comporte son propre chien de garde et son journal ; `./stop-websdr.sh` arrête celui qui est en cours.
 
 ---
 
-## Step 9 — Verify RADE
-
-The sidecar was already started by Step 8. Confirm it:
+## Étape 9 — Démarrer RADE
 
 ```bash
 cd ~/PhantomSDR-Plus
-pgrep -af rade_helper.py     # should print one python3 process
+./rade.sh start
+./rade.sh status
 tail -f rade.log
 ```
 
-Expected log:
+Journal attendu :
 ```
 [RADE] sidecar starting at ...
 [RADE] helper starting on ws://0.0.0.0:8074
@@ -364,48 +362,46 @@ Expected log:
 
 ---
 
-## Step 10 — Using RADE in the browser
+## Étape 10 — Utiliser RADE dans le navigateur
 
-1. Open your PhantomSDR-Plus web interface
-2. Find active stations at **https://qso.freedv.org**
-3. Tune to the station's dial frequency
-4. In **Decoder Options**, select:
-   - **RADE v1 — RADEL (LSB)** for 40 m / 80 m / 160 m (≤ 10 MHz)
-   - **RADE v1 — RADEU (USB)** for 20 m / 17 m / 15 m / 12 m / 10 m (> 10 MHz)
-5. Click **Decoder: ON**
+1. Ouvrez votre interface web PhantomSDR-Plus
+2. Trouvez les stations actives sur **https://qso.freedv.org**
+3. Accordez-vous sur la fréquence affichée de la station
+4. Dans **Decoder Options**, sélectionnez :
+   - **RADE v1 — RADEL (LSB)** pour 40 m / 80 m / 160 m (≤ 10 MHz)
+   - **RADE v1 — RADEU (USB)** pour 20 m / 17 m / 15 m / 12 m / 10 m (> 10 MHz)
+5. Cliquez sur **Decoder: ON**
 
-Steps 4 and 5 can be replaced by a single press: **RADEL** / **RADEU** buttons sit next to the **Modes selector** heading and inside the **Modes** and **Bands** popup windows. One press selects the decoder, switches it ON and scrolls the RADE panel into view; press the same button again to switch RADE off. See the [RADE manual](RADE_README.md).
+Les étapes 4 et 5 peuvent être remplacées par une seule pression : les boutons **RADEL** / **RADEU** se trouvent à côté du titre **Modes selector** ainsi que dans les fenêtres **Modes** et **Bands**. Une pression sélectionne le décodeur, le met sur ON et amène le panneau RADE à l'écran ; appuyez de nouveau pour arrêter RADE. Voir le [manuel RADE](RADE_README.md).
 
-| Indicator | Meaning |
+| Indicateur | Signification |
 |---|---|
-| 🔴 Red — "Connecting to sidecar…" | Port 8074 unreachable or sidecar not running |
-| 🟡 Yellow — "Searching for signal…" | Sidecar connected, no RADE frame detected yet (allow ~1.5 s) |
-| 🟢 Green — "Synced · SNR x.x dB" | Decoding — speech is playing |
+| 🔴 Rouge — « Connecting to sidecar… » | Port 8074 injoignable ou sidecar arrêté |
+| 🟡 Jaune — « Searching for signal… » | Sidecar connecté, aucune trame RADE encore détectée (comptez ~1,5 s) |
+| 🟢 Vert — « Synced · SNR x.x dB » | Décodage en cours — la parole est audible |
 
 ---
 
-## CPU note
+## Remarque sur le CPU
 
-Each RADE user uses ~8–10 % of one core (PyTorch thread count capped at 1 by the sidecar). If you hear audio dropouts, raise to 2 threads:
+Chaque utilisateur RADE consomme environ 8 à 10 % d'un cœur (le nombre de threads PyTorch est limité à 1 par le sidecar). Si vous entendez des coupures audio, passez à 2 threads :
 
 ```bash
-RADE_TORCH_THREADS=2 ./start-rx888mk2.sh     # or your receiver's launcher
+RADE_TORCH_THREADS=2 ./rade.sh restart
 ```
 
-The launcher passes its environment through to the sidecar, so setting the variable on the start command is enough. (Standalone: `RADE_TORCH_THREADS=2 ./rade.sh restart`.)
-
-| Simultaneous users | Approximate CPU |
+| Utilisateurs simultanés | CPU approximatif |
 |---|---|
 | 1 | ~9 % |
 | 5 | ~45 % |
 | 10 | ~90 % |
 | 20 | ~180 % |
 
-> These figures were measured on x86_64. A Raspberry Pi decodes RADE fine, but the per-user cost is higher and the table above does not transfer — measure your own board with `top` while a user is synced before advertising a user limit.
+> Ces chiffres ont été mesurés sur x86_64. Un Raspberry Pi décode RADE sans problème, mais le coût par utilisateur y est plus élevé et le tableau ci-dessus ne se transpose pas — mesurez votre propre carte avec `top` pendant qu'un utilisateur est synchronisé avant d'annoncer une limite d'utilisateurs.
 
 ---
 
-## Updating RADE in future
+## Mettre RADE à jour par la suite
 
 ```bash
 cd ~/radae
@@ -413,11 +409,11 @@ git pull
 cmake -S . -B build && make -C build -j$(nproc)
 
 cd ~/PhantomSDR-Plus
-./start-rx888mk2.sh          # or your receiver's launcher
+./rade.sh restart
 ```
 
-Re-running the launcher restarts the sidecar along with the server. No frontend rebuild is needed unless `rade_helper.py` itself changed.
+Aucune recompilation du frontend ni redémarrage du serveur n'est nécessaire, sauf si `rade_helper.py` lui-même a changé.
 
 ---
 
-*Tested on Ubuntu 24.04 (x86_64) and on Raspberry Pi 4 / Raspberry Pi OS Bookworm (ARM64, Python 3.11).* *PhantomSDR-Plus fork: sv1btl/PhantomSDR-Plus.* *RADE developed by David Rowe VK5DGR and the FreeDV team — https://freedv.org*
+*Testé sur Ubuntu 24.04 (x86_64) et Raspberry Pi 4 / Raspberry Pi OS Bookworm (ARM64, Python 3.11).* *Fork PhantomSDR-Plus : sv1btl/PhantomSDR-Plus.* *RADE développé par David Rowe VK5DGR et l'équipe FreeDV — https://freedv.org*

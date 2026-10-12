@@ -1,34 +1,34 @@
-# PhantomSDR-Plus — How to Edit the Frontend Variants
+# PhantomSDR-Plus — Comment modifier les variantes du frontend
 
-*(after the four `App__*_smeter_.svelte` files were merged into one `App.svelte`)*
+*(après la fusion des quatre fichiers `App__*_smeter_.svelte` en un seul `App.svelte`)*
 
 ---
 
-## 1. What the Variants Are
+## 1. Ce que sont les variantes
 
-Two independent choices, giving four combinations:
+Deux choix indépendants, donnant quatre combinaisons :
 
 ```
-smeter = "analog"     the moving-needle meter face
-       = "digital"    the segmented bar-graph meter
+smeter = "analog"     l'instrument à aiguille mobile
+       = "digital"    l'instrument à barre segmentée
 
-layout = "v1"         Modes selector above,  Band selector below
-       = "v2"         Band  selector above,  Modes selector below
-                      (also moves the mobile fine-tuning button row)
+layout = "v1"         sélecteur de modes au-dessus, sélecteur de bande en dessous
+       = "v2"         sélecteur de bande au-dessus, sélecteur de modes en dessous
+                      (déplace aussi la rangée de boutons d'accord fin sur mobile)
 ```
 
-All four live in **one build**, served at `/`. The ⚙️ selector at the top right switches between them inside the running page: it assigns `App.svelte`'s `smeter`/`layout` props, so nothing reloads and audio, the waterfall and the decoders keep running. The choice is stored per browser in `localStorage` under `phantom.variant`, and that stored value wins over the build default on the next visit.
+Les quatre tiennent dans **une seule** construction, servie à `/`. Le sélecteur ⚙️ en haut à droite bascule de l'une à l'autre dans la page en cours d'exécution : il affecte les props `smeter`/`layout` d'`App.svelte`, donc rien n'est rechargé et l'audio, la cascade et les décodeurs continuent de tourner. Le choix est conservé par navigateur dans `localStorage` sous `phantom.variant`, et il l'emporte sur la valeur par défaut de la construction à la visite suivante.
 
-The variant the sysop picks in `recompile.sh` is therefore the **starting** variant — what a first-time visitor sees before touching the menu.
+La variante choisie dans `recompile.sh` est donc la variante de **départ** : ce que voit un visiteur qui arrive pour la première fois, avant de toucher au menu.
 
-| URL | what it is |
-|-----|-----------|
-| `/` | the desktop page, all four variants, switchable at runtime |
-| `/mobile/` | *separate page, built by `build-mobile.sh` — not a variant* |
+| URL | ce que c'est |
+|-----|--------------|
+| `/` | la page bureau ; les quatre variantes, commutables à l'exécution |
+| `/mobile/` | *page distincte, construite par `build-mobile.sh` — ce n'est pas une variante* |
 
-> Until 2026-08-10 each variant was its own build under `/analog/`, `/digital/`, `/v2-analog/` and `/v2-digital/`, and the selector navigated between them — which is why switching used to reload the page and drop the audio. Those builds are gone; each of the four paths now holds only a small `index.html` that redirects to `/`, written by `frontend/make-redirect-stubs.sh` on every build so old bookmarks keep working.
+> Jusqu'au 10/08/2026, chaque variante était sa propre construction sous `/analog/`, `/digital/`, `/v2-analog/` et `/v2-digital/`, et le sélecteur naviguait entre elles — d'où le rechargement de la page et la coupure du son à chaque changement. Ces constructions n'existent plus ; chacun des quatre chemins ne contient plus qu'un petit `index.html` qui redirige vers `/`, écrit par `frontend/make-redirect-stubs.sh` à chaque construction pour que les anciens signets continuent de fonctionner.
 
-The variant is **not** written into any source file. `src/main.js` is a fixed entry point that hands two build-time defines to the component:
+La variante n'est écrite dans **aucun** fichier source. `src/main.js` est un point d'entrée fixe qui transmet au composant deux valeurs définies à la construction :
 
 ```js
 const app = new App({
@@ -37,215 +37,216 @@ const app = new App({
 })
 ```
 
-`vite.config.js` fills those in at build time, taking the first of these that is set:
+`vite.config.js` les remplit au moment de la construction, en prenant la première de ces sources qui est définie :
 
-1. **`PHANTOM_SMETER` / `PHANTOM_LAYOUT`** — environment variables. Nothing sets them now that the per-variant builds are gone; they still work for a one-off build with a different starting variant.
-2. **`frontend/variant.json`** — the site default, written by `recompile.sh`. The root (`/`) build passes no variant, so it lands here.
-3. **`analog` / `v1`** — the fallback.
+1. **`PHANTOM_SMETER` / `PHANTOM_LAYOUT`** — variables d'environnement. Plus rien ne les définit depuis la suppression des constructions par variante ; elles restent utilisables pour une construction ponctuelle avec une autre variante de départ.
+2. **`frontend/variant.json`** — la valeur par défaut du site, écrite par `recompile.sh`. La construction de la racine (`/`) ne transmet aucune variante et atterrit donc ici.
+3. **`analog` / `v1`** — la valeur de repli.
 
-Those two values are only the **seed**. `App.svelte` overwrites them at init from `localStorage` when the visitor has already chosen a variant, and the ⚙️ selector assigns them again on every switch.
+Ces deux valeurs ne sont que la graine. `App.svelte` les écrase à l'initialisation depuis `localStorage` si le visiteur a déjà choisi une variante, et le sélecteur ⚙️ les réaffecte à chaque changement.
 
-Inside `App.svelte` the props are turned into two flags at lines 20-21:
+Dans `App.svelte`, les props sont converties en deux drapeaux aux lignes 20-21 :
 
 ```js
 $: isAnalog = smeter !== "digital";
 $: isV2     = layout === "v2";
 ```
 
-Use those two flags — never `smeter`/`layout` directly — so the whole file reads the same way.
+Utilisez ces deux drapeaux — jamais `smeter`/`layout` directement — pour que tout le fichier se lise de la même façon.
 
 ---
 
-## 2. Which File Does What
+## 2. Le rôle de chaque fichier
 
-### `frontend/src/main.js` — 12 lines
+### `frontend/src/main.js` — 12 lignes
 
-The entry point. Nothing but the App instantiation and the two `__PHANTOM_*__` defines it passes as props. It is **constant** — neither `recompile.sh` nor the build scripts rewrite it any more, and keeping it that way is what lets the variant builds run at the same time.
+Le point d'entrée. Rien d'autre que l'instanciation de App et les deux valeurs `__PHANTOM_*__` qu'elle transmet comme props. Il est **constant** — ni `recompile.sh` ni les scripts de construction ne le réécrivent désormais, et c'est cela qui permet de construire les variantes en même temps.
 
-> **Do not put application code here.** It is the entry file, not a place for logic.
+> **Ne placez pas de code applicatif ici.** C'est le fichier d'entrée, pas un endroit pour de la logique.
 
-### `frontend/src/App.svelte` — ~17130 lines
+### `frontend/src/App.svelte` — ~17130 lignes
 
-The whole application: waterfall, tuning, decoders, bookmarks, panels, desktop layout AND the responsive phone layout. Almost every edit you will ever make goes here.
+Toute l'application : cascade, accord, décodeurs, favoris, panneaux, disposition bureau ET la disposition adaptative pour téléphone. Presque toutes les modifications que vous ferez se font ici.
 
-### `frontend/src/lib/SMeterAnalog.svelte` — 824 lines
+### `frontend/src/lib/SMeterAnalog.svelte` — 824 lignes
 
-The moving-needle meter, complete: face drawing, needle, the light/dark face toggle and its localStorage key, and the needle smoothing.
+L'instrument à aiguille mobile, complet : tracé du cadran, aiguille, la bascule cadran clair/sombre et sa clé localStorage, et le lissage de l'aiguille.
 
-- Input prop: `dbm` — the CALIBRATED power in dBm.
-- Also takes: `mobile` — smaller canvas attributes for the phone layout.
-- Tuning knob: `SMOOTH_TIME_MS` at line 55. Lower = faster needle, higher = smoother. Currently 16 (one frame at 60 fps, effectively the floor).
+- Prop d'entrée : `dbm` — la puissance CALIBRÉE en dBm.
+- Accepte aussi : `mobile` — attributs de canvas réduits pour la disposition téléphone.
+- Réglage : `SMOOTH_TIME_MS` à la ligne 55. Plus bas = aiguille plus rapide, plus haut = plus lisse. Actuellement 16 (une image à 60 fps, en pratique le plancher).
 
-#### The three meter faces — and `smeter_theme.sh`
+#### Les trois cadrans — et `smeter_theme.sh`
 
-The analog meter has three background faces, all drawn by the same code:
+L'instrument analogique possède trois fonds, tous dessinés par le même code :
 
 ```
-dark      the original dark brushed metal
-amber     a light, pale grey face
-vintage   a warm aged-amber face
+dark      le métal brossé sombre d'origine
+amber     un cadran clair, gris pâle
+vintage   un cadran chaud, ambre vieilli
 ```
 
-**Do not confuse this with the `smeter = analog / digital` variant above.** The variant chooses *which meter component* is shown; the face chooses *how the analog one is painted*. They are stored under different localStorage keys (`phantom.variant` vs `smeterTheme`) and are set in different places.
+**À ne pas confondre avec la variante `smeter = analog / digital` ci-dessus.** La variante choisit *quel composant d'instrument* est affiché ; le cadran choisit *comment* l'analogique est peint. Ils sont stockés sous des clés localStorage différentes (`phantom.variant` et `smeterTheme`) et se règlent à des endroits différents.
 
-**The visitor's side.** The meter canvas is a button (`role="button"`, also Enter/Space from the keyboard, with a "click to switch style" hint under it). Each click cycles dark → amber → vintage and saves the choice in `localStorage.smeterTheme`. It is read back on every page load, so the visitor's pick survives refreshes and browser restarts indefinitely. It is deliberately **not** a cookie: a cookie would be sent to the server on every waterfall and audio request for a value the server never reads.
+**Côté visiteur.** Le canvas de l'instrument est un bouton (`role="button"`, également Entrée/Espace au clavier, avec l'indication « click to switch style » en dessous). Chaque clic fait défiler dark → amber → vintage et enregistre le choix dans `localStorage.smeterTheme`. Il est relu à chaque chargement de page : le choix du visiteur survit donc indéfiniment aux rafraîchissements et aux redémarrages du navigateur. Ce n'est délibérément **pas** un cookie : un cookie serait envoyé au serveur à chaque requête de cascade et d'audio, pour une valeur que le serveur ne lit jamais.
 
-**The sysop's side.** Two things in `SMeterAnalog.svelte` control what everyone else gets:
+**Côté sysop.** Deux éléments de `SMeterAnalog.svelte` déterminent ce que reçoivent tous les autres :
 
-| Line | What it does |
-|------|--------------|
-| `let smeterTheme = 'dark';` | The face a browser with **no saved choice** gets. |
-| `const SMETER_PREF_VERSION = 2;` | A counter. When a browser's stored version is behind this, it forgets its saved face **once** and takes the default above. Bump it to move visitors who have already chosen. |
+| Ligne | Rôle |
+|-------|------|
+| `let smeterTheme = 'dark';` | Le cadran que reçoit un navigateur **sans choix enregistré**. |
+| `const SMETER_PREF_VERSION = 2;` | Un compteur. Lorsque la version stockée d'un navigateur est en retard, celui-ci oublie **une seule fois** son cadran enregistré et adopte la valeur par défaut ci-dessus. Incrémentez-le pour déplacer les visiteurs ayant déjà choisi. |
 
-Editing the default alone therefore only reaches brand-new visitors. Both edits together move everybody — that is what `smeter_theme.sh` in the repository root is for:
+Modifier la seule valeur par défaut ne touche donc que les visiteurs entièrement nouveaux. Les deux modifications ensemble déplacent tout le monde — c'est à cela que sert `smeter_theme.sh` à la racine du dépôt :
 
 ```bash
-./smeter_theme.sh                 # report the current default, then pick one from a menu
-./smeter_theme.sh vintage         # set it straight away, then offer the rebuild
-./smeter_theme.sh dark --build    # run frontend/build-all.sh without asking
-./smeter_theme.sh amber --no-reset  # new visitors only — leave existing users alone
+./smeter_theme.sh                 # afficher la valeur actuelle, puis choisir dans un menu
+./smeter_theme.sh vintage         # la définir aussitôt, puis proposer la reconstruction
+./smeter_theme.sh dark --build    # lancer frontend/build-all.sh sans demander
+./smeter_theme.sh amber --no-reset  # nouveaux visiteurs seulement — ne pas toucher aux autres
 ```
 
-It reports the current default, sets the new one, bumps the reset counter (always upward — **never lower it**, a lower number simply stops the reset from firing), and then offers the same frontend build choice `recompile.sh` gives. It does **not** touch the backend and does **not** rewrite `variant.json`.
+Il affiche la valeur par défaut actuelle, définit la nouvelle, incrémente le compteur de réinitialisation (toujours vers le haut — **ne le baissez jamais**, un nombre plus petit empêche simplement la réinitialisation de se déclencher), puis propose le même choix de construction du frontend que `recompile.sh`. Il ne touche **pas** au backend et ne réécrit **pas** `variant.json`.
 
-> A change reaches a connected listener only when their page reloads — the default is compiled into the JS bundle and the reset runs at load time. There is no live push. An ordinary reload is enough, since vite hashes the bundle filenames.
+> Un changement n'atteint un auditeur connecté qu'au rechargement de sa page : la valeur par défaut est compilée dans le bundle JS et la réinitialisation s'exécute au chargement. Il n'y a pas de diffusion en direct. Un rechargement ordinaire suffit, puisque vite hache les noms de fichiers du bundle.
 
-The counter's one-time wipe overrides everyone, including visitors who deliberately clicked their own face. That is intended: it is the only way to bring the whole site back onto one look. Use `--no-reset` when you would rather leave them alone.
+L'effacement unique du compteur s'impose à tout le monde, y compris aux visiteurs ayant délibérément cliqué pour choisir leur cadran. C'est voulu : c'est le seul moyen de ramener tout le site à une apparence unique. Utilisez `--no-reset` si vous préférez les laisser tranquilles.
 
-### `frontend/src/lib/SMeterDigital.svelte` — 184 lines
 
-The segmented bar meter, complete.
+### `frontend/src/lib/SMeterDigital.svelte` — 184 lignes
 
-- Input props: `rawDb` — the RAW `audio.getPowerDb()`
+L'instrument à barre segmentée, complet.
+
+- Props d'entrée : `rawDb` — la valeur BRUTE de `audio.getPowerDb()`
 - `smeterOffset` — `audio.smeter_offset`
-- `mobile` — smaller canvas attributes
+- `mobile` — attributs de canvas réduits
 
-> **NOTE:** this meter is deliberately driven from the RAW power plus the offset, NOT from the calibrated dBm the analog face uses. It has always done its own mapping. Feeding it the calibrated value would shift every reading on every digital site. Do not "unify" these two inputs.
+> **REMARQUE :** cet instrument est délibérément alimenté par la puissance BRUTE plus l'offset, PAS par la valeur dBm calibrée qu'utilise le cadran analogique. Il a toujours eu sa propre correspondance. Lui fournir la valeur calibrée décalerait toutes les lectures sur chaque station numérique. Ne cherchez pas à « unifier » ces deux entrées.
 
-### `frontend/src/lib/BandSelector.svelte` — 69 lines
+### `frontend/src/lib/BandSelector.svelte` — 69 lignes
 
-The band buttons grid. Rendered twice in `App.svelte` (once per layout).
+La grille des boutons de bande. Rendue deux fois dans `App.svelte` (une fois par disposition).
 
-### `frontend/src/lib/ModesSelector.svelte` — 75 lines
+### `frontend/src/lib/ModesSelector.svelte` — 75 lignes
 
-The mode buttons grid. Rendered twice in `App.svelte`.
+La grille des boutons de mode. Rendue deux fois dans `App.svelte`.
 
-### `frontend/src/lib/StatusIndicators.svelte` — 122 lines
+### `frontend/src/lib/StatusIndicators.svelte` — 122 lignes
 
-The status lamps (mute, squelch, NR, NB, NS, AN, CTCSS). Takes a `wide` prop: the digital layout uses wider lamps than the analog one. Both Tailwind classes (`w-8` and `w-10`) are written out in full inside the component — Tailwind's scanner only sees literal class names, so never build them by string concatenation.
+Les voyants d'état (mute, squelch, NR, NB, NS, AN, CTCSS). Prend une prop `wide` : la disposition numérique utilise des voyants plus larges que l'analogique. Les deux classes Tailwind (`w-8` et `w-10`) sont écrites intégralement dans le composant — le scanner de Tailwind ne voit que des noms de classe littéraux, ne les construisez donc jamais par concaténation de chaînes.
 
-All other files in `frontend/src/lib/` (Spectrogram, PassbandTuner, FrequencyInput, VersionSelector, ...) predate this work and are unchanged.
+Tous les autres fichiers de `frontend/src/lib/` (Spectrogram, PassbandTuner, FrequencyInput, VersionSelector, ...) sont antérieurs à ce travail et sont inchangés.
 
 ---
 
-## 3. Making a Change That Affects Only Some Variants
+## 3. Faire une modification qui ne concerne que certaines variantes
 
-Wrap it in the flag. In markup:
+Encadrez-la par le drapeau. Dans le balisage :
 
 ```svelte
 {#if isAnalog}
-  ...only the analog sites see this...
+  ...seules les stations analogiques voient ceci...
 {:else}
-  ...only the digital sites see this...
+  ...seules les stations numériques voient ceci...
 {/if}
 
 {#if isV2} ... {/if}          {#if !isV2} ... {/if}
 ```
 
-In a class attribute:
+Dans un attribut class :
 
 ```svelte
 class="p-4 {isAnalog ? 'text-xs' : 'text-sm'} rounded-md"
 ```
 
-Write both alternatives out as whole literals, as above. Tailwind scans the source for complete class names; `text-{size}` or a concatenated name is purged from the CSS and the style silently vanishes.
+Écrivez les deux alternatives sous forme de littéraux complets, comme ci-dessus. Tailwind parcourt les sources à la recherche de noms de classe complets ; `text-{size}` ou un nom concaténé est purgé du CSS et le style disparaît silencieusement.
 
-In the `<script>` block: try NOT to branch at all. The script deliberately computes the inputs of BOTH meters on every tick —
+Dans le bloc `<script>` : essayez de NE PAS brancher du tout. Le script calcule délibérément les entrées des DEUX instruments à chaque cycle —
 
 ```js
-smeterDbm    = powerDb;                    // analog face
-smeterRawDb  = audio.getPowerDb();         // digital face
-smeterOffset = audio.smeter_offset;        // digital face
+smeterDbm    = powerDb;                    // cadran analogique
+smeterRawDb  = audio.getPowerDb();         // cadran numérique
+smeterOffset = audio.smeter_offset;        // cadran numérique
 ```
 
-— so only the markup has to choose. That is why there are just 15 variant switches in a 17000-line file. Keep it that way; script-level branching is what made the four old files drift apart.
+— si bien que seul le balisage doit choisir. C'est pourquoi il n'y a que 15 aiguillages de variante dans un fichier de 17000 lignes. Gardez-le ainsi ; c'est le branchement au niveau du script qui a fait diverger les quatre anciens fichiers.
 
 ---
 
-## 4. Where the Variant Switches Are
+## 4. Où se trouvent les aiguillages de variante
 
-Fifteen places in `App.svelte`. Line numbers drift when you edit — the reliable way to find them all is:
+Quinze endroits dans `App.svelte`. Les numéros de ligne bougent quand vous modifiez — la façon fiable de tous les retrouver est :
 
 ```bash
 cd frontend/src && grep -n 'isAnalog\|isV2' App.svelte
 ```
 
-As of this writing:
+Au moment de la rédaction :
 
-| Line | Flag | What it switches |
-|------|------|------------------|
-| 20 | | `isAnalog` declared |
-| 21 | | `isV2` declared |
-| 8062 | `isV2` | desktop: Band selector first (v2 ordering) |
-| 8090 | `isV2` | desktop: panel heading size |
-| 8686 | `isV2` | desktop: Modes selector first (v1 ordering) |
-| 8717 | `isAnalog` | meter panel min-width (needle is narrower) |
-| 8730 | `isAnalog` | analog-only date/time line above the meter |
-| 8819 | `isAnalog` | analog-only status lamps + divider |
-| 8834 | `isAnalog` | digital-only time line, wide lamps, and the `<SMeterDigital>` / `<SMeterAnalog>` choice itself |
-| 8861 | `isAnalog` | vertical spacing of the frequency block |
-| 8864 | `isAnalog` | top margin of the fine-tuning block |
-| 12288 | `isV2` | phone: fine-tuning row above (v2 ordering) |
-| 12347 | `isAnalog` | phone: which meter to render |
-| 12433 | `isV2` | phone: fine-tuning row below (v1 ordering) |
-| 13204 | `isAnalog` | noise-gate button text size |
+| Ligne | Drapeau | Ce qui est commuté |
+|-------|---------|--------------------|
+| 20 | | `isAnalog` déclaré |
+| 21 | | `isV2` déclaré |
+| 8062 | `isV2` | bureau : sélecteur de bande en premier (ordre v2) |
+| 8090 | `isV2` | bureau : taille du titre du panneau |
+| 8686 | `isV2` | bureau : sélecteur de modes en premier (ordre v1) |
+| 8717 | `isAnalog` | largeur minimale du panneau de l'instrument (l'aiguille est plus étroite) |
+| 8730 | `isAnalog` | analogique uniquement : ligne date/heure au-dessus de l'instrument |
+| 8819 | `isAnalog` | analogique uniquement : voyants d'état + séparateur |
+| 8834 | `isAnalog` | numérique uniquement : ligne d'heure, voyants larges, et le choix `<SMeterDigital>` / `<SMeterAnalog>` lui-même |
+| 8861 | `isAnalog` | espacement vertical du bloc de fréquence |
+| 8864 | `isAnalog` | marge supérieure du bloc d'accord fin |
+| 12288 | `isV2` | téléphone : rangée d'accord fin au-dessus (ordre v2) |
+| 12347 | `isAnalog` | téléphone : quel instrument afficher |
+| 12433 | `isV2` | téléphone : rangée d'accord fin en dessous (ordre v1) |
+| 13204 | `isAnalog` | taille du texte du bouton noise gate |
 
-Everything else in the file is shared by all four variants.
-
----
-
-## 5. Other Knobs Worth Knowing
-
-| Location | Constant | Purpose |
-|----------|----------|---------|
-| `App.svelte` line 5034 | `const visualGain = 1.1;` | Analog meter calibration. Each 0.10 is roughly 5 dBm on the reading. |
-| `SMeterAnalog.svelte` line 55 | `const SMOOTH_TIME_MS = 16;` | Needle smoothing time constant, in milliseconds. |
-| `SMeterAnalog.svelte` line 64 | `let smeterTheme = 'dark';` | Default analog meter face for a browser with no saved choice. Set it with `./smeter_theme.sh`, not by hand. |
-| `SMeterAnalog.svelte` line 69 | `const SMETER_PREF_VERSION = 2;` | One-time reset counter for the saved face. Bump to move existing visitors onto the default; only ever goes up. |
-| `SMeterDigital.svelte` line 149 | `const DIGITAL_BAR_TRIM = 0;` | Shifts the bar by whole segments. |
-| `SMeterDigital.svelte` line 31 | `const numberOfDots = 35;` | Segment count of the bar. |
+Tout le reste du fichier est commun aux quatre variantes.
 
 ---
 
-## 6. After You Edit — Rebuilding
+## 5. Autres réglages à connaître
 
-Easiest, from the repository root:
+| Emplacement | Constante | Rôle |
+|-------------|-----------|------|
+| `App.svelte` ligne 5034 | `const visualGain = 1.1;` | Étalonnage de l'instrument analogique. Chaque tranche de 0,10 vaut environ 5 dBm sur la lecture. |
+| `SMeterAnalog.svelte` ligne 55 | `const SMOOTH_TIME_MS = 16;` | Constante de temps du lissage de l'aiguille, en millisecondes. |
+| `SMeterAnalog.svelte` ligne 64 | `let smeterTheme = 'dark';` | Cadran par défaut de l'instrument analogique pour un navigateur sans choix enregistré. À définir avec `./smeter_theme.sh`, pas à la main. |
+| `SMeterAnalog.svelte` ligne 69 | `const SMETER_PREF_VERSION = 2;` | Compteur de réinitialisation unique du cadran enregistré. À incrémenter pour amener les visiteurs existants sur la valeur par défaut ; il ne fait que monter. |
+| `SMeterDigital.svelte` ligne 149 | `const DIGITAL_BAR_TRIM = 0;` | Décale la barre par segments entiers. |
+| `SMeterDigital.svelte` ligne 31 | `const numberOfDots = 35;` | Nombre de segments de la barre. |
+
+---
+
+## 6. Après modification — reconstruire
+
+Le plus simple, depuis la racine du dépôt :
 
 ```bash
 ./recompile.sh
 ```
 
-Menu **[2]** rebuilds the frontend and asks which variant the site root (`/`) should serve. That choice is recorded in `frontend/variant.json` — no source file is copied or rewritten. (It used to regenerate `VersionSelector.svelte` from a heredoc as well; that was removed when the selector stopped navigating, because it would have reverted the runtime switching on every run.) Menu **[1]** is backend only, **[3]** is both.
+L'entrée de menu **[2]** reconstruit le frontend et demande quelle variante doit voir un visiteur qui arrive pour la première fois. Ce choix est consigné dans `frontend/variant.json` — aucun fichier source n'est copié ni réécrit. (Elle régénérait aussi `VersionSelector.svelte` à partir d'un heredoc ; cela a été supprimé lorsque le sélecteur a cessé de naviguer, car cela aurait annulé la commutation à l'exécution à chaque passage.) L'entrée **[1]** ne concerne que le backend, la **[3]** les deux.
 
-Or directly, from `frontend/`:
+Ou directement, depuis `frontend/` :
 
 ```
-./build-all.sh          builds the desktop page AND /mobile/  <-- normally use this
-./build-default.sh      just the desktop page
-./build-mobile.sh       just /mobile/
+./build-all.sh          construit la page bureau ET /mobile/  <-- à utiliser normalement
+./build-default.sh      seulement la page bureau
+./build-mobile.sh       seulement /mobile/
 ```
 
-> `build-default.sh` lets vite empty `dist/`, which removes `dist/mobile/` until the next `build-all.sh` or `build-mobile.sh`. That is why `build-all.sh` is the normal choice.
+> `build-default.sh` laisse vite vider `dist/`, ce qui supprime `dist/mobile/` jusqu'au prochain `build-all.sh` ou `build-mobile.sh`. C'est pourquoi `build-all.sh` est le choix normal.
 
-`build-all.sh` has its own copy of the build logic (`build_version SMETER LAYOUT NAME OUTDIR BASE LOG`) rather than calling `build-default.sh`. If you change how the page is built, change it in BOTH places or the two paths will disagree.
+`build-all.sh` possède sa propre copie de la logique de construction (`build_version SMETER LAYOUT NAME OUTDIR BASE LOG`) plutôt que d'appeler `build-default.sh`. Si vous changez la façon dont la page est construite, changez-la aux DEUX endroits, sinon les deux chemins divergeront.
 
-A few details worth knowing:
+Quelques points à connaître :
 
-- It sets `PHANTOM_KEEP_OUTDIR=1` so Vite does not empty the output directory, and cleans `dist/` itself instead — deleting the contents but keeping `users.json`, which the running `spectrumserver` rewrites on every listener connect and disconnect.
-- It builds `/mobile` last, after the desktop output is complete.
-- Its parallel-build machinery (`PHANTOM_BUILD_JOBS`, default 3) is left over from when there were five desktop builds. With one, nothing queues.
+- Il pose `PHANTOM_KEEP_OUTDIR=1` pour que Vite ne vide pas le répertoire de sortie, et nettoie `dist/` lui-même : il en supprime le contenu mais conserve `users.json`, que le `spectrumserver` en fonctionnement réécrit à chaque connexion et déconnexion d'auditeur.
+- Il construit `/mobile` en dernier, une fois la sortie bureau terminée.
+- Sa mécanique de construction parallèle (`PHANTOM_BUILD_JOBS`, 3 par défaut) est un vestige de l'époque où il y avait cinq constructions bureau. Avec une seule, rien ne fait la queue.
 
-**Executable bits:** `recompile.sh` runs `chmod +x` on a script before running it, and `build-all.sh` deliberately invokes `bash build-mobile.sh` rather than `./build-mobile.sh`, so a missing bit no longer breaks a build. Uploading a script through the GitHub web interface still resets it to 644 though, so if you run one directly:
+**Bits d'exécution :** `recompile.sh` exécute `chmod +x` sur un script avant de le lancer, et `build-all.sh` invoque délibérément `bash build-mobile.sh` plutôt que `./build-mobile.sh` : un bit manquant ne casse donc plus la construction. Téléverser un script via l'interface web de GitHub le remet toutefois à 644, donc si vous en lancez un directement :
 
 ```bash
 chmod +x frontend/build-*.sh
@@ -253,11 +254,11 @@ chmod +x frontend/build-*.sh
 
 ---
 
-## 7. How to Check Your Edit Before Trusting It
+## 7. Comment vérifier votre modification avant de lui faire confiance
 
-A green `vite build` is **NOT** enough. The build cannot see an identifier that went missing when code moved between files — that is a runtime `ReferenceError`, and the page simply does not load. It has happened twice.
+Un `vite build` au vert **NE SUFFIT PAS**. La construction ne peut pas voir un identifiant disparu lors du déplacement de code entre fichiers — c'est une `ReferenceError` à l'exécution, et la page ne se charge tout simplement pas. C'est arrivé deux fois.
 
-### 1) Undefined-identifier check (catches exactly that failure)
+### 1) Contrôle des identifiants non définis (attrape exactement cette panne)
 
 ```bash
 cd frontend
@@ -268,20 +269,20 @@ npx eslint --no-eslintrc \
     src/App.svelte src/lib/SMeter*.svelte
 ```
 
-One known-benign hit is expected:
+Un signalement connu et bénin est attendu :
 
 ```
 'dBmCalOffset' is not defined
 ```
 
-`typeof x === 'number'` on an undeclared name never throws, so that expression already evaluates to 0. Anything else is a real problem.
+`typeof x === 'number'` sur un nom non déclaré ne lève jamais d'erreur : cette expression vaut déjà 0. Tout le reste est un vrai problème.
 
-### 2) Build, then LOAD THE PAGE AND SWITCH THROUGH ALL FOUR VARIANTS
+### 2) Construisez, puis CHARGEZ LA PAGE ET PARCOUREZ LES QUATRE VARIANTES
 
-Not just the one you changed — an edit under `isAnalog`/`isV2` can break the other three while yours works. Open `/`, step through all four entries in the ⚙️ menu, then open `/mobile/`.
+Pas seulement celle que vous avez modifiée — une modification sous `isAnalog`/`isV2` peut casser les trois autres alors que la vôtre fonctionne. Ouvrez `/`, parcourez les quatre entrées du menu ⚙️, puis ouvrez `/mobile/`.
 
-Open the browser console on each. A blank or half-drawn page with a `ReferenceError` in the console is the signature of the bug above.
+Ouvrez la console du navigateur sur chacune. Une page blanche ou à moitié dessinée avec une `ReferenceError` dans la console est la signature du bogue ci-dessus.
 
-### 3) Never leave `frontend/dist/` in a partial state
+### 3) Ne laissez jamais `frontend/dist/` dans un état partiel
 
-A bare `npx vite build` empties the output directory and takes `dist/mobile/` and the server's live `dist/users.json` with it — the mobile page 404s until the next successful build. Always build through the scripts: `build-all.sh` sets `PHANTOM_KEEP_OUTDIR=1` and does the cleaning itself, preserving `dist/users.json`. If in doubt, just run `./build-all.sh` again.
+Un simple `npx vite build` vide le répertoire de sortie et emporte avec lui `dist/mobile/` ainsi que le `dist/users.json` vivant du serveur — la page mobile renvoie 404 jusqu'à la prochaine construction réussie. Construisez toujours via les scripts : `build-all.sh` pose `PHANTOM_KEEP_OUTDIR=1` et fait lui-même le nettoyage, en préservant `dist/users.json`. Dans le doute, relancez simplement `./build-all.sh`.

@@ -1,344 +1,344 @@
-# PhantomSDR-Plus — Rig Control (CAT)
+# PhantomSDR-Plus — Pilotage du transceiver (CAT)
 
-Keep **your own transceiver** and a **PhantomSDR-Plus receiver** on the same frequency, mode and filter. Turn the rig's dial and the waterfall follows; click a signal on the waterfall and the rig tunes to it. Key the rig, and the receiver can fall silent so it does not play your own signal back to you.
+Gardez **votre propre transceiver** et un **récepteur PhantomSDR-Plus** sur la même fréquence, le même mode et le même filtre. Tournez le bouton d'accord du poste et la cascade suit ; cliquez sur un signal dans la cascade et le poste s'y accorde. Passez en émission, et le récepteur peut se taire pour ne pas vous renvoyer votre propre signal.
 
-It works with **PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR and UberSDR** receivers, yours or someone else's, and only ever moves *your* listening session — nobody else on the receiver hears or sees a thing. There is nothing for the receiver's operator to install or configure.
+Cela fonctionne avec les récepteurs **PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR et UberSDR**, le vôtre ou celui d'un autre, et ne déplace jamais que *votre* session d'écoute — personne d'autre sur le récepteur n'entend ni ne voit rien. L'opérateur du récepteur n'a rien à installer ni à configurer.
 
 ---
 
-## What you need
+## Ce qu'il vous faut
 
-Two ways to connect a rig, and one requirement on the receiver:
+Deux façons de raccorder un poste, et une condition côté récepteur :
 
-| Piece | What it is | Syncs |
+| Élément | Ce que c'est | Synchronise |
 |---|---|---|
-| **[Desktop PhantomSDR+](https://www.dropbox.com/scl/fo/kjwj96zg3kj7dgq4fjef9/APnA3c9hhv4hk3YMGIGjH7s?rlkey=jfiwklly63kv73poalx631pk3&st=m37uvaym&dl=0) 4.0 or later** | The desktop application, with a **Rig** menu. Linux (PC and Raspberry Pi) and Windows. | Frequency, mode, filter width, mute on transmit — in either direction or both |
-| **[CATsync Tool for WebSDRs](https://catsyncsdr.wordpress.com/)** | A separate Windows program that couples a rig to the receiver page in your browser. | Frequency and mode |
-| **TCI-CAT on the receiver page** | A button on the PhantomSDR-Plus page itself, in any browser. Talks TCI to ExpertSDR, AetherSDR or Thetis, or to any Hamlib rig through a small bridge. Only on PhantomSDR-Plus receivers running 4.1.0 or later. | Frequency, mode and filter width both ways; mute on transmit |
-| **The receiver** | PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR or UberSDR. A PhantomSDR-Plus receiver needs **4.1.0** or later for filter width and mute. | An older PhantomSDR-Plus still syncs frequency and mode |
+| **[Desktop PhantomSDR+](https://www.dropbox.com/scl/fo/kjwj96zg3kj7dgq4fjef9/APnA3c9hhv4hk3YMGIGjH7s?rlkey=jfiwklly63kv73poalx631pk3&st=m37uvaym&dl=0) 4.0 ou ultérieur** | L'application de bureau, avec un menu **Rig**. Linux (PC et Raspberry Pi) et Windows. | Fréquence, mode, largeur de filtre, coupure du son en émission — dans un sens ou dans les deux |
+| **[CATsync Tool for WebSDRs](https://catsyncsdr.wordpress.com/)** | Un programme Windows séparé qui couple un poste à la page du récepteur dans votre navigateur. | Fréquence et mode |
+| **TCI-CAT sur la page du récepteur** | Un bouton sur la page PhantomSDR-Plus elle-même, dans n'importe quel navigateur. Parle TCI avec ExpertSDR, AetherSDR ou Thetis, ou avec tout poste pris en charge par Hamlib grâce à un petit pont. Uniquement sur les récepteurs PhantomSDR-Plus en version 4.1.0 ou ultérieure. | Fréquence, mode et largeur de filtre dans les deux sens ; coupure du son en émission |
+| **Le récepteur** | PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR ou UberSDR. Un récepteur PhantomSDR-Plus demande la **4.1.0** ou ultérieure pour la largeur de filtre et la coupure du son. | Un PhantomSDR-Plus plus ancien synchronise toujours fréquence et mode |
 
-Most of this manual describes Desktop PhantomSDR+. The TCI-CAT button has its own section, [TCI-CAT on the receiver page](#tci-cat-on-the-receiver-page). The CATsync Tool has its own documentation on its website.
+L'essentiel de ce manuel décrit Desktop PhantomSDR+. Le bouton TCI-CAT a sa propre section, [TCI-CAT sur la page du récepteur](#tci-cat-sur-la-page-du-récepteur). Le CATsync Tool a sa propre documentation sur son site.
 
 ---
 
-## Supported receivers
+## Récepteurs pris en charge
 
-The app recognises the kind of receiver in a station window and drives it through that page's own controls. The Rig control window shows which kind it found next to the station's name.
+L'application reconnaît le type de récepteur d'une fenêtre de station et le pilote par les commandes propres à cette page. La fenêtre Rig control indique le type trouvé à côté du nom de la station.
 
-| Receiver | Frequency and mode | Filter width | Mute on transmit |
+| Récepteur | Fréquence et mode | Largeur de filtre | Coupure du son en émission |
 |---|---|---|---|
-| PhantomSDR-Plus | Yes | With 4.1.0 or later | With 4.1.0 or later |
-| KiwiSDR (including Web-888) | Yes | Yes | Yes |
-| PA3FWM WebSDR | Yes, switching band on a multi-band site | Yes | Yes |
-| UberSDR | Yes | Yes | Yes |
+| PhantomSDR-Plus | Oui | Avec la 4.1.0 ou ultérieure | Avec la 4.1.0 ou ultérieure |
+| KiwiSDR (y compris Web-888) | Oui | Oui | Oui |
+| PA3FWM WebSDR | Oui, avec changement de bande sur un site multibande | Oui | Oui |
+| UberSDR | Oui | Oui | Oui |
 
-A web receiver has fewer modes than most rigs, so some rig modes share one receiver mode: KiwiSDR and WebSDR have a single CW for both CW and CW-R. The receiver modes named in this manual are PhantomSDR-Plus's; the other receivers use their nearest equivalent. A WebSDR keeps a CW filter under 1 kHz and other filters at 1 kHz or wider, because that is how the page itself tells CW apart, and a frequency outside every band a WebSDR site covers is left alone. UberSDR sets its filter in slider steps, so a width can land up to about 50 Hz from the rig's. Any other kind of page — OpenWebRX, for example — shows *not a receiver this app can drive*, and nothing is synced.
-
----
-
-## What it does, and what it does not
-
-- It syncs **one rig with one receiver window** at a time.
-- It reads both sides several times a second and, when they disagree, sets one to match the other. It does **not** transmit, key the rig, or send audio anywhere.
-- Moving the receiver changes only your own session. Other listeners on the same receiver are not affected, and the receiver's operator does not have to allow it.
-- A serial port can be opened by **one program at a time**. If WSJT-X, a logger or a manufacturer's utility already has the rig's port, use the **flrig** or **rigctld on network** choice to share the rig instead of fighting over the port.
+Un récepteur web a moins de modes que la plupart des postes, si bien que certains modes du poste partagent un mode du récepteur : KiwiSDR et WebSDR n'ont qu'un seul CW pour CW et CW-R. Les modes de récepteur cités dans ce manuel sont ceux de PhantomSDR-Plus ; les autres récepteurs utilisent l'équivalent le plus proche. Un WebSDR garde un filtre CW sous 1 kHz et les autres filtres à 1 kHz ou plus, parce que c'est ainsi que la page elle-même reconnaît le CW, et une fréquence hors de toutes les bandes d'un site WebSDR est laissée de côté. UberSDR règle son filtre par pas de curseur, de sorte qu'une largeur peut tomber jusqu'à environ 50 Hz de celle du poste. Tout autre type de page — OpenWebRX, par exemple — affiche *not a receiver this app can drive*, et rien n'est synchronisé.
 
 ---
 
-## Quick start
+## Ce qu'il fait, et ce qu'il ne fait pas
 
-1. Open a station in Desktop PhantomSDR+ as usual.
+- Il synchronise **un poste avec une fenêtre de récepteur** à la fois.
+- Il lit les deux côtés plusieurs fois par seconde et, s'ils diffèrent, règle l'un sur l'autre. Il **n'émet pas**, ne commande pas le PTT et n'envoie de son nulle part.
+- Déplacer le récepteur ne change que votre propre session. Les autres auditeurs du même récepteur ne sont pas affectés, et l'opérateur n'a pas à l'autoriser.
+- Un port série ne peut être ouvert que par **un programme à la fois**. Si WSJT-X, un carnet de trafic ou un utilitaire du constructeur tient déjà le port, utilisez le choix **flrig** ou **rigctld on network** pour partager le poste au lieu de vous disputer le port.
+
+---
+
+## Démarrage rapide
+
+1. Ouvrez une station dans Desktop PhantomSDR+ comme d'habitude.
 2. **Rig → Rig control...**
-3. Under **Connection**, choose **Built-in** if your rig is in the list, otherwise **Hamlib (all rigs)**.
-4. Pick your rig, the serial port, and the speed your rig's own CAT or CI-V menu is set to.
-5. Under **Sync**, leave **Both directions** selected.
-6. Press **Connect**. The two readouts at the top — transceiver and receiver — should show the same frequency within a second.
+3. Sous **Connection**, choisissez **Built-in** si votre poste est dans la liste, sinon **Hamlib (all rigs)**.
+4. Choisissez votre poste, le port série et la vitesse réglée dans le menu CAT ou CI-V du poste.
+5. Sous **Sync**, laissez **Both directions** sélectionné.
+6. Appuyez sur **Connect**. Les deux affichages du haut — transceiver et récepteur — doivent montrer la même fréquence en moins d'une seconde.
 
-Every setting is saved as you change it. Next time, **Rig → Connect** is enough, or tick **Connect when the app starts**.
+Chaque réglage est enregistré dès que vous le modifiez. La fois suivante, **Rig → Connect** suffit, ou cochez **Connect when the app starts**.
 
 ---
 
-## Choosing how to reach the rig
+## Choisir comment joindre le poste
 
-| Choice | Use it when | Needs |
+| Choix | À utiliser quand | Il faut |
 |---|---|---|
-| **Built-in** | Your rig is in the list below. | Nothing else |
-| **Hamlib (all rigs)** | Your rig is anything else — Hamlib knows more than 300 rigs. The app starts Hamlib's `rigctld` for you, on a private local port, and stops it when you disconnect. | Windows: nothing, Hamlib is included. Linux: `sudo apt install libhamlib-utils` |
-| **rigctld on network** | A `rigctld` is already running, on this computer or another one on your network. | The host and port (4532 by default) |
-| **flrig** | flrig already controls the rig for fldigi, WSJT-X or a logger. | flrig running, with its XML-RPC port (12345 by default) |
+| **Built-in** | Votre poste figure dans la liste ci-dessous. | Rien d'autre |
+| **Hamlib (all rigs)** | Votre poste est autre chose — Hamlib en connaît plus de 300. L'application lance pour vous le `rigctld` de Hamlib, sur un port local privé, et l'arrête à la déconnexion. | Windows : rien, Hamlib est inclus. Linux : `sudo apt install libhamlib-utils` |
+| **rigctld on network** | Un `rigctld` tourne déjà, sur cet ordinateur ou un autre de votre réseau. | L'hôte et le port (4532 par défaut) |
+| **flrig** | flrig pilote déjà le poste pour fldigi, WSJT-X ou un carnet de trafic. | flrig lancé, avec son port XML-RPC (12345 par défaut) |
 
-### Rigs with a built-in driver
+### Postes avec pilote intégré
 
-The speed and CI-V address shown are the factory defaults the app fills in. **They are only a starting point — set them to what your rig's menu says.**
+La vitesse et l'adresse CI-V indiquées sont les valeurs d'usine que l'application préremplit. **Ce n'est qu'un point de départ — réglez-les selon le menu de votre poste.**
 
-| Family | Rigs | Default speed | Notes |
+| Famille | Postes | Vitesse par défaut | Remarques |
 |---|---|---|---|
-| **Icom CI-V** | IC-7300, IC-7610, IC-705, IC-9700, IC-905, IC-7760, IC-7851, IC-7100, IC-7410, IC-9100, IC-7600, IC-7200, IC-7700, IC-7000, IC-7800, IC-756PROIII, IC-756PROII, IC-R8600, and any other CI-V rig | 19200 | CI-V address filled in per model (IC-7300 `94`, IC-705 `A4`, IC-9700 `A2`, IC-7610 `98` …) |
+| **Icom CI-V** | IC-7300, IC-7610, IC-705, IC-9700, IC-905, IC-7760, IC-7851, IC-7100, IC-7410, IC-9100, IC-7600, IC-7200, IC-7700, IC-7000, IC-7800, IC-756PROIII, IC-756PROII, IC-R8600 et tout autre poste CI-V | 19200 | Adresse CI-V préremplie par modèle (IC-7300 `94`, IC-705 `A4`, IC-9700 `A2`, IC-7610 `98` …) |
 | | IC-746PRO, IC-718, IC-R75 | 9600 | |
-| **Xiegu** (CI-V) | G90, X6100 | 19200 | Address `70`; check the rig's menu |
-| **Yaesu new CAT** | FTDX101D/MP, FTDX10, FT-710, FT-991/A, FT-891, FTDX5000, FTDX3000, FTDX1200, FT-950, FT-2000, FT-450/450D | 38400 | |
-| **Yaesu classic CAT** | FT-817/818, FT-857/857D, FT-897/897D | 38400 | 2 stop bits; tunes in 10 Hz steps |
+| **Xiegu** (CI-V) | G90, X6100 | 19200 | Adresse `70` ; vérifiez le menu |
+| **Yaesu nouveau CAT** | FTDX101D/MP, FTDX10, FT-710, FT-991/A, FT-891, FTDX5000, FTDX3000, FTDX1200, FT-950, FT-2000, FT-450/450D | 38400 | |
+| **Yaesu CAT classique** | FT-817/818, FT-857/857D, FT-897/897D | 38400 | 2 bits de stop ; s'accorde par pas de 10 Hz |
 | **Kenwood** | TS-990S, TS-890S, TS-590S/SG | 115200 | |
 | | TS-480, TS-2000, TS-870S | 57600 | |
-| **Elecraft** | K4, K3/K3S, KX3, KX2 | 38400 | Filter width syncs |
-| **Kenwood-compatible** | FlexRadio SmartSDR CAT (virtual port), QRP Labs QMX/QMX+/QDX, (tr)uSDX, Lab599 Discovery TX-500, other Kenwood-compatible rigs | 9600–38400 | |
+| **Elecraft** | K4, K3/K3S, KX3, KX2 | 38400 | La largeur de filtre est synchronisée |
+| **Compatibles Kenwood** | FlexRadio SmartSDR CAT (port virtuel), QRP Labs QMX/QMX+/QDX, (tr)uSDX, Lab599 Discovery TX-500, autres postes compatibles Kenwood | 9600–38400 | |
 
-A rig that ought to be compatible but will not talk to a built-in driver usually works with **Hamlib**, which copes with far more variations.
-
----
-
-## Serial settings
-
-| Setting | What to put there |
-|---|---|
-| **Serial port** | The rig's port. USB adapters and rigs with a USB port are listed first. **Other / network address...** takes a port the list does not show — `COM7`, `/dev/ttyUSB1` — or `tcp://host:port` for a serial port served over the network by ser2net or similar. |
-| **Speed (baud)** | Exactly what the rig's CAT / CI-V baud-rate menu says. A mismatch looks like a rig that never answers. |
-| **Stop bits** | 1 for almost everything; 2 for the FT-817/857/897 family. |
-| **CI-V address** | Icom only, in hexadecimal (`94`, not `148`). Must match the rig's CI-V address menu. |
-| **DTR / RTS** | Leave **off** unless your interface needs them. Many CAT cables key the transmitter, or reset the rig, on one of those lines. |
-| **Hardware flow control** | Leave off unless the rig's manual asks for RTS/CTS. |
-
-For **Hamlib** the same settings are passed on to `rigctld`. Stop bits there has a *Rig default* choice, and **Extra rigctld options** takes anything else `rigctld` accepts, for example `--set-conf=post_write_delay=10`. **rigctld program** lets you point at a particular `rigctld` if you have more than one installed.
+Un poste censé être compatible mais qui ne dialogue pas avec un pilote intégré fonctionne généralement avec **Hamlib**, qui s'accommode de bien plus de variantes.
 
 ---
 
-## Sync
+## Réglages du port série
 
-### Direction
-
-| Choice | What happens |
+| Réglage | Quoi y mettre |
 |---|---|
-| **Rig → receiver** | The receiver window follows the rig. A change made on the waterfall is put back to the rig's frequency. |
-| **Receiver → rig** | The rig follows the receiver window. Turning the rig's dial is undone. |
-| **Both directions** | Whichever side you touched **last** wins. At the moment you connect, before either has been touched, the rig wins. |
+| **Serial port** | Le port du poste. Les adaptateurs USB et les postes à port USB sont listés en premier. **Other / network address...** accepte un port absent de la liste — `COM7`, `/dev/ttyUSB1` — ou `tcp://hôte:port` pour un port série servi sur le réseau par ser2net ou équivalent. |
+| **Speed (baud)** | Exactement ce qu'indique le menu de débit CAT / CI-V du poste. Un débit erroné ressemble à un poste qui ne répond jamais. |
+| **Stop bits** | 1 pour presque tout ; 2 pour la famille FT-817/857/897. |
+| **CI-V address** | Icom uniquement, en hexadécimal (`94`, pas `148`). Doit correspondre au menu d'adresse CI-V. |
+| **DTR / RTS** | Laissez-les **désactivés** sauf si votre interface en a besoin. Beaucoup de câbles CAT déclenchent l'émetteur, ou réinitialisent le poste, sur l'une de ces lignes. |
+| **Hardware flow control** | Désactivé, sauf si le manuel demande RTS/CTS. |
 
-The direction can also be changed from the **Rig** menu while connected.
+Avec **Hamlib**, les mêmes réglages sont transmis à `rigctld`. Les bits de stop y ont en plus un choix *Rig default*, et **Extra rigctld options** accepte toute autre option de `rigctld`, par exemple `--set-conf=post_write_delay=10`. **rigctld program** permet de désigner un `rigctld` précis si plusieurs sont installés.
 
-### How the two sides are kept from fighting
+---
 
-Every value the app writes shows up a moment later as a change on the other side. If that were taken at face value, the rig and the receiver would chase each other for ever. The app avoids it in three ways:
+## Synchronisation
 
-- The receiver page applies a change at once, so it is read back straight after writing, and that reading becomes the new starting point.
-- A rig applies a change a little later, so each value sent to it is remembered. When the rig reports that value, it is recognised as the app's own write rather than a hand on the dial.
-- A value the rig refuses — wide FM on an HF rig, for example — is sent **twice** and then left alone until the source side changes, instead of being repeated several times a second.
+### Sens
 
-Retuning the receiver page can make it choose its band's default mode (LSB below 10 MHz, for instance). When the rig is leading, the app puts the rig's own mode back straight away, so a rig in USB on 40 m keeps the receiver in USB.
+| Choix | Ce qui se passe |
+|---|---|
+| **Rig → receiver** | La fenêtre du récepteur suit le poste. Une modification dans la cascade est ramenée à la fréquence du poste. |
+| **Receiver → rig** | Le poste suit la fenêtre du récepteur. Tourner le bouton du poste est annulé. |
+| **Both directions** | Le côté touché **en dernier** l'emporte. Au moment de la connexion, avant qu'aucun ne soit touché, c'est le poste. |
 
-### Which receiver window
+Le sens se change aussi depuis le menu **Rig** en cours de connexion.
 
-**Receiver window** chooses which station follows the rig:
+### Comment on empêche les deux côtés de se battre
 
-- **The station window last in front** (default) — with two stations open, click into one and the rig follows that one.
-- **A particular station** — pin the rig to it, whether or not it is in front. If that station is not open, nothing is synced until it is.
+Chaque valeur écrite par l'application réapparaît un instant plus tard comme un changement de l'autre côté. Pris au pied de la lettre, le poste et le récepteur se courraient après sans fin. L'application l'évite de trois façons :
 
-### Update rate
+- La page du récepteur applique un changement immédiatement ; elle est donc relue juste après l'écriture, et cette lecture devient le nouveau point de départ.
+- Un poste applique un changement un peu plus tard ; chaque valeur envoyée est donc mémorisée. Quand le poste renvoie cette valeur, elle est reconnue comme une écriture de l'application et non comme une main sur le bouton.
+- Une valeur que le poste refuse — la FM large sur un poste HF, par exemple — est envoyée **deux fois** puis laissée tranquille jusqu'à ce que le côté source change, au lieu d'être répétée plusieurs fois par seconde.
 
-**Update every** sets how often both sides are read: 150 ms, 300 ms (default), 500 ms or 1 s. Faster feels more immediate on the dial; slower is kinder to an old rig at 4800 or 9600 baud, where each read takes real time on the wire.
+Réaccorder la page du récepteur peut lui faire choisir le mode par défaut de la bande (LSB sous 10 MHz, par exemple). Quand c'est le poste qui mène, l'application remet aussitôt le mode du poste, si bien qu'un poste en USB sur 40 m garde le récepteur en USB.
+
+### Quelle fenêtre de récepteur
+
+**Receiver window** choisit quelle station suit le poste :
+
+- **The station window last in front** (par défaut) — avec deux stations ouvertes, cliquez dans l'une et le poste la suit.
+- **Une station précise** — le poste y reste attaché, qu'elle soit au premier plan ou non. Si cette station n'est pas ouverte, rien n'est synchronisé jusqu'à son ouverture.
+
+### Cadence de mise à jour
+
+**Update every** fixe la fréquence de lecture des deux côtés : 150 ms, 300 ms (par défaut), 500 ms ou 1 s. Plus rapide paraît plus immédiat au bouton ; plus lent ménage un vieux poste à 4800 ou 9600 bauds, où chaque lecture prend un vrai temps sur la ligne.
 
 ---
 
 ## Modes
 
-| Rig mode | Receiver listens in |
+| Mode du poste | Le récepteur écoute en |
 |---|---|
 | USB, LSB | USB, LSB |
 | CW | CW |
-| CW-R (reverse) | CW-L |
-| AM, synchronous AM, DSB | AM |
-| FM, narrow FM | FM |
-| Wide FM | WBFM |
+| CW-R (inversé) | CW-L |
+| AM, AM synchrone, DSB | AM |
+| FM, FM étroite | FM |
+| FM large | WBFM |
 | RTTY / FSK | LSB |
 | RTTY-R / FSK-R | USB |
-| Data modes (USB-D, DATA-U, PKTUSB, DIG) | USB |
-| Data LSB, data FM | LSB, FM |
+| Modes données (USB-D, DATA-U, PKTUSB, DIG) | USB |
+| Données LSB, données FM | LSB, FM |
 
-| Receiver mode | Rig is set to |
+| Mode du récepteur | Le poste est mis en |
 |---|---|
 | USB, LSB | USB, LSB |
 | CW | CW |
 | CW-L | CW-R |
 | AM, QUAM | AM |
 | FM | FM |
-| WBFM | WFM — most HF rigs refuse it, and are left alone after two tries |
-| RADE (upper / lower) | USB / LSB |
+| WBFM | WFM — la plupart des postes HF le refusent et sont laissés tranquilles après deux essais |
+| RADE (supérieur / inférieur) | USB / LSB |
 
-A rig in a **data mode** stays in it: the receiver's USB is treated as agreeing with the rig's USB-D, so the receiver never knocks the rig out of data mode.
+Un poste en **mode données** y reste : l'USB du récepteur est considéré comme d'accord avec l'USB-D du poste, si bien que le récepteur ne fait jamais sortir le poste du mode données.
 
 ---
 
-## Filter width
+## Largeur de filtre
 
-Tick **Sync filter width** to keep the passbands matched. Two differences of less than 60 Hz are treated as equal, since no two filters step alike.
+Cochez **Sync filter width** pour aligner les bandes passantes. Des écarts de moins de 60 Hz sont tenus pour égaux, puisque deux filtres n'ont jamais les mêmes pas.
 
-| Rig connection | Filter width |
+| Liaison avec le poste | Largeur de filtre |
 |---|---|
-| Hamlib | Yes, where Hamlib supports it for that rig |
-| flrig | Yes |
-| Built-in Icom CI-V | Yes — 50 Hz steps up to 500 Hz, then 100 Hz steps up to 3.6 kHz; AM in 200 Hz steps up to 10 kHz; not in FM |
-| Built-in Elecraft | Yes, in 10 Hz steps |
-| Built-in Kenwood, Yaesu, FT-817 family | No — these rigs select filters from per-model tables. Use Hamlib if you need the filter |
+| Hamlib | Oui, là où Hamlib la prend en charge pour ce poste |
+| flrig | Oui |
+| Icom CI-V intégré | Oui — pas de 50 Hz jusqu'à 500 Hz, puis de 100 Hz jusqu'à 3,6 kHz ; AM par pas de 200 Hz jusqu'à 10 kHz ; pas en FM |
+| Elecraft intégré | Oui, par pas de 10 Hz |
+| Kenwood, Yaesu, famille FT-817 intégrés | Non — ces postes choisissent leurs filtres dans des tables propres à chaque modèle. Utilisez Hamlib si vous avez besoin du filtre |
 
-KiwiSDR, WebSDR and UberSDR receivers always have the control. A PhantomSDR-Plus receiver must run **4.1.0** or later; on an older one frequency and mode still sync, and the Rig control window says why the filter does not.
-
----
-
-## Mute while transmitting
-
-Tick **Mute receiver while transmitting**. While the rig is keyed the receiver window is muted, and when it is unkeyed the sound comes back. The receiver's own mute button shows it, and you can still unmute by hand.
-
-If you had already muted the receiver yourself, it is left muted afterwards too.
-
-It needs a rig connection that reports transmit state — all the built-in drivers, flrig, and Hamlib for most rigs — and, on a PhantomSDR-Plus receiver, 4.1.0 or later.
+Les récepteurs KiwiSDR, WebSDR et UberSDR ont toujours la commande. Un récepteur PhantomSDR-Plus doit avoir la **4.1.0** ou ultérieure ; sur un plus ancien, la fréquence et le mode se synchronisent toujours, et la fenêtre Rig control explique pourquoi le filtre ne suit pas.
 
 ---
 
-## Frequency offset
+## Coupure du son en émission
 
-**Frequency offset** is added to the rig's frequency to get the receiver's:
+Cochez **Mute receiver while transmitting**. Tant que le poste est en émission, la fenêtre du récepteur est muette, et le son revient au retour en réception. Le bouton muet du récepteur l'indique, et vous pouvez toujours rétablir le son à la main.
 
-> receiver frequency = rig frequency + offset
+Si vous aviez déjà coupé le son vous-même, il reste coupé ensuite.
 
-| Setup | Offset |
+Il faut une liaison qui signale l'état d'émission — tous les pilotes intégrés, flrig, et Hamlib pour la plupart des postes — et, sur un récepteur PhantomSDR-Plus, la 4.1.0 ou ultérieure.
+
+---
+
+## Décalage de fréquence
+
+**Frequency offset** est ajouté à la fréquence du poste pour obtenir celle du récepteur :
+
+> fréquence du récepteur = fréquence du poste + décalage
+
+| Installation | Décalage |
 |---|---|
-| 2 m transverter on a 10 m rig (144.100 MHz shows as 28.100 MHz) | `116000000` |
-| 70 cm transverter on a 2 m rig (432 → 144) | `288000000` |
-| No transverter | `0` |
+| Transverter 2 m sur un poste 10 m (144,100 MHz s'affiche 28,100 MHz) | `116000000` |
+| Transverter 70 cm sur un poste 2 m (432 → 144) | `288000000` |
+| Pas de transverter | `0` |
 
 ---
 
-## The Rig menu
+## Le menu Rig
 
-| Item | Does |
+| Élément | Rôle |
 |---|---|
-| **Rig control...** | Opens the Rig control window |
-| **Connect / Disconnect** *rig name* | Starts or stops the sync; for Hamlib this also starts or stops `rigctld` |
-| **Rig to receiver / Receiver to rig / Both directions** | Sync direction |
-| **Sync filter width** | On / off |
-| **Mute receiver while transmitting** | On / off |
-| Status line | *Not connected*, *Connecting...*, *Connected: rig name*, or the last error |
+| **Rig control...** | Ouvre la fenêtre Rig control |
+| **Connect / Disconnect** *nom du poste* | Démarre ou arrête la synchronisation ; avec Hamlib, démarre ou arrête aussi `rigctld` |
+| **Rig to receiver / Receiver to rig / Both directions** | Sens de synchronisation |
+| **Sync filter width** | Oui / non |
+| **Mute receiver while transmitting** | Oui / non |
+| Ligne d'état | *Not connected*, *Connecting...*, *Connected: nom*, ou la dernière erreur |
 
-The live frequency readout is in the Rig control window rather than in the menu, which would close itself every time it changed.
+L'affichage de fréquence en direct se trouve dans la fenêtre Rig control et non dans le menu, qui sinon se refermerait à chaque changement.
 
 ---
 
 ## Linux
 
-**Serial port permission.** Serial ports belong to the `dialout` group. A user outside it gets *Could not open ttyUSB0*. Add yourself once, then log out and back in:
+**Droits sur le port série.** Les ports série appartiennent au groupe `dialout`. Un utilisateur qui n'en fait pas partie obtient *Could not open ttyUSB0*. Ajoutez-vous une fois, puis déconnectez-vous et reconnectez-vous :
 
 ```bash
 sudo usermod -aG dialout $USER
 ```
 
-**Hamlib.** Install it from your distribution:
+**Hamlib.** Installez-le depuis votre distribution :
 
 ```bash
 sudo apt install libhamlib-utils
 ```
 
-The `.deb` package of Desktop PhantomSDR+ recommends it, so `sudo apt install ./phantomsdr-plus-desktop_4.0.0_amd64.deb` brings it along; `dpkg -i` does not install recommended packages. The built-in drivers and flrig need no Hamlib.
+Le paquet `.deb` de Desktop PhantomSDR+ le recommande, donc `sudo apt install ./phantomsdr-plus-desktop_4.0.0_amd64.deb` l'installe avec ; `dpkg -i` n'installe pas les paquets recommandés. Les pilotes intégrés et flrig n'ont pas besoin de Hamlib.
 
 ## Windows
 
-Hamlib's own `rigctld.exe` is included in both the 64-bit and the 32-bit installer. COM ports appear in the port list by name (`COM3`). If a rig's USB driver is needed, install the manufacturer's driver first — the port does not exist until it is.
+Le `rigctld.exe` de Hamlib lui-même est inclus dans l'installateur 64 bits comme dans le 32 bits. Les ports COM apparaissent dans la liste sous leur nom (`COM3`). Si le poste demande un pilote USB, installez d'abord celui du constructeur — le port n'existe pas avant.
 
 ---
 
-## TCI-CAT on the receiver page
+## TCI-CAT sur la page du récepteur
 
-A PhantomSDR-Plus receiver page can also follow a transceiver **by itself**, with no desktop application: the browser talks straight to a **TCI** server on your own computer. TCI is the WebSocket control protocol of ExpertSDR2/ExpertSDR3 (SunSDR), AetherSDR (FlexRadio) and Thetis (Apache Labs ANAN, Hermes). For a rig without TCI, a small bridge included with PhantomSDR-Plus makes any Hamlib rig look like a TCI server.
+Une page de récepteur PhantomSDR-Plus peut aussi suivre un transceiver **toute seule**, sans l'application de bureau : le navigateur dialogue directement avec un serveur **TCI** sur votre propre ordinateur. TCI est le protocole de pilotage par WebSocket d'ExpertSDR2/ExpertSDR3 (SunSDR), d'AetherSDR (FlexRadio) et de Thetis (Apache Labs ANAN, Hermes). Pour un poste sans TCI, un petit pont fourni avec PhantomSDR-Plus fait passer n'importe quel poste Hamlib pour un serveur TCI.
 
-It needs a PhantomSDR-Plus receiver running **4.1.0 or later**. KiwiSDR, WebSDR and UberSDR pages do not have it.
+Il faut un récepteur PhantomSDR-Plus en version **4.1.0 ou ultérieure**. Les pages KiwiSDR, WebSDR et UberSDR ne l'ont pas.
 
-### The TCI-CAT button
+### Le bouton TCI-CAT
 
-The button sits in the row with **VFO**, **Modes**, **Bands** and **IF Filters** — **TCI-CAT** in the wide layout, **CAT** in the compact one. Its dot is **green** while a TCI server is connected and **grey** otherwise. It opens a window with: Until 4.2.0 the button was labelled **QRG Sync**.
+Le bouton se trouve dans la rangée **VFO**, **Modes**, **Bands** et **IF Filters** — **TCI-CAT** dans la mise en page large, **CAT** dans la compacte. Son point est **vert** tant qu'un serveur TCI est connecté, **gris** sinon. Il ouvre une fenêtre avec : Jusqu'à la 4.2.0, le bouton s'appelait **QRG Sync**.
 
-| Control | What it does |
+| Commande | Rôle |
 |---|---|
-| Status | *Active — TCI (port 50001)* when connected; *Inactive* with ⏳ *Wait* while it searches |
-| **CAT Sync** | Frequency, mode and filter sync on or off. The mute on transmit works either way |
-| **Host** | The computer running the TCI server: `localhost` for this computer, or its address on your network, e.g. `192.168.1.42`. Press Enter or click away to reconnect |
+| État | *Active — TCI (port 50001)* une fois connecté ; *Inactive* avec ⏳ *Wait* pendant la recherche |
+| **CAT Sync** | Active ou désactive la synchronisation de la fréquence, du mode et du filtre. La coupure du son en émission fonctionne dans les deux cas |
+| **Host** | L'ordinateur qui fait tourner le serveur TCI : `localhost` pour cet ordinateur, sinon son adresse sur le réseau local, par ex. `192.168.1.42`. Appuyez sur Entrée ou cliquez ailleurs pour reconnecter |
 
-Nothing needs choosing beyond that: ports **50001** (ExpertSDR3, AetherSDR) and **40001** (ExpertSDR2, Thetis) are tried at the same time and retried every few seconds, so the page connects as soon as the software starts. **CAT Sync** and **Host** are remembered by the browser.
+Rien d'autre à choisir : les ports **50001** (ExpertSDR3, AetherSDR) et **40001** (ExpertSDR2, Thetis) sont essayés en même temps et réessayés toutes les quelques secondes, si bien que la page se connecte dès que le logiciel démarre. **CAT Sync** et **Host** sont mémorisés par le navigateur.
 
-Browsers that ask before a web page may reach your local network — recent Chrome and Edge do — ask once, the first time the page connects. Allow it, or the dot stays grey.
+Les navigateurs qui demandent l'autorisation avant qu'une page web n'accède au réseau local — les versions récentes de Chrome et d'Edge le font — posent la question une fois, lors de la première connexion. Acceptez, sinon le point reste gris.
 
-### What is kept in step
+### Ce qui est synchronisé
 
-| | Behaviour |
+| | Comportement |
 |---|---|
-| **Rig → receiver: frequency** | Only the dial moves. Zoom, brightness and contrast stay as you left them; the waterfall scrolls only when the frequency is off screen, and the band plan does not change the mode |
-| **Rig → receiver: mode** | Follows when the rig's mode changes — USB, LSB, CW, AM, FM; data modes as USB or LSB. A mode the receiver lacks leaves it alone. A running decoder keeps its own mode |
-| **Rig → receiver: filter width** | The receiver's passband takes the rig's filter width: turning the rig's filter, or pressing its **FIL** button, changes the passband. A running decoder keeps its own passband |
-| **Receiver → rig: frequency** | Typing a frequency, a label or bookmark, a click on the waterfall and a passband drag all move the rig's VFO. A drag sends only changed frequencies |
-| **Receiver → rig: mode** | Every mode change on the page — a mode button, the band plan, a decoder, a bookmark — sets the rig's mode (USB, LSB, CW, AM, FM; RADE as USB or LSB). A rig in a data mode (USB-D) stays in it |
-| **Receiver → rig: filter width** | The **IF Filters** buttons, the IF slider, a passband drag and a mode change all set the rig's filter; a drag sends only the width it settles on. On Icom rigs the bridge selects FIL1, FIL2 or FIL3 instead — see [Icom filters](#icom-filters-fil1-fil2-fil3) |
-| **No echo** | A change that came from the rig is never sent back to it, and a report of the rig's previous mode or filter that arrives just after the page changed it is ignored |
-| **Mute on transmit** | Always on, even with CAT Sync off: the page falls silent while the rig transmits. Moving the volume slider during transmit keeps it silent; on receive the sound returns at the slider's current level |
-| **Not handled** | Split, VFO B, RIT/XIT and transverter offsets. Only VFO A of the first receiver is followed |
+| **Poste → récepteur : fréquence** | Seul le cadran bouge. Zoom, luminosité et contraste restent comme vous les avez laissés ; la cascade ne défile que si la fréquence sort de l'écran, et le plan de bandes ne change pas le mode |
+| **Poste → récepteur : mode** | Suit quand le mode du poste change — USB, LSB, CW, AM, FM ; les modes numériques en USB ou LSB. Un mode que le récepteur n'a pas le laisse inchangé. Un décodeur en cours garde son propre mode |
+| **Poste → récepteur : largeur de filtre** | La bande passante du récepteur prend la largeur de filtre du poste : changer le filtre du poste, ou appuyer sur sa touche **FIL**, change la bande passante. Un décodeur en cours garde sa propre bande passante |
+| **Récepteur → poste : fréquence** | Taper une fréquence, une étiquette ou un signet, un clic dans la cascade et le glissement de la bande passante déplacent le VFO du poste. Un glissement n'envoie que les fréquences qui changent |
+| **Récepteur → poste : mode** | Chaque changement de mode sur la page — une touche de mode, le plan de bandes, un décodeur, un signet — règle le mode du poste (USB, LSB, CW, AM, FM ; RADE en USB ou LSB). Un poste en mode numérique (USB-D) y reste |
+| **Récepteur → poste : largeur de filtre** | Les boutons **IF Filters**, le curseur IF, le glissement de la bande passante et un changement de mode règlent le filtre du poste ; un glissement n'envoie que la largeur finale. Sur les postes Icom, le pont sélectionne à la place FIL1, FIL2 ou FIL3 — voir [Filtres Icom](#filtres-icom-fil1-fil2-fil3) |
+| **Pas d'écho** | Un changement venu du poste ne lui est jamais renvoyé, et un rapport du mode ou du filtre précédent du poste qui arrive juste après un changement sur la page est ignoré |
+| **Coupure du son en émission** | Toujours active, même avec CAT Sync désactivé : la page se tait pendant que le poste émet. Déplacer le curseur de volume pendant l'émission la laisse muette ; en réception, le son revient au niveau actuel du curseur |
+| **Non géré** | Split, VFO B, RIT/XIT et décalages de transverter. Seul le VFO A du premier récepteur est suivi |
 
-Mode and filter width travel as TCI's own commands (`modulation`, `rx_filter_band`), so ExpertSDR, AetherSDR and Thetis should follow them too; only the Hamlib bridge has been tried. For a transverter offset, use Desktop PhantomSDR+ instead. Do not use both on the same rig at once — two controllers fight over the dial.
+Le mode et la largeur de filtre passent par les commandes propres au TCI (`modulation`, `rx_filter_band`), donc ExpertSDR, AetherSDR et Thetis devraient les suivre aussi ; seul le pont Hamlib a été essayé. Pour un décalage de transverter, utilisez plutôt Desktop PhantomSDR+. N'utilisez pas les deux en même temps sur le même poste — deux contrôleurs se disputeraient le cadran.
 
-### Which transceivers it works with
+### Avec quels transceivers cela fonctionne
 
-| Transceiver | Works | How |
+| Transceiver | Fonctionne | Comment |
 |---|---|---|
-| SunSDR (ExpertSDR2/3), FlexRadio (AetherSDR), ANAN/Hermes (Thetis) | Yes | Directly — enable the TCI server in the software. Not yet tried with these programs; tested against a simulated TCI server |
-| A radio with a CAT port that Hamlib supports — most Icom, Yaesu, Kenwood, Elecraft, Xiegu, QRP Labs | Yes | Through the Hamlib bridge below. Tried on an **Icom IC-7300**, on Linux and Windows; other drivers may differ in mode names or in reporting PTT |
-| A radio with no CAT port, or one Hamlib does not support | No | There is nothing to read the frequency from |
+| SunSDR (ExpertSDR2/3), FlexRadio (AetherSDR), ANAN/Hermes (Thetis) | Oui | Directement — activez le serveur TCI dans le logiciel. Pas encore essayé avec ces logiciels ; testé avec un serveur TCI simulé |
+| Un poste doté d'un port CAT pris en charge par Hamlib — la plupart des Icom, Yaesu, Kenwood, Elecraft, Xiegu, QRP Labs | Oui | Via le pont Hamlib ci-dessous. Essayé avec un **Icom IC-7300** sous Linux et Windows ; d'autres pilotes peuvent différer sur les noms de modes ou le signalement du PTT |
+| Un poste sans port CAT, ou non pris en charge par Hamlib | Non | Il n'y a rien où lire la fréquence |
 
-### The Hamlib bridge (IC-7300 and other rigs without TCI)
+### Le pont Hamlib (IC-7300 et autres postes sans TCI)
 
-`tci-bridge/tci-rigctld.mjs` in the PhantomSDR-Plus tree turns any radio that Hamlib can control into a TCI server for the page. It runs on **your** computer — the one wired to the radio, next to the browser — not on the receiver. Four times a second it asks Hamlib for frequency, mode, filter width and transmit state, sends the page only what changed, and passes the page's frequency, mode and filter changes to the rig.
+`tci-bridge/tci-rigctld.mjs`, dans l'arborescence PhantomSDR-Plus, fait de tout poste que Hamlib sait piloter un serveur TCI pour la page. Il tourne sur **votre** ordinateur — celui qui est relié au poste, à côté du navigateur — pas sur le récepteur. Quatre fois par seconde il interroge Hamlib sur la fréquence, le mode, la largeur de filtre et l'état d'émission, n'envoie à la page que ce qui a changé et transmet au poste les changements de fréquence, de mode et de filtre de la page.
 
-It reaches Hamlib in one of two ways:
+Il atteint Hamlib par l'une de deux voies :
 
-| Way | Chain | Use it when |
+| Voie | Chaîne | Quand |
 |---|---|---|
-| **`--rigctl`** (recommended) | transceiver → `rigctl` → `tci-rigctld.mjs` → page | Normally. The bridge starts Hamlib's `rigctl` itself: one window, no network port. **Use this on Windows**, where `rigctld.exe` is often refused with *Access is denied* |
-| **`rigctld`** | transceiver → `rigctld` → `tci-rigctld.mjs` → page | Another program, such as WSJT-X, must use the radio at the same time — see [Sharing the radio](#sharing-the-radio-the-rigctld-way) |
+| **`--rigctl`** (recommandée) | transceiver → `rigctl` → `tci-rigctld.mjs` → page | Normalement. Le pont lance lui-même le `rigctl` de Hamlib : une fenêtre, aucun port réseau. **À utiliser sous Windows**, où `rigctld.exe` est souvent refusé avec *Access is denied* |
+| **`rigctld`** | transceiver → `rigctld` → `tci-rigctld.mjs` → page | Un autre programme, comme WSJT-X, doit utiliser le poste en même temps — voir [Partager le poste](#partager-le-poste--la-voie-rigctld) |
 
-**What it needs**
+**Ce qu'il lui faut**
 
 | | Linux | Windows |
 |---|---|---|
-| Hamlib | `sudo apt install libhamlib-utils`, or your distribution's hamlib package | `hamlib-w64-….zip` from [github.com/Hamlib/Hamlib/releases](https://github.com/Hamlib/Hamlib/releases), extracted to `C:\hamlib` — `rigctl.exe` is in `C:\hamlib\bin` |
-| Node.js | 18 or newer | The LTS *Windows Installer (.msi)* from [nodejs.org](https://nodejs.org), with the default options |
-| The `ws` package | Found automatically inside the PhantomSDR-Plus tree | Copy `tci-rigctld.mjs` to a folder such as `C:\tci-bridge` and run `npm install ws` there once |
-| The radio's port | `ls /dev/serial/by-id/`. Join the `dialout` group once: `sudo usermod -aG dialout $USER`, then log out and back in | Install the radio's USB driver from the manufacturer; the COM number is in **Device Manager → Ports (COM & LPT)** |
+| Hamlib | `sudo apt install libhamlib-utils`, ou le paquet hamlib de votre distribution | `hamlib-w64-….zip` depuis [github.com/Hamlib/Hamlib/releases](https://github.com/Hamlib/Hamlib/releases), extrait dans `C:\hamlib` — `rigctl.exe` se trouve dans `C:\hamlib\bin` |
+| Node.js | 18 ou plus récent | Le *Windows Installer (.msi)* LTS de [nodejs.org](https://nodejs.org), avec les options par défaut |
+| Le paquet `ws` | Trouvé automatiquement dans l'arborescence PhantomSDR-Plus | Copiez `tci-rigctld.mjs` dans un dossier comme `C:\tci-bridge` et lancez-y une fois `npm install ws` |
+| Le port du poste | `ls /dev/serial/by-id/`. Rejoignez une fois le groupe `dialout` : `sudo usermod -aG dialout $USER`, puis déconnexion et reconnexion | Installez le pilote USB du fabricant ; le numéro COM figure dans **Gestionnaire de périphériques → Ports (COM et LPT)** |
 
-Only one program can hold the rig's CAT port. Close WSJT-X, flrig, JS8Call, RS-BA1 or Desktop PhantomSDR+'s rig connection before starting the bridge.
+Un seul programme peut tenir le port CAT du poste. Fermez WSJT-X, flrig, JS8Call, RS-BA1 ou la connexion au poste de Desktop PhantomSDR+ avant de lancer le pont.
 
-#### Example: Icom IC-7300
+#### Exemple : Icom IC-7300
 
-On the radio: **MENU → SET → Connectors → CI-V** — **CI-V USB Baud Rate** `115200`, **CI-V Transceive** `ON`. Hamlib's model number for the IC-7300 is `3073`.
+Sur le poste : **MENU → SET → Connectors → CI-V** — **CI-V USB Baud Rate** `115200`, **CI-V Transceive** `ON`. Le numéro de modèle Hamlib de l'IC-7300 est `3073`.
 
-**Linux.** The radio is the line containing `IC-7300` in `ls /dev/serial/by-id/`, usually also `/dev/ttyUSB0`.
+**Linux.** Le poste est la ligne contenant `IC-7300` dans `ls /dev/serial/by-id/`, en général aussi `/dev/ttyUSB0`.
 
-1. Check that Hamlib reaches the radio — it must print the frequency, e.g. `14280000`:
+1. Vérifiez que Hamlib atteint le poste — il doit afficher la fréquence, par ex. `14280000` :
    ```bash
    rigctl -m 3073 -r /dev/ttyUSB0 -s 115200 f
    ```
-2. Start the bridge and leave it running:
+2. Lancez le pont et laissez-le tourner :
    ```bash
    cd ~/PhantomSDR-Plus/tci-bridge
    node tci-rigctld.mjs --rigctl rigctl -m 3073 -r /dev/ttyUSB0 -s 115200
    ```
 
-**Windows.** The radio appears in Device Manager as *Silicon Labs CP210x USB to UART Bridge (COM4)* — use your own COM number. In a Command Prompt:
+**Windows.** Le poste apparaît dans le Gestionnaire de périphériques comme *Silicon Labs CP210x USB to UART Bridge (COM4)* — utilisez votre propre numéro COM. Dans une invite de commandes :
 
-1. Check that Hamlib reaches the radio — it must print the frequency:
+1. Vérifiez que Hamlib atteint le poste — il doit afficher la fréquence :
    ```bat
    C:\hamlib\bin\rigctl.exe -m 3073 -r COM4 -s 115200 f
    ```
-2. Start the bridge and leave the window open:
+2. Lancez le pont et laissez la fenêtre ouverte :
    ```bat
    cd C:\tci-bridge
    node tci-rigctld.mjs --rigctl C:\hamlib\bin\rigctl.exe -m 3073 -r COM4 -s 115200
    ```
-   The line is long: make sure it really ends in `-s 115200`, or `rigctl` stops with *Type: rigctl --help*.
+   La ligne est longue : vérifiez qu'elle se termine bien par `-s 115200`, sinon `rigctl` s'arrête avec *Type: rigctl --help*.
 
-On both systems the bridge prints, within a second:
+Sur les deux systèmes le pont affiche, en une seconde :
 
 ```
 rig answered through rigctl
@@ -347,45 +347,45 @@ rig -> page mode USB
 rig -> page RX
 ```
 
-Then open the receiver page in a browser on the same computer, open **TCI-CAT** and switch **CAT Sync** on. The dot turns green and the bridge prints `page connected`. Turn the VFO and the receiver follows; click the waterfall and the radio follows (`page -> rig ... Hz`); key the radio and the page goes silent. **Ctrl+C** stops the bridge, and `rigctl` with it.
+Ouvrez ensuite la page du récepteur dans un navigateur sur le même ordinateur, ouvrez **TCI-CAT** et activez **CAT Sync**. Le point passe au vert et le pont affiche `page connected`. Tournez le VFO et le récepteur suit ; cliquez dans la cascade et le poste suit (`page -> rig ... Hz`) ; passez en émission et la page se tait. **Ctrl+C** arrête le pont, et `rigctl` avec lui.
 
-Everything after `--rigctl` is the `rigctl` program and its own options — exactly the ones that worked in the check. That is the rule for every rig: **when `rigctl … f` prints the frequency, the bridge works with the same options.**
+Tout ce qui suit `--rigctl` est le programme `rigctl` et ses propres options — exactement celles qui ont fonctionné lors de la vérification. C'est la règle pour tout poste : **quand `rigctl … f` affiche la fréquence, le pont fonctionne avec les mêmes options.**
 
-#### Icom filters (FIL1, FIL2, FIL3)
+#### Filtres Icom (FIL1, FIL2, FIL3)
 
-Icom rigs such as the IC-7300 do not take just any filter width: they have three filters, **FIL1**, **FIL2** and **FIL3**, each with a width set in the rig's menu. Given a width, Hamlib would select one of them and also overwrite its width — and on the IC-7300 that width can land on the filter selected before, scrambling the rig's settings. So for Icom rigs the bridge never sends a width: it picks the filter whose reference width is nearest to the page's passband and only **selects** it, with the rig's own CI-V command. The widths set on the rig are never changed.
+Les postes Icom comme l'IC-7300 n'acceptent pas n'importe quelle largeur de filtre : ils ont trois filtres, **FIL1**, **FIL2** et **FIL3**, chacun avec une largeur réglée dans le menu du poste. Avec une largeur, Hamlib sélectionnerait l'un d'eux et écraserait aussi sa largeur — et sur l'IC-7300 cette largeur peut atterrir sur le filtre sélectionné auparavant, ce qui mélange les réglages. C'est pourquoi, sur les postes Icom, le pont n'envoie jamais de largeur : il prend le filtre dont la largeur de référence est la plus proche de la bande passante de la page et se contente de le **sélectionner**, avec la commande CI-V du poste lui-même. Les largeurs réglées sur le poste ne changent jamais.
 
 | Mode | FIL1 | FIL2 | FIL3 |
 |---|---|---|---|
-| USB, LSB (and their data modes) | 2700 Hz | 2400 Hz | 1800 Hz |
+| USB, LSB (et leurs modes numériques) | 2700 Hz | 2400 Hz | 1800 Hz |
 | CW | 1200 Hz | 500 Hz | 250 Hz |
 | AM | 9000 Hz | 6000 Hz | 3000 Hz |
 | FM | 15000 Hz | 10000 Hz | 7000 Hz |
 
-On the IC-7300 (`-m 3073`) this is automatic. Set the rig's SSB filters to match — FIL1 2.7 kHz, FIL2 2.4 kHz, FIL3 1.8 kHz (hold **FIL** on the radio) — and choosing 2.7 / 2.4 / 1.8 kHz in **IF Filters** selects FIL1 / FIL2 / FIL3, while pressing **FIL** on the radio sets the page's passband to that filter's width. The bridge prints, for example, `page -> rig filter 2398 Hz  LSB  → FIL2  sent`.
+Sur l'IC-7300 (`-m 3073`) c'est automatique. Réglez les filtres SSB du poste en conséquence — FIL1 2,7 kHz, FIL2 2,4 kHz, FIL3 1,8 kHz (maintenez **FIL** enfoncé sur le poste) — et choisir 2,7 / 2,4 / 1,8 kHz dans **IF Filters** sélectionne FIL1 / FIL2 / FIL3, tandis qu'appuyer sur **FIL** sur le poste met la bande passante de la page à la largeur de ce filtre. Le pont affiche par exemple `page -> rig filter 2398 Hz  LSB  → FIL2  sent`.
 
-| Option | Use |
+| Option | Usage |
 |---|---|
-| `--filters 3000,2400,1800` | Other SSB reference widths, in the order FIL1,FIL2,FIL3; also switches filter selection on for another Icom rig |
-| `--civ A4` | The rig's CI-V address in hex, when it is not `94` (IC-705 `A4`, IC-9700 `A2`, IC-7610 `98`) |
-| `--filters off` | Send widths through Hamlib instead, as for other makes |
+| `--filters 3000,2400,1800` | D'autres largeurs de référence SSB, dans l'ordre FIL1,FIL2,FIL3 ; active aussi la sélection de filtre pour un autre poste Icom |
+| `--civ A4` | L'adresse CI-V du poste en hexadécimal, quand ce n'est pas `94` (IC-705 `A4`, IC-9700 `A2`, IC-7610 `98`) |
+| `--filters off` | Envoyer les largeurs par Hamlib, comme pour les autres marques |
 
-Both options go before `--rigctl`, e.g. `node tci-rigctld.mjs --filters 3000,2400,1800 --civ A4 --rigctl rigctl -m 3085 -r /dev/ttyACM0 -s 19200`. Tried on an IC-7300 only. Other makes — Yaesu, Kenwood, Elecraft and the rest — receive the page's width through Hamlib, which sets it as closely as the rig allows.
+Les deux options se placent avant `--rigctl`, par ex. `node tci-rigctld.mjs --filters 3000,2400,1800 --civ A4 --rigctl rigctl -m 3085 -r /dev/ttyACM0 -s 19200`. Essayé uniquement avec un IC-7300. Les autres marques — Yaesu, Kenwood, Elecraft et les autres — reçoivent la largeur de la page par Hamlib, qui la règle d'aussi près que le poste le permet.
 
-#### Other rigs
+#### Autres postes
 
-The same steps work for any rig Hamlib supports; only the options change.
+Les mêmes étapes valent pour tout poste pris en charge par Hamlib ; seules les options changent.
 
-1. **Prepare the rig.** In its menu, note the CAT (or CI-V) speed, and switch on any *CAT over USB* or *CI-V transceive* setting it has. On Windows, install the manufacturer's USB driver.
-2. **Find the Hamlib model number** in the list `rigctl -l` prints:
-   - Linux: `rigctl -l | grep -i 991`
-   - Windows: `C:\hamlib\bin\rigctl.exe -l | findstr /i 991`
-3. **Find the port.** Linux: `ls /dev/serial/by-id/`. Windows: Device Manager. Some rigs create **two** ports — Yaesu's FT-991A, FTDX10 and FT-710 name them *Enhanced* and *Standard*; CAT is on the **Enhanced** one.
-4. **Check, then start the bridge** with `-m <model> -r <port> -s <speed>`, as in the IC-7300 example: first `rigctl -m … -r … -s … f`, then the same options after `--rigctl`.
+1. **Préparez le poste.** Dans son menu, notez la vitesse CAT (ou CI-V) et activez un réglage comme *CAT par USB* ou *CI-V transceive* s'il en a un. Sous Windows, installez le pilote USB du fabricant.
+2. **Trouvez le numéro de modèle Hamlib** dans la liste affichée par `rigctl -l` :
+   - Linux : `rigctl -l | grep -i 991`
+   - Windows : `C:\hamlib\bin\rigctl.exe -l | findstr /i 991`
+3. **Trouvez le port.** Linux : `ls /dev/serial/by-id/`. Windows : Gestionnaire de périphériques. Certains postes créent **deux** ports — les FT-991A, FTDX10 et FT-710 de Yaesu les nomment *Enhanced* et *Standard* ; le CAT est sur le port **Enhanced**.
+4. **Vérifiez, puis lancez le pont** avec `-m <modèle> -r <port> -s <vitesse>`, comme dans l'exemple de l'IC-7300 : d'abord `rigctl -m … -r … -s … f`, puis les mêmes options après `--rigctl`.
 
-Some model numbers, from Hamlib 4.5 — confirm them with `rigctl -l`, as another Hamlib version may number a rig differently:
+Quelques numéros de modèle, d'après Hamlib 4.5 — confirmez-les avec `rigctl -l`, car une autre version de Hamlib peut numéroter un poste différemment :
 
-| Rig | `-m` | Rig | `-m` |
+| Poste | `-m` | Poste | `-m` |
 |---|---|---|---|
 | Icom IC-7300 | 3073 | Yaesu FT-991 / FT-991A | 1035 |
 | Icom IC-705 | 3085 | Yaesu FTDX10 | 1042 |
@@ -397,176 +397,176 @@ Some model numbers, from Hamlib 4.5 — confirm them with `rigctl -l`, as anothe
 | Elecraft KX3 | 2045 | Kenwood TS-2000 | 2014 |
 | Elecraft K4 | 2047 | QRP Labs QCX / QDX | 2052 |
 
-Extra options, only when needed:
+Options supplémentaires, seulement si nécessaire :
 
-- **An Icom rig with a changed CI-V address:** add `-c` and the address in *decimal* — `94h` is `-c 148`.
-- **A setting Hamlib offers for that rig:** `rigctl -m <model> -L` lists them; set one with `-C name=value`, e.g. `-C post_write_delay=10` for a slow interface.
-- **A rig that keys up or resets when the port opens:** some CAT cables use DTR or RTS for PTT; add `-C dtr_state=OFF -C rts_state=OFF`.
+- **Un poste Icom dont l'adresse CI-V a été changée :** ajoutez `-c` et l'adresse en *décimal* — `94h` donne `-c 148`.
+- **Un réglage que Hamlib propose pour ce poste :** `rigctl -m <modèle> -L` les liste ; fixez-en un avec `-C nom=valeur`, par ex. `-C post_write_delay=10` pour une interface lente.
+- **Un poste qui passe en émission ou redémarre à l'ouverture du port :** certains câbles CAT utilisent DTR ou RTS pour le PTT ; ajoutez `-C dtr_state=OFF -C rts_state=OFF`.
 
-#### Example: Yaesu FT-991A
+#### Exemple : Yaesu FT-991A
 
-Not tried on a real FT-991A — it follows Hamlib's settings for the rig; the `rigctl … f` check tells you at once whether it works.
+Non essayé avec un vrai FT-991A — il suit les réglages de Hamlib pour ce poste ; la vérification `rigctl … f` indique aussitôt si cela fonctionne.
 
-On the radio, set **CAT RATE** (menu 031) to `38400`. Hamlib's model number for the FT-991 and FT-991A is `1035`.
+Sur le poste, réglez **CAT RATE** (menu 031) sur `38400`. Le numéro de modèle Hamlib des FT-991 et FT-991A est `1035`.
 
-The FT-991A's USB cable creates **two** serial ports. CAT is on the **Enhanced** one:
+Le câble USB du FT-991A crée **deux** ports série. Le CAT est sur le port **Enhanced** :
 
-- **Linux:** `ls /dev/serial/by-id/` shows two lines for the radio; the one ending in `-if00-port0` is Enhanced, usually `/dev/ttyUSB0`.
-- **Windows:** Device Manager shows *Silicon Labs Dual CP2105 USB to UART Bridge: Enhanced COM Port (COM5)* and a *Standard COM Port*; use the Enhanced one's number.
+- **Linux :** `ls /dev/serial/by-id/` affiche deux lignes pour le poste ; celle qui se termine par `-if00-port0` est l'Enhanced, en général `/dev/ttyUSB0`.
+- **Windows :** le Gestionnaire de périphériques affiche *Silicon Labs Dual CP2105 USB to UART Bridge: Enhanced COM Port (COM5)* et un *Standard COM Port* ; utilisez le numéro de l'Enhanced.
 
-**Linux:**
+**Linux :**
 ```bash
 rigctl -m 1035 -r /dev/ttyUSB0 -s 38400 f
 cd ~/PhantomSDR-Plus/tci-bridge
 node tci-rigctld.mjs --rigctl rigctl -m 1035 -r /dev/ttyUSB0 -s 38400
 ```
 
-**Windows:**
+**Windows :**
 ```bat
 C:\hamlib\bin\rigctl.exe -m 1035 -r COM5 -s 38400 f
 cd C:\tci-bridge
 node tci-rigctld.mjs --rigctl C:\hamlib\bin\rigctl.exe -m 1035 -r COM5 -s 38400
 ```
 
-If the check prints nothing useful, the usual cause is the Standard port instead of the Enhanced one, or a CAT RATE that differs from `-s`.
+Si la vérification n'affiche rien d'utile, la cause habituelle est le port Standard au lieu de l'Enhanced, ou un CAT RATE différent de `-s`.
 
-#### Example: Kenwood TS-590SG
+#### Exemple : Kenwood TS-590SG
 
-Not tried on a real TS-590SG — it follows Hamlib's settings for the rig; the `rigctl … f` check tells you at once whether it works.
+Non essayé avec un vrai TS-590SG — il suit les réglages de Hamlib pour ce poste ; la vérification `rigctl … f` indique aussitôt si cela fonctionne.
 
-In the radio's menu, set the baud rate of the **USB** port to `115200` (the menu number is in the TS-590SG manual). Hamlib's model number is `2037`; the older TS-590S is `2031`. On Windows, install Kenwood's virtual COM port driver for the USB port first.
+Dans le menu du poste, réglez la vitesse du port **USB** sur `115200` (le numéro de menu figure dans le manuel du TS-590SG). Le numéro de modèle Hamlib est `2037` ; l'ancien TS-590S est `2031`. Sous Windows, installez d'abord le pilote de port COM virtuel de Kenwood pour le port USB.
 
-The USB cable creates **one** serial port:
+Le câble USB crée **un** port série :
 
-- **Linux:** the radio's line in `ls /dev/serial/by-id/`, usually `/dev/ttyUSB0`.
-- **Windows:** Device Manager → Ports (COM & LPT), for example `COM6`.
+- **Linux :** la ligne du poste dans `ls /dev/serial/by-id/`, en général `/dev/ttyUSB0`.
+- **Windows :** Gestionnaire de périphériques → Ports (COM et LPT), par exemple `COM6`.
 
-**Linux:**
+**Linux :**
 ```bash
 rigctl -m 2037 -r /dev/ttyUSB0 -s 115200 f
 cd ~/PhantomSDR-Plus/tci-bridge
 node tci-rigctld.mjs --rigctl rigctl -m 2037 -r /dev/ttyUSB0 -s 115200
 ```
 
-**Windows:**
+**Windows :**
 ```bat
 C:\hamlib\bin\rigctl.exe -m 2037 -r COM6 -s 115200 f
 cd C:\tci-bridge
 node tci-rigctld.mjs --rigctl C:\hamlib\bin\rigctl.exe -m 2037 -r COM6 -s 115200
 ```
 
-If the check fails, the usual cause is a USB baud rate that differs from `-s`, or a cable in the rig's RS-232 (COM) socket while `-r` names the USB port.
+Si la vérification échoue, la cause habituelle est une vitesse USB différente de `-s`, ou un câble branché sur la prise RS-232 (COM) du poste alors que `-r` désigne le port USB.
 
-#### More examples
+#### Autres exemples
 
-None of these has been tried on real hardware. Each row gives the options to put after `rigctl` for the check and after `--rigctl rigctl` for the bridge; set the rig's menu to the same speed. The Linux port is the usual one — confirm it with `ls /dev/serial/by-id/`. On Windows, replace the port with the COM number from Device Manager and `rigctl` with `C:\hamlib\bin\rigctl.exe`.
+Aucun n'a été essayé sur du matériel réel. Chaque ligne donne les options à placer après `rigctl` pour la vérification et après `--rigctl rigctl` pour le pont ; réglez la même vitesse dans le menu du poste. Le port Linux est le port habituel — confirmez-le avec `ls /dev/serial/by-id/`. Sous Windows, remplacez le port par le numéro COM du Gestionnaire de périphériques et `rigctl` par `C:\hamlib\bin\rigctl.exe`.
 
-| Rig | Rig's menu | Options (Linux) | Notes |
+| Poste | Menu du poste | Options (Linux) | Remarques |
 |---|---|---|---|
-| Icom IC-705 (USB) | CI-V USB Baud Rate `19200` | `-m 3085 -r /dev/ttyACM0 -s 19200` | Two ports appear; CI-V is the first (`ttyACM0`) |
-| Icom IC-7100 (USB) | CI-V USB Baud Rate `19200` | `-m 3070 -r /dev/ttyUSB0 -s 19200` | Hamlib's highest speed for this rig is 19200 |
+| Icom IC-705 (USB) | CI-V USB Baud Rate `19200` | `-m 3085 -r /dev/ttyACM0 -s 19200` | Deux ports apparaissent ; le CI-V est le premier (`ttyACM0`) |
+| Icom IC-7100 (USB) | CI-V USB Baud Rate `19200` | `-m 3070 -r /dev/ttyUSB0 -s 19200` | La vitesse maximale de Hamlib pour ce poste est 19200 |
 | Icom IC-7610 | CI-V USB Baud Rate `115200` | `-m 3078 -r /dev/ttyUSB0 -s 115200` | |
 | Icom IC-9700 | CI-V USB Baud Rate `38400` | `-m 3081 -r /dev/ttyUSB0 -s 38400` | |
-| Yaesu FTDX101D / FTDX101MP | CAT RATE `38400` | `-m 1040 -r /dev/ttyUSB0 -s 38400` | `-m 1044` for the FTDX101MP. Two ports; use Enhanced |
-| Yaesu FTDX10 | CAT RATE `38400` | `-m 1042 -r /dev/ttyUSB0 -s 38400` | Two ports; use Enhanced, as on the FT-991A |
-| Yaesu FT-710 | CAT RATE `38400` | `-m 1049 -r /dev/ttyUSB0 -s 38400` | Two ports; use Enhanced, as on the FT-991A |
-| Yaesu FT-891 | CAT RATE `38400` | `-m 1036 -r /dev/ttyUSB0 -s 38400` | Two ports; use Enhanced, as on the FT-991A |
-| Yaesu FT-450D | CAT RATE `38400` | `-m 1046 -r /dev/ttyUSB0 -s 38400` | RS-232 socket: use a USB-serial adapter |
-| Yaesu FT-817 / FT-818 | CAT RATE `38400` | `-m 1020 -r /dev/ttyUSB0 -s 38400` | `-m 1041` for the FT-818. Needs a CAT cable on the ACC socket |
-| Yaesu FT-857 / FT-897 | CAT RATE `38400` | `-m 1022 -r /dev/ttyUSB0 -s 38400` | `-m 1023` for the FT-897. Needs a CAT cable |
-| Kenwood TS-890S (USB) | USB baud rate `115200` | `-m 2041 -r /dev/ttyUSB0 -s 115200` | |
-| Kenwood TS-990S (USB) | USB baud rate `115200` | `-m 2039 -r /dev/ttyUSB0 -s 115200` | |
-| Kenwood TS-590SG / TS-590S (USB) | USB baud rate `115200` | `-m 2037 -r /dev/ttyUSB0 -s 115200` | Worked example above |
-| Kenwood TS-480 | COM port baud rate `57600` | `-m 2028 -r /dev/ttyUSB0 -s 57600` | RS-232 socket: use a USB-serial adapter |
-| Kenwood TS-2000 | COM port baud rate `57600` | `-m 2014 -r /dev/ttyUSB0 -s 57600` | RS-232 socket; Hamlib's highest speed for this rig is 57600 |
-| Elecraft K4 (USB) | RS232 speed `115200` | `-m 2047 -r /dev/ttyUSB0 -s 115200` | |
-| Elecraft K3 / K3S | RS232 speed `38400` | `-m 2029 -r /dev/ttyUSB0 -s 38400` | K3S: USB; K3: serial port or KUSB cable |
-| Elecraft KX3 | RS232 speed `38400` | `-m 2045 -r /dev/ttyUSB0 -s 38400` | KXUSB cable |
-| Elecraft KX2 | RS232 speed `38400` | `-m 2044 -r /dev/ttyUSB0 -s 38400` | KXUSB cable |
-| Xiegu G90 | CI-V baud rate `19200` | `-m 3088 -r /dev/ttyUSB0 -s 19200` | Hamlib uses the G90's default CI-V address |
-| Xiegu X6100 | CI-V baud rate `19200` | `-m 3087 -r /dev/ttyUSB0 -s 19200` | Hamlib's highest speed for this rig is 19200 |
-| Lab599 TX-500 | — | `-m 2050 -r /dev/ttyUSB0 -s 9600` | Hamlib uses 9600 only |
+| Yaesu FTDX101D / FTDX101MP | CAT RATE `38400` | `-m 1040 -r /dev/ttyUSB0 -s 38400` | `-m 1044` pour le FTDX101MP. Deux ports ; utilisez l'Enhanced |
+| Yaesu FTDX10 | CAT RATE `38400` | `-m 1042 -r /dev/ttyUSB0 -s 38400` | Deux ports ; utilisez l'Enhanced, comme sur le FT-991A |
+| Yaesu FT-710 | CAT RATE `38400` | `-m 1049 -r /dev/ttyUSB0 -s 38400` | Deux ports ; utilisez l'Enhanced, comme sur le FT-991A |
+| Yaesu FT-891 | CAT RATE `38400` | `-m 1036 -r /dev/ttyUSB0 -s 38400` | Deux ports ; utilisez l'Enhanced, comme sur le FT-991A |
+| Yaesu FT-450D | CAT RATE `38400` | `-m 1046 -r /dev/ttyUSB0 -s 38400` | Prise RS-232 : utilisez un adaptateur USB-série |
+| Yaesu FT-817 / FT-818 | CAT RATE `38400` | `-m 1020 -r /dev/ttyUSB0 -s 38400` | `-m 1041` pour le FT-818. Demande un câble CAT sur la prise ACC |
+| Yaesu FT-857 / FT-897 | CAT RATE `38400` | `-m 1022 -r /dev/ttyUSB0 -s 38400` | `-m 1023` pour le FT-897. Demande un câble CAT |
+| Kenwood TS-890S (USB) | Vitesse USB `115200` | `-m 2041 -r /dev/ttyUSB0 -s 115200` | |
+| Kenwood TS-990S (USB) | Vitesse USB `115200` | `-m 2039 -r /dev/ttyUSB0 -s 115200` | |
+| Kenwood TS-590SG / TS-590S (USB) | Vitesse USB `115200` | `-m 2037 -r /dev/ttyUSB0 -s 115200` | Exemple détaillé ci-dessus |
+| Kenwood TS-480 | Vitesse du port COM `57600` | `-m 2028 -r /dev/ttyUSB0 -s 57600` | Prise RS-232 : utilisez un adaptateur USB-série |
+| Kenwood TS-2000 | Vitesse du port COM `57600` | `-m 2014 -r /dev/ttyUSB0 -s 57600` | Prise RS-232 ; la vitesse maximale de Hamlib pour ce poste est 57600 |
+| Elecraft K4 (USB) | Vitesse RS232 `115200` | `-m 2047 -r /dev/ttyUSB0 -s 115200` | |
+| Elecraft K3 / K3S | Vitesse RS232 `38400` | `-m 2029 -r /dev/ttyUSB0 -s 38400` | K3S : USB ; K3 : port série ou câble KUSB |
+| Elecraft KX3 | Vitesse RS232 `38400` | `-m 2045 -r /dev/ttyUSB0 -s 38400` | Câble KXUSB |
+| Elecraft KX2 | Vitesse RS232 `38400` | `-m 2044 -r /dev/ttyUSB0 -s 38400` | Câble KXUSB |
+| Xiegu G90 | Vitesse CI-V `19200` | `-m 3088 -r /dev/ttyUSB0 -s 19200` | Hamlib utilise l'adresse CI-V par défaut du G90 |
+| Xiegu X6100 | Vitesse CI-V `19200` | `-m 3087 -r /dev/ttyUSB0 -s 19200` | La vitesse maximale de Hamlib pour ce poste est 19200 |
+| Lab599 TX-500 | — | `-m 2050 -r /dev/ttyUSB0 -s 9600` | Hamlib utilise uniquement 9600 |
 | ELAD FDM-DUO | — | `-m 33001 -r /dev/ttyUSB0 -s 115200` | |
-| QRP Labs QDX | — | `-m 2052 -r /dev/ttyACM0 -s 9600` | A USB serial port; the speed does not matter but must be given |
+| QRP Labs QDX | — | `-m 2052 -r /dev/ttyACM0 -s 9600` | Un port série USB ; la vitesse ne compte pas mais doit être indiquée |
 
-Complete Linux command for the IC-705, as an example of reading a row:
+Commande Linux complète pour l'IC-705, pour montrer comment lire une ligne :
 
 ```bash
 rigctl -m 3085 -r /dev/ttyACM0 -s 19200 f
 node tci-rigctld.mjs --rigctl rigctl -m 3085 -r /dev/ttyACM0 -s 19200
 ```
 
-#### Rigs run by other software
+#### Postes pilotés par un autre logiciel
 
-Some radios are already run by a program that can do the job — sometimes with no bridge at all. None of these has been tried.
+Certains postes sont déjà pilotés par un logiciel capable de faire le travail — parfois sans aucun pont. Aucune de ces voies n'a été essayée.
 
-| Radio and program | What to do |
+| Poste et logiciel | Que faire |
 |---|---|
-| **SunSDR** with ExpertSDR2/3, **FlexRadio** with AetherSDR, **Apache Labs ANAN / Hermes** with Thetis | No bridge. Switch on the program's **TCI server** and use **TCI-CAT** directly — ports 50001 and 40001 are found automatically |
-| **FlexRadio** with SmartSDR (Windows) | Add a port in **SmartSDR CAT**. It speaks Kenwood CAT, so a serial port there works as a TS-2000: `-m 2014 -r COM8 -s 57600`. A TCP port works with Hamlib's FlexRadio model: `-m 2036 -r 127.0.0.1:<port>` |
-| **Any rig controlled by flrig** | Leave flrig running and use Hamlib's flrig model; the rig stays shared with fldigi, WSJT-X and loggers: `-m 4 -r 127.0.0.1:12345` |
-| **A running rigctld**, or a program offering a *Hamlib NET rigctl* server | Start the bridge without `--rigctl`, with that address: `node tci-rigctld.mjs 50001 127.0.0.1:4532` |
+| **SunSDR** avec ExpertSDR2/3, **FlexRadio** avec AetherSDR, **Apache Labs ANAN / Hermes** avec Thetis | Pas de pont. Activez le **serveur TCI** du logiciel et utilisez **TCI-CAT** directement — les ports 50001 et 40001 sont trouvés automatiquement |
+| **FlexRadio** avec SmartSDR (Windows) | Ajoutez un port dans **SmartSDR CAT**. Il parle le CAT Kenwood, donc un port série y fonctionne comme un TS-2000 : `-m 2014 -r COM8 -s 57600`. Un port TCP fonctionne avec le modèle FlexRadio de Hamlib : `-m 2036 -r 127.0.0.1:<port>` |
+| **Tout poste piloté par flrig** | Laissez flrig tourner et utilisez le modèle flrig de Hamlib ; le poste reste partagé avec fldigi, WSJT-X et les logiciels de trafic : `-m 4 -r 127.0.0.1:12345` |
+| **Un rigctld en cours d'exécution**, ou un logiciel offrant un serveur *Hamlib NET rigctl* | Lancez le pont sans `--rigctl`, avec cette adresse : `node tci-rigctld.mjs 50001 127.0.0.1:4532` |
 
-As everywhere, the options go after `rigctl` for the check and after `--rigctl rigctl` for the bridge. A network address such as `127.0.0.1:12345` needs no `-s`.
+Comme partout, les options se placent après `rigctl` pour la vérification et après `--rigctl rigctl` pour le pont. Une adresse réseau comme `127.0.0.1:12345` n'a pas besoin de `-s`.
 
-#### Sharing the radio: the rigctld way
+#### Partager le poste : la voie rigctld
 
-When WSJT-X or a logger must use the radio while the bridge runs, start Hamlib's server `rigctld` with the same options, leave it running, and connect both programs to it:
+Quand WSJT-X ou un logiciel de trafic doit utiliser le poste pendant que le pont tourne, lancez le serveur de Hamlib `rigctld` avec les mêmes options, laissez-le tourner et reliez les deux programmes à lui :
 
 ```bash
 rigctld -m 3073 -r /dev/ttyUSB0 -s 115200
 node tci-rigctld.mjs
 ```
 
-Without `--rigctl` the bridge looks for `rigctld` at `127.0.0.1:4532` and prints `rigctld connected`; `node tci-rigctld.mjs 50001 192.168.1.50:4532` uses a `rigctld` on another computer. In WSJT-X choose rig *Hamlib NET rigctl* at the same address. On Windows the server is `C:\hamlib\bin\rigctld.exe` with the same options; if Windows answers *Access is denied*, use `--rigctl` and close the other program while the bridge runs.
+Sans `--rigctl`, le pont cherche `rigctld` sur `127.0.0.1:4532` et affiche `rigctld connected` ; `node tci-rigctld.mjs 50001 192.168.1.50:4532` utilise un `rigctld` sur un autre ordinateur. Dans WSJT-X, choisissez le poste *Hamlib NET rigctl* à la même adresse. Sous Windows le serveur est `C:\hamlib\bin\rigctld.exe` avec les mêmes options ; si Windows répond *Access is denied*, utilisez `--rigctl` et fermez l'autre programme pendant que le pont tourne.
 
-**Ports.** The bridge serves TCI on port 50001; another port goes first on the command line, e.g. `node tci-rigctld.mjs 40001 --rigctl …`. If the bridge and the browser are on different computers, put the bridge computer's address in **Host**.
+**Ports.** Le pont sert le TCI sur le port 50001 ; un autre port se place en premier sur la ligne de commande, par ex. `node tci-rigctld.mjs 40001 --rigctl …`. Si le pont et le navigateur sont sur des ordinateurs différents, indiquez dans **Host** l'adresse de l'ordinateur du pont.
 
-### TCI-CAT troubleshooting
+### Dépannage de TCI-CAT
 
-| Symptom | Likely cause | What to do |
+| Symptôme | Cause probable | Que faire |
 |---|---|---|
-| Dot stays grey | TCI server or bridge not running; wrong **Host**; the browser's local-network permission was refused | Enable TCI in ExpertSDR/Thetis/AetherSDR, or start the bridge; check **Host**; allow local network access in the site settings |
-| `rigctl … f` gives an error or waits | Wrong port or speed; no `dialout` permission (Linux) or no USB driver (Windows); another program has the port | Match `-s` to the rig's menu; check the port (`ls /dev/serial/by-id/`, Device Manager); close other rig programs |
-| Bridge prints *rigctl stopped … Type: rigctl --help* | The command is incomplete — usually the speed after `-s` is missing | Type the whole line again |
-| Bridge prints *The value after -s is missing* | The command line was cut short when it was pasted | Type the end of the line again, e.g. `-s 115200` |
-| The filter does not follow in one direction or the other | **CAT Sync** is off, a decoder is running on the page, or (IC-7300) the rig's FIL widths differ from 2700 / 2400 / 1800 Hz | Switch CAT Sync on; stop the decoder; set the FIL widths on the rig, or give `--filters` with the rig's own widths |
-| Bridge prints *rigctl stopped … rig_open: error* | `rigctl` cannot open the port | As for `rigctl … f` above |
-| Bridge prints *the rig is not answering* | The port opens but the rig does not reply: wrong speed or model, CAT switched off in the rig's menu, or a changed Icom CI-V address | Repeat the `rigctl … f` check; add `-c` for a changed CI-V address |
-| Bridge prints *rigctld not reachable* | Started without `--rigctl`, and no `rigctld` is running | Add `--rigctl …`, or start `rigctld` first |
-| `rigctld.exe` says *Access is denied* (Windows) | Windows refuses to run it | Use `--rigctl` — it needs only `rigctl.exe` |
-| Connected, but the receiver does not move | **CAT Sync** is off | Switch it on — the mute on transmit works without it |
-| Rig mode does not follow | A mode the receiver has no equivalent for, or the Hamlib driver reports an unusual name | Frequency still syncs; set the mode on the page |
-| No mute on transmit | The rig or its Hamlib driver does not report transmit state | Nothing to set on the page |
-| The dial jumps back and forth | Desktop PhantomSDR+ or another program is also syncing the rig | Use one controller at a time |
+| Le point reste gris | Serveur TCI ou pont arrêté ; **Host** erroné ; l'autorisation réseau local du navigateur a été refusée | Activez TCI dans ExpertSDR/Thetis/AetherSDR ou lancez le pont ; vérifiez **Host** ; autorisez l'accès au réseau local dans les paramètres du site |
+| `rigctl … f` renvoie une erreur ou reste en attente | Mauvais port ou mauvaise vitesse ; pas de droit `dialout` (Linux) ou pas de pilote USB (Windows) ; un autre programme tient le port | Alignez `-s` sur le menu du poste ; vérifiez le port (`ls /dev/serial/by-id/`, Gestionnaire de périphériques) ; fermez les autres programmes de pilotage |
+| Le pont affiche *rigctl stopped … Type: rigctl --help* | La commande est incomplète — en général la vitesse après `-s` manque | Retapez la ligne entière |
+| Le pont affiche *The value after -s is missing* | La ligne de commande a été coupée au collage | Retapez la fin de la ligne, par ex. `-s 115200` |
+| Le filtre ne suit pas dans un sens ou dans l'autre | **CAT Sync** est désactivé, un décodeur tourne sur la page, ou (IC-7300) les largeurs FIL du poste diffèrent de 2700 / 2400 / 1800 Hz | Activez CAT Sync ; arrêtez le décodeur ; réglez les largeurs FIL sur le poste, ou indiquez `--filters` avec les largeurs du poste |
+| Le pont affiche *rigctl stopped … rig_open: error* | `rigctl` ne peut pas ouvrir le port | Comme pour `rigctl … f` ci-dessus |
+| Le pont affiche *the rig is not answering* | Le port s'ouvre mais le poste ne répond pas : mauvaise vitesse ou mauvais modèle, CAT désactivé dans le menu, ou adresse CI-V Icom changée | Refaites la vérification `rigctl … f` ; ajoutez `-c` si l'adresse CI-V a été changée |
+| Le pont affiche *rigctld not reachable* | Lancé sans `--rigctl`, et aucun `rigctld` ne tourne | Ajoutez `--rigctl …`, ou lancez d'abord `rigctld` |
+| `rigctld.exe` répond *Access is denied* (Windows) | Windows refuse de l'exécuter | Utilisez `--rigctl` — il ne demande que `rigctl.exe` |
+| Connecté, mais le récepteur ne bouge pas | **CAT Sync** est désactivé | Activez-le — la coupure en émission fonctionne sans lui |
+| Le mode du poste ne suit pas | Mode sans équivalent sur le récepteur, ou pilote Hamlib qui renvoie un nom inhabituel | La fréquence reste synchronisée ; réglez le mode sur la page |
+| Pas de coupure en émission | Le poste ou son pilote Hamlib ne signale pas l'état d'émission | Rien à régler sur la page |
+| Le cadran fait des allers-retours | Desktop PhantomSDR+ ou un autre programme synchronise aussi le poste | Un seul contrôleur à la fois |
 
 ---
 
-## For receiver operators
+## Pour les opérateurs de récepteurs
 
-Nothing to configure. Rig control uses a small JavaScript interface every PhantomSDR-Plus page already carries; it involves no server setting, no open port and no admin permission. The filter and mute functions came with version 4.1.0 — after applying it, rebuild the frontend (`./recompile.sh`, option 2); the receiver does not need to be stopped. KiwiSDR, WebSDR and UberSDR receivers need nothing either: the app uses the controls their pages already have.
+Rien à configurer. Le pilotage du transceiver passe par une petite interface JavaScript que chaque page PhantomSDR-Plus possède déjà ; il ne demande ni réglage serveur, ni port ouvert, ni droit d'administration. Les fonctions de filtre et de coupure du son sont arrivées avec la version 4.1.0 — après l'avoir appliquée, recompilez le frontend (`./recompile.sh`, option 2) ; inutile d'arrêter le récepteur. Les récepteurs KiwiSDR, WebSDR et UberSDR n'ont besoin de rien non plus : l'application utilise les commandes que leurs pages possèdent déjà.
 
-The **TCI-CAT** button came with 4.1.0 too, again a frontend rebuild only. It opens no port on the receiver: the connection runs from each listener's browser to their own computer. The Hamlib bridge, `tci-bridge/tci-rigctld.mjs`, is for listeners to run at home; the receiver does not use it.
+Le bouton **TCI-CAT** est arrivé lui aussi avec la 4.1.0, là encore une simple recompilation du frontend. Il n'ouvre aucun port sur le récepteur : la connexion va du navigateur de chaque auditeur vers son propre ordinateur. Le pont Hamlib, `tci-bridge/tci-rigctld.mjs`, est destiné aux auditeurs, chez eux ; le récepteur ne l'utilise pas.
 
 ---
 
-## For developers: the page interface
+## Pour les développeurs : l'interface de la page
 
-Both Desktop PhantomSDR+ and the CATsync Tool use these functions, which every PhantomSDR-Plus page puts on `window` once it has loaded (KiwiSDR, WebSDR and UberSDR pages are driven through their own, different controls):
+Desktop PhantomSDR+ comme le CATsync Tool utilisent ces fonctions, que chaque page PhantomSDR-Plus place sur `window` une fois chargée (les pages KiwiSDR, WebSDR et UberSDR sont pilotées par leurs propres commandes, différentes) :
 
-| Function | Returns / does |
+| Fonction | Renvoie / fait |
 |---|---|
-| `catsync_ready` | `true` once the functions below are installed |
-| `catsync_getFrequency()` | Tuned frequency, Hz |
-| `catsync_setFrequency(hz)` | Tune to `hz` |
+| `catsync_ready` | `true` dès que les fonctions ci-dessous sont installées |
+| `catsync_getFrequency()` | Fréquence d'accord, Hz |
+| `catsync_setFrequency(hz)` | S'accorde sur `hz` |
 | `catsync_getMode()` | `USB`, `LSB`, `CW`, `CW-L`, `AM`, `QUAM`, `FM`, `WBFM`, `RADEU`, `RADEL` |
-| `catsync_setMode(mode)` | Set the mode; resets the passband to the mode's default |
-| `catsync_getBandwidth()` | Whole passband width, Hz |
-| `catsync_setBandwidth(hz)` | Set the width — grows upwards in USB, downwards in LSB, evenly otherwise. Call it **after** `catsync_setMode` |
-| `catsync_getMute()` | `true` when muted |
-| `catsync_setMute(on)` | Mute or unmute, through the page's mute button |
+| `catsync_setMode(mode)` | Règle le mode ; ramène la bande passante à la valeur par défaut du mode |
+| `catsync_getBandwidth()` | Largeur totale de la bande passante, Hz |
+| `catsync_setBandwidth(hz)` | Règle la largeur — s'élargit vers le haut en USB, vers le bas en LSB, également des deux côtés sinon. À appeler **après** `catsync_setMode` |
+| `catsync_getMute()` | `true` si le son est coupé |
+| `catsync_setMute(on)` | Coupe ou rétablit le son, via le bouton muet de la page |
 
-The last four arrived with 4.1.0, so test before calling:
+Les quatre dernières sont arrivées avec la 4.1.0 ; testez donc avant de les appeler :
 
 ```js
 if (window.catsync_ready) {
@@ -576,34 +576,34 @@ if (window.catsync_ready) {
 }
 ```
 
-Setting the frequency retunes audio, so call a setter only when the value has actually changed — polling a setter with the same value is audible. The older KiwiSDR/WebSDR-style entry points (`setfreq`, `set_mode`, `freqset_complete`) are still there for tools that expect them.
+Régler la fréquence réaccorde l'audio : n'appelez un setter que lorsque la valeur a réellement changé — un setter appelé en boucle avec la même valeur s'entend. Les anciens points d'entrée de style KiwiSDR/WebSDR (`setfreq`, `set_mode`, `freqset_complete`) restent disponibles pour les outils qui les attendent.
 
 ---
 
-## Troubleshooting
+## Dépannage
 
-| Symptom | Likely cause | What to do |
+| Symptôme | Cause probable | Que faire |
 |---|---|---|
-| *Could not open ttyUSB0* (Linux) | Not in the `dialout` group, or another program has the port | `sudo usermod -aG dialout $USER`, log out and in; close WSJT-X, loggers, rig utilities |
-| The receiver readout says *not a receiver this app can drive* | Another kind of web receiver, or the page is still loading | Supported are PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR and UberSDR; give a slow page a few seconds |
-| *The rig did not answer* | Wrong speed, wrong rig type, wrong CI-V address, rig off | Match the speed to the rig's menu; check the CI-V address; try Hamlib |
-| *Hamlib is not installed* | No `rigctld` found | Linux: `sudo apt install libhamlib-utils`. Or set **rigctld program** to its path |
-| *rigctld stopped: ...* | Hamlib could not open the rig — its own message follows | Usually the port or speed; the text after the colon is Hamlib's reason |
-| *flrig is not running at ...* | flrig closed, or its XML-RPC port differs | Start flrig; check its port in flrig's configuration |
-| Connected, but the receiver does not move | No station window open, or **Receiver window** pinned to a station that is closed | Open the station, or choose *The station window last in front* |
-| The rig transmits when connecting | DTR or RTS keys the rig through your interface | Untick **DTR on** and **RTS on** |
-| Filter does not follow | Receiver older than 4.1.0, or a built-in Kenwood/Yaesu driver | Frequency and mode still sync; use Hamlib for the filter on Kenwood/Yaesu |
-| Mute on transmit does nothing | Receiver without the update, or the rig does not report transmit state | As above |
-| *Lost the rig ... reconnecting* | The cable was pulled, the rig was switched off, or rigctld died | Nothing — it retries every 3 seconds and carries on when the rig is back |
-| The two sides keep jumping | Two programs are controlling the rig at once | Let only one program set the rig, or share it through flrig |
+| *Could not open ttyUSB0* (Linux) | Pas dans le groupe `dialout`, ou un autre programme tient le port | `sudo usermod -aG dialout $USER`, se déconnecter et se reconnecter ; fermer WSJT-X, carnets de trafic, utilitaires du poste |
+| L'affichage du récepteur indique *not a receiver this app can drive* | Un autre type de récepteur web, ou la page est encore en chargement | Sont pris en charge PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR et UberSDR ; laisser quelques secondes à une page lente |
+| *The rig did not answer* | Mauvaise vitesse, mauvais type de poste, mauvaise adresse CI-V, poste éteint | Aligner la vitesse sur le menu du poste ; vérifier l'adresse CI-V ; essayer Hamlib |
+| *Hamlib is not installed* | Aucun `rigctld` trouvé | Linux : `sudo apt install libhamlib-utils`. Ou indiquer son chemin dans **rigctld program** |
+| *rigctld stopped: ...* | Hamlib n'a pas pu ouvrir le poste — son propre message suit | Généralement le port ou la vitesse ; le texte après les deux-points est la raison donnée par Hamlib |
+| *flrig is not running at ...* | flrig fermé, ou son port XML-RPC diffère | Lancer flrig ; vérifier le port dans sa configuration |
+| Connecté, mais le récepteur ne bouge pas | Aucune fenêtre de station ouverte, ou **Receiver window** attaché à une station fermée | Ouvrir la station, ou choisir *The station window last in front* |
+| Le poste passe en émission à la connexion | DTR ou RTS déclenche le poste via votre interface | Décocher **DTR on** et **RTS on** |
+| Le filtre ne suit pas | Récepteur antérieur à la 4.1.0, ou pilote intégré Kenwood/Yaesu | Fréquence et mode se synchronisent toujours ; utiliser Hamlib pour le filtre sur Kenwood/Yaesu |
+| La coupure en émission ne fait rien | Récepteur sans la mise à jour, ou le poste ne signale pas l'état d'émission | Comme ci-dessus |
+| *Lost the rig ... reconnecting* | Câble débranché, poste éteint ou rigctld arrêté | Rien — nouvel essai toutes les 3 secondes, puis reprise dès le retour du poste |
+| Les deux côtés sautent sans arrêt | Deux programmes pilotent le poste en même temps | Ne laisser qu'un programme régler le poste, ou le partager via flrig |
 
 ---
 
-## Known limitations
+## Limites connues
 
-- One rig, one receiver window at a time.
-- Receivers other than PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR and UberSDR — OpenWebRX, for example — are not supported.
-- The built-in drivers follow the manufacturers' published protocols and were tested against simulated rigs and real Hamlib; for a rig that behaves differently, Hamlib is the fallback.
-- Split operation, VFO B, RIT/XIT and memory channels are not synced — only the frequency of the active VFO.
-- TCI-CAT on the receiver page does not sync split, VFO B, RIT/XIT or transverter offsets, and was tried only on an IC-7300 through the Hamlib bridge.
-- On Linux the packages use the distribution's Hamlib; none is bundled.
+- Un poste, une fenêtre de récepteur à la fois.
+- Les récepteurs autres que PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR et UberSDR — OpenWebRX, par exemple — ne sont pas pris en charge.
+- Les pilotes intégrés suivent les protocoles publiés par les constructeurs et ont été testés contre des postes simulés et un vrai Hamlib ; pour un poste qui se comporte autrement, Hamlib est la solution de repli.
+- Le split, le VFO B, le RIT/XIT et les canaux mémoire ne sont pas synchronisés — seulement la fréquence du VFO actif.
+- TCI-CAT sur la page du récepteur ne synchronise ni le split, ni le VFO B, ni le RIT/XIT, ni les décalages de transverter, et n'a été essayé qu'avec un IC-7300 via le pont Hamlib.
+- Sous Linux, les paquets utilisent le Hamlib de la distribution ; aucun n'est embarqué.

@@ -1,55 +1,56 @@
-# Thermal Guard — Sysop Manual
+# Thermal Guard — Manuel du sysop
 
-**CPU over-temperature protection for PhantomSDR-Plus.**
+**Protection contre la surchauffe du processeur pour PhantomSDR-Plus.**
 
-A WebSDR is one of the few things a computer does that keeps every core busy, all day, forever. If a fan clogs, a pump stalls or the room gets hot in August, nothing tells you — the server just keeps decoding until the CPU is cooking itself. The thermal guard is the piece that notices and pulls the plug for you.
+Un WebSDR est l'une des rares applications qui occupent tous les cœurs, toute la journée, indéfiniment. Si un ventilateur s'encrasse, si une pompe s'arrête ou si la pièce devient brûlante en août, personne ne vous prévient : le serveur continue simplement à décoder jusqu'à ce que le processeur cuise. Le thermal guard est la pièce qui s'en aperçoit et débranche à votre place.
 
-It ships **inert**: out of the box it only writes to a log. Nothing is protected until you choose a mode. This manual is about making that choice and living with it.
+Il est livré **inerte** : d'origine, il n'écrit que dans un journal. Rien n'est protégé tant que vous n'avez pas choisi un mode. Ce manuel porte sur ce choix et sur la façon de vivre avec.
 
-> **In a hurry?** Run `python3 thermal_guard.py --once`, read the thresholds it prints, then set `thermal_mode` to `stop+restart` in the admin panel. That is the whole job. Everything below is the *why*.
-
----
-
-## Contents
-
-1. [What it does](#1-what-it-does)
-2. [Quick start](#2-quick-start)
-3. [How it decides](#3-how-it-decides)
-4. [The four modes — what each one does and what you must do](#4-the-four-modes)
-5. [Choosing a mode](#5-choosing-a-mode)
-6. [Configuration reference](#6-configuration-reference)
-7. [Running it without the admin panel](#7-running-it-without-the-admin-panel)
-8. [Enabling the throttle stage without root](#8-enabling-the-throttle-stage-without-root)
-9. [Unattended operation — when nobody is watching](#9-unattended-operation)
-10. [Testing it before you trust it](#10-testing-it-before-you-trust-it)
-11. [Reading the log](#11-reading-the-log)
-12. [Lockout and the rate limit](#12-lockout-and-the-rate-limit)
-13. [Troubleshooting](#13-troubleshooting)
-14. [Turning it off or removing it](#14-turning-it-off-or-removing-it)
+> **Pressé ?** Lancez `python3 thermal_guard.py --once`, lisez les seuils affichés, puis passez `thermal_mode` à `stop+restart` dans le panneau d'administration. C'est tout le travail. Le reste ci-dessous, c'est le *pourquoi*.
 
 ---
 
-## 1. What it does
+## Sommaire
 
-Every 2 seconds the guard reads your CPU's die temperature and compares it against four thresholds. When the temperature stays above one of them for long enough, it moves up a ladder:
+1. [Ce qu'il fait](#1-ce-quil-fait)
+2. [Démarrage rapide](#2-démarrage-rapide)
+3. [Comment il décide](#3-comment-il-décide)
+4. [Les quatre modes — ce que chacun fait et ce que vous devez faire](#4-les-quatre-modes)
+5. [Choisir un mode](#5-choisir-un-mode)
+6. [Référence de configuration](#6-référence-de-configuration)
+7. [Fonctionnement sans le panneau d'administration](#7-fonctionnement-sans-le-panneau-dadministration)
+8. [Activer l'étage throttle sans root](#8-activer-létage-throttle-sans-root)
+9. [Fonctionnement sans surveillance — quand personne ne regarde](#9-fonctionnement-sans-surveillance)
+10. [Le tester avant de lui faire confiance](#10-le-tester-avant-de-lui-faire-confiance)
+11. [Lire le journal](#11-lire-le-journal)
+12. [Lockout et limitation du nombre d'arrêts](#12-lockout-et-limitation-du-nombre-darrêts)
+13. [Dépannage](#13-dépannage)
+14. [Le désactiver ou le supprimer](#14-le-désactiver-ou-le-supprimer)
+
+---
+
+## 1. Ce qu'il fait
+
+Toutes les 2 secondes, le garde lit la température du die de votre processeur et la compare à quatre seuils. Lorsque la température reste au-dessus de l'un d'eux assez longtemps, il gravit un échelon :
 
 ```
-   normal  ──►  warn  ──►  throttle  ──►  stop  ──►  (cool down)  ──►  restart
-             log a line   lower the      run your       hold the        run your
-                          CPU clock      stop script    server down     start script
+   normal  ──►  warn  ──►  throttle  ──►  stop  ──►  (refroidir)  ──►  restart
+              ligne dans   baisse de     exécution du   le serveur     exécution du
+              le journal   la fréquence  script d'arrêt reste arrêté   script de
+                                                                       démarrage
 ```
 
-Two design decisions make it work on *any* sysop's machine, which is worth understanding before you rely on it:
+Deux choix de conception le rendent utilisable sur la machine de *n'importe quel* sysop, et il vaut la peine de les comprendre avant de compter sur lui :
 
-**It never asks how you run your server.** systemd, a watchdog loop, cron, tmux, a bare shell — the guard does not know and does not care. Instead, while the machine is over-temperature it holds a **lockout**: it re-issues the stop on *every* tick. If your watchdog restarts the server, the guard stops it again within two seconds. Whatever is trying to keep the server alive loses, until the CPU has cooled. This is the part that makes it universal, and it is tested against a real watchdog.
+**Il ne demande jamais comment vous lancez votre serveur.** systemd, une boucle watchdog, cron, tmux, un simple shell : le garde ne le sait pas et s'en moque. À la place, tant que la machine est en surchauffe, il maintient un **lockout** : il réémet l'arrêt à *chaque* cycle. Si votre watchdog relance le serveur, le garde l'arrête à nouveau en moins de deux secondes. Tout ce qui essaie de le maintenir en vie perd, jusqu'à ce que le processeur ait refroidi. C'est ce qui le rend universel, et c'est testé face à un vrai watchdog.
 
-**It never hard-codes a temperature.** "Stop at 95 °C" is a bad rule: on an Intel with Tjmax 100 that is normal-ish load, on a Ryzen it is *below* where Tctl sits under boost by design, and on a Raspberry Pi it is unreachable because the SoC throttles itself at 80. So the guard reads the critical trip point your own kernel publishes (`tempN_crit`) and works backwards from it. Same code, sensible numbers everywhere.
+**Il ne code jamais une température en dur.** « Arrêter à 95 °C » est une mauvaise règle : sur un Intel avec Tjmax 100 c'est presque une charge normale, sur un Ryzen c'est *en dessous* de là où Tctl se place sous boost par conception, et sur un Raspberry Pi c'est inatteignable puisque le SoC se limite lui-même à 80. Le garde lit donc le point critique publié par votre propre noyau (`tempN_crit`) et calcule à rebours. Même code, chiffres sensés partout.
 
 ---
 
-## 2. Quick start
+## 2. Démarrage rapide
 
-**1. See what your machine looks like to the guard.** Do this first, always:
+**1. Voyez à quoi ressemble votre machine pour le garde.** Toujours en premier :
 
 ```
 cd ~/PhantomSDR-Plus
@@ -65,214 +66,214 @@ thresholds : warn 88.0  throttle 92.0  stop 95.0  resume 75.0 (C)
 cpufreq    : not writable — throttle stage disabled
 ```
 
-If `sensor` says `NONE`, stop here and read [Troubleshooting](#13-troubleshooting) — the guard cannot protect a machine it cannot measure, and it will tell you so rather than pretend.
+Si `sensor` indique `NONE`, arrêtez-vous ici et lisez le [Dépannage](#13-dépannage) : le garde ne peut pas protéger une machine qu'il ne peut pas mesurer, et il vous le dit plutôt que de faire semblant.
 
-**2. Leave it in `log` mode for a few days.** It is already running inside the admin panel. Let it watch a normal week — summer afternoons, a big build, a busy Saturday contest — and see whether it would ever have fired.
+**2. Laissez-le quelques jours en mode `log`.** Il tourne déjà dans le panneau d'administration. Laissez-le observer une semaine normale — après-midi d'été, une grosse compilation, un samedi de concours chargé — et voyez s'il se serait déclenché.
 
-**3. Arm it.** Admin panel → **Settings** → **THERMAL GUARD** → **MODE** → `stop+restart` → 💾 **SAVE THERMAL SETTINGS**. It takes effect within about 2 seconds; no restart needed.
+**3. Armez-le.** Panneau d'administration → **Settings** → **THERMAL GUARD** → **MODE** → `stop+restart` → 💾 **SAVE THERMAL SETTINGS**. Effectif en 2 secondes environ ; aucun redémarrage nécessaire.
 
 ---
 
-## 3. How it decides
+## 3. Comment il décide
 
-### The sensor
+### Le capteur
 
-The guard only trusts real CPU-die sensors:
+Le garde ne fait confiance qu'aux véritables capteurs de die du processeur :
 
-| Source | Typical hardware |
+| Source | Matériel typique |
 |---|---|
 | `coretemp` | Intel |
 | `k10temp`, `zenpower`, `zenpower3` | AMD |
-| `cpu_thermal`, `soc_thermal` | Raspberry Pi, ARM SBCs |
-| `x86_pkg_temp` thermal zone | fallback on x86 |
+| `cpu_thermal`, `soc_thermal` | Raspberry Pi, cartes ARM |
+| Zone thermique `x86_pkg_temp` | solution de repli sur x86 |
 
-`acpitz` and unlabelled thermal zones are **deliberately excluded**. On a typical desktop `acpitz` reads about 28 °C while the CPU package is at 59 °C — a guard trusting it would simply never fire. Reporting "disabled, no trusted sensor" is more honest than pretending to protect.
+`acpitz` et les zones thermiques sans étiquette sont **délibérément exclus**. Sur un ordinateur de bureau classique, `acpitz` affiche environ 28 °C alors que le package du processeur est à 59 °C : un garde qui s'y fierait ne se déclencherait tout simplement jamais. Annoncer « désactivé, aucun capteur fiable » est plus honnête que faire semblant de protéger.
 
-`psutil` is used if it happens to be installed, but is never required. The guard is pure standard library.
+`psutil` est utilisé s'il se trouve installé, mais n'est jamais requis. Le garde n'utilise que la bibliothèque standard.
 
-### The thresholds
+### Les seuils
 
-Each one is an offset below the critical trip point the machine itself publishes:
+Chacun est un écart sous le point critique que la machine publie elle-même :
 
-| Threshold | Offset below crit | What it means |
+| Seuil | Écart sous crit | Signification |
 |---|---|---|
-| warn | −12 °C | Something is wrong, log it |
-| throttle | −8 °C | Try to cool it down by slowing the CPU |
-| stop | −5 °C | Too close to the edge — stop the server |
-| resume | −25 °C | Genuinely cool again, safe to come back |
+| warn | −12 °C | Quelque chose ne va pas, le consigner |
+| throttle | −8 °C | Tenter de refroidir en ralentissant le processeur |
+| stop | −5 °C | Trop près de la limite — arrêter le serveur |
+| resume | −25 °C | Vraiment refroidi, retour possible |
 
-Which lands like this in practice:
+Ce qui donne en pratique :
 
-| Your CPU reports | warn | throttle | **stop** | resume |
+| Votre processeur annonce | warn | throttle | **stop** | resume |
 |---|---|---|---|---|
 | Intel, crit 100 °C | 88 | 92 | **95** | 75 |
 | AMD Ryzen, crit 95 °C | 83 | 87 | **90** | 70 |
 | Raspberry Pi, crit 85 °C | 73 | 77 | **80** | 60 |
 
-If the machine publishes no critical point at all, the guard falls back to a conservative fixed set and says so. You can override any threshold with an absolute number (see [Configuration reference](#6-configuration-reference)), but you should not need to.
+Si la machine ne publie aucun point critique, le garde se rabat sur un jeu fixe prudent et le signale. Vous pouvez remplacer n'importe quel seuil par une valeur absolue (voir [Référence de configuration](#6-référence-de-configuration)), mais vous ne devriez pas en avoir besoin.
 
-### Sustain times — why a spike never acts
+### Temps de maintien — pourquoi un pic ne déclenche jamais rien
 
-Nothing happens on a single hot reading. A threshold must be held **continuously**:
+Rien ne se produit sur une seule lecture chaude. Un seuil doit être tenu **en continu** :
 
-- **warn** and **throttle**: 30 s (`thermal_warn_sustain_s`)
-- **stop**: 60 s (`thermal_sustain_s`)
-- **resume**: 300 s below the resume threshold before a restart (`thermal_resume_s`)
+- **warn** et **throttle** : 30 s (`thermal_warn_sustain_s`)
+- **stop** : 60 s (`thermal_sustain_s`)
+- **resume** : 300 s sous le seuil de reprise avant un redémarrage (`thermal_resume_s`)
 
-A compile spike, a burst of decoding, a fan ramping up — all far too short to matter. One dip below the threshold resets the clock. On top of that the guard requires 3 consecutive valid readings before it will act at all after starting, and it discards any reading outside 20–125 °C as a sensor glitch rather than a temperature.
+Un pic de compilation, une rafale de décodage, un ventilateur qui monte en régime : tout cela est bien trop bref pour compter. Une seule mesure sous le seuil remet le compteur à zéro. De plus, après le démarrage, le garde exige 3 mesures valides consécutives avant d'agir, et il rejette toute valeur hors de 20–125 °C comme une anomalie de capteur et non comme une température.
 
 ---
 
-## 4. The four modes
+## 4. Les quatre modes
 
-`thermal_mode` is the single switch that decides how far up the ladder the guard is allowed to go. Each mode **includes everything the modes before it do**.
+`thermal_mode` est l'unique interrupteur qui décide jusqu'où le garde a le droit de monter dans l'échelle. Chaque mode **inclut tout ce que font les précédents**.
 
-| Mode | Warns | Throttles | Stops | Restarts | Server can go down? |
+| Mode | Avertit | Ralentit | Arrête | Redémarre | Le serveur peut-il tomber ? |
 |---|:--:|:--:|:--:|:--:|---|
-| `log` | ✓ | — | — | — | No — touches nothing |
-| `throttle` | ✓ | ✓ | — | — | No |
-| `stop` | ✓ | ✓ | ✓ | — | Yes, stays down until you act |
-| `stop+restart` | ✓ | ✓ | ✓ | ✓ | Yes, comes back on its own |
+| `log` | ✓ | — | — | — | Non — ne touche à rien |
+| `throttle` | ✓ | ✓ | — | — | Non |
+| `stop` | ✓ | ✓ | ✓ | — | Oui, reste arrêté jusqu'à votre intervention |
+| `stop+restart` | ✓ | ✓ | ✓ | ✓ | Oui, revient tout seul |
 
 ---
 
-### `log` — watch and report (the shipping default)
+### `log` — observer et rapporter (valeur d'usine)
 
-**What it does:** everything the other modes do, except acting. It follows the whole ladder and writes what it *would* have done to `crash.log`. It never runs your stop script, never touches the CPU frequency, never interrupts a listener.
+**Ce qu'il fait :** tout ce que font les autres modes, sauf agir. Il parcourt toute l'échelle et écrit dans `crash.log` ce qu'il *aurait* fait. Il n'exécute jamais votre script d'arrêt, ne touche jamais à la fréquence du processeur, n'interrompt jamais un auditeur.
 
-**What you must do:** nothing — it is already running. After a week, open the **CRASH** tab in the admin panel, or run:
+**Ce que vous devez faire :** rien — il tourne déjà. Au bout d'une semaine, ouvrez l'onglet **CRASH** du panneau, ou lancez :
 
 ```
 grep THERMAL crash.log
 ```
 
-- **Nothing there?** Your cooling is fine and you can arm the guard with confidence.
-- **`STOP level reached ... NOT stopping`?** The guard would have shut your server down. That is a real thermal problem you have been running with — fix the cooling *and* arm the guard.
+- **Rien du tout ?** Votre refroidissement va bien et vous pouvez armer le garde en confiance.
+- **`STOP level reached ... NOT stopping` ?** Le garde aurait éteint votre serveur. C'est un vrai problème thermique avec lequel vous fonctionniez : réparez le refroidissement *et* armez le garde.
 
-**Use it when:** you have just installed the guard and do not yet know how your machine behaves. This is a shakedown mode, not a destination — a guard in `log` mode protects nothing.
-
----
-
-### `throttle` — slow the CPU down, never interrupt service
-
-**What it does:** at the throttle threshold it lowers the maximum CPU frequency by 20 %, then restores it once the temperature is back below the warn line. Your WebSDR stays up throughout. Listeners may notice slightly worse performance under heavy load; most will notice nothing.
-
-If the temperature keeps climbing past the stop threshold anyway, this mode **logs it and does nothing** — it will not stop the server.
-
-**What you must do:**
-
-1. Give the guard write access to the CPU frequency limit — it needs it, and by default only root has it. Run `./setup-cpufreq-perms.sh` once; see [section 8](#8-enabling-the-throttle-stage-without-root).
-2. Confirm with `python3 thermal_guard.py --once` that it prints `cpufreq : writable, throttle stage available`. If it says *not writable*, this mode does nothing at all beyond what `log` does, and will say so in the log every time.
-
-**Use it when:** you are chasing a marginal cooling problem and want the machine defended without ever dropping listeners. **Be aware this is not full protection** — if throttling is not enough, nothing else happens. Good as a first step; poor as a final answer.
+**À utiliser quand :** vous venez d'installer le garde et ne connaissez pas encore le comportement de votre machine. C'est un mode de rodage, pas une destination — un garde en `log` ne protège rien.
 
 ---
 
-### `stop` — shut the server down and leave it down
+### `throttle` — ralentir le processeur, sans jamais interrompre le service
 
-**What it does:** at the stop threshold it runs your stop script, then holds the **lockout** — re-stopping the server every 2 seconds for as long as the machine is over-temperature, so nothing can revive it behind your back. When the CPU has been below the resume threshold for 5 minutes the lockout clears. **The server does not come back on its own.** You restart it when you are satisfied the cause is fixed.
+**Ce qu'il fait :** au seuil de throttle, il abaisse de 20 % la fréquence maximale du processeur, puis la rétablit dès que la température repasse sous la ligne d'avertissement. Votre WebSDR reste en ligne tout du long. Les auditeurs peuvent noter des performances légèrement moindres en forte charge ; la plupart ne verront rien.
 
-**What you must do:**
+Si la température continue malgré tout de grimper au-delà du seuil d'arrêt, ce mode **le consigne et ne fait rien** : il n'arrêtera pas le serveur.
 
-1. Make sure the guard knows how to stop your server. In the admin panel that is the configured stop script (`./stop-websdr.sh` for the shipped launchers). If no stop script is set, the guard falls back to `SIGTERM` on the process name, then `SIGKILL` after a 10-second grace — which works, but a proper stop script is cleaner.
-2. Accept that **your WebSDR will be offline until you notice**. Have some way of finding out: an uptime monitor, the CRASH tab, or simply checking daily.
+**Ce que vous devez faire :**
 
-**Use it when:** the machine matters more than the service, you are usually around, or a thermal event is serious enough that you want to inspect the box before it carries on. Also the right choice if you do not trust an automated restart on your hardware.
+1. Donner au garde le droit d'écriture sur la limite de fréquence du processeur — il en a besoin et, par défaut, seul root l'a. Lancez une fois `./setup-cpufreq-perms.sh` ; voir la [section 8](#8-activer-létage-throttle-sans-root).
+2. Vérifier avec `python3 thermal_guard.py --once` qu'il affiche `cpufreq : writable, throttle stage available`. S'il indique *not writable*, ce mode ne fait rien de plus que `log`, et il le dira à chaque fois dans le journal.
 
----
-
-### `stop+restart` — shut down, cool off, come back by itself
-
-**What it does:** everything `stop` does, plus: once the CPU has held below the resume threshold for 5 minutes, it runs your start script and the WebSDR comes back on its own.
-
-Flapping is prevented by `thermal_max_stops_hour` (default 2). After two thermal stops within an hour the guard **disables the automatic restart** and leaves the server down for you to look at. Note the important detail: the rate limit turns off the *restart*, never the *protection* — the lockout keeps stopping the server while it is hot, no matter how many times it has already tripped.
-
-**What you must do:**
-
-1. Make sure **both** scripts are configured and actually work standalone — the start script as well as the stop script. Test them by hand first: `./stop-websdr.sh` then `./start-rx888mk2.sh`.
-2. Nothing else. This is the fire-and-forget mode.
-
-**Use it when:** the WebSDR is public, unattended, or remote — which is most of them. This is the recommended mode for a normal installation.
+**À utiliser quand :** vous traquez un problème de refroidissement limite et voulez défendre la machine sans jamais perdre d'auditeurs. **Attention, ce n'est pas une protection complète** : si le ralentissement ne suffit pas, rien d'autre ne se passe. Bon comme première étape, mauvais comme réponse définitive.
 
 ---
 
-## 5. Choosing a mode
+### `stop` — éteindre le serveur et le laisser éteint
 
-| Your situation | Mode |
+**Ce qu'il fait :** au seuil d'arrêt il exécute votre script d'arrêt, puis maintient le **lockout** : il réarrête le serveur toutes les 2 secondes tant que la machine est en surchauffe, pour que rien ne le relance dans votre dos. Lorsque le processeur est resté 5 minutes sous le seuil de reprise, le lockout se libère. **Le serveur ne revient pas de lui-même.** Vous le relancez quand vous êtes convaincu que la cause est réglée.
+
+**Ce que vous devez faire :**
+
+1. Vous assurer que le garde sait arrêter votre serveur. Dans le panneau, c'est le script d'arrêt configuré (`./stop-websdr.sh` avec les lanceurs fournis). Si aucun n'est défini, le garde se rabat sur `SIGTERM` vers le nom du processus, puis `SIGKILL` après 10 secondes de grâce — cela fonctionne, mais un vrai script d'arrêt est plus propre.
+2. Accepter que **votre WebSDR restera hors ligne jusqu'à ce que vous le remarquiez**. Prévoyez un moyen de l'apprendre : une supervision de disponibilité, l'onglet CRASH, ou simplement une vérification quotidienne.
+
+**À utiliser quand :** la machine compte plus que le service, vous êtes généralement sur place, ou un incident thermique est assez sérieux pour que vous vouliez inspecter la machine avant qu'elle reparte. C'est aussi le bon choix si vous ne faites pas confiance à un redémarrage automatique sur votre matériel.
+
+---
+
+### `stop+restart` — arrêter, refroidir, revenir tout seul
+
+**Ce qu'il fait :** tout ce que fait `stop`, et en plus : une fois que le processeur est resté 5 minutes sous le seuil de reprise, il exécute votre script de démarrage et le WebSDR revient de lui-même.
+
+Le battement est évité par `thermal_max_stops_hour` (2 par défaut). Après deux arrêts thermiques en une heure, le garde **désactive le redémarrage automatique** et laisse le serveur arrêté pour que vous regardiez. Notez le détail important : la limite coupe le *redémarrage*, jamais la *protection* — le lockout continue d'arrêter le serveur tant qu'il est chaud, quel que soit le nombre de déclenchements déjà survenus.
+
+**Ce que vous devez faire :**
+
+1. Vous assurer que **les deux** scripts sont configurés et fonctionnent réellement seuls — celui de démarrage comme celui d'arrêt. Testez-les à la main : `./stop-websdr.sh` puis `./start-rx888mk2.sh`.
+2. Rien d'autre. C'est le mode qu'on installe et qu'on oublie.
+
+**À utiliser quand :** le WebSDR est public, sans surveillance ou distant — c'est-à-dire la plupart du temps. C'est le mode recommandé pour une installation normale.
+
+---
+
+## 5. Choisir un mode
+
+| Votre situation | Mode |
 |---|---|
-| Just installed the guard, do not know the machine yet | `log` for a week |
-| Public WebSDR, unattended, you want it to look after itself | **`stop+restart`** |
-| Remote site you cannot easily reach | **`stop+restart`** |
-| You want to inspect the machine after any thermal event | `stop` |
-| Hardware you do not trust to survive an automatic restart | `stop` |
-| Chasing marginal cooling, must not drop listeners | `throttle`, then move on to `stop+restart` |
-| Machine has no trusted CPU sensor | none of them will work — fix the sensor first |
+| Garde tout juste installé, machine encore inconnue | `log` pendant une semaine |
+| WebSDR public, sans surveillance, qui doit se débrouiller seul | **`stop+restart`** |
+| Site distant difficile d'accès | **`stop+restart`** |
+| Vous voulez inspecter la machine après chaque incident thermique | `stop` |
+| Matériel auquel vous ne confiez pas un redémarrage automatique | `stop` |
+| Refroidissement limite, interdiction de perdre des auditeurs | `throttle`, puis passer à `stop+restart` |
+| Machine sans capteur processeur fiable | aucun ne fonctionnera — réglez d'abord le capteur |
 
-For most sysops the answer is `stop+restart`, and the honest summary of the others is: `log` protects nothing, and `throttle` protects a little.
+Pour la plupart des sysops la réponse est `stop+restart`, et le résumé honnête des autres est : `log` ne protège rien et `throttle` protège un peu.
 
 ---
 
-## 6. Configuration reference
+## 6. Référence de configuration
 
-All keys live in `admin_config.json` next to `thermal_guard.py`, and every one of them is also editable in **Settings → THERMAL GUARD**. The guard **re-reads the file on every tick**, so changes take effect within ~2 seconds — no restart.
+Toutes les clés se trouvent dans `admin_config.json`, à côté de `thermal_guard.py`, et chacune est aussi modifiable dans **Settings → THERMAL GUARD**. Le garde **relit le fichier à chaque cycle**, les changements prennent donc effet en ~2 secondes — sans redémarrage.
 
-| Key | Default | Meaning |
+| Clé | Défaut | Signification |
 |---|---|---|
-| `thermal_enabled` | `true` | Master switch. `false` disables the guard entirely. |
-| `thermal_mode` | `"log"` | `log` \| `throttle` \| `stop` \| `stop+restart` — see [section 4](#4-the-four-modes). |
-| `thermal_warn` | `null` | Absolute warn threshold in °C. `null` = derive from the CPU's crit point. |
-| `thermal_throttle` | `null` | Absolute throttle threshold. `null` = derived. |
-| `thermal_stop` | `null` | Absolute stop threshold. `null` = derived. |
-| `thermal_resume` | `null` | Absolute resume threshold. `null` = derived. |
-| `thermal_sustain_s` | `60` | Seconds the stop threshold must be held before stopping. Minimum 5. |
-| `thermal_warn_sustain_s` | `30` | Seconds for the warn and throttle stages. Minimum 5. |
-| `thermal_resume_s` | `300` | Seconds below the resume threshold before the lockout clears. Minimum 30. |
-| `thermal_max_stops_hour` | `2` | Thermal stops per hour after which the automatic restart is disabled. Protection continues. |
-| `thermal_test_temp` | `null` | Pretend the CPU is this temperature. For testing only — see [section 10](#10-testing-it-before-you-trust-it). |
+| `thermal_enabled` | `true` | Interrupteur principal. `false` désactive complètement le garde. |
+| `thermal_mode` | `"log"` | `log` \| `throttle` \| `stop` \| `stop+restart` — voir la [section 4](#4-les-quatre-modes). |
+| `thermal_warn` | `null` | Seuil d'avertissement absolu en °C. `null` = déduit du point critique. |
+| `thermal_throttle` | `null` | Seuil de throttle absolu. `null` = déduit. |
+| `thermal_stop` | `null` | Seuil d'arrêt absolu. `null` = déduit. |
+| `thermal_resume` | `null` | Seuil de reprise absolu. `null` = déduit. |
+| `thermal_sustain_s` | `60` | Secondes de maintien du seuil d'arrêt avant d'arrêter. Minimum 5. |
+| `thermal_warn_sustain_s` | `30` | Secondes pour les étages avertissement et throttle. Minimum 5. |
+| `thermal_resume_s` | `300` | Secondes sous le seuil de reprise avant libération du lockout. Minimum 30. |
+| `thermal_max_stops_hour` | `2` | Arrêts thermiques par heure au-delà desquels le redémarrage automatique est coupé. La protection continue. |
+| `thermal_test_temp` | `null` | Fait croire que le processeur est à cette température. Pour les tests uniquement — voir la [section 10](#10-le-tester-avant-de-lui-faire-confiance). |
 
-The standalone guard additionally uses `start_script`, `stop_script`, `sdr_process_name` and `sdr_base_dir` from the same file.
+Le garde autonome utilise en plus `start_script`, `stop_script`, `sdr_process_name` et `sdr_base_dir` du même fichier.
 
-**Overriding a threshold.** Only do this if you have a reason. A common one: your machine legitimately runs hot during builds and you would rather not have that count. Raising `thermal_stop` buys you headroom at the cost of margin against the critical point — never set it above your crit value, or the CPU will hit its own emergency shutdown first and the guard becomes decoration.
+**Remplacer un seuil.** Ne le faites qu'avec une raison. Une courante : votre machine chauffe légitimement pendant les compilations et vous préférez que cela ne compte pas. Relever `thermal_stop` vous donne de la marge au prix de la distance au point critique — ne le mettez jamais au-dessus de votre valeur crit, sinon le processeur atteindra d'abord sa propre coupure d'urgence et le garde deviendra décoratif.
 
 ---
 
-## 7. Running it without the admin panel
+## 7. Fonctionnement sans le panneau d'administration
 
-Plenty of sysops never install the panel. The guard runs perfectly well on its own — same file, same behaviour.
+Beaucoup de sysops n'installent jamais le panneau. Le garde fonctionne très bien seul — même fichier, même comportement.
 
-**Try it in the foreground first:**
+**Essayez-le d'abord au premier plan :**
 
 ```
 cd ~/PhantomSDR-Plus
-python3 thermal_guard.py --once            # what would happen here?
-python3 thermal_guard.py --mode log        # watch it live, Ctrl-C to quit
+python3 thermal_guard.py --once            # que se passerait-il ici ?
+python3 thermal_guard.py --mode log        # observer en direct, Ctrl-C pour quitter
 ```
 
-`--mode` overrides `thermal_mode` from the command line, so you never have to write JSON by hand:
+`--mode` remplace `thermal_mode` depuis la ligne de commande, vous n'avez donc jamais à écrire de JSON à la main :
 
 ```
 python3 thermal_guard.py --mode stop+restart
 python3 thermal_guard.py --config /etc/phantomsdr/thermal.json
 ```
 
-**Then make it permanent** with the sample unit shipped in the repository:
+**Rendez-le ensuite permanent** avec l'unité d'exemple fournie dans le dépôt :
 
 ```
 sudo cp thermal-guard.service /etc/systemd/system/
-sudo nano /etc/systemd/system/thermal-guard.service   # set User= and paths
+sudo nano /etc/systemd/system/thermal-guard.service   # réglez User= et les chemins
 sudo systemctl daemon-reload
 sudo systemctl enable --now thermal-guard
 systemctl status thermal-guard
 ```
 
-Read the comments at the top of `thermal-guard.service` before enabling it. Two things matter most:
+Lisez les commentaires en tête de `thermal-guard.service` avant de l'activer. Deux points comptent le plus :
 
-- **`User=` must be an account that can actually run your start and stop scripts.** Running the guard as root is usually the wrong answer: it would run those scripts as root too.
-- Either point it at an `admin_config.json` containing `start_script` and `stop_script`, or pass `--mode` on the `ExecStart` line. A minimal config is enough:
+- **`User=` doit être un compte capable d'exécuter réellement vos scripts de démarrage et d'arrêt.** Faire tourner le garde en root est généralement la mauvaise réponse : il exécuterait aussi ces scripts en root.
+- Pointez-le soit vers un `admin_config.json` contenant `start_script` et `stop_script`, soit passez `--mode` sur la ligne `ExecStart`. Une configuration minimale suffit :
 
 ```json
 {
-  "sdr_base_dir": "/home/youruser/PhantomSDR-Plus",
+  "sdr_base_dir": "/home/votreutilisateur/PhantomSDR-Plus",
   "sdr_process_name": "spectrumserver",
   "start_script": "start-rx888mk2.sh",
   "stop_script": "stop-websdr.sh",
@@ -280,210 +281,211 @@ Read the comments at the top of `thermal-guard.service` before enabling it. Two 
 }
 ```
 
-Everything the guard does still goes to `crash.log` next to that config file, plus the systemd journal (`journalctl -u thermal-guard`).
+Tout ce que fait le garde va toujours dans `crash.log`, à côté de ce fichier de configuration, ainsi que dans le journal systemd (`journalctl -u thermal-guard`).
 
 ---
 
-## 8. Enabling the throttle stage without root
+## 8. Activer l'étage throttle sans root
 
-By default `python3 thermal_guard.py --once` reports:
+Par défaut, `python3 thermal_guard.py --once` indique :
 
 ```
 cpufreq    : not writable — throttle stage disabled
 ```
 
-This is normal and it is not a bug. The kernel creates
+C'est normal et ce n'est pas un bogue. Le noyau crée
 
 ```
 /sys/devices/system/cpu/cpuN/cpufreq/scaling_max_freq
 ```
 
-owned by `root:root`, mode `0644`. An admin panel running as an ordinary user cannot write it, so the guard skips the throttle stage and says so in the log rather than failing silently.
+appartenant à `root:root`, en mode `0644`. Un panneau d'administration exécuté par un utilisateur ordinaire ne peut pas y écrire, le garde saute donc l'étage throttle et le dit dans le journal plutôt que d'échouer en silence.
 
-**The wrong fix** is running the guard as root. It also runs your start and stop scripts, and those should stay unprivileged.
+**La mauvaise solution** consiste à exécuter le garde en root. Il exécute aussi vos scripts de démarrage et d'arrêt, et ceux-ci doivent rester sans privilèges.
 
-**The right fix** is to hand write access on those specific files to a dedicated group. One script does it:
+**La bonne solution** est de donner le droit d'écriture sur ces fichiers précis à un groupe dédié. Un script s'en charge :
 
 ```
 cd ~/PhantomSDR-Plus
 ./setup-cpufreq-perms.sh
 ```
 
-It asks for your password once — and only once, at setup — then:
+Il demande votre mot de passe une fois — et une seule, à l'installation — puis :
 
-1. creates a system group `cpufreq` and adds you to it;
-2. installs `/etc/tmpfiles.d/99-phantomsdr-cpufreq.conf` so the group ownership and `0664` mode are re-applied **on every boot** — sysfs permissions do not survive a reboot on their own;
-3. applies the change immediately so you can test without rebooting.
+1. crée un groupe système `cpufreq` et vous y ajoute ;
+2. installe `/etc/tmpfiles.d/99-phantomsdr-cpufreq.conf` afin que le groupe et le mode `0664` soient réappliqués **à chaque démarrage** : les droits de sysfs ne survivent pas seuls à un redémarrage ;
+3. applique la modification immédiatement, pour que vous puissiez tester sans redémarrer.
 
-Then, in order:
+Ensuite, dans cet ordre :
 
 ```
-# 1. log out and back in (or reboot) — a new group only reaches your
-#    processes through a fresh login
+# 1. déconnectez-vous et reconnectez-vous (ou redémarrez) — un nouveau groupe
+#    n'atteint vos processus qu'au travers d'une nouvelle session
 id | grep cpufreq
 
-# 2. restart the panel; the guard tests for write access once, at startup
+# 2. redémarrez le panneau ; le garde teste le droit d'écriture une fois, au démarrage
 sudo systemctl restart phantomsdr-admin
-#    (no logout needed this way — systemd rebuilds the group list at every
-#     start. Only if the units are NOT installed: ./manage_admin.sh stop && ./manage_admin.sh start
-#     — never both, they fight over port 3000)
+#    (aucune déconnexion nécessaire ainsi — systemd reconstruit la liste des
+#     groupes à chaque démarrage. Seulement si les unités ne sont PAS
+#     installées : ./manage_admin.sh stop && ./manage_admin.sh start — jamais les deux, elles se
+#     disputent le port 3000)
 
-# 3. confirm
+# 3. vérifiez
 python3 thermal_guard.py --once
 #    cpufreq    : writable, throttle stage available
 ```
 
-To undo it completely: `sudo ./setup-cpufreq-perms.sh --revoke`.
+Pour tout annuler : `sudo ./setup-cpufreq-perms.sh --revoke`.
 
-**Notes**
+**Remarques**
 
-- The throttle stage still only *acts* if `thermal_mode` is `throttle` or higher. Granting permission changes nothing on its own.
-- The guard lowers whatever limit is currently in force by 20 % and restores exactly that value afterwards. If you already cap your CPU (for example `MAX_SPEED` in `/etc/init.d/cpufrequtils`), your cap is what gets restored — the guard will not quietly hand you back a higher clock than you asked for.
-- Some machines have no cpufreq driver exposed at all — many VPS, most containers. The script detects this and refuses to change anything. Use `stop` or `stop+restart` there; they do not depend on cpufreq.
+- L'étage throttle n'*agit* que si `thermal_mode` vaut `throttle` ou plus. Accorder la permission ne change rien en soi.
+- Le garde abaisse de 20 % la limite en vigueur à cet instant et rétablit exactement cette valeur. Si vous bridez déjà votre processeur (par exemple via `MAX_SPEED` dans `/etc/init.d/cpufrequtils`), c'est votre bridage qui est rétabli : le garde ne vous rendra pas discrètement une fréquence plus élevée que celle demandée.
+- Certaines machines n'exposent aucun pilote cpufreq — de nombreux VPS, la plupart des conteneurs. Le script le détecte et ne change rien. Utilisez-y `stop` ou `stop+restart` ; ils ne dépendent pas de cpufreq.
 
 ---
 
-## 9. Unattended operation
+## 9. Fonctionnement sans surveillance
 
-The most common question about the guard: *what happens when nobody is watching?* The short answer is that nobody watching is the case it was built for.
+La question la plus fréquente au sujet du garde : *que se passe-t-il quand personne ne regarde ?* La réponse courte est que c'est précisément le cas pour lequel il a été construit.
 
-**It does not need a browser open.** The guard is a background thread inside `admin_server.py`, ticked from the graph sampler every 2 seconds. It runs whether or not anyone is logged into the panel, whether or not a browser is open, whether or not you are awake. In standalone mode it is a systemd service, which is even more independent. The dashboard card is a *window* onto the guard, not the guard itself.
+**Il n'a pas besoin d'un navigateur ouvert.** Le garde est un fil d'exécution en arrière-plan dans `admin_server.py`, cadencé par l'échantillonneur des graphiques toutes les 2 secondes. Il tourne que quelqu'un soit connecté au panneau ou non, qu'un navigateur soit ouvert ou non, que vous soyez éveillé ou non. En mode autonome c'est un service systemd, encore plus indépendant. La carte du tableau de bord est une *fenêtre* sur le garde, pas le garde lui-même.
 
-**It acts without asking.** There is no confirmation dialog and no notification to wait for. At the stop threshold it stops the server, full stop. That is the entire point.
+**Il agit sans demander.** Il n'y a ni boîte de confirmation ni notification à attendre. Au seuil d'arrêt, il arrête le serveur, point. C'est exactement l'objectif.
 
-**But only if you gave it permission.** In `log` mode it will faithfully record a machine cooking itself and do nothing about it. If the reason you are reading this section is *"I am not around to watch it"*, the mode you want is `stop+restart` — it is the only one that both protects the machine and brings the service back without you.
+**Mais seulement si vous lui en avez donné l'autorisation.** En mode `log`, il consignera fidèlement une machine en train de cuire sans rien y faire. Si vous lisez cette section parce que *« je ne suis pas là pour surveiller »*, le mode qu'il vous faut est `stop+restart` : c'est le seul qui protège la machine et remet le service en route sans vous.
 
-**It only helps while the panel is alive.** The guard is part of `admin_server.py`, so a panel that died at 02:00 takes the protection with it, and a reboot leaves the machine unguarded until you log in and start it again. If nobody is watching, let systemd watch: the repository ships `phantomsdr-admin.service` and `phantomsdr-proxy.service`, which start at boot and restart the panel within five seconds of a crash. For an unattended receiver this is **strongly recommended** — arming `stop+restart` without it protects you only until the next reboot. See [ADMIN_PANEL_SETUP.md](ADMIN_PANEL_SETUP.md).
+**Il ne protège que tant que le panneau est vivant.** Le garde fait partie d'`admin_server.py` : un panneau mort à 02:00 emporte la protection avec lui, et après un redémarrage la machine reste sans surveillance jusqu'à ce que vous vous connectiez pour le relancer. Si personne ne surveille, laissez systemd surveiller : le dépôt fournit `phantomsdr-admin.service` et `phantomsdr-proxy.service`, qui démarrent au boot et relancent le panneau dans les cinq secondes suivant un plantage. Voir [ADMIN_PANEL_SETUP.md](ADMIN_PANEL_SETUP.md). Pour un récepteur non surveillé, c'est **fortement recommandé** : armer `stop+restart` sans cela ne vous protège que jusqu'au prochain redémarrage.
 
-**How you find out afterwards.** In rough order of usefulness:
+**Comment l'apprendre après coup.** Par ordre d'utilité approximatif :
 
-| Where | What you get |
+| Où | Ce que vous obtenez |
 |---|---|
-| `crash.log` / the **CRASH** tab | Every action, timestamped. The permanent record. |
-| Dashboard **THERMAL GUARD** card | Live state: current temperature, stage, lockout, stops in the last hour. |
-| **Graphs** page (CPU temperature, 24 h) | The shape of the event — how fast it climbed, how long it took to cool. |
-| `journalctl -u thermal-guard` | Standalone mode only. |
+| `crash.log` / onglet **CRASH** | Chaque action, horodatée. La trace permanente. |
+| Carte **THERMAL GUARD** du tableau de bord | État en direct : température, étage, lockout, arrêts de la dernière heure. |
+| Page **Graphs** (température CPU, 24 h) | La forme de l'incident — vitesse de montée, durée du refroidissement. |
+| `journalctl -u thermal-guard` | Mode autonome uniquement. |
 
-A sensible routine for an unattended site: `stop+restart` armed, and `grep THERMAL crash.log` whenever you happen to log in. If it is empty, there is nothing to know.
+Une routine raisonnable pour un site sans surveillance : `stop+restart` armé, et `grep THERMAL crash.log` chaque fois que vous vous connectez. Si c'est vide, il n'y a rien à savoir.
 
-**A worked example.** Fan fails at 03:00 on a machine in `stop+restart`:
+**Un exemple concret.** Panne de ventilateur à 03 h 00 sur une machine en `stop+restart` :
 
 ```
-03:14  temperature crosses 88 °C, holds 30 s   →  warn logged
-03:16  crosses 92 °C, holds 30 s               →  throttle applied (if permitted)
-03:19  crosses 95 °C, holds 60 s               →  STOP — stop script runs, lockout on
-03:19  watchdog restarts the server            →  guard re-stops it, logs the lockout
-03:26  CPU has been under 75 °C for 5 minutes  →  lockout clears, start script runs
-03:41  it overheats and stops a second time    →  rate limit reached, no more restarts
-                                                  server stays down, protection stays on
+03:14  la température passe 88 °C, tient 30 s      →  avertissement consigné
+03:16  passe 92 °C, tient 30 s                     →  throttle appliqué (si autorisé)
+03:19  passe 95 °C, tient 60 s                     →  STOP — script d'arrêt, lockout actif
+03:19  le watchdog relance le serveur              →  le garde le rearrête et le consigne
+03:26  le CPU est sous 75 °C depuis 5 minutes      →  lockout libéré, script de démarrage
+03:41  surchauffe et s'arrête une deuxième fois    →  limite atteinte, plus de redémarrage
+                                                      le serveur reste arrêté, la protection reste
 ```
 
-You wake up to a WebSDR that is down, a `crash.log` that says exactly why, and — most importantly — a CPU that never got near its critical point.
+Vous vous réveillez avec un WebSDR arrêté, un `crash.log` qui dit exactement pourquoi et — surtout — un processeur qui ne s'est jamais approché de son point critique.
 
 ---
 
-## 10. Testing it before you trust it
+## 10. Le tester avant de lui faire confiance
 
-Do not wait for a real heatwave to find out whether your stop script works.
+N'attendez pas une vraie canicule pour découvrir si votre script d'arrêt fonctionne.
 
-**`thermal_test_temp`** makes the guard believe the CPU is at a temperature you choose. Everything else behaves completely normally — the sustain timers, the ladder, the lockout, your actual scripts.
+**`thermal_test_temp`** fait croire au garde que le processeur est à la température de votre choix. Tout le reste se comporte parfaitement normalement — les temps de maintien, l'échelle, le lockout, vos vrais scripts.
 
-1. Admin panel → **Settings** → **THERMAL GUARD** → **TEST TEMPERATURE**.
-2. Enter a value above your stop threshold (for example `97` on an Intel).
-3. Save, and watch the dashboard card and the CRASH tab.
-4. **Clear the field when you are done.** A test temperature left in place means the guard is no longer reading the real sensor.
+1. Panneau → **Settings** → **THERMAL GUARD** → **TEST TEMPERATURE**.
+2. Saisissez une valeur au-dessus de votre seuil d'arrêt (par exemple `97` sur un Intel).
+3. Enregistrez, puis observez la carte du tableau de bord et l'onglet CRASH.
+4. **Videz le champ une fois terminé.** Une température de test oubliée signifie que le garde ne lit plus le vrai capteur.
 
-In `log` mode this shows you the whole ladder with nothing at risk — the safe first test, and the one to run before arming anything.
+En mode `log`, cela vous montre toute l'échelle sans rien risquer : le premier test sûr, et celui à faire avant d'armer quoi que ce soit.
 
-In `stop+restart` mode this is a **live test**: your server really will stop, and really will come back about five minutes after you clear the field. Do it when nobody is listening. It is worth doing once, because it is the only way to know that your stop and start scripts work when called by something other than you.
+En mode `stop+restart`, c'est un **test en conditions réelles** : votre serveur va réellement s'arrêter et réellement revenir environ cinq minutes après que vous ayez vidé le champ. Faites-le quand personne n'écoute. Cela vaut la peine une fois, car c'est le seul moyen de savoir que vos scripts d'arrêt et de démarrage fonctionnent lorsqu'ils sont appelés par autre chose que vous.
 
-Standalone equivalents:
+Équivalents en mode autonome :
 
 ```
-python3 thermal_guard.py --once                 # thresholds only, no action
-python3 thermal_guard.py --mode log             # watch the ladder live
+python3 thermal_guard.py --once                 # seuils seulement, aucune action
+python3 thermal_guard.py --mode log             # observer l'échelle en direct
 ```
 
 ---
 
-## 11. Reading the log
+## 11. Lire le journal
 
-Everything is appended to `crash.log` next to the config file, one event per line, each prefixed `[THERMAL]`:
+Tout est ajouté à `crash.log`, à côté du fichier de configuration, un évènement par ligne, chacun préfixé par `[THERMAL]` :
 
 ```
 grep THERMAL crash.log
 ```
 
-Lines are deliberately single-line and grep-friendly. What you will see:
+Les lignes sont volontairement sur une seule ligne et exploitables par grep. Ce que vous verrez :
 
-| Line | Meaning |
+| Ligne | Signification |
 |---|---|
-| `warn: 88.4C (warn=88.0 crit=100) sustained 30s` | First rung. Nothing has been done. |
-| `throttle: 92.1C sustained 30s — cpufreq max lowered 20%` | CPU clock reduced. |
-| `throttle level reached: ... (no cpufreq write access — stage skipped)` | See [section 8](#8-enabling-the-throttle-stage-without-root). |
-| `STOP level reached: ... mode is 'log', NOT stopping` | It would have stopped the server. Arm it. |
-| `STOPPED server: 95.2C sustained 60s (stop=95.0 crit=100) — ran stop-websdr.sh` | The real thing. |
-| `lockout: process reappeared at 96.0C — re-stopped (...) [12 time(s) so far]` | Something is restarting your server; the guard is winning. Rate-limited to one line per minute. |
-| `rate limit: 2 thermal stops within the hour — automatic restart is now DISABLED` | Stays down for you to investigate. Protection continues. |
-| `recovered: 54.0C held below 75.0 — lockout cleared` | Cool again. |
-| `auto-restart: ran start-rx888mk2.sh` | Back online. |
-| `back to normal: 59.0C (warn=88.0)` | Dropped off the ladder without ever stopping. |
+| `warn: 88.4C (warn=88.0 crit=100) sustained 30s` | Premier échelon. Rien n'a été fait. |
+| `throttle: 92.1C sustained 30s — cpufreq max lowered 20%` | Fréquence processeur réduite. |
+| `throttle level reached: ... (no cpufreq write access — stage skipped)` | Voir la [section 8](#8-activer-létage-throttle-sans-root). |
+| `STOP level reached: ... mode is 'log', NOT stopping` | Il aurait arrêté le serveur. Armez-le. |
+| `STOPPED server: 95.2C sustained 60s (stop=95.0 crit=100) — ran stop-websdr.sh` | Le cas réel. |
+| `lockout: process reappeared at 96.0C — re-stopped (...) [12 time(s) so far]` | Quelque chose relance votre serveur ; le garde gagne. Limité à une ligne par minute. |
+| `rate limit: 2 thermal stops within the hour — automatic restart is now DISABLED` | Reste arrêté pour que vous enquêtiez. La protection continue. |
+| `recovered: 54.0C held below 75.0 — lockout cleared` | De nouveau froid. |
+| `auto-restart: ran start-rx888mk2.sh` | De retour en ligne. |
+| `back to normal: 59.0C (warn=88.0)` | Redescendu de l'échelle sans jamais s'arrêter. |
 
 ---
 
-## 12. Lockout and the rate limit
+## 12. Lockout et limitation du nombre d'arrêts
 
-These are the two behaviours that surprise people, so they are worth stating plainly.
+Ce sont les deux comportements qui surprennent le plus, autant les énoncer clairement.
 
-**The lockout** is what makes the guard work against *your* setup specifically. When it stops the server it does not simply issue one stop and hope. It marks itself locked, and on every 2-second tick, while the temperature is still above the resume threshold, it checks whether the server process is back — and if it is, stops it again. Your watchdog, systemd's `Restart=always`, a cron job, an impatient sysop: all of them lose that argument until the CPU cools. It clears itself automatically once the temperature has held below the resume threshold for `thermal_resume_s` (default 5 minutes).
+**Le lockout** est ce qui fait fonctionner le garde face à *votre* installation en particulier. Quand il arrête le serveur, il ne se contente pas d'émettre un arrêt en espérant. Il se marque verrouillé et, à chaque cycle de 2 secondes tant que la température dépasse le seuil de reprise, il vérifie si le processus est revenu — et si c'est le cas, il l'arrête de nouveau. Votre watchdog, le `Restart=always` de systemd, une tâche cron, un sysop impatient : tous perdent cette discussion jusqu'au refroidissement du processeur. Il se libère automatiquement dès que la température est restée sous le seuil de reprise pendant `thermal_resume_s` (5 minutes par défaut).
 
-**The CLEAR LOCKOUT button** on the dashboard card clears the lockout *and* the stops-per-hour counter, for when you have fixed the cooling and do not want to wait. It does **not** disarm the guard: if the machine is still hot, the very next check stops the server again. That is intended.
+**Le bouton CLEAR LOCKOUT** de la carte du tableau de bord libère le lockout *et* le compteur d'arrêts par heure, pour les cas où vous avez réparé le refroidissement et ne voulez pas attendre. Il **ne désarme pas** le garde : si la machine est encore chaude, la vérification suivante arrêtera de nouveau le serveur. C'est voulu.
 
-**The rate limit** (`thermal_max_stops_hour`, default 2) stops a broken machine from cycling up and down all night. After the limit is reached the guard **disables the automatic restart** and leaves the server down. Read that carefully: it disables the restart, not the protection. The lockout keeps re-stopping the server while it is over-temperature no matter how many times it has already tripped. A guard that went quiet exactly when the machine was at its worst would be worse than no guard at all.
+**La limitation** (`thermal_max_stops_hour`, 2 par défaut) empêche une machine défaillante de faire des allers-retours toute la nuit. Une fois la limite atteinte, le garde **désactive le redémarrage automatique** et laisse le serveur arrêté. Lisez bien : il désactive le redémarrage, pas la protection. Le lockout continue de rearrêter le serveur tant qu'il est en surchauffe, quel que soit le nombre de déclenchements déjà survenus. Un garde qui se tairait précisément au pire moment pour la machine serait pire que pas de garde du tout.
 
 ---
 
-## 13. Troubleshooting
+## 13. Dépannage
 
 **`sensor : NONE — no trusted CPU sensor on this machine`**
-The guard found no allow-listed sensor and refuses to guess. Try `sensors` (from `lm-sensors`; `sudo apt install lm-sensors && sudo sensors-detect`). Inside a VM or container there is often genuinely no CPU die sensor exposed — the guard cannot protect that machine and correctly reports itself disabled rather than pretending.
+Le garde n'a trouvé aucun capteur de la liste autorisée et refuse de deviner. Essayez `sensors` (paquet `lm-sensors` ; `sudo apt install lm-sensors && sudo sensors-detect`). Dans une machine virtuelle ou un conteneur, il n'y a souvent réellement aucun capteur de die exposé : le garde ne peut pas protéger cette machine et se déclare désactivé plutôt que de faire semblant.
 
 **`cpufreq : not writable — throttle stage disabled`**
-Expected unless you have run `./setup-cpufreq-perms.sh` — see [section 8](#8-enabling-the-throttle-stage-without-root). It only affects the throttle stage; `stop` and `stop+restart` are unaffected.
+Attendu tant que vous n'avez pas lancé `./setup-cpufreq-perms.sh` — voir la [section 8](#8-activer-létage-throttle-sans-root). Cela n'affecte que l'étage throttle ; `stop` et `stop+restart` ne sont pas concernés.
 
-**Ran `setup-cpufreq-perms.sh`, still says not writable**
-Two likely causes: you have not logged out and back in since (a new group only reaches processes through a fresh login — check with `id`), or the panel has not been restarted since (the guard tests for write access once, at startup). Do both, in that order.
+**J'ai lancé `setup-cpufreq-perms.sh`, il dit toujours not writable**
+Deux causes probables : vous ne vous êtes pas déconnecté puis reconnecté depuis (un nouveau groupe n'atteint les processus qu'au travers d'une nouvelle session — vérifiez avec `id`), ou le panneau n'a pas été redémarré depuis (le garde teste le droit d'écriture une fois, au démarrage). Faites les deux, dans cet ordre.
 
-**Thresholds look wrong for my CPU**
-Check what the machine publishes: `cat /sys/class/hwmon/hwmon*/temp*_crit`. If your crit is unusual, or absent, set `thermal_stop` and friends to absolute values.
+**Les seuils semblent faux pour mon processeur**
+Vérifiez ce que publie la machine : `cat /sys/class/hwmon/hwmon*/temp*_crit`. Si votre crit est inhabituel, ou absent, mettez des valeurs absolues dans `thermal_stop` et compagnie.
 
-**It stopped my server and I do not think it was hot**
-Check whether `thermal_test_temp` is still set from a test. That is by far the most common cause.
+**Il a arrêté mon serveur alors qu'il ne me semblait pas chaud**
+Vérifiez si `thermal_test_temp` est resté défini depuis un test. C'est de loin la cause la plus fréquente.
 
-**It never fires even though the machine gets hot**
-Confirm the mode is not `log`, confirm `thermal_enabled` is `true`, and compare the temperature you are seeing against the thresholds from `--once`. Remember the threshold must be held *continuously* for the sustain time.
+**Il ne se déclenche jamais alors que la machine chauffe**
+Vérifiez que le mode n'est pas `log`, que `thermal_enabled` vaut `true`, et comparez la température observée aux seuils donnés par `--once`. Rappelez-vous que le seuil doit être dépassé *en continu* pendant tout le temps de maintien.
 
-**The server keeps restarting during a thermal event**
-That is the lockout working, and the `lockout:` lines are it reporting success — your supervisor keeps trying, the guard keeps undoing it. Nothing to fix.
+**Le serveur n'arrête pas de redémarrer pendant un incident thermique**
+C'est le lockout qui fonctionne, et les lignes `lockout:` sont son rapport de réussite : votre superviseur continue d'essayer, le garde continue de défaire. Rien à corriger.
 
-**The panel is not running, so is the guard running?**
-No — in panel mode the guard lives inside `admin_server.py`. If you want protection independent of the panel, use the standalone service in [section 7](#7-running-it-without-the-admin-panel).
-
----
-
-## 14. Turning it off or removing it
-
-- **Pause it:** set `thermal_mode` to `log`. It keeps watching and reporting but never acts.
-- **Disable it completely:** set `thermal_enabled` to `false`.
-- **Standalone:** `sudo systemctl disable --now thermal-guard`.
-- **Undo the cpufreq permissions:** `sudo ./setup-cpufreq-perms.sh --revoke`.
-
-Deleting `thermal_guard.py` is also safe — `admin_server.py` imports it inside a `try`, and simply reports the guard as unavailable if it is missing.
+**Le panneau ne tourne pas, le garde tourne-t-il ?**
+Non — en mode panneau, le garde vit dans `admin_server.py`. Si vous voulez une protection indépendante du panneau, utilisez le service autonome de la [section 7](#7-fonctionnement-sans-le-panneau-dadministration).
 
 ---
 
-## See also
+## 14. Le désactiver ou le supprimer
 
-- [Admin Panel Setup](ADMIN_PANEL_SETUP.md#thermal-guard) — the Thermal Guard tab in context
-- [Installation](INSTALLATION.md#cpu-thermal-protection) — thermal protection during a fresh install
-- [Project Structure](PROJECT_STRUCTURE.md) — where `thermal_guard.py` sits
+- **Le mettre en pause :** passez `thermal_mode` à `log`. Il continue d'observer et de rapporter, sans jamais agir.
+- **Le désactiver complètement :** passez `thermal_enabled` à `false`.
+- **Autonome :** `sudo systemctl disable --now thermal-guard`.
+- **Annuler les droits cpufreq :** `sudo ./setup-cpufreq-perms.sh --revoke`.
+
+Supprimer `thermal_guard.py` est également sans danger — `admin_server.py` l'importe dans un `try` et signale simplement le garde comme indisponible s'il manque.
+
+---
+
+## Voir aussi
+
+- [Installation du panneau d'administration](ADMIN_PANEL_SETUP.md#thermal-guard) — l'onglet Thermal Guard dans son contexte
+- [Installation](INSTALLATION.md#protection-thermique-du-processeur) — protection thermique lors d'une installation neuve
+- [Structure du projet](PROJECT_STRUCTURE.md) — où se trouve `thermal_guard.py`

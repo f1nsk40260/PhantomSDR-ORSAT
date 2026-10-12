@@ -1,26 +1,26 @@
-# PhantomSDR-Plus Project Structure
+# Structure du projet PhantomSDR-Plus
 
-This document provides a comprehensive overview of the PhantomSDR-Plus directory structure, file organization, and component relationships.
+Ce document offre une vue d'ensemble complète de la structure de répertoires de PhantomSDR-Plus, de l'organisation des fichiers et des relations entre composants.
 
 ---
 
-## Table of Contents
+## Table des matières
 
-1. [Directory Tree](#directory-tree)
-2. [Root Directory](#root-directory)
-3. [Source Code (`src/`)](#source-code-src)
+1. [Arborescence des répertoires](#arborescence-des-répertoires)
+2. [Répertoire racine](#répertoire-racine)
+3. [Code source (`src/`)](#code-source-src)
 4. [Frontend (`frontend/`)](#frontend-frontend)
-5. [Frequency Lists (`frequencylist/`)](#frequency-lists-frequencylist)
-6. [Configuration Files](#configuration-files)
-7. [Build System](#build-system)
+5. [Listes de fréquences (`frequencylist/`)](#listes-de-fréquences-frequencylist)
+6. [Fichiers de configuration](#fichiers-de-configuration)
+7. [Système de compilation](#système-de-compilation)
 
 ---
 
-## Directory Tree
+## Arborescence des répertoires
 ```
 PhantomSDR-Plus
-├── add-receiver.sh            # adds one more receiver: driver, instances/<name>/, receivers.toml — see docs/MULTI_RECEIVER.md
-├── ADDITIONAL_TERMS.md        # GPL v3 section 7 additional terms: the "original from" line must stay
+├── add-receiver.sh            # ajoute un récepteur de plus : pilote, instances/<nom>/, receivers.toml — voir docs/MULTI_RECEIVER.md
+├── ADDITIONAL_TERMS.md        # conditions supplémentaires selon la section 7 de la GPL v3 : la ligne « original from » est conservée
 ├── admin_config.json
 ├── admin_server.py
 ├── autorun
@@ -37,9 +37,9 @@ PhantomSDR-Plus
 │   ├── spotparse.js
 │   ├── wasm-shim.js
 │   └── wsprnet.js
-├── cf32_to_real.c             # Fobos HF: keeps I from rx_sdr's CF32, scaled to s16 (built by setup-fobos.sh)
+├── cf32_to_real.c             # Fobos HF : garde I du CF32 de rx_sdr, mis à l'échelle en s16 (compilé par setup-fobos.sh)
 ├── chat_history.txt
-├── check-go.sh                # legacy: watchdog for the go.sh chain
+├── check-go.sh                # ancien : chien de garde de la chaîne go.sh
 ├── config-airspyhf.toml
 ├── config.example.hackrf.toml
 ├── config.example.rtlsdr.toml
@@ -50,159 +50,39 @@ PhantomSDR-Plus
 ├── config-rtl.toml
 ├── config-rx888mk2.toml
 ├── config.toml
-├── configure-station.sh       # the station wizard: asks once, writes station.conf, the .toml and site_information.json
+├── configure-station.sh       # l'assistant de station : demande une fois, écrit station.conf, le .toml et site_information.json
 ├── connection_impl.hpp
 ├── docs
 │   ├── ADMIN_PANEL_SETUP.md
 │   ├── Aether_config.md
 │   ├── Appendix.md
 │   ├── CONNECTION_LIMITS.md
-│   ├── de
-│   │   ├── ADMIN_PANEL_SETUP.md
-│   │   ├── Aether_config.md
-│   │   ├── Appendix.md
-│   │   ├── CONNECTION_LIMITS.md
-│   │   ├── DECODERS.md
-│   │   ├── EDITING_VARIANTS.md
-│   │   ├── HTTPS.md
-│   │   ├── INSTALLATION.md
-│   │   ├── MULTI_RECEIVER.md
-│   │   ├── PhantomSDR-Plus-Documentation-DE.pdf
-│   │   ├── PROJECT_STRUCTURE.md
-│   │   ├── RADE_General_INSTALL_MANUAL_LINUX.md
-│   │   ├── RADE_README.md
-│   │   ├── README.md
-│   │   ├── RECEIVE_DIVERSITY.md
-│   │   ├── RIG_CONTROL.md
-│   │   ├── THERMAL_GUARD.md
-│   │   └── USER_GUIDE.md
 │   ├── DECODERS.md
 │   ├── EDITING_VARIANTS.md
-│   ├── el
-│   │   ├── ADMIN_PANEL_SETUP.md
-│   │   ├── Aether_config.md
-│   │   ├── Appendix.md
-│   │   ├── CONNECTION_LIMITS.md
-│   │   ├── DECODERS.md
-│   │   ├── EDITING_VARIANTS.md
-│   │   ├── HTTPS.md
-│   │   ├── INSTALLATION.md
-│   │   ├── MULTI_RECEIVER.md
-│   │   ├── PhantomSDR-Plus-Documentation-EL.pdf
-│   │   ├── PROJECT_STRUCTURE.md
-│   │   ├── RADE_General_INSTALL_MANUAL_LINUX.md
-│   │   ├── RADE_README.md
-│   │   ├── README.md
-│   │   ├── RECEIVE_DIVERSITY.md
-│   │   ├── RIG_CONTROL.md
-│   │   ├── THERMAL_GUARD.md
-│   │   └── USER_GUIDE.md
-│   ├── es
-│   │   ├── ADMIN_PANEL_SETUP.md
-│   │   ├── Aether_config.md
-│   │   ├── Appendix.md
-│   │   ├── CONNECTION_LIMITS.md
-│   │   ├── DECODERS.md
-│   │   ├── EDITING_VARIANTS.md
-│   │   ├── HTTPS.md
-│   │   ├── INSTALLATION.md
-│   │   ├── MULTI_RECEIVER.md
-│   │   ├── PhantomSDR-Plus-Documentation-ES.pdf
-│   │   ├── PROJECT_STRUCTURE.md
-│   │   ├── RADE_General_INSTALL_MANUAL_LINUX.md
-│   │   ├── RADE_README.md
-│   │   ├── README.md
-│   │   ├── RECEIVE_DIVERSITY.md
-│   │   ├── RIG_CONTROL.md
-│   │   ├── THERMAL_GUARD.md
-│   │   └── USER_GUIDE.md
-│   ├── fr
-│   │   ├── ADMIN_PANEL_SETUP.md
-│   │   ├── Aether_config.md
-│   │   ├── Appendix.md
-│   │   ├── CONNECTION_LIMITS.md
-│   │   ├── DECODERS.md
-│   │   ├── EDITING_VARIANTS.md
-│   │   ├── HTTPS.md
-│   │   ├── INSTALLATION.md
-│   │   ├── MULTI_RECEIVER.md
-│   │   ├── PhantomSDR-Plus-Documentation-FR.pdf
-│   │   ├── PROJECT_STRUCTURE.md
-│   │   ├── RADE_General_INSTALL_MANUAL_LINUX.md
-│   │   ├── RADE_README.md
-│   │   ├── README.md
-│   │   ├── RECEIVE_DIVERSITY.md
-│   │   ├── RIG_CONTROL.md
-│   │   ├── THERMAL_GUARD.md
-│   │   └── USER_GUIDE.md
-│   ├── hr
-│   │   ├── ADMIN_PANEL_SETUP.md
-│   │   ├── Aether_config.md
-│   │   ├── Appendix.md
-│   │   ├── CONNECTION_LIMITS.md
-│   │   ├── DECODERS.md
-│   │   ├── EDITING_VARIANTS.md
-│   │   ├── HTTPS.md
-│   │   ├── INSTALLATION.md
-│   │   ├── MULTI_RECEIVER.md
-│   │   ├── PhantomSDR-Plus-Documentation-HR.pdf
-│   │   ├── PROJECT_STRUCTURE.md
-│   │   ├── RADE_General_INSTALL_MANUAL_LINUX.md
-│   │   ├── RADE_README.md
-│   │   ├── README.md
-│   │   ├── RECEIVE_DIVERSITY.md
-│   │   ├── RIG_CONTROL.md
-│   │   ├── THERMAL_GUARD.md
-│   │   └── USER_GUIDE.md
 │   ├── HTTPS.md
 │   ├── INSTALLATION.md
 │   ├── MULTI_RECEIVER.md
-│   ├── PhantomSDR-Plus-Documentation-EN.pdf
+│   ├── PhantomSDR-Plus-Documentation-FR.pdf
 │   ├── PROJECT_STRUCTURE.md
 │   ├── RADE_General_INSTALL_MANUAL_LINUX.md
 │   ├── RADE_README.md
 │   ├── README.md
 │   ├── RECEIVE_DIVERSITY.md
 │   ├── RIG_CONTROL.md
-│   ├── ru
-│   │   ├── ADMIN_PANEL_SETUP.md
-│   │   ├── Aether_config.md
-│   │   ├── Appendix.md
-│   │   ├── CONNECTION_LIMITS.md
-│   │   ├── DECODERS.md
-│   │   ├── EDITING_VARIANTS.md
-│   │   ├── HTTPS.md
-│   │   ├── INSTALLATION.md
-│   │   ├── MULTI_RECEIVER.md
-│   │   ├── PhantomSDR-Plus-Documentation-RU.pdf
-│   │   ├── PROJECT_STRUCTURE.md
-│   │   ├── RADE_General_INSTALL_MANUAL_LINUX.md
-│   │   ├── RADE_README.md
-│   │   ├── README.md
-│   │   ├── RECEIVE_DIVERSITY.md
-│   │   ├── RIG_CONTROL.md
-│   │   ├── THERMAL_GUARD.md
-│   │   └── USER_GUIDE.md
 │   ├── sdr-stats
 │   │   ├── package.json
-│   │   ├── readme_de.md
-│   │   ├── readme_el.md
-│   │   ├── readme_es.md
-│   │   ├── readme_fr.md
-│   │   ├── readme_hr.md
-│   │   ├── README.md
-│   │   └── readme_ru.md
+│   │   └── README.md
 │   ├── THERMAL_GUARD.md
 │   ├── USER_GUIDE.md
+│   ├── websdr.png
 │   ├── websdr2.png
-│   ├── websdr3.png
-│   └── websdr.png
+│   └── websdr3.png
 ├── favicon.ico
 ├── fftw_wisdom
 ├── fix_local_geo.py
 ├── frequencylist
 │   ├── 0.TXT
-│   ├── A26all00.TXT           # not in the repo: unzipped from a26allx2.zip by update-markers.sh
+│   ├── A26all00.TXT           # absent du dépôt : extrait de a26allx2.zip par update-markers.sh
 │   ├── a26allx2.zip
 │   ├── admin.txt
 │   ├── antenna.txt
@@ -234,19 +114,19 @@ PhantomSDR-Plus
 │   ├── package-lock.json
 │   ├── pnpm-lock.yaml
 │   ├── postcss.config.cjs
-│   ├── .prettierrc.json      # Prettier formatting rules for the frontend sources
+│   ├── .prettierrc.json      # règles de formatage Prettier pour les sources du frontend
 │   ├── public
 │   │   ├── analyze_users.py
 │   │   ├── decoders
 │   │   │   ├── ft8_lib.wasm
-│   │   │   ├── js8_dict.bin   # JS8 word dictionary, fetched only when needed
-│   │   │   └── js8.wasm       # JS8 decoder, built from jsdsp/js8_wasm
+│   │   │   ├── js8_dict.bin   # dictionnaire de mots JS8, chargé seulement au besoin
+│   │   │   └── js8.wasm       # décodeur JS8, compilé depuis jsdsp/js8_wasm
 │   │   ├── logo.jpg
 │   │   ├── stats.html
 │   │   ├── users.html
 │   │   └── wf-message.json
 │   ├── README.md
-│   ├── site_information.example.json # the generic template, safe to ship; copy it to site_information.json
+│   ├── site_information.example.json # le modèle générique, sans risque à distribuer ; à copier en site_information.json
 │   ├── site_information.json
 │   ├── src
 │   │   ├── app.css
@@ -276,20 +156,20 @@ PhantomSDR-Plus
 │   │   ├── fax.worker.js
 │   │   ├── faxWorkerProxy.js
 │   │   ├── fft.js
-│   │   ├── flacLowLatency.js         # FLAC decoder that plays each packet as it arrives
-│   │   ├── fldigiFec.js              # Viterbi decoder and helpers shared by the fldigi-family decoders
+│   │   ├── flacLowLatency.js         # décodeur FLAC qui joue chaque paquet dès son arrivée
+│   │   ├── fldigiFec.js              # décodeur de Viterbi et utilitaires de la famille fldigi
 │   │   ├── fsk.js
 │   │   ├── fsk.worker.js
 │   │   ├── fskWorkerProxy.js
 │   │   ├── hell.js
-│   │   ├── ifk.js                    # DominoEX and THOR
+│   │   ├── ifk.js                    # DominoEX et THOR
 │   │   ├── kiwiSource.js
 │   │   ├── lib
 │   │   │   ├── aprsMap.js
 │   │   │   ├── backend.js
 │   │   │   ├── BandSelector.svelte
 │   │   │   ├── catsync.js
-│   │   │   ├── chatReply.js              # chat reply marker and threading
+│   │   │   ├── chatReply.js              # marqueur et fils des réponses du chat
 │   │   │   ├── CheckButton.svelte
 │   │   │   ├── colormaps.js
 │   │   │   ├── Counter.svelte
@@ -310,21 +190,21 @@ PhantomSDR-Plus
 │   │   │   ├── PassbandTuner.svelte
 │   │   │   ├── Popover.svelte
 │   │   │   ├── QrssPanel.svelte
-│   │   │   ├── receivers.js           # receiver picker data (/receivers.json)
-│   │   │   ├── rnnoise.js     # loads RNNoise for the AI noise reduction
-│   │   │   ├── rx.js                  # which receiver a page belongs to (?rx=)
-│   │   │   ├── sideService.js         # where the page finds RADE and the relay (siteRade / siteRelay)
+│   │   │   ├── receivers.js           # données du sélecteur de récepteur (/receivers.json)
+│   │   │   ├── rnnoise.js     # charge RNNoise pour la réduction de bruit par IA
+│   │   │   ├── rx.js                  # à quel récepteur appartient une page (?rx=)
+│   │   │   ├── sideService.js         # où la page trouve RADE et le relais (siteRade / siteRelay)
 │   │   │   ├── SMeterAnalog.svelte
 │   │   │   ├── SMeterDigital.svelte
 │   │   │   ├── Spectrogram.svelte
 │   │   │   ├── StatusIndicators.svelte
 │   │   │   ├── storage.js
-│   │   │   ├── sUnits.js              # S-unit scale by frequency (S9 = −93 dBm above 30 MHz)
+│   │   │   ├── sUnits.js              # échelle des points S selon la fréquence (S9 = −93 dBm au-dessus de 30 MHz)
 │   │   │   ├── Tooltip.svelte
-│   │   │   ├── version.js             # VERSION + ORIGIN_URL for the receiver page and /mobile
+│   │   │   ├── version.js             # VERSION + ORIGIN_URL pour la page du récepteur et /mobile
 │   │   │   ├── VersionSelector.svelte
 │   │   │   ├── VideoAreaSelector.svelte
-│   │   │   ├── wfAutoLevel.js         # Auto Adj.: waterfall brightness and contrast
+│   │   │   ├── wfAutoLevel.js         # Auto Adj. : luminosité et contraste de la cascade
 │   │   │   └── wrappers.js
 │   │   ├── main.js
 │   │   ├── mobile
@@ -360,12 +240,12 @@ PhantomSDR-Plus
 │   │   ├── mfsk.js
 │   │   ├── mt63.js
 │   │   ├── olivia.js
-│   │   ├── playoutControl.js         # measures the connection, keeps the playback buffer small
+│   │   ├── playoutControl.js         # mesure la connexion, garde petit le tampon de lecture
 │   │   ├── psk31.js
 │   │   ├── refused.js
 │   │   ├── remoteSource.js
 │   │   ├── scanner.js
-│   │   ├── siteInfo.js               # site_information.json, overlaid with the receiver's own copy
+│   │   ├── siteInfo.js               # site_information.json, recouvert par la copie propre au récepteur
 │   │   ├── sstv.js
 │   │   ├── sstv.worker.js
 │   │   ├── sstvWorkerProxy.js
@@ -407,7 +287,7 @@ PhantomSDR-Plus
 │   ├── svelte.config.js
 │   ├── tailwind.config.cjs
 │   └── vite.config.js
-├── go.sh                      # legacy launcher chain, superseded by start-<radio>.sh
+├── go.sh                      # ancienne chaîne de lancement, remplacée par start-<radio>.sh
 ├── install_arch.sh
 ├── install_fedora.sh
 ├── install_opensuse.sh
@@ -415,7 +295,7 @@ PhantomSDR-Plus
 ├── install_rade_ubuntu22.sh
 ├── install.sh
 ├── install-stats-server.sh
-├── instances                  # extra receivers, one folder each (not in git) — see docs/MULTI_RECEIVER.md
+├── instances                  # récepteurs supplémentaires, un dossier chacun (hors git) — voir docs/MULTI_RECEIVER.md
 ├── instructions-for-airspy
 ├── instructions-for-rsp1a
 ├── jsdsp
@@ -432,7 +312,7 @@ PhantomSDR-Plus
 │   │   │   └── internal.h
 │   │   └── liquid
 │   │       └── liquid.h
-│   ├── js8_wasm               # JS8 decoder in C, built to WebAssembly, with its tests and reference harness — see its README
+│   ├── js8_wasm               # décodeur JS8 en C, compilé en WebAssembly, avec ses tests et son banc de référence — voir son README
 │   │   ├── build_js8_wasm.sh
 │   │   ├── check_against_reference.sh
 │   │   ├── extract_js8_constants.py
@@ -488,43 +368,43 @@ PhantomSDR-Plus
 │       ├── LiquidDSP.js
 │       ├── NoiseProcessing.js
 │       └── wbfmpll.cpp
-├── kill.sh                    # legacy: kills the server processes, called by go.sh
-├── kiwi_install.sh             # installs the KiwiSDR bridge into an existing tree
+├── kill.sh                    # ancien : tue les processus du serveur, appelé par go.sh
+├── kiwi_install.sh             # installe la passerelle KiwiSDR dans une arborescence existante
 ├── LICENSE
-├── logproxy                   # rotated copies of the panel / proxy / autorun logs
+├── logproxy                   # copies tournantes des journaux panneau/mandataire/autorun
 ├── logrotate
-│   └── phantomsdr             # logrotate config for proxy.log + admin.log (edit paths before installing)
+│   └── phantomsdr             # configuration logrotate pour proxy.log + admin.log (adapter les chemins avant installation)
 ├── manage_admin.sh
 ├── markers.json
 ├── meson.build
 ├── meson_options.txt
 ├── phantom_fftw_wisdom
-├── phantomsdr-admin.service   # sample systemd unit for the admin panel (starts at boot, restarts after a crash)
-├── phantomsdr-proxy.service   # sample systemd unit for the proxy, installed alongside the panel unit
-├── phantomsdr-websdr-relay.service  # sample systemd unit for the WebSDR diversity relay
-├── proxy.py                   # the one public port: the page, /admin, /rade, /stats, /relay, and ?rx= receivers
+├── phantomsdr-admin.service   # unité systemd d'exemple pour le panneau (démarrage au boot, redémarrage après plantage)
+├── phantomsdr-proxy.service   # unité systemd d'exemple pour le proxy, à installer avec celle du panneau
+├── phantomsdr-websdr-relay.service  # unité systemd d'exemple pour le relais de diversité WebSDR
+├── proxy.py                   # l'unique port public : la page, /admin, /rade, /stats, /relay et récepteurs ?rx=
 ├── rade_helper.py
-├── rade_loadtest.csv          # output of rade_loadtest.py (one row per ramp step)
-├── rade_loadtest.py           # RADE concurrency knee test — see docs/RADE_README.md
+├── rade_loadtest.csv          # sortie de rade_loadtest.py (une ligne par palier de charge)
+├── rade_loadtest.py           # test de charge RADE : combien de décodeurs simultanés la machine supporte — voir docs/RADE_README.md
 ├── rade.sh
 ├── README.md
-├── recompile.sh               # rebuild; --backend / --frontend / --both ask nothing
-├── receivers.toml.example     # receiver list for proxy.py — copy to receivers.toml
-├── _relaunch.sh               # legacy: delayed re-launch helper for the go.sh chain
+├── recompile.sh               # recompilation ; --backend / --frontend / --both ne demandent rien
+├── receivers.toml.example     # liste des récepteurs pour proxy.py — à copier en receivers.toml
+├── _relaunch.sh               # ancien : relance différée de la chaîne go.sh
 ├── request.hpp
 ├── setup_admin.sh
-├── setup-airspyhf.sh          # Airspy HF+ driver chain: libairspyhf + SoapyAirspyHF + rx_sdr + udev
-├── setup-autostart.sh         # start at boot: phantomsdr-receiver.service for the start script in station.conf
-├── setup-cpufreq-perms.sh     # grants group write on scaling_max_freq so the guard can throttle without root
-├── setup-firewall.sh          # optional nftables flood guard — see docs/CONNECTION_LIMITS.md
-├── setup-fobos.sh             # Fobos driver chain: libfobos + SoapyFobosSDR + rx_sdr + cf32_to_real + udev
-├── setup-hackrf.sh            # HackRF: the distribution's hackrf package + udev (nothing built)
-├── setup-https.sh             # https:// in front: Caddy on 443 with a Let's Encrypt certificate — see docs/HTTPS.md
-├── setup-rsp1a.sh             # RSP1A driver chain: libmirisdr-5 + SoapyMiri + rx_sdr + msi2500 blacklist + udev
-├── setup-rtlsdr.sh            # RTL-SDR driver: the distribution's package, or the Blog V4 driver from source + DVB blacklist + udev
+├── setup-airspyhf.sh          # chaîne de pilote Airspy HF+ : libairspyhf + SoapyAirspyHF + rx_sdr + udev
+├── setup-autostart.sh         # démarrage au boot : phantomsdr-receiver.service pour le script de démarrage de station.conf
+├── setup-cpufreq-perms.sh     # donne au groupe l'écriture sur scaling_max_freq pour que la protection puisse brider sans root
+├── setup-firewall.sh          # garde nftables optionnelle — voir docs/CONNECTION_LIMITS.md
+├── setup-fobos.sh             # chaîne de pilote Fobos : libfobos + SoapyFobosSDR + rx_sdr + cf32_to_real + udev
+├── setup-hackrf.sh            # HackRF : paquet hackrf de la distribution + udev (rien de compilé)
+├── setup-https.sh             # https:// devant : Caddy sur 443 avec un certificat Let's Encrypt — voir docs/HTTPS.md
+├── setup-rsp1a.sh             # chaîne de pilote RSP1A : libmirisdr-5 + SoapyMiri + rx_sdr + liste noire msi2500 + udev
+├── setup-rtlsdr.sh            # pilote RTL-SDR : paquet de la distribution, ou pilote Blog V4 compilé + blocage DVB + udev
 ├── setup-rx888-udev.sh
-├── setup-sdr-common.sh        # shared helpers sourced by the three setup scripts above
-├── setup_websdr_relay.sh      # installs the WebSDR diversity relay (port, identity, systemd)
+├── setup-sdr-common.sh        # fonctions communes des trois scripts setup ci-dessus
+├── setup_websdr_relay.sh      # installe le relais de diversité WebSDR (port, identité, systemd)
 ├── smeter_theme.sh
 ├── src
 │   ├── audio.cpp
@@ -545,7 +425,7 @@ PhantomSDR-Plus
 │   ├── fft_impl.cpp
 │   ├── fft_mkl.cpp
 │   ├── http.cpp
-│   ├── kiwi_bridge.h          # KiwiSDR protocol bridge — see docs/Aether_config.md
+│   ├── kiwi_bridge.h          # passerelle du protocole KiwiSDR — voir docs/Aether_config.md
 │   ├── listing
 │   │   ├── software_info.cpp
 │   │   └── software_info.h
@@ -569,14 +449,14 @@ PhantomSDR-Plus
 │   ├── websocket.cpp
 │   └── websocket.h
 ├── start-airspyhf.sh
-├── start-all.sh               # starts every receiver in receivers.toml
+├── start-all.sh               # démarre chaque récepteur de receivers.toml
 ├── start-fobos-hf.sh
 ├── start-fobos.sh
 ├── start-hackrf.sh
 ├── start-rsp1a.sh
 ├── start-rtl.sh
 ├── start-rx888mk2.sh
-├── station.conf               # this station's answers to the wizard (not in git, never touched by update.sh)
+├── station.conf               # les réponses de la station à l'assistant (pas dans git, jamais touché par update.sh)
 ├── stop-websdr.sh
 ├── subprojects
 │   ├── fftw3.wrap
@@ -804,291 +684,292 @@ PhantomSDR-Plus
 │   ├── zlib.wrap
 │   └── zstd.wrap
 ├── tci-bridge
-│   └── tci-rigctld.mjs        # TCI server for Hamlib rigs (IC-7300…), run on the listener's PC — see docs/RIG_CONTROL.md
-├── thermal_guard.py           # CPU over-temperature guard used by the admin panel (also runs standalone)
-├── thermal-guard.service      # sample systemd unit for the guard, for installs without the admin panel
+│   └── tci-rigctld.mjs        # serveur TCI pour postes Hamlib (IC-7300…), tourne sur le PC de l'auditeur — voir docs/RIG_CONTROL.md
+├── thermal_guard.py           # Protection contre la surchauffe du processeur pour le panneau (fonctionne aussi seule)
+├── thermal-guard.service      # unité systemd d'exemple pour le garde, sans panneau d'administration
 ├── tmpfiles
-│   └── phantomsdr-logs.conf   # keeps admin.log + proxy.log owned by the panel's user (edit paths before installing)
-├── update-known.txt           # fingerprints of every published version — lets update.sh tell old files from edited ones
-├── update.sh                  # updater: report, then "update now?"; --check, --from, --make-known
+│   └── phantomsdr-logs.conf   # garde admin.log + proxy.log à l'utilisateur du panneau (adapter les chemins avant installation)
+├── update-known.txt           # empreintes de chaque version publiée — update.sh distingue fichiers anciens et modifiés
+├── update.sh                  # mise à jour : rapport, puis « update now? » ; --check, --from, --make-known
 ├── waterfall.sh
-├── websdr_relay.json.example  # its config template (port, caps, station identity)
-├── websdr_relay.py            # the relay itself — see docs/RECEIVE_DIVERSITY.md
-├── websocketpp_asio_connection.hpp  # Boost >= 1.87 shim: ws_post instead of io_service::post
-├── websocketpp_asio_endpoint.hpp    # Boost >= 1.87 shim: ws_work / ws_restart, max_listen_connections
-├── websocketpp_asio.hpp        # Boost >= 1.87 shim for websocketpp (io_context, executor_work_guard)
-└── xgo.sh                     # legacy: starts spectrumserver, called by check-go.sh
+├── websdr_relay.json.example  # modèle de configuration (port, limites, identité de la station)
+├── websdr_relay.py            # le relais lui-même — voir docs/RECEIVE_DIVERSITY.md
+├── websocketpp_asio_connection.hpp  # adaptateur Boost >= 1.87 : ws_post au lieu de io_service::post
+├── websocketpp_asio_endpoint.hpp    # adaptateur Boost >= 1.87 : ws_work / ws_restart, max_listen_connections
+├── websocketpp_asio.hpp        # adaptateur Boost >= 1.87 pour websocketpp (io_context, executor_work_guard)
+└── xgo.sh                     # ancien : démarre spectrumserver, appelé par check-go.sh
 ```
 ---
 
-## Root Directory
+## Répertoire racine
 
-### Configuration Files
+### Fichiers de configuration
 
-| File | Purpose | When to Modify |
-|------|---------|----------------|
-| `config.toml` | Default configuration | Initial setup, testing |
-| `config-rtl.toml` | RTL-SDR specific config | Using RTL-SDR device |
-| `config-rsp1a.toml` | SDRplay RSP1A config | Using RSP1A device |
-| `config-airspyhf.toml` | Airspy HF+ config | Using Airspy device |
-| `config-fobos-hf.toml` | RigExpert Fobos SDR, HF1/HF2 direct sampling (0-25 MHz) | Using a Fobos on HF |
-| `config-fobos.toml` | RigExpert Fobos SDR, RF path (25-6000 MHz) | Using a Fobos above 25 MHz |
-| `config-hackrf.toml` | HackRF One config | Using a HackRF |
-| `config-rx888mk2.toml` | RX888 MK2 config | Using RX888 device |
-| `config.example.hackrf.toml` | HackRF One example | Using HackRF device |
-| `station.conf` | The station wizard's answers — receiver, band, station, ports, extras. Written by `configure-station.sh`; the start scripts and `proxy.py` read it. Never in git, never touched by `update.sh` | Through `bash configure-station.sh` |
+| Fichier | Rôle | Quand le modifier |
+|---------|------|-------------------|
+| `config.toml` | Configuration par défaut | Installation initiale, tests |
+| `config-rtl.toml` | Configuration propre au RTL-SDR | Utilisation d'un RTL-SDR |
+| `config-rsp1a.toml` | Configuration SDRplay RSP1A | Utilisation d'un RSP1A |
+| `config-airspyhf.toml` | Configuration Airspy HF+ | Utilisation d'un Airspy |
+| `config-fobos-hf.toml` | RigExpert Fobos SDR, HF1/HF2 en échantillonnage direct (0-25 MHz) | Utilisation d'un Fobos en HF |
+| `config-fobos.toml` | RigExpert Fobos SDR, voie RF (25-6000 MHz) | Utilisation d'un Fobos au-dessus de 25 MHz |
+| `config-hackrf.toml` | Configuration HackRF One | Utilisation d'un HackRF |
+| `config-rx888mk2.toml` | Configuration RX888 MK2 | Utilisation d'un RX888 |
+| `config.example.hackrf.toml` | Exemple HackRF One | Utilisation d'un HackRF |
+| `station.conf` | Les réponses à l'assistant de station — récepteur, bande, station, ports, compléments. Écrit par `configure-station.sh` ; lu par les scripts de démarrage et `proxy.py`. Jamais dans git, jamais touché par `update.sh` | Via `bash configure-station.sh` |
 
-### Start/Stop and Maintenance Scripts
+### Scripts de démarrage/arrêt et de maintenance
 
-Each `start-*.sh` below is a **self-contained launcher + watchdog + logger**: it stops any running instance, brings up the receiver + `spectrumserver`, detaches into the background, auto-restarts the chain if it dies, and logs to `logwebsdr.txt`. They share one stop script and a single `flock` lock (only one receiver runs at a time). Edit only the **RECEIVER CONFIGURATION** block at the top of each (receiver args / config / process name). The six launchers built from the same template (`start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos.sh`, `start-fobos-hf.sh`, `start-hackrf.sh`) are identical below that block; `start-rx888mk2.sh` is a script of its own. Since v5.0.0 several receivers can run side by side: start a launcher with `INSTANCE=<name>` and that receiver gets its own folder in `instances/<name>/`, its own log, lock and FIFO — see [Several Receivers](MULTI_RECEIVER.md).
+Chaque `start-*.sh` ci-dessous est un **lanceur autonome + chien de garde + journaliseur** : il arrête toute instance en cours, lance le récepteur + `spectrumserver`, se détache en arrière-plan, relance automatiquement la chaîne si elle s'arrête, et journalise dans `logwebsdr.txt`. Ils partagent un même script d'arrêt et un unique verrou `flock` (un seul récepteur à la fois). Ne modifiez que le bloc **RECEIVER CONFIGURATION** en tête de chacun (arguments du récepteur / configuration / nom du processus). Les six scripts de lancement issus du même modèle (`start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos.sh`, `start-fobos-hf.sh`, `start-hackrf.sh`) sont identiques sous ce bloc ; `start-rx888mk2.sh` est un script à part. Depuis la v5.0.0, plusieurs récepteurs peuvent tourner côte à côte : un script de démarrage lancé avec `INSTANCE=<nom>` donne à ce récepteur son propre dossier `instances/<nom>/`, son propre journal, son verrou et son FIFO — voir [Plusieurs récepteurs](MULTI_RECEIVER.md).
 
-| Script | Purpose |
-|--------|---------|
-| `install.sh` | Automated installation and build — the station questions first, then everything unattended (also `install_fedora.sh`, `install_arch.sh`, `install_opensuse.sh`) |
-| `configure-station.sh` | The station wizard: receiver, band, station, internet, ports and extras, asked once and saved in `station.conf`; from it writes the receiver's `.toml`, `site_information.json` and the relay settings, changing only the keys it owns and backing each file up first. `--show` prints the answers, `--apply` rewrites the files from them — see [Installation Guide](INSTALLATION.md) |
-| `setup-autostart.sh` | Start at boot: installs `phantomsdr-receiver.service`, which runs the start script from `station.conf` (or the one named) at boot and `stop-websdr.sh` at shutdown, with the `plugdev` group; `--remove` undoes it |
-| `setup-https.sh` | Serves the receiver over https:// as well as http://: installs Caddy on port 443 with a Let's Encrypt certificate for the station's DNS name (renewed by itself) and points it at `proxy.py`'s loopback port `PORT_TLS`, where the proxy takes each visitor's real address from Caddy. `--lan` for the local network with Caddy's own certificate, `--status`, `--remove`; the station questions run it when https is chosen — see [Secure Access](HTTPS.md) |
-| `add-receiver.sh` | Adds one more receiver to this computer: asks which receiver and what it covers, installs its driver, creates `instances/<name>/` and the `receivers.toml` entry, and offers to start it and restart the proxy. The installers offer it at the end — see [Several Receivers](MULTI_RECEIVER.md) |
-| `start-rtl.sh` | Launch + watchdog server with RTL-SDR (`rtl_sdr`) |
-| `start-rsp1a.sh` | Launch + watchdog server with SDRplay RSP1A (`rx_sdr`); uses libmirisdr-5, or SDRplay's API when that is installed (`RX_DRIVER` forces one) |
-| `start-airspyhf.sh` | Launch + watchdog server with Airspy HF+ (`rx_sdr`) |
-| `start-fobos-hf.sh` | Launch + watchdog server with RigExpert Fobos SDR, HF1/HF2 direct sampling (`rx_sdr \| cf32_to_real`) |
-| `start-fobos.sh` | Launch + watchdog server with RigExpert Fobos SDR, RF path (`rx_sdr`) |
-| `start-hackrf.sh` | Launch + watchdog server with HackRF One (`hackrf_transfer`) |
-| `start-rx888mk2.sh` | Launch + watchdog server with RX888 MK2 (`rx888_stream`) |
-| `start-all.sh` | Starts every receiver listed in `receivers.toml` through its own launcher — set it as the admin panel's start script on a station with several receivers; see [Several Receivers](MULTI_RECEIVER.md) |
-| `stop-websdr.sh` | Stop the server + its watchdog — shared by all receivers |
-| `stop-websdr.sh <instance>` | Stops one receiver only (`main` for the main one); without an argument every receiver stops, as before |
-| `setup-rx888-udev.sh` | Install udev rules so RX-888 `rx888_stream` runs without sudo |
-| `setup-rsp1a.sh` / `setup-fobos.sh` / `setup-airspyhf.sh` | Install the SoapySDR driver chain for the RSP1A, Fobos or Airspy HF+ — SoapySDR from the distribution, the driver and rx_tools built into `sdr_drivers/`, a udev rule — on any of the four supported distributions. Installer options 3, 5 and 6 run them; they also run on their own. Shared code in `setup-sdr-common.sh` — see [Installation Guide](INSTALLATION.md#receivers-on-soapysdr-rsp1a-fobos-airspy-hf) |
-| `setup-hackrf.sh` | Installs the distribution's `hackrf` package and a udev rule for the HackRF One, on any of the four supported distributions; installer option 7 runs it |
-| `setup-rtlsdr.sh` | Installs the RTL-SDR driver on any of the four supported distributions — the distribution's `rtl-sdr` package, or with `RTL_V4=y` the RTL-SDR Blog V4 driver built from source — blacklists the DVB-T driver and adds a udev rule; `add-receiver.sh` runs it |
-| `setup-firewall.sh` | Optional kernel-level flood guard: loads an nftables table with a per-source connection ceiling and rate on the receiver ports, an SSH brute-force brake, and Windows file sharing closed outside private ranges. Needs root, cannot lock you out (policy accept, established accepted first) and `--apply` rolls itself back unless confirmed within 60 s — see [Connection Limits](CONNECTION_LIMITS.md) |
-| `setup-cpufreq-perms.sh` | Grants a `cpufreq` group write access to the per-CPU frequency limit, so the thermal guard's throttle stage works without running the panel as root. Installs a `tmpfiles.d` rule so it survives a reboot; `--revoke` undoes it |
-| `update.sh` | Update the installation from the published tree, leaving your configuration, markers, frequency list and local edits alone: it reports, asks "Update these files now?" (ENTER = no), backs up, applies and rebuilds only what changed. `--check` for cron, `--from` a ZIP, tarball or folder without network — see [Installation Guide](INSTALLATION.md) |
-| `update-known.txt` | The SHA-256 of every version of every file ever published, shipped with each release, so `update.sh` updates a file that is merely old without asking. Written by `bash update.sh --make-known` in the source tree |
-| `recompile.sh` | Rebuild the backend and/or the frontend, and pick the variant served at `/`. With `--backend`, `--frontend` or `--both` it asks nothing and keeps the current variant — how `install.sh` and `update.sh` call it |
-| `smeter_theme.sh` | Set the default analog S-meter face (dark / amber / vintage) for all users, and offer the frontend rebuild — see [Editing Variants](EDITING_VARIANTS.md) |
-| `waterfall.sh` | Change the default minimum waterfall level (dB) in `waterfall.js` + `App.svelte` — see [README](README.md) |
-| `kiwi_install.sh` | Install the KiwiSDR client-emulation bridge into a tree that has not got it: patches the backend sources, copies `src/kiwi_bridge.h`, and adds a documented `[kiwi_emulation]` block to the config files in the repository root. Idempotent, and backs up every file it touches — see [KiwiSDR Client Emulation](Aether_config.md) |
-| `tci-bridge/tci-rigctld.mjs` | Not used by the receiver. A small Node.js program a listener runs next to their own transceiver: it reads frequency, mode and transmit state from Hamlib's `rigctld` and serves them as TCI on port 50001, so the page's **TCI-CAT** button can drive a rig with no TCI of its own, such as the IC-7300 — see [Rig Control](RIG_CONTROL.md) |
+| Script | Rôle |
+|--------|------|
+| `install.sh` | Installation et compilation automatiques — d'abord les questions de la station, puis tout sans surveillance (aussi `install_fedora.sh`, `install_arch.sh`, `install_opensuse.sh`) |
+| `configure-station.sh` | L'assistant de station : récepteur, bande, station, internet, ports et compléments, demandés une fois et enregistrés dans `station.conf` ; il en tire le `.toml` du récepteur, `site_information.json` et les réglages du relais, en ne changeant que ses propres clés et en sauvegardant chaque fichier d'abord. `--show` affiche les réponses, `--apply` réécrit les fichiers à partir d'elles — voir le [Guide d'installation](INSTALLATION.md) |
+| `setup-autostart.sh` | Démarrage au boot : installe `phantomsdr-receiver.service`, qui lance au boot le script de démarrage de `station.conf` (ou celui indiqué) et `stop-websdr.sh` à l'arrêt, avec le groupe `plugdev` ; `--remove` l'annule |
+| `setup-https.sh` | Sert le récepteur en https:// en plus de http:// : installe Caddy sur le port 443 avec un certificat Let's Encrypt pour le nom DNS de la station (renouvelé tout seul) et le dirige vers le port loopback `PORT_TLS` de `proxy.py`, où le proxy prend auprès de Caddy l'adresse réelle de chaque visiteur. `--lan` pour le réseau local avec le certificat propre de Caddy, `--status`, `--remove` ; les questions de la station le lancent quand https est choisi — voir [Accès sécurisé](HTTPS.md) |
+| `add-receiver.sh` | Ajoute un récepteur de plus à cet ordinateur : demande quel récepteur et ce qu'il couvre, installe son pilote, crée `instances/<nom>/` et l'entrée de `receivers.toml`, et propose de le démarrer et de redémarrer le proxy. Les installeurs le proposent à la fin — voir [Plusieurs récepteurs](MULTI_RECEIVER.md) |
+| `start-rtl.sh` | Lancement + chien de garde du serveur avec RTL-SDR (`rtl_sdr`) |
+| `start-rsp1a.sh` | Lancement + chien de garde du serveur avec SDRplay RSP1A (`rx_sdr`) ; utilise libmirisdr-5, ou l'API SDRplay quand elle est installée (`RX_DRIVER` en impose un) |
+| `start-airspyhf.sh` | Lancement + chien de garde du serveur avec Airspy HF+ (`rx_sdr`) |
+| `start-fobos-hf.sh` | Lancement + chien de garde du serveur avec RigExpert Fobos SDR, HF1/HF2 en échantillonnage direct (`rx_sdr \| cf32_to_real`) |
+| `start-fobos.sh` | Lancement + chien de garde du serveur avec RigExpert Fobos SDR, voie RF (`rx_sdr`) |
+| `start-hackrf.sh` | Lancement + chien de garde du serveur avec HackRF One (`hackrf_transfer`) |
+| `start-rx888mk2.sh` | Lancement + chien de garde du serveur avec RX888 MK2 (`rx888_stream`) |
+| `start-all.sh` | Démarre chaque récepteur de `receivers.toml` par son propre script — à choisir comme script de démarrage du panneau d'administration sur une station à plusieurs récepteurs ; voir [Plusieurs récepteurs](MULTI_RECEIVER.md) |
+| `stop-websdr.sh` | Arrêt du serveur et de son chien de garde — partagé par tous les récepteurs |
+| `stop-websdr.sh <instance>` | Arrête un seul récepteur (`main` pour le principal) ; sans argument, tous s'arrêtent, comme avant |
+| `setup-rx888-udev.sh` | Installe les règles udev pour que `rx888_stream` du RX-888 tourne sans sudo |
+| `setup-rsp1a.sh` / `setup-fobos.sh` / `setup-airspyhf.sh` | Installent la chaîne de pilote SoapySDR du RSP1A, du Fobos ou de l'Airspy HF+ — SoapySDR depuis la distribution, pilote et rx_tools compilés dans `sdr_drivers/`, une règle udev — sur l'une des quatre distributions prises en charge. Les options 3, 5 et 6 de l'installateur les lancent ; ils fonctionnent aussi seuls. Code commun dans `setup-sdr-common.sh` — voir le [Guide d'installation](INSTALLATION.md#récepteurs-sur-soapysdr-rsp1a-fobos-airspy-hf) |
+| `setup-hackrf.sh` | Installe le paquet `hackrf` de la distribution et une règle udev pour le HackRF One, sur l'une des quatre distributions prises en charge ; l'option 7 de l'installateur le lance |
+| `setup-rtlsdr.sh` | Installe le pilote RTL-SDR sur l'une des quatre distributions prises en charge — le paquet `rtl-sdr` de la distribution ou, avec `RTL_V4=y`, le pilote du RTL-SDR Blog V4 compilé depuis les sources —, bloque le pilote DVB-T et ajoute une règle udev ; `add-receiver.sh` le lance |
+| `setup-firewall.sh` | Garde anti-afflux optionnelle au niveau du noyau : charge une table nftables avec un plafond de connexions simultanées et un débit par adresse source sur les ports du récepteur, un frein contre la force brute SSH et le partage de fichiers Windows fermé hors des plages privées. Nécessite root, ne peut pas vous enfermer dehors (policy accept, les connexions établies acceptées en premier) et `--apply` se retire de lui-même s'il n'est pas confirmé en 60 s — voir [Limites de connexion](CONNECTION_LIMITS.md) |
+| `setup-cpufreq-perms.sh` | Donne à un groupe `cpufreq` le droit d'écriture sur la limite de fréquence du processeur, afin que l'étage throttle du garde fonctionne sans root. Installe une règle `tmpfiles.d` pour survivre à un redémarrage ; `--revoke` annule tout |
+| `update.sh` | Met à jour l'installation depuis l'arborescence publiée sans toucher à votre configuration, vos marqueurs, la liste de fréquences ni vos modifications : rapport, question « Update these files now? » (ENTRÉE = non), sauvegarde, application et recompilation de ce qui a changé seulement. `--check` pour cron, `--from` depuis un ZIP, une archive ou un dossier sans réseau — voir le [Guide d'installation](INSTALLATION.md) |
+| `update-known.txt` | Le SHA-256 de chaque version de chaque fichier jamais publiée, livré avec chaque version, pour que `update.sh` mette à jour sans question un fichier simplement ancien. Écrit par `bash update.sh --make-known` dans l'arborescence source |
+| `recompile.sh` | Recompile le backend et/ou le frontend et choisit la variante servie à `/`. Avec `--backend`, `--frontend` ou `--both` il ne demande rien et garde la variante actuelle — c'est ainsi que `install.sh` et `update.sh` l'appellent |
+| `smeter_theme.sh` | Définir le cadran par défaut du S-mètre analogique (dark / amber / vintage) pour tous les utilisateurs, et proposer la reconstruction du frontend — voir [Modifier les variantes](EDITING_VARIANTS.md) |
+| `waterfall.sh` | Modifie le niveau minimal de cascade par défaut (dB) dans `waterfall.js` + `App.svelte` — voir [README](README.md) |
+| `kiwi_install.sh` | Installe l'émulation des clients KiwiSDR sur une arborescence qui ne l'a pas : corrige les sources du backend, copie `src/kiwi_bridge.h` et ajoute un bloc `[kiwi_emulation]` documenté aux fichiers de configuration de la racine. Idempotent, et sauvegarde chaque fichier qu'il touche — voir [Émulation des clients KiwiSDR](Aether_config.md) |
+| `tci-bridge/tci-rigctld.mjs` | Non utilisé par le récepteur. Un petit programme Node.js que l'auditeur lance à côté de son propre transceiver : il lit la fréquence, le mode et l'état d'émission dans `rigctld` de Hamlib et les sert en TCI sur le port 50001, pour que le bouton **TCI-CAT** de la page pilote un poste sans TCI, comme l'IC-7300 — voir [Pilotage du transceiver](RIG_CONTROL.md) |
 
-**Legacy launcher chain.** `go.sh`, `xgo.sh`, `check-go.sh`, `kill.sh` and `_relaunch.sh` are the previous generation of launcher, watchdog and stop scripts. Everything they did is now inside each `start-<radio>.sh`, which is what you should use. They are kept on disk because existing installations still reference them, and are not maintained.
+**Ancienne chaîne de lancement.** `go.sh`, `xgo.sh`, `check-go.sh`, `kill.sh` et `_relaunch.sh` sont la génération précédente de scripts de lancement, de surveillance et d'arrêt. Tout ce qu'ils faisaient se trouve désormais dans chaque `start-<radio>.sh`, qui est ce qu'il faut utiliser. Ils restent sur le disque parce que des installations existantes les référencent, et ne sont plus maintenus.
 
-### Data Files
+### Fichiers de données
 
-| File | Purpose | Format |
-|------|---------|--------|
-| `markers.json` | Frequency bookmarks and markers | JSON |
-| `chat_history.txt` | User chat messages | Plain text |
-| `favicon.ico` | Website icon | ICO image |
-| `fftw_wisdom` | FFT optimization data | FFTW binary |
-| `phantom_fftw_wisdom` | Additional FFT optimization | FFTW binary |
+| Fichier | Rôle | Format |
+|---------|------|--------|
+| `markers.json` | Favoris et marqueurs de fréquence | JSON |
+| `chat_history.txt` | Messages de chat des utilisateurs | Texte brut |
+| `favicon.ico` | Icône du site | Image ICO |
+| `fftw_wisdom` | Données d'optimisation FFT | Binaire FFTW |
+| `phantom_fftw_wisdom` | Optimisation FFT supplémentaire | Binaire FFTW |
 
-### Admin Panel and Spot Reporting
+### Panneau d'administration et report de spots
 
-| File | Purpose |
-|------|---------|
-| `admin_server.py` | The admin panel itself. Besides the management pages it runs the **Graphs** sampler: a background thread takes CPU frequency, load, temperature and users online every 2 seconds and keeps them in memory only — 1 hour at full resolution plus 24 hours of 30-second averages. Nothing is written to disk, so the history is lost on restart. |
-| `admin_config.json` | Admin panel settings (password hash, ports, options, thermal guard thresholds) |
-| `proxy.py` | The public port. Serves the page and carries `/admin` to the panel and — on a station set up with the wizard — `/rade`, `/stats` and `/relay` to the services behind it, so only one port is forwarded. Reads its ports from `admin_config.json`, or from `station.conf` when there is no panel (`setup_admin.sh --proxy-only`) |
-| `thermal_guard.py` | CPU over-temperature guard. Stops the server when the CPU gets too hot and restarts it once cool, deriving its thresholds from the critical trip point your own CPU publishes instead of a fixed number. It never identifies what supervises the server — while over-temp it re-issues the stop every 2 s, so a watchdog, systemd unit or cron job that revives it is undone until the machine cools. Stdlib-only; imported by `admin_server.py` (ticked from the Graphs sampler) and also runnable standalone for installations without the panel. Defaults to log-only, so it acts on nothing until enabled — see the [Thermal Guard manual](THERMAL_GUARD.md) |
-| `autorun/` | The spot-reporting daemon — see [Autorun Spot Reporter](INSTALLATION.md#autorun-spot-reporter-ft8ft4wspr) |
-| `autorun.json` | Which bands/modes to decode, identity and destinations |
-| `autorun-status.json` | Live state of the running daemon — feeds the **per-run** spot counters (the per-decoder tiles), which reset on Stop/Start |
-| `autorun-totals.json` | **All-time** uploaded spots per band+mode — the number beside each checkbox; written by the daemon so the counts survive restarts |
+| Fichier | Rôle |
+|---------|------|
+| `admin_server.py` | Le panneau d'administration lui-même. Outre les pages de gestion, il fait tourner l'échantillonneur de la page **Graphiques** : un thread d'arrière-plan relève toutes les 2 secondes la fréquence du processeur, la charge, la température et les utilisateurs connectés, et les conserve uniquement en mémoire — 1 heure en pleine résolution plus 24 heures de moyennes sur 30 secondes. Rien n'est écrit sur le disque : l'historique est perdu au redémarrage. |
+| `admin_config.json` | Réglages du panneau d'administration (empreinte du mot de passe, ports, options, seuils de la protection thermique) |
+| `proxy.py` | Le port public. Sert la page et transmet `/admin` au panneau et — sur une station configurée avec l'assistant — `/rade`, `/stats` et `/relay` aux services derrière lui, de sorte qu'un seul port est redirigé. Lit ses ports dans `admin_config.json`, ou dans `station.conf` en l'absence de panneau (`setup_admin.sh --proxy-only`) |
+| `thermal_guard.py` | Protection contre la surchauffe du processeur. Arrête le serveur lorsque le processeur devient trop chaud et le relance une fois refroidi, en déduisant ses seuils du seuil critique que publie votre propre processeur plutôt que d'un nombre fixe. Elle ne cherche jamais à identifier ce qui supervise le serveur : tant qu'il fait trop chaud, elle réémet l'arrêt toutes les 2 s, si bien qu'un watchdog, une unité systemd ou une tâche cron qui le relance est défait jusqu'au refroidissement de la machine. Bibliothèque standard uniquement ; importée par `admin_server.py` (cadencée par l'échantillonneur des Graphiques) et exécutable seule pour les installations sans panneau. Par défaut en journalisation seule, elle n'agit donc sur rien tant qu'elle n'est pas activée — voir [Panneau d'administration]voir le [manuel du Thermal Guard](THERMAL_GUARD.md) |
+| `autorun/` | Le démon de report de spots — voir [Rapporteur de spots autorun](INSTALLATION.md#rapporteur-de-spots-autorun-ft8ft4wspr) |
+| `autorun.json` | Bandes et modes à décoder, identité et destinations |
+| `autorun-status.json` | État courant du démon : alimente les compteurs **de l'exécution en cours** (les tuiles par décodeur), remis à zéro par Stop/Start |
+| `autorun-totals.json` | Spots téléversés **depuis toujours** par bande et mode : le nombre à côté de chaque case ; écrit par le démon afin de survivre aux redémarrages |
 
-### Build System Files
+### Fichiers du système de compilation
 
-| File | Purpose |
-|------|---------|
-| `meson.build` | Main build configuration |
-| `meson_options.txt` | Configurable build options |
-| `.gitattributes` | Git repository attributes |
+| Fichier | Rôle |
+|---------|------|
+| `meson.build` | Configuration principale de compilation |
+| `meson_options.txt` | Options de compilation configurables |
+| `.gitattributes` | Attributs du dépôt Git |
 
 ---
 
-## Source Code (`src/`)
+## Code source (`src/`)
 
-The `src/` directory contains the C++ backend implementation.
+Le répertoire `src/` contient l'implémentation du backend en C++.
 
-### Key Components
+### Composants clés
 
-#### 1. Main Application (`main.cpp`)
-- Parses command-line arguments
-- Loads configuration file
-- Initializes server components
-- Starts event loop
+#### 1. Application principale (`main.cpp`)
+- Analyse les arguments de la ligne de commande
+- Charge le fichier de configuration
+- Initialise les composants du serveur
+- Démarre la boucle d'événements
 
-#### 2. Spectrum Server (`spectrumserver.cpp`)
-- Coordinates all components
-- Manages user connections
-- Distributes spectrum data
-- Handles user requests
+#### 2. Serveur de spectre (`spectrumserver.cpp`)
+- Coordonne tous les composants
+- Gère les connexions des utilisateurs
+- Distribue les données de spectre
+- Traite les requêtes des utilisateurs
 
-#### 3. SDR Drivers (`drivers/`)
-- Abstract interface for SDR hardware
-- Read and format sample data
-- Handle device-specific features
+#### 3. Pilotes SDR (`drivers/`)
+- Interface abstraite pour le matériel SDR
+- Lecture et mise en forme des données d'échantillons
+- Gestion des fonctions propres à chaque appareil
 
-#### 4. DSP Engine (`dsp/`)
-- FFT calculation (CPU/GPU accelerated)
-- Demodulation (AM, FM, SSB, CW, etc.)
-- Audio filtering and resampling
-- AGC per listener — Auto (tuned per mode) or transceiver-style Fast / Medium / Slow, chosen with the `agc_speed` command (`utils/audioprocessing.cpp`) — and noise reduction
+#### 4. Moteur DSP (`dsp/`)
+- Calcul de FFT (accéléré par CPU/GPU)
+- Démodulation (AM, FM, BLU, CW, etc.)
+- Filtrage et rééchantillonnage audio
+- AGC par auditeur — Auto (réglée par mode) ou Fast / Medium / Slow comme sur un transceiver, choisie par la commande `agc_speed` (`utils/audioprocessing.cpp`) — et réduction de bruit
 
-#### 5. Web Server (`server/`)
-- WebSocket communication
-- HTTP static file serving
-- User session management
-- Real-time data streaming
+#### 5. Serveur web (`server/`)
+- Communication WebSocket
+- Service de fichiers statiques HTTP
+- Gestion des sessions utilisateur
+- Diffusion de données en temps réel
 
-#### 6. Audio Encoding (`audio/`)
-- FLAC compression
-- Opus compression
-- Streaming optimization
+#### 6. Encodage audio (`audio/`)
+- Compression FLAC
+- Compression Opus
+- Optimisation de la diffusion
 
 ---
 
 ## Frontend (`frontend/`)
 
-The web-based user interface built with Svelte and Vite.
+L'interface utilisateur web construite avec Svelte et Vite.
 
 
-#### 1. Main App (`App.svelte`)
-- Top-level component
-- Layout structure
-- Component orchestration
-- **Decoders button row** — one button per decoder, on the main panel directly under the Modes selector; press to start the decoder and open its window, press again to stop. It replaced the former Bandwidth row. RADEL/RADEU live in `lib/ModesSelector.svelte` instead, beside the Modes selector and inside the Modes and Bands pop-ups.
-- **Version line** — "PhantomSDR+ | v5.1.0 original from github.com/sv1btl/PhantomSDR-Plus", with the address as a link; the same line is on the /mobile page. The version number and the address live in `lib/version.js`; the line is an author attribution covered by `ADDITIONAL_TERMS.md`.
+#### 1. Application principale (`App.svelte`)
+- Composant de plus haut niveau
+- Structure de la mise en page
+- Orchestration des composants
+- **Rangée de boutons de décodeur** — un bouton par décodeur sur le panneau principal, juste sous le sélecteur de modes ; une pression démarre le décodeur et ouvre sa fenêtre, une seconde l'arrête. Elle a remplacé l'ancienne rangée de largeur de bande. RADEL/RADEU se trouvent dans `lib/ModesSelector.svelte`, à côté du sélecteur de modes et dans les fenêtres **Modes** et **Bands**.
+- **Ligne de version** — « PhantomSDR+ | v5.1.0 original from github.com/sv1btl/PhantomSDR-Plus », l'adresse servant de lien ; la même ligne figure sur la page /mobile. Le numéro de version et l'adresse se trouvent dans `lib/version.js` ; la ligne est une attribution d'auteur couverte par `ADDITIONAL_TERMS.md`.
 
-#### 2. Waterfall Display (`waterfall.js` + `lib/`)
-- Canvas-based spectrum and waterfall rendering and colormaps in `waterfall.js` (plain JS, not a component); the **Auto Adj.** brightness/contrast remap is `lib/wfAutoLevel.js`
-- Interactive tuning through `lib/PassbandTuner.svelte`
-- Band plan and marker overlays through `lib/FrequencyMarkers.svelte`
-- The audio spectrogram is a separate component, `lib/Spectrogram.svelte`
+#### 2. Affichage en cascade (`waterfall.js` + `lib/`)
+- Rendu du spectre et de la cascade sur canevas et palettes de couleurs dans `waterfall.js` (JS pur, pas un composant) ; le remappage luminosité/contraste de **Auto Adj.** est `lib/wfAutoLevel.js`
+- Accord interactif via `lib/PassbandTuner.svelte`
+- Superpositions du plan de bandes et des marqueurs via `lib/FrequencyMarkers.svelte`
+- Le spectrogramme audio est un composant distinct : `lib/Spectrogram.svelte`
 
-#### 3. Controls (`App.svelte` + `lib/`)
-- Frequency input/display — `lib/FrequencyInput.svelte`
-- Mode selection (AM/FM/SSB/CW) — `lib/ModesSelector.svelte`, band switching — `lib/BandSelector.svelte`
-- AGC/NR/NB and the remaining controls live in `App.svelte` itself; there is no separate `Controls.svelte`
+#### 3. Commandes (`App.svelte` + `lib/`)
+- Saisie et affichage de la fréquence — `lib/FrequencyInput.svelte`
+- Choix du mode (AM/FM/BLU/CW) — `lib/ModesSelector.svelte`, changement de bande — `lib/BandSelector.svelte`
+- L'AGC, le NR, le NB et les autres commandes se trouvent dans `App.svelte` lui-même ; il n'existe pas de `Controls.svelte` distinct
 
 #### 3a. Scanner (`scanner.js`)
-- Channel scanner: walks the receiver across a range and stops on the first channel carrying a signal. Plain JS, not a component — `App.svelte` supplies the VFO, the mode, the band plan and the tuning call, and receives the UI state back through one callback
-- Threshold is dB over the band noise floor rather than an absolute level, reusing the floor `waterfall.js` already tracks (`snrNoiseDb`), so it needs no calibration of its own
-- Two ways to cross the band: tune and listen to every channel, or screen the spectrum first and only tune to what it cannot rule out. The spectrum may skip a channel but never stop on one — every stop comes from a real dwell
-- Range is either the band plan's band or exactly what the waterfall shows; auto-resume, a max-stay timeout and a lockout list live here too, persisted in `localStorage`
+- Balayage de canaux : promène le récepteur sur une plage et s'arrête au premier canal portant un signal. Du JS pur, pas un composant — `App.svelte` fournit le VFO, le mode, le plan de bandes et l'appel d'accord, et reçoit en retour l'état de l'interface par un seul rappel
+- Le seuil est exprimé en dB au-dessus du bruit de fond de la bande plutôt qu'en niveau absolu, en réutilisant le bruit que `waterfall.js` suit déjà (`snrNoiseDb`) : aucun étalonnage propre n'est nécessaire
+- Deux façons de parcourir la bande : accorder et écouter chaque canal, ou examiner d'abord le spectre et n'accorder que ce qu'il ne peut pas écarter. Le spectre peut sauter un canal mais jamais s'arrêter sur un — tout arrêt provient d'une écoute réelle
+- La plage est soit la bande du plan de bandes, soit exactement ce que montre la cascade ; la reprise automatique, la durée de séjour maximale et la liste d'exclusion sont ici également, conservées dans `localStorage`
 
-#### 4. Audio System (`audio.js`)
-- WebSocket audio stream
-- FLAC/Opus decoding. FLAC goes through `flacLowLatency.js`, which decodes each packet the moment it arrives and corrects the stream's true rate (for example 12016.3 Hz) to 12000 Hz with a 64-tap resampler (2.7 ms of delay). The WASM decoder in `modules/` released audio in fixed 1024-sample chunks and held back about 160 ms; it is still used for Opus, for diversity sources, and for FLAC when the page is opened with `?flac=wasm`
-- Audio playback control
-- Playback buffer control (`playoutControl.js`): `ArrivalMeter` measures how irregularly packets arrive against the stream's own timeline, and the drift between the receiver's sample clock and the listener's sound card; `CushionController` keeps the smallest buffer seen in the last minute close to the buffer preset's margin, by cutting or repeating one pitch-matched period (`spliceOut` / `spliceIn`) of the audio going to the loudspeaker. Decoders and recordings get the untouched stream. Applies to the scheduled-buffer path that every listener on a plain-http station uses; `?drain=0` switches it off, `?diag=1` shows its figures
-- Distributes raw PCM (taken before the browser's noise reduction and mute; the server AGC is held on Slow while a decoder is open) to the mode decoders
-- AI noise reduction: `lib/rnnoise.js` loads the RNNoise WebAssembly module (`@jitsi/rnnoise-wasm`) on first use; `audio.js` runs it on voice modes only, after the decoder tap, so the decoders never hear it
+#### 4. Système audio (`audio.js`)
+- Flux audio WebSocket
+- Décodage FLAC/Opus
+- Contrôle de la lecture audio
+- Distribue le PCM brut (prélevé avant la réduction de bruit et la coupure du son du navigateur ; l'AGC du serveur est maintenue sur Slow tant qu'un décodeur est ouvert) aux décodeurs de modes
+- Réduction de bruit par IA : `lib/rnnoise.js` charge le module WebAssembly RNNoise (`@jitsi/rnnoise-wasm`) à la première utilisation ; `audio.js` ne l'applique qu'aux modes phonie, après la prise des décodeurs, qui ne l'entendent donc jamais
+- Le FLAC passe par `flacLowLatency.js`, qui décode chaque paquet dès qu'il arrive et ramène la fréquence réelle du flux (par exemple 12016,3 Hz) à 12000 Hz avec un rééchantillonneur à 64 coefficients (2,7 ms de retard). Le décodeur WASM de `modules/` livrait le son par blocs fixes de 1024 échantillons et retenait environ 160 ms ; il sert encore pour Opus, pour les sources de diversité et pour le FLAC quand la page est ouverte avec `?flac=wasm`
+- Contrôle du tampon de lecture (`playoutControl.js`) : `ArrivalMeter` mesure l'irrégularité d'arrivée des paquets par rapport à la chronologie propre du flux, ainsi que la dérive entre l'horloge d'échantillonnage du récepteur et la carte son de l'auditeur ; `CushionController` maintient le plus petit tampon de la dernière minute près de la marge du cran de tampon choisi, en coupant ou en répétant une période accordée à la hauteur du son (`spliceOut` / `spliceIn`) dans l'audio envoyé au haut-parleur. Les décodeurs et les enregistrements reçoivent le flux intact. S'applique au chemin à tampons planifiés qu'utilise tout auditeur d'une station en http simple ; `?drain=0` le désactive, `?diag=1` affiche ses valeurs
 
-#### 4a. Mode decoders and their workers
+#### 4a. Décodeurs de modes et leurs workers
 
-Each of the heavy mode decoders runs in its own Web Worker so that decoding never blocks audio playback or the waterfall. They follow one common pattern — three files per decoder:
+Chacun des décodeurs de modes lourds s'exécute dans son propre Web Worker, de sorte que le décodage ne bloque jamais la lecture audio ni la cascade. Ils suivent un schéma commun — trois fichiers par décodeur :
 
-| Decoder | Engine | Worker | Main-thread proxy |
-|---------|--------|--------|-------------------|
+| Décodeur | Moteur | Worker | Proxy sur le thread principal |
+|----------|--------|--------|-------------------------------|
 | SSTV | `sstv.js` | `sstv.worker.js` | `sstvWorkerProxy.js` |
-| HF FAX | `fax.js` | `fax.worker.js` | `faxWorkerProxy.js` |
+| FAX HF | `fax.js` | `fax.worker.js` | `faxWorkerProxy.js` |
 | NAVTEX + FLDIGI (FSK/RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet/APRS) | `fsk.js`, `psk31.js`, `olivia.js`, `mfsk.js`, `ifk.js`, `throb.js`, `hell.js`, `mt63.js`, `fldigiFec.js`, `ax25.js` | `fsk.worker.js` | `fskWorkerProxy.js` |
 | CW | `cwDecoder.js` | `cw.worker.js` | `cwWorkerProxy.js` |
 
-- The **engine** is plain DSP code with no knowledge of workers, so it can also be run directly (unit tests, or the in-thread fallback).
-- The **worker** holds one engine instance and forwards its events verbatim.
-- The **proxy** mirrors the engine's method surface, so `audio.js` calls it exactly as it would call the decoder. It creates the worker lazily on first enable and falls back to running in-thread if workers are unavailable.
+- Le **moteur** est du code DSP pur qui ignore tout des workers : il peut donc aussi être exécuté directement (tests unitaires, ou repli dans le thread principal).
+- Le **worker** détient une instance du moteur et retransmet ses événements tels quels.
+- Le **proxy** reproduit la surface de méthodes du moteur, de sorte qu'`audio.js` l'appelle exactement comme il appellerait le décodeur. Il crée le worker paresseusement à la première activation et bascule vers une exécution dans le thread principal si les workers ne sont pas disponibles.
 
-Two details are load-bearing: PCM is **copied** into a fresh buffer before being transferred to the worker (transferring a view into the audio accumulator would detach it and kill playback), and the worker's `init` message re-applies configuration to an already-running engine rather than assuming a fresh one.
+Deux détails sont porteurs : le PCM est **copié** dans un nouveau tampon avant d'être transféré au worker (transférer une vue sur l'accumulateur audio le détacherait et tuerait la lecture), et le message `init` du worker réapplique la configuration à un moteur déjà en cours plutôt que d'en supposer un neuf.
 
-`fsk.js` serves both NAVTEX and FSK/RTTY from one engine, selected per instance by a `role` field; each instance owns its own state, so the two can run independently.
+`fsk.js` sert à la fois NAVTEX et FSK/RTTY à partir d'un seul moteur, sélectionné par instance via un champ `role` ; chaque instance possède son propre état, de sorte que les deux peuvent tourner indépendamment.
 
-The `fsk` role additionally hosts decoders that do not use its FSK chain at all. Selecting the `psk31`, `olivia`, `packet` or `aprs` variant, or one of the fldigi-family modems (`mfsk`, `dominoex`, `thor`, `throb`, `hell`, `mt63`, listed in `FLDIGI_MODEMS`), makes `fsk.js` hand the audio to `psk31.js`, `olivia.js`, `ax25.js`, `mfsk.js`, `ifk.js`, `throb.js`, `hell.js` or `mt63.js` instead of its own discriminator chain, while still borrowing its configuration, worker and event plumbing — so `fsk.worker.js` and `fskWorkerProxy.js` need no knowledge of these modes, and the UI consumes the same `char`/`status`/`metrics` events throughout, plus a `line` event that carries one whole decoded packet and a `hell` event that carries one painted Hellschreiber column. The modems all take the same config — a sub-mode (`modemMode`), a squelch (`modemSquelch`) and a centre — and a squelch-only change retunes the running decoder instead of rebuilding it.
+Le rôle `fsk` héberge en outre des décodeurs qui n'utilisent pas du tout sa chaîne FSK. Lorsque la variante `psk31`, `olivia`, `packet` ou `aprs`, ou l'un des modems de la famille fldigi (`mfsk`, `dominoex`, `thor`, `throb`, `hell`, `mt63`, listés dans `FLDIGI_MODEMS`), est sélectionnée, `fsk.js` transmet l'audio à `psk31.js`, `olivia.js`, `ax25.js`, `mfsk.js`, `ifk.js`, `throb.js`, `hell.js` ou `mt63.js` au lieu de sa propre chaîne à discriminateur, tout en empruntant sa configuration, son worker et sa gestion d'événements — ainsi `fsk.worker.js` et `fskWorkerProxy.js` n'ont besoin de rien savoir de ces modes, et l'interface consomme partout les mêmes événements `char`/`status`/`metrics`, plus un événement `line` qui transporte un paquet décodé complet. S'y ajoute un événement `hell` qui transporte une colonne peinte de Hellschreiber. Les modems prennent tous la même configuration — un sous-mode (`modemMode`), un squelch (`modemSquelch`) et un centre —, et un changement du seul squelch règle le décodeur en marche au lieu de le reconstruire.
 
-- `psk31.js` — BPSK31: complex baseband, matched filter, differential detection and varicode, with a spectral coarse acquisition plus a fine AFC covering about ±25 Hz.
-- `olivia.js` — Olivia MFSK: a port of Pawel Jalocha's MFSK receiver from fldigi (`pj_mfsk.h`, GPL-3, as is this project), including the Walsh/Hadamard FEC and the blind synchronisation search over block phase and frequency offset.
-- `mfsk.js` — MFSK16/32/64: a port of fldigi's IZ8BLY MFSK receiver (`mfsk.cxx`, GPL-3) — sliding DFT, depth-10 interleaver, K=7 Viterbi decoder, IZ8BLY varicode, symbol-timing and AFC loops. fldigi names its two Gray-code functions the other way round from the textbook; `mfsk.js` follows fldigi, because that is what is on the air.
-- `ifk.js` — DominoEX and THOR: a port of fldigi's IFK+ receiver (`dominoex.cxx`, `thor.cxx`, GPL-3) — three sliding DFTs a third of a bin apart, symbol timing from the previous tone's peak, the DominoEX nibble varicode, and for THOR soft decisions, preamble detection, the interleaver and a K=7 or K=15 Viterbi decoder. Its squelch measures the tone against the other bins rather than fldigi's figure, which reads low on some clean signals.
-- `throb.js` — THROB and THROBX: fldigi's `throb.cxx` — pulse-shaped tone references correlated against the decimated signal, the strongest tone pair looked up, envelope-peak symbol timing and AFC.
-- `hell.js` — Hellschreiber (Feld, Slow, X5, X9, FSK Hell 245/105, Hell 80): fldigi's `feld.cxx` receive side; it emits 2 x 20-pixel columns that `App.svelte` paints on a canvas.
-- `mt63.js` — MT63-500/1000/2000, short and long interleave: Pawel Jalocha's MT63 receiver as carried in fldigi (`mt63base.cxx`, `dsp.cxx`) — I/Q split filter, a 512-point FFT probed four times per symbol, the correlation synchroniser for time and frequency, differential demodulation and the Walsh-function FEC with its +/-8 carrier scan.
-- `fldigiFec.js` — what these share: a soft-decision Viterbi decoder for any constraint length (Int32 metrics, so K=15 fits in 24 MB), moving averages and the resampler.
-- `ax25.js` — Packet radio and APRS: an AFSK demodulator for 1200 Bd (Bell 202, received in FM) and 300 Bd HF packet (received in USB), with five slicers at different tone balances and a clock-recovery loop each, then NRZI/HDLC deframing, the CRC-16 frame check, AX.25 address and control-field parsing, and an APRS parser (positions including compressed and Mic-E, weather, messages, objects, items, status, telemetry). Only frames that pass the checksum and carry a well-formed address are reported. `packet` prints every frame like a TNC monitor; `aprs` prints APRS frames decoded into plain text.
-- `lib/aprsMap.js` — the APRS map: keeps every station with a decoded position (objects and items under their own name, killed ones removed, a track for moving ones) and draws them with Leaflet on OpenStreetMap tiles, with the receiver's own position taken from `siteGridSquare`. Leaflet is imported only when the map is first shown, so it costs nothing to listeners who never open APRS. Text received over the air reaches the page only through `textContent` or escaping. `App.svelte` places the map under the APRS text pane and opens and closes it with the pane.
-- `broadcastSchedules.js` — the UTC timetables the FAX, NAVTEX and RTTY decoders offer as presets, taken from the NOAA/NWS marine radiofacsimile schedules and the published NAVTEX station lists
+- `psk31.js` — BPSK31 : bande de base complexe, filtre adapté, détection différentielle et varicode, avec une acquisition spectrale grossière puis un AFC fin couvrant environ ±25 Hz.
+- `olivia.js` — Olivia MFSK : un portage du récepteur MFSK de Pawel Jalocha issu de fldigi (`pj_mfsk.h`, GPL-3, comme ce projet), y compris la correction d'erreurs de Walsh/Hadamard et la recherche aveugle de synchronisation sur la phase de bloc et le décalage de fréquence.
+- `mfsk.js` — MFSK16/32/64 : un portage du récepteur MFSK IZ8BLY de fldigi (`mfsk.cxx`, GPL-3) — TFD glissante, entrelaceur de profondeur 10, décodeur de Viterbi K=7, varicode IZ8BLY, boucles de synchronisation de symbole et d'AFC. fldigi nomme ses deux fonctions de code Gray à l'inverse des manuels ; `mfsk.js` suit fldigi, car c'est ce qui est émis.
+- `ifk.js` — DominoEX et THOR : un portage du récepteur IFK+ de fldigi (`dominoex.cxx`, `thor.cxx`, GPL-3) — trois TFD glissantes espacées d'un tiers de case, synchronisation symbole sur le pic de la tonalité précédente, le Varicode par quartets de DominoEX et, pour THOR, décisions souples, détection du préambule, l'entrelaceur et un décodeur de Viterbi K=7 ou K=15. Son squelch mesure la tonalité face aux autres cases plutôt que le chiffre de fldigi, trop bas sur certains signaux propres.
+- `throb.js` — THROB et THROBX : le `throb.cxx` de fldigi — références de tonalité mises en forme par l'impulsion, corrélées avec le signal décimé, recherche de la paire de tonalités la plus forte, synchronisation sur le pic d'enveloppe et AFC.
+- `hell.js` — Hellschreiber (Feld, Slow, X5, X9, FSK Hell 245/105, Hell 80) : la partie réception du `feld.cxx` de fldigi ; émet des colonnes de 2 × 20 pixels que `App.svelte` peint sur un canvas.
+- `mt63.js` — MT63-500/1000/2000, entrelacement court et long : le récepteur MT63 de Pawel Jalocha tel que fldigi l'embarque (`mt63base.cxx`, `dsp.cxx`) — filtre séparateur I/Q, une FFT de 512 points sondée quatre fois par symbole, le synchroniseur par corrélation en temps et en fréquence, la démodulation différentielle et la FEC de Walsh avec son balayage de ±8 porteuses.
+- `fldigiFec.js` — ce qu'ils partagent : un décodeur de Viterbi à décisions souples pour toute longueur de contrainte (métriques Int32, si bien que K=15 tient dans 24 Mo), des moyennes glissantes et le rééchantillonneur.
+- `ax25.js` — Packet radio et APRS : un démodulateur AFSK pour 1200 Bd (Bell 202, reçu en FM) et pour le packet HF à 300 Bd (reçu en USB), avec cinq décideurs à des équilibres de tonalités différents et une boucle de récupération d'horloge chacun, puis le désencapsulage NRZI/HDLC, le contrôle de trame CRC-16, l'analyse des champs d'adresse et de contrôle AX.25 et un analyseur APRS (positions, y compris compressées et Mic-E, météo, messages, objets, items, état, télémesure). Seules les trames qui passent la somme de contrôle et portent une adresse valide sont signalées. `packet` affiche chaque trame comme un moniteur de TNC ; `aprs` affiche les trames APRS décodées en texte clair.
+- `lib/aprsMap.js` — la carte APRS : garde chaque station ayant une position décodée (objets et items sous leur propre nom, ceux supprimés retirés, une trace pour celles qui se déplacent) et les dessine avec Leaflet sur des tuiles OpenStreetMap ; la position du récepteur lui-même vient de `siteGridSquare`. Leaflet n'est chargé qu'à la première apparition de la carte, il ne coûte donc rien aux auditeurs qui n'ouvrent jamais APRS. Le texte reçu par radio n'atteint la page que via `textContent` ou un échappement. `App.svelte` place la carte sous le panneau de texte APRS et l'ouvre et la ferme avec lui.
+- `broadcastSchedules.js` — les horaires UTC que les décodeurs FAX, NAVTEX et RTTY proposent en présélections, issus des programmes de fac-similé maritime de la NOAA/NWS et des listes publiées de stations NAVTEX
 
-#### 4b. Receive Diversity (`diversity.js`)
-- Combines the local receiver with a second one elsewhere and follows whichever site currently has the better signal. Plain JS, not a component — it sits on one seam in `audio.js`, which hands it the local PCM and plays back what it returns
-- **Selection, not summing.** Two sites hear the same transmission over different ionospheric paths, so their waveforms have unrelated phase; adding them sounds comb-filtered. Coherent combining would need a common clock, which two receivers over the internet cannot share. The two streams are only ever mixed during a 30 ms crossfade
-- Alignment correlates the two **audio envelopes** (log power at 100 Hz), never the waveforms — the envelope survives both the path and any codec. A lock is only trusted once a second, independent search agrees with it, which rejects the confident-but-wrong delay two antiphase-fading sites would otherwise produce
-- The remote is **rate-locked** to the local stream first. Two receivers are two clocks and two decimation chains, so their audio arrives up to 2% apart even when both declare 12 kHz — 240 samples a second of creep, which no correlation can hold. The ratio is measured from how many samples each side actually delivers and applied by a resampler that carries its fractional phase across blocks, so an arbitrary ratio holds indefinitely
-- Site choice uses a percentile SNR measured on **content-aligned** samples, with hysteresis, a dwell timer and a fast escape hatch for a collapsed incumbent. Levels are matched noise-to-noise, so a switch does not change the background hiss
-- Decoders keep the **local** stream: FT8, JS8, WSPR and RADE integrate coherently across a slot, and a mid-slot switch is a phase discontinuity that can cost the decode
+#### 4b. Diversité de réception (`diversity.js`)
+- Associe le récepteur local à un second situé ailleurs et suit le site qui a, à cet instant, le meilleur signal. Du JS simple, pas un composant — il s'insère à un seul endroit de `audio.js`, qui lui passe le PCM local et restitue ce qu'il renvoie
+- **Sélection, pas addition.** Deux sites entendent la même émission par des trajets ionosphériques différents, donc leurs formes d'onde ont des phases sans rapport ; les additionner donne un filtrage en peigne. Une combinaison cohérente exigerait une horloge commune, que deux récepteurs reliés par internet ne partagent pas. Le mélange n'a lieu que pendant un fondu de 30 ms
+- L'alignement corrèle les deux **enveloppes audio** (puissance logarithmique à 100 Hz), jamais les formes d'onde — l'enveloppe survit au trajet comme à n'importe quel codec. Un verrouillage n'est retenu que si une seconde recherche indépendante concorde, ce qui écarte le décalage assuré mais faux que produiraient deux sites s'évanouissant en opposition
+- Le flux distant est d'abord **verrouillé en cadence** sur le local. Deux récepteurs, ce sont deux horloges et deux chaînes de décimation : leur audio arrive jusqu'à 2% décalé même quand tous deux annoncent 12 kHz — 240 échantillons par seconde de dérive, qu'aucune corrélation ne retient. Le rapport est mesuré d'après le nombre d'échantillons réellement livré de chaque côté et appliqué par un rééchantillonneur qui conserve sa phase fractionnaire d'un bloc à l'autre, si bien qu'un rapport quelconque tient indéfiniment
+- Le choix du site s'appuie sur un SNR par centiles mesuré sur des échantillons **alignés en contenu**, avec hystérésis, temporisation de maintien et une sortie rapide si le site actif s'effondre. Les niveaux sont appariés bruit à bruit, pour qu'un changement ne modifie pas le souffle de fond
+- Les décodeurs conservent le flux **local** : FT8, JS8, WSPR et RADE intègrent de façon cohérente sur un intervalle, et un changement en cours d'intervalle est une discontinuité de phase qui peut coûter le décodage
 
-#### 4c. Diversity sources (`remoteSource.js`, `kiwiSource.js`, `uberSource.js`, `webSdrSource.js`)
-- One contract — `onPcm` / `onState` / `tune` / `canReceive` — so `diversity.js` never learns what is on the other end. Adding a receiver type is one new file
-- `remoteSource.js` — another PhantomSDR-Plus over `/audio` (cbor + FLAC), reusing `createDecoder()` from `lib/wrappers.js`
-- `kiwiSource.js` — a KiwiSDR: `SND` frames, big-endian PCM, with the 10-byte GPS timestamp a stereo packet inserts before the audio
-- `uberSource.js` — an UberSDR over its native `/ws`: Opus in a 21-byte header, retuning over the open socket. The session id must be registered with `POST /connection` first and must be a UUID
-- `webSdrSource.js` — a WebSDR, through `websdr_relay.py` on this server: the browser cannot connect directly, because WebSDR checks the `Origin` header and no script may change it. Tuning is a text frame on the same socket; band coverage comes from the relay
-- `webSdrCodec.js` — the WebSDR audio format: a tagged byte stream whose compressed blocks drive a 20-tap leaky-LMS predictor. Ported from the WebSDR client and verified sample-for-sample against it
-- `diversityList.js` — the saved-receiver list and the address rules for the four types, shared by the desktop panel and the mobile page so one format serves both. Also the transfer — a compact blob, its QR code, and a parser that accepts every shape the two pages have ever written — and `browseUrl()`, which walks a dialled address back into one a browser can open
-- `lib/DiversityPanel.svelte` — the UI: endpoint, source type, SNR trim and live status, plus the saved receivers — named, reorderable, and exported to and imported from a JSON file, kept per source type in `localStorage`. Everything is edited inside the panel: `prompt()` and `confirm()` block the main thread, which is where audio frames are pushed into the playback worklet. A **▦ QR** button draws the list as a scannable code, because `localStorage` is per browser and a phone starts empty. `mobile/Mobile.svelte` carries the same feature in a **Div** tab, in that page's own plain CSS. See [Receive Diversity](RECEIVE_DIVERSITY.md)
+#### 4c. Sources de diversité (`remoteSource.js`, `kiwiSource.js`, `uberSource.js`, `webSdrSource.js`)
+- Un seul contrat — `onPcm` / `onState` / `tune` / `canReceive` — si bien que `diversity.js` ignore toujours ce qui se trouve en face. Ajouter un type de récepteur revient à ajouter un fichier
+- `remoteSource.js` — un autre PhantomSDR-Plus via `/audio` (cbor + FLAC), réutilisant `createDecoder()` de `lib/wrappers.js`
+- `kiwiSource.js` — un KiwiSDR : trames `SND`, PCM gros-boutiste, avec l'horodatage GPS de 10 octets qu'un paquet stéréo insère avant l'audio
+- `uberSource.js` — un UberSDR via son `/ws` natif : Opus derrière un en-tête de 21 octets, réaccord sur la connexion ouverte. L'identifiant de session doit d'abord être déclaré par `POST /connection` et doit être un UUID
+- `webSdrSource.js` — un WebSDR, via `websdr_relay.py` sur ce serveur : le navigateur ne peut pas se connecter directement, car WebSDR vérifie l'en-tête `Origin` et aucun script n'a le droit de le modifier. L'accord passe en trame texte sur la même connexion ; la couverture des bandes vient du relais
+- `webSdrCodec.js` — le format audio de WebSDR : un flux étiqueté octet par octet dont les blocs compressés alimentent un prédicteur leaky-LMS à 20 prises. Porté depuis le client WebSDR et vérifié échantillon par échantillon
+- `diversityList.js` — la liste des récepteurs enregistrés et les règles d'adresse des quatre types, partagées par le panneau de bureau et la page mobile pour qu'un seul format serve aux deux. Ainsi que le transfert — un blob compact, son code QR et un analyseur qui accepte toutes les formes que les deux pages ont jamais écrites — et `browseUrl()`, qui retransforme une adresse appelée en une adresse qu'un navigateur peut ouvrir
+- `lib/DiversityPanel.svelte` — l'interface : adresse, type de source, correction de SNR et état en direct, ainsi que les récepteurs enregistrés — nommés, réordonnables, exportés et importés sous forme de fichier JSON, par type de source dans `localStorage`. Tout s'édite à l'intérieur du panneau : `prompt()` et `confirm()` bloquent le thread principal, celui-là même par lequel l'audio est poussé vers le worklet de lecture. Un bouton **▦ QR** dessine la liste en code scannable, car `localStorage` appartient à un navigateur et un téléphone démarre vide. `mobile/Mobile.svelte` reprend la même fonction dans un onglet **Div**, dans le CSS simple propre à cette page. Voir [Diversité de réception](RECEIVE_DIVERSITY.md)
 
-#### 4d. Mode identifier (`modeId.js`, `modePriors.js`)
-- Answers "what am I listening to?". It reads the same raw PCM tap as the decoders and ranks the likely modes, so the operator can pick the right decoder instead of trying all ten. It never decodes anything: it measures physical properties of the signal and scores them against a table of known modes
-- Occupied bandwidth is the contiguous −15 dB width around the peak, deliberately not a 99 %-power figure: keying splatter puts long tails on the power integral and made every narrow mode read several times too wide. Symbol rate comes from the **instantaneous frequency** rather than tone energies, because no integration length can both resolve a 170 Hz shift and a 100 Bd symbol. Keying rate comes from the on/off envelope, and doubles as a CW speed readout
-- `modePriors.js` adds the one clue the audio cannot carry — where you are tuned. A 100 Bd / 170 Hz signal on 518 kHz is NAVTEX; the identical signal on 14.070 MHz is not. It only reweights what the signal already supported, and never invents a candidate
-- FT8, JS8 and FT2 are reported as one group on purpose: they are not separable on bandwidth and tone spacing alone, and pretending otherwise would be a confident wrong answer
-- Below roughly 10 dB SNR it stays quiet rather than guessing
-- Runs in its own Web Worker (`modeId.worker.js` + `modeIdWorkerProxy.js`), following the same engine/worker/proxy pattern as the decoders above; the result is the chip in `lib/ModeIdChip.svelte`
+#### 4d. Identificateur de mode (`modeId.js`, `modePriors.js`)
+- Répond à « qu'est-ce que j'écoute ? ». Il lit la même prise PCM brute que les décodeurs et classe les modes probables, pour que l'opérateur choisisse le bon décodeur au lieu de les essayer tous les dix. Il ne décode jamais : il mesure des propriétés physiques du signal et les note face à une table de modes connus
+- La largeur occupée est la largeur contiguë à −15 dB autour du pic, délibérément pas une valeur à 99 % de puissance : les clics de manipulation laissent de longues traînes sur l'intégrale de puissance et faisaient paraître tout mode étroit plusieurs fois trop large. La rapidité de modulation vient de la **fréquence instantanée** et non des énergies des tonalités, car aucune durée d'intégration ne résout à la fois un décalage de 170 Hz et un symbole de 100 Bd. La cadence de manipulation vient de l'enveloppe on/off et sert aussi d'indicateur de vitesse en CW
+- `modePriors.js` apporte le seul indice que l'audio ne peut pas porter : l'endroit où vous êtes accordé. Un signal 100 Bd / 170 Hz sur 518 kHz est du NAVTEX ; le même signal sur 14,070 MHz ne l'est pas. Il ne fait que repondérer ce que le signal soutenait déjà, et n'invente jamais un candidat
+- FT8, JS8 et FT2 sont annoncés comme un seul groupe à dessein : ils ne se séparent pas sur la seule largeur et le seul espacement des tonalités, et prétendre le contraire serait une réponse fausse énoncée avec assurance
+- En dessous d'environ 10 dB de SNR, il se tait plutôt que de deviner
+- Il tourne dans son propre Web Worker (`modeId.worker.js` + `modeIdWorkerProxy.js`), selon le même schéma moteur/worker/proxy que les décodeurs ci-dessus ; le résultat est la pastille de `lib/ModeIdChip.svelte`
 
-#### 4e. Connection refusals (`refused.js`, `clientVersion.js`)
+#### 4e. Connexions refusées (`refused.js`, `clientVersion.js`)
 
-- `refused.js` is the shared vocabulary for a connection the server turns away: close code **4003** (over a per-IP limit, or the page is older than `[server] min_client_version`) and **4001** (a sysop kick). Both are final. `audio.js`, `waterfall.js` and `events.js` all import `isRefusal()` from it, because all three open a socket that can be refused and all three must settle their init promise when it is — otherwise the page waits forever on a connection that is never coming
-- Nothing retries. A dropped `/audio` socket ends the session by design: `/waterfall` and `/events` never came back with a reconnect, so a retried session was live audio attached to a frozen waterfall, and against a rate limit each retry would extend the very refusal it was working around. The desktop page explains a refusal that happens at page load and simply stops when one happens mid-session; `/mobile` shows one line asking the listener to reload
-- `clientVersion.js` holds a single integer, `CLIENT_VERSION`, which the page appends to its audio socket as `/audio?v=N`. The server refuses anything below `[server] min_client_version`, which is how a station forces tabs still running an older build to reload — the only lever there is, since the server cannot reach JavaScript already running in a browser. Bump it when a frontend change must not keep being ignored by open tabs
-- Full reference: [Connection Limits](CONNECTION_LIMITS.md)
+- `refused.js` est le vocabulaire commun d'une connexion que le serveur éconduit : code de fermeture **4003** (au-delà d'une limite par adresse, ou page plus ancienne que `[server] min_client_version`) et **4001** (une exclusion par le sysop). Les deux sont définitifs. `audio.js`, `waterfall.js` et `events.js` importent tous `isRefusal()` de là, car tous trois ouvrent une connexion qui peut être refusée et tous trois doivent alors régler leur promesse d'initialisation — sinon la page attend indéfiniment une connexion qui ne viendra jamais
+- Rien ne réessaie. Une connexion `/audio` tombée met fin à la session, délibérément : `/waterfall` et `/events` ne revenaient jamais avec une reconnexion, une session réessayée était donc de l'audio vivant sur une cascade figée, et face à une limite de débit chaque tentative prolongerait justement le refus qu'elle cherchait à contourner. La page de bureau explique un refus survenu au chargement et s'arrête simplement quand il survient en cours de session ; `/mobile` affiche une ligne invitant l'auditeur à recharger
+- `clientVersion.js` contient un seul entier, `CLIENT_VERSION`, que la page ajoute à sa connexion audio sous la forme `/audio?v=N`. Le serveur éconduit tout ce qui est inférieur à `[server] min_client_version` : c'est ainsi qu'une station force les onglets exécutant encore une version antérieure à recharger — le seul levier existant, puisque le serveur n'atteint pas le JavaScript déjà en cours dans un navigateur. Incrémentez-le quand une modification du frontend ne doit plus être ignorée par les onglets ouverts
+- Référence complète : [Limites de connexion](CONNECTION_LIMITS.md)
 
-#### 4f. Chat replies (`lib/chatReply.js`)
-- A reply is an ordinary chat message that starts with a marker naming the message it answers, `[RE:<timestamp>|<name>]`; the server stores and relays it like any other line and needs no change
-- `chatReply.js` builds and reads that marker and groups replies under their original, one level deep. `App.svelte` and `mobile/Mobile.svelte` both use it, so the two pages thread the chat the same way
-- When the original has already left the server's 20-message history, the reply stays where it arrived and shows only the name and time it answers
+#### 4f. Réponses dans le chat (`lib/chatReply.js`)
+- Une réponse est un message de chat ordinaire qui commence par un marqueur nommant le message auquel il répond, `[RE:<horodatage>|<nom>]` ; le serveur le stocke et le relaie comme toute autre ligne et n'a besoin d'aucune modification
+- `chatReply.js` crée et lit ce marqueur et regroupe les réponses sous leur original, sur un niveau. `App.svelte` et `mobile/Mobile.svelte` l'utilisent tous deux, si bien que les deux pages organisent le chat de la même façon
+- Quand l'original a déjà quitté l'historique de 20 messages du serveur, la réponse reste là où elle est arrivée et n'affiche que le nom et l'heure auxquels elle répond
 
-#### 5. State Management (`stores/`)
-- Reactive data stores
-- Shared application state
-- Event handling
-
----
-
-### Key Features
-
-- Real-time audio processing
-- Digital mode decoding (FT8, RTTY, etc.)
-- Audio filtering
-- Spectrum analysis
+#### 5. Gestion d'état (`stores/`)
+- Magasins de données réactifs
+- État applicatif partagé
+- Gestion des événements
 
 ---
 
+### Fonctions clés
 
-## Frequency Lists (`frequencylist/`)
+- Traitement audio en temps réel
+- Décodage de modes numériques (FT8, RTTY, etc.)
+- Filtrage audio
+- Analyse spectrale
 
-The on-waterfall frequency markers. `mymarkers.json` is the list the receiver actually shows; the rest is the raw material `update-markers.sh` turns into it, refreshed from the online schedules. `README.md` in that directory explains the update in all seven languages.
+---
+
+
+## Listes de fréquences (`frequencylist/`)
+
+Les repères de fréquence sur la cascade. `mymarkers.json` est la liste que le récepteur affiche réellement ; le reste est la matière première que `update-markers.sh` transforme en elle, actualisée depuis les grilles en ligne. Le `README.md` de ce dossier explique la mise à jour dans les sept langues.
 
 ```
 frequencylist/
-├── mymarkers.json            # the markers the receiver shows — hand-edited, survives an update
-├── shortwavestations.json    # shortwave broadcasters, generated by generate-current-shortwave.py
-├── 0.TXT                     # the A26 global HF schedule, unpacked and parsed by update-markers.sh
-├── a26allx2.zip              # source archive downloaded by update-markers.sh
+├── mymarkers.json            # les repères affichés par le récepteur — édités à la main, survivent à une mise à jour
+├── shortwavestations.json    # stations en ondes courtes, généré par generate-current-shortwave.py
+├── 0.TXT                     # la grille HF mondiale A26, décompressée et analysée par update-markers.sh
+├── a26allx2.zip              # archive source téléchargée par update-markers.sh
 ├── admin.txt · antenna.txt · broadcas.txt · fmorg.txt · language.txt · site.txt
-│                             # supporting lists from the same source (sites, languages, admins, antennas)
+│                             # listes annexes de la même source (sites, langues, administrateurs, antennes)
 ├── generate-current-shortwave.py
-├── update-markers.sh         # refreshes everything above from the online schedules
+├── update-markers.sh         # actualise tout ce qui précède depuis les grilles en ligne
 └── README.md
 ```
 
@@ -1101,15 +982,15 @@ frequencylist/
 ]
 ```
 
-`mode` is a receiver mode (`USB`, `LSB`, `AM`, `FM`, `CW`, …) or the name of a digital mode — `FT8`, `FT4`, `FT2`, `JS8`, `WSPR`, `SSTV`, `NAVTEX`, `FAX`, `RTTY`, `RTTY-WX`, `SITOR`, `PSK31`, `OLIVIA`, `MFSK`, `MFSK16`, `MFSK32`, `MFSK64`, `DOMINOEX`, `THOR`, `THROB`, `HELL`, `FELDHELL`, `MT63`, `PACKET` or `APRS` — in which case a click on the marker starts that decoder ([details](DECODERS.md#starting-a-decoder-from-a-frequency-marker)).
+`mode` est un mode du récepteur (`USB`, `LSB`, `AM`, `FM`, `CW`, …) ou le nom d'un mode numérique — `FT8`, `FT4`, `FT2`, `JS8`, `WSPR`, `SSTV`, `NAVTEX`, `FAX`, `RTTY`, `RTTY-WX`, `SITOR`, `PSK31`, `OLIVIA`, `MFSK`, `MFSK16`, `MFSK32`, `MFSK64`, `DOMINOEX`, `THOR`, `THROB`, `HELL`, `FELDHELL`, `MT63`, `PACKET` ou `APRS` — auquel cas un clic sur le marqueur démarre ce décodeur ([détails](DECODERS.md#démarrer-un-décodeur-depuis-un-marqueur-de-fréquence)).
 
 ---
 
-## Configuration Files
+## Fichiers de configuration
 
-### Server Configuration (`.toml` files)
+### Configuration du serveur (fichiers `.toml`)
 
-Structure of configuration files:
+Structure des fichiers de configuration :
 
 ```toml
 [server]
@@ -1120,10 +1001,10 @@ threads = 2
 otherusers = 1
 
 [limits]
-# Per-IP connection limits — all default to off or to a sensible value, so a
-# config without them behaves as it always did. See CONNECTION_LIMITS.md.
-per_ip = 3              # simultaneous listeners from one address
-per_ip_rate = 40        # new sockets per minute from one address
+# Limites par adresse — toutes désactivées ou à une valeur raisonnable par défaut,
+# une configuration sans elles se comporte comme avant. Voir CONNECTION_LIMITS.md.
+per_ip = 3              # auditeurs simultanés depuis une adresse
+per_ip_rate = 40        # nouvelles connexions par minute depuis une adresse
 
 [websdr]
 # Online registration
@@ -1154,7 +1035,7 @@ frequency = 145500000
 modulation = "FM"
 ```
 
-### Site Information (`site_information.json`)
+### Informations du site (`site_information.json`)
 
 ```json
 {
@@ -1178,22 +1059,22 @@ modulation = "FM"
 
 ---
 
-## Build System
+## Système de compilation
 
-### Meson Build Configuration
+### Configuration de compilation Meson
 
-#### `meson.build` (Root)
+#### `meson.build` (racine)
 
-Defines:
-- Project metadata
-- Dependencies
-- Compiler options
-- Source file lists
-- Build targets
+Définit :
+- Les métadonnées du projet
+- Les dépendances
+- Les options du compilateur
+- Les listes de fichiers sources
+- Les cibles de compilation
 
 #### `meson_options.txt`
 
-Available options:
+Options disponibles :
 ```
 option('opencl', type: 'boolean', value: false, description: 'Enable OpenCL support')
 option('cuda', type: 'boolean', value: false, description: 'Enable CUDA support')
@@ -1202,9 +1083,9 @@ option('optimization', type: 'string', value: '3', description: 'Optimization le
 
 ---
 
-## File Dependencies
+## Dépendances entre fichiers
 
-### Backend Build Dependencies
+### Dépendances de compilation du backend
 
 ```
 spectrumserver binary depends on:
@@ -1224,7 +1105,7 @@ spectrumserver binary depends on:
     └── toml11
 ```
 
-### Frontend Build Dependencies
+### Dépendances de compilation du frontend
 
 ```
 frontend/dist/ depends on:
@@ -1239,9 +1120,9 @@ frontend/dist/ depends on:
 
 ---
 
-## Data Flow
+## Flux de données
 
-### Server Operation Flow
+### Flux de fonctionnement du serveur
 
 ```
 1. SDR Hardware → rtl_sdr/hackrf_transfer/etc.
@@ -1261,7 +1142,7 @@ frontend/dist/ depends on:
    - Display controls
 ```
 
-### User Interaction Flow
+### Flux d'interaction utilisateur
 
 ```
 1. User clicks on waterfall
@@ -1279,9 +1160,9 @@ frontend/dist/ depends on:
 
 ---
 
-## File Modification Guide
+## Guide de modification des fichiers
 
-### When you modify backend code (`src/**`):
+### Lorsque vous modifiez le code du backend (`src/**`) :
 
 ```bash
 cd PhantomSDR-Plus
@@ -1289,7 +1170,7 @@ meson compile -C build
 # Server restart required
 ```
 
-### When you modify frontend code (`frontend/src/**`):
+### Lorsque vous modifiez le code du frontend (`frontend/src/**`) :
 
 ```bash
 cd PhantomSDR-Plus/frontend
@@ -1298,7 +1179,7 @@ cd ..
 # Server restart required (for static files)
 ```
 
-### When you modify configuration (`.toml`, `.json`):
+### Lorsque vous modifiez la configuration (`.toml`, `.json`) :
 
 ```bash
 # Restart server
@@ -1306,7 +1187,7 @@ cd ..
 ./start-rtl.sh  # (or appropriate start script)
 ```
 
-### When you modify markers (`markers.json`):
+### Lorsque vous modifiez les marqueurs (`markers.json`) :
 
 ```bash
 # Reload page in browser
@@ -1315,52 +1196,52 @@ cd ..
 
 ---
 
-## Important Paths
+## Chemins importants
 
-### Runtime Paths
+### Chemins d'exécution
 
-- **Configuration**: `./config-*.toml`
-- **HTML Root**: `./frontend/dist/`
-- **Markers**: `./markers.json`
-- **Chat History**: `./chat_history.txt`
-- **FFTW Wisdom**: `./fftw_wisdom`, `./phantom_fftw_wisdom`
+- **Configuration** : `./config-*.toml`
+- **Racine HTML** : `./frontend/dist/`
+- **Marqueurs** : `./markers.json`
+- **Historique du chat** : `./chat_history.txt`
+- **FFTW wisdom** : `./fftw_wisdom`, `./phantom_fftw_wisdom`
 
-### Build Paths
+### Chemins de compilation
 
-- **Binary Output**: `./build/spectrumserver`
-- **Frontend Output**: `./frontend/dist/`
-- **Node Modules**: `./frontend/node_modules/`
+- **Binaire produit** : `./build/spectrumserver`
+- **Sortie du frontend** : `./frontend/dist/`
+- **Modules Node** : `./frontend/node_modules/`
 
-### Source Paths
+### Chemins des sources
 
-- **Backend Source**: `./src/`
-- **Frontend Source**: `./frontend/src/`
-- **DSP Libraries**: `./jsdsp/`
+- **Sources du backend** : `./src/`
+- **Sources du frontend** : `./frontend/src/`
+- **Bibliothèques DSP** : `./jsdsp/`
 
 ---
 
-## Common File Operations
+## Opérations courantes sur les fichiers
 
-### Adding a New SDR Configuration
+### Ajouter une nouvelle configuration SDR
 
-1. Copy existing config: `cp config-rtl.toml config-mydevice.toml`
-2. Edit parameters: `nano config-mydevice.toml`
-3. Create start script: `cp start-rtl.sh start-mydevice.sh`
-4. Edit start script: `nano start-mydevice.sh` — change only the **RECEIVER CONFIGURATION** block at the top (`RX_LABEL`, `RX_COMM` = the receiver's process name, `RX_ARGS`, `CONFIG`, `FIFO`, and the `prestart` hook if the device needs one). The launcher/watchdog/logging logic below it is generic and needs no changes.
-5. Make executable: `chmod +x start-mydevice.sh`
+1. Copiez une configuration existante : `cp config-rtl.toml config-mydevice.toml`
+2. Modifiez les paramètres : `nano config-mydevice.toml`
+3. Créez un script de démarrage : `cp start-rtl.sh start-mydevice.sh`
+4. Modifiez le script de démarrage : `nano start-mydevice.sh` — ne changez que le bloc **RECEIVER CONFIGURATION** en tête (`RX_LABEL`, `RX_COMM` = le nom du processus du récepteur, `RX_ARGS`, `CONFIG`, `FIFO`, ainsi que le hook `prestart` si l'appareil en a besoin). La logique de lancement/chien de garde/journalisation en dessous est générique et ne nécessite aucune modification.
+5. Rendez-le exécutable : `chmod +x start-mydevice.sh`
 
-> `stop-websdr.sh` already stops any `start-*.sh --watchdog`; if your receiver uses a process name other than `rx888_stream`/`rx_sdr`/`rtl_sdr`/`hackrf_transfer`/`cf32_to_real`, add a `killall -9 <name>` line for it there too.
+> `stop-websdr.sh` arrête déjà n'importe quel `start-*.sh --watchdog` ; si votre récepteur utilise un nom de processus autre que `rx888_stream`/`rx_sdr`/`rtl_sdr`/`hackrf_transfer`/`cf32_to_real`, ajoutez-y aussi une ligne `killall -9 <nom>`.
 
-### Customizing the Frontend
+### Personnaliser le frontend
 
-1. Modify source: `nano frontend/src/App.svelte`
-2. Rebuild: `cd frontend && npm run build && cd ..`
-3. Restart server: `./stop-websdr.sh && ./start-rtl.sh`
+1. Modifiez la source : `nano frontend/src/App.svelte`
+2. Recompilez : `cd frontend && npm run build && cd ..`
+3. Redémarrez le serveur : `./stop-websdr.sh && ./start-rtl.sh`
 
-### Adding Custom Markers
+### Ajouter des marqueurs personnalisés
 
-1. Edit markers file: `nano markers.json`
-2. Format:
+1. Modifiez le fichier de marqueurs : `nano markers.json`
+2. Format :
    ```json
    {
      "markers": [
@@ -1372,44 +1253,44 @@ cd ..
      ]
    }
    ```
-3. Reload browser (no server restart needed)
+3. Rechargez le navigateur (aucun redémarrage du serveur nécessaire)
 
 ---
 
-## Version Control
+## Gestion de versions
 
-### Files to Track in Git
+### Fichiers à suivre dans Git
 
-- Source code (`src/`, `frontend/src/`, `jsdsp/`)
-- Configuration examples (`config.example.*.toml`)
-- Build system (`meson.build`, `meson_options.txt`)
+- Code source (`src/`, `frontend/src/`, `jsdsp/`)
+- Exemples de configuration (`config.example.*.toml`)
+- Système de compilation (`meson.build`, `meson_options.txt`)
 - Documentation (`*.md`, `docs/`)
 - Scripts (`*.sh`)
 
-### Publishing a release (maintainer)
+### Publier une version (mainteneur)
 
-Before the files are uploaded, refresh the fingerprint list, so that `update.sh` on every station recognises the versions it has as published ones:
+Avant d'envoyer les fichiers, renouvelez la liste d'empreintes, afin que `update.sh` reconnaisse sur chaque station les versions qu'elle possède comme publiées :
 
 ```bash
-# 1. copy the changed files to the upload copy, then:
+# 1. copiez les fichiers modifiés dans la copie à envoyer, puis :
 bash update.sh --make-known /path/to/the/upload/copy
-# 2. commit update-known.txt and copy it to the upload copy as well
+# 2. committez update-known.txt et copiez-le aussi dans la copie à envoyer
 ```
 
-The list only grows: entries from earlier releases are kept, so a public copy published once stays recognisable in every later release.
+La liste ne fait que grandir : les entrées des versions précédentes sont conservées, si bien qu'une copie publique publiée une fois reste reconnaissable dans toutes les versions suivantes.
 
-### Files to Ignore (`.gitignore`)
+### Fichiers à ignorer (`.gitignore`)
 
-- Build output (`build/`, `frontend/dist/`)
-- Dependencies (`frontend/node_modules/`)
-- User data (`chat_history.txt`)
-- Personal configs (`config-rtl.toml` if customized)
-- Binary data (`*.o`, `*.so`)
+- Résultats de compilation (`build/`, `frontend/dist/`)
+- Dépendances (`frontend/node_modules/`)
+- Données utilisateur (`chat_history.txt`)
+- Configurations personnelles (`config-rtl.toml` s'il est personnalisé)
+- Données binaires (`*.o`, `*.so`)
 
 ---
 
-**This structure documentation should help you navigate and understand the PhantomSDR-Plus codebase.**
+**Cette documentation de la structure devrait vous aider à naviguer dans le code de PhantomSDR-Plus et à le comprendre.**
 
-For setup instructions, see [INSTALLATION.md](INSTALLATION.md). For usage information, see [USER_GUIDE.md](USER_GUIDE.md). For the KiwiSDR client bridge, see [Aether_config.md](Aether_config.md).
+Pour les instructions d'installation, voir [INSTALLATION.md](INSTALLATION.md). Pour les informations d'utilisation, voir [USER_GUIDE.md](USER_GUIDE.md).
 
 **73 de SV1BTL, 9A7AOF, F1NSK & SV2AMK**

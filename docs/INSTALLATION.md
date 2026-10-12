@@ -1,73 +1,72 @@
-# PhantomSDR-Plus Installation Guide for System Operators
+# Guide d'installation de PhantomSDR-Plus pour les opérateurs système
 
-This comprehensive guide will walk you through installing and configuring PhantomSDR-Plus on your server.
+Ce guide complet vous accompagne dans l'installation et la configuration de PhantomSDR-Plus sur votre serveur.
 
 ---
 
-## Table of Contents
+## Table des matières
 
-1. [System Requirements](#system-requirements)
-2. [Pre-Installation Preparation](#pre-installation-preparation)
-3. [Installing PhantomSDR-Plus](#installing-phantomsdr-plus) — the installer, and [what it does](#what-the-installer-does)
-4. [Autorun Spot Reporter (FT8/FT4/WSPR)](#autorun-spot-reporter-ft8ft4wspr)
-5. [KiwiSDR Client Emulation (optional)](#kiwisdr-client-emulation-optional)
+1. [Configuration système requise](#configuration-système-requise)
+2. [Préparation avant installation](#préparation-avant-installation)
+3. [Installation de PhantomSDR-Plus](#installation-de-phantomsdr-plus) — le script et [ce qu'il fait](#ce-que-fait-linstallateur)
+4. [Rapporteur de spots autorun (FT8/FT4/WSPR)](#rapporteur-de-spots-autorun-ft8ft4wspr)
+5. [Émulation des clients KiwiSDR (facultatif)](#émulation-des-clients-kiwisdr-facultatif)
 6. [Configuration](#configuration)
-7. [SDR Device-Specific Setup](#sdr-device-specific-setup)
-8. [Testing and Verification](#testing-and-verification)
-9. [Setting Up Autostart](#setting-up-autostart)
-10. [CPU Thermal Protection](#cpu-thermal-protection)
-11. [Troubleshooting](#troubleshooting)
+7. [Configuration propre à chaque appareil SDR](#configuration-propre-à-chaque-appareil-sdr)
+8. [Tests et vérification](#tests-et-vérification)
+9. [Mise en place du démarrage automatique](#mise-en-place-du-démarrage-automatique)
+10. [Protection thermique du processeur](#protection-thermique-du-processeur)
+11. [Dépannage](#dépannage)
 
-**Reference only — the installer already does all of this for you.** Read these sections when you are on a distribution none of the installers covers, or when you need to repair one piece by hand:
+**Pour référence seulement — l'installateur fait déjà tout cela pour vous.** Lisez ces sections si vous êtes sur une distribution qu'aucun des scripts ne couvre, ou pour réparer une étape à la main :
 
-- [Installing Dependencies](#installing-dependencies)
-- [Installing Node.js and npm](#installing-nodejs-and-npm)
-- [Installing OpenCL](#installing-opencl-optional-but-recommended)
-- [Building by hand](#building-by-hand-reference)
-- [Installing Opus Audio Codec](#installing-opus-audio-codec)
+- [Installation des dépendances](#installation-des-dépendances)
+- [Installation de Node.js et npm](#installation-de-nodejs-et-npm)
+- [Installation d'OpenCL](#installation-dopencl-facultatif-mais-recommandé)
+- [Compiler à la main](#compiler-à-la-main-référence)
+- [Installation du codec audio Opus](#installation-du-codec-audio-opus)
+---
+
+## Configuration système requise
+
+### Systèmes d'exploitation pris en charge
+
+**Principal (recommandé) :**
+- Ubuntu 22.04 LTS (Jammy), 24.04 LTS (Noble) et 26.04 LTS (Resolute) — 24.04 recommandée
+- Debian 12 (Bookworm) et Debian 13 (Trixie)
+
+**Alternative :**
+- Fedora (dernière version stable)
+- Arch Linux (rolling release)
+- openSUSE Tumbleweed (pas Leap — voir la note plus bas)
+
+### Configuration matérielle requise
+
+**Configuration minimale :**
+- Processeur : double cœur (2 GHz ou plus)
+- RAM : 4 Go
+- Stockage : 10 Go d'espace libre
+- Réseau : connexion 100 Mbit/s
+
+**Configuration recommandée :**
+- Processeur : quadricœur ou mieux (Ryzen 5 2600, Intel i5-6500T ou supérieur)
+- RAM : 8 Go ou plus
+- Stockage : SSD de 20 Go ou plus
+- GPU : AMD/NVIDIA compatible OpenCL (vivement recommandé)
+- Réseau : connexion 1 Gbit/s
+
+**Configuration hautes performances :**
+- Processeur : 6 cœurs ou plus (Ryzen 7, Intel i7 ou mieux)
+- RAM : 16 Go ou plus
+- Stockage : SSD NVMe
+- GPU : GPU dédié compatible OpenCL/CUDA
+- Réseau : 1 Gbit/s ou mieux
 
 ---
 
-## System Requirements
+## Préparation avant installation
 
-### Supported Operating Systems
-
-**Primary (Recommended):**
-- Ubuntu 22.04 LTS (Jammy), 24.04 LTS (Noble) and 26.04 LTS (Resolute) — 24.04 recommended
-- Debian 12 (Bookworm) and Debian 13 (Trixie)
-
-**Alternative:**
-- Fedora (latest stable release)
-- Arch Linux (rolling)
-- openSUSE Tumbleweed (not Leap — see the note further down)
-
-### Hardware Requirements
-
-**Minimum Configuration:**
-- CPU: Dual-core processor (2+ GHz)
-- RAM: 4 GB
-- Storage: 10 GB free space
-- Network: 100 Mbps connection
-
-**Recommended Configuration:**
-- CPU: Quad-core or better (Ryzen 5 2600, Intel i5-6500T or better)
-- RAM: 8 GB or more
-- Storage: 20 GB+ SSD
-- GPU: AMD/NVIDIA with OpenCL support (highly recommended)
-- Network: 1 Gbps connection
-
-**High-Performance Configuration:**
-- CPU: 6+ cores (Ryzen 7, Intel i7 or better)
-- RAM: 16 GB or more
-- Storage: NVMe SSD
-- GPU: Dedicated GPU with OpenCL/CUDA support
-- Network: 1 Gbps or better
-
----
-
-## Pre-Installation Preparation
-
-### 1. Update Your System
+### 1. Mettez votre système à jour
 
 ```bash
 # Ubuntu/Debian
@@ -80,36 +79,36 @@ sudo dnf update -y
 sudo reboot
 ```
 
-### 2. Verify Ubuntu Version
+### 2. Vérifiez la version d'Ubuntu
 
 ```bash
 lsb_release -a
 ```
 
-**Expected output should show:** Ubuntu 24.04 LTS
+**La sortie attendue doit indiquer :** Ubuntu 24.04 LTS
 
-### 3. Check Available Disk Space
+### 3. Vérifiez l'espace disque disponible
 
 ```bash
 df -h
 ```
 
-Ensure you have at least 10 GB free in your home directory.
+Assurez-vous d'avoir au moins 10 Go libres dans votre répertoire personnel.
 
-### 4. Check CPU Information
+### 4. Vérifiez les informations du processeur
 
 ```bash
 lscpu
 ```
 
-Note the number of cores/threads for configuration optimization.
+Notez le nombre de cœurs/threads pour optimiser la configuration.
 
 ---
 
-## Installing Dependencies
+## Installation des dépendances
 
 > [!IMPORTANT]
-> **You do not need this section for a normal installation.** `./install.sh` — or the installer for your distribution — does all of it for you; see [What the installer does](#what-the-installer-does). What follows is a reference for a manual setup, for a distribution none of the installers covers, or for repairing one piece by hand.
+> **Vous n'avez pas besoin de cette section pour une installation normale.** `./install.sh` — ou l'installateur de votre distribution — fait tout cela pour vous ; voir [Ce que fait l'installateur](#ce-que-fait-linstallateur). Ce qui suit est une référence pour une installation manuelle, pour une distribution qu'aucun script ne couvre, ou pour réparer un élément à la main.
 
 
 ### Ubuntu 24.04 LTS
@@ -155,7 +154,7 @@ sudo dnf install -y \
   curl
 ```
 
-### Verify Installation
+### Vérifiez l'installation
 
 ```bash
 # Check if key dependencies are installed
@@ -166,38 +165,38 @@ meson --version
 
 ---
 
-## Installing Node.js and npm
+## Installation de Node.js et npm
 
 > [!IMPORTANT]
-> **You do not need this section for a normal installation.** `./install.sh` — or the installer for your distribution — does all of it for you; see [What the installer does](#what-the-installer-does). What follows is a reference for a manual setup, for a distribution none of the installers covers, or for repairing one piece by hand.
+> **Vous n'avez pas besoin de cette section pour une installation normale.** `./install.sh` — ou l'installateur de votre distribution — fait tout cela pour vous ; voir [Ce que fait l'installateur](#ce-que-fait-linstallateur). Ce qui suit est une référence pour une installation manuelle, pour une distribution qu'aucun script ne couvre, ou pour réparer un élément à la main.
 
 
-PhantomSDR-Plus requires Node.js for building the frontend. We'll use NVM (Node Version Manager) for installation.
+PhantomSDR-Plus a besoin de Node.js pour compiler l'interface. Nous utiliserons NVM (Node Version Manager) pour l'installation.
 
-### 1. Install NVM
+### 1. Installez NVM
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 ```
 
-### 2. Load NVM
+### 2. Chargez NVM
 
-**IMPORTANT:** Close and reopen your terminal, or run:
+**IMPORTANT :** fermez et rouvrez votre terminal, ou exécutez :
 
 ```bash
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 ```
 
-### 3. Verify NVM Installation
+### 3. Vérifiez l'installation de NVM
 
 ```bash
 nvm --version
 ```
 
-Expected output: `0.40.4` or similar
+Sortie attendue : `0.40.4` ou similaire
 
-### 4. Install Node.js
+### 4. Installez Node.js
 
 ```bash
 # Install Node.js 22 - the version every install script requires
@@ -211,7 +210,7 @@ node --version
 npm --version
 ```
 
-### 5. Optional: Install Additional Node Versions
+### 5. Facultatif : installez d'autres versions de Node
 
 ```bash
 # Install latest version
@@ -229,17 +228,17 @@ nvm use 22
 
 ---
 
-## Installing OpenCL (Optional but Recommended)
+## Installation d'OpenCL (facultatif mais recommandé)
 
 > [!IMPORTANT]
-> **You do not need this section for a normal installation.** `./install.sh` — or the installer for your distribution — does all of it for you; see [What the installer does](#what-the-installer-does). What follows is a reference for a manual setup, for a distribution none of the installers covers, or for repairing one piece by hand.
+> **Vous n'avez pas besoin de cette section pour une installation normale.** `./install.sh` — ou l'installateur de votre distribution — fait tout cela pour vous ; voir [Ce que fait l'installateur](#ce-que-fait-linstallateur). Ce qui suit est une référence pour une installation manuelle, pour une distribution qu'aucun script ne couvre, ou pour réparer un élément à la main.
 
 
-OpenCL dramatically improves performance by offloading FFT calculations to the GPU. This section covers Intel integrated graphics. For AMD/NVIDIA GPUs, refer to manufacturer documentation.
+OpenCL améliore considérablement les performances en déportant les calculs de FFT sur le GPU. Cette section traite des graphiques intégrés Intel. Pour les GPU AMD/NVIDIA, reportez-vous à la documentation du fabricant.
 
-### Intel CPU with Integrated Graphics
+### Processeur Intel avec graphiques intégrés
 
-#### 1. Install Base OpenCL Components
+#### 1. Installez les composants OpenCL de base
 
 ```bash
 sudo apt install -y \
@@ -260,7 +259,7 @@ sudo apt install -y \
   clinfo
 ```
 
-#### 2. Download Intel Compute Runtime
+#### 2. Téléchargez Intel Compute Runtime
 
 ```bash
 mkdir -p ~/neo
@@ -273,52 +272,52 @@ wget https://github.com/intel/compute-runtime/releases/download/19.07.12410/inte
 wget https://github.com/intel/compute-runtime/releases/download/19.07.12410/intel-ocloc_19.07.12410_amd64.deb
 ```
 
-#### 3. Install Intel OpenCL Runtime
+#### 3. Installez le runtime OpenCL d'Intel
 
 ```bash
 sudo dpkg -i *.deb
 ```
 
-If dependency errors occur:
+En cas d'erreurs de dépendances :
 
 ```bash
 sudo apt --fix-broken install
 ```
 
-#### 4. Install OpenCL ICD Loader
+#### 4. Installez le chargeur ICD OpenCL
 
 ```bash
 sudo apt update
 sudo apt install intel-opencl-icd
 ```
 
-If errors occur:
+En cas d'erreurs :
 
 ```bash
 sudo apt --fix-broken install
 sudo apt install intel-opencl-icd
 ```
 
-#### 5. Verify OpenCL Installation
+#### 5. Vérifiez l'installation d'OpenCL
 
 ```bash
 sudo clinfo
 ```
 
-You should see information about your OpenCL platform and devices. Look for:
-- Number of platforms: 1 (or more)
-- Platform name: Intel(R) OpenCL (or similar)
-- Device type: GPU or CPU
+Vous devriez voir des informations sur votre plateforme et vos appareils OpenCL. Cherchez :
+- Nombre de plateformes : 1 (ou plus)
+- Nom de la plateforme : Intel(R) OpenCL (ou similaire)
+- Type d'appareil : GPU ou CPU
 
-#### 6. Reboot
+#### 6. Redémarrez
 
 ```bash
 sudo reboot
 ```
 
-### AMD GPU OpenCL
+### OpenCL sur GPU AMD
 
-For AMD GPUs, install ROCm:
+Pour les GPU AMD, installez ROCm :
 
 ```bash
 # Add ROCm repository
@@ -339,9 +338,9 @@ sudo reboot
 clinfo
 ```
 
-### NVIDIA GPU OpenCL
+### OpenCL sur GPU NVIDIA
 
-For NVIDIA GPUs, install CUDA:
+Pour les GPU NVIDIA, installez CUDA :
 
 ```bash
 # Install NVIDIA drivers
@@ -363,9 +362,9 @@ clinfo
 
 ---
 
-## Installing PhantomSDR-Plus
+## Installation de PhantomSDR-Plus
 
-### Clone the Repository and Run the Installer
+### Cloner le dépôt et lancer l'installateur
 
 ```bash
 cd ~
@@ -374,11 +373,11 @@ cd PhantomSDR-Plus
 bash install.sh
 ```
 
-The installer first asks a few questions about your station — the receiver, what to receive, your callsign and locator, your address on the internet, and which extras you want — and then installs everything on its own, without asking anything more. At the end it starts the receiver and shows the address listeners use and the one port to open on your router (9000, unless you chose another). The questions are described in the next section but one, *The station questions*.
+L'installateur pose d'abord quelques questions sur votre station — le récepteur, ce qu'il doit recevoir, votre indicatif et votre locator, votre adresse sur internet et les compléments souhaités — puis il installe tout seul, sans plus rien demander. À la fin il démarre le récepteur et affiche l'adresse qu'utilisent les auditeurs et l'unique port à ouvrir sur votre routeur (9000, sauf si vous en avez choisi un autre). Les questions sont décrites deux sections plus bas, dans *Les questions de la station*.
 
-Type `bash install.sh` exactly like that: there is no `chmod` step. A copy downloaded as a ZIP or through the GitHub web page has no executable bits, and the installer sets them itself.
+Tapez `bash install.sh` exactement ainsi : il n'y a pas d'étape `chmod`. Une copie téléchargée en ZIP ou depuis la page GitHub n'a pas de droits d'exécution, et l'installateur les pose lui-même.
 
-> **Already running PhantomSDR-Plus?** Do not install it again — update it. Fetch the updater once and run it; it shows what would change and asks before it writes anything. Your configuration, markers, admin password, frequency list and chat history are never touched:
+> **PhantomSDR-Plus tourne déjà ?** Ne le réinstallez pas : mettez-le à jour. Récupérez une fois l'outil de mise à jour et lancez-le ; il montre ce qui changerait et demande avant d'écrire quoi que ce soit. Votre configuration, vos marqueurs, le mot de passe d'administration, la liste de fréquences et l'historique du chat ne sont jamais touchés :
 >
 > ```bash
 > cd ~/PhantomSDR-Plus
@@ -386,91 +385,91 @@ Type `bash install.sh` exactly like that: there is no `chmod` step. A copy downl
 > bash update.sh
 > ```
 >
-> The *Updating PhantomSDR-Plus* chapter has the details. Re-running the installer over a working site is only needed when a rebuild fails because system packages are missing.
+> Les détails sont dans le chapitre *Mise à jour de PhantomSDR-Plus*. Relancer l'installateur sur une station qui fonctionne n'est nécessaire que si une recompilation échoue faute de paquets système.
 
-Use the script that matches your system. They do the same work and ask the same questions; only the package manager differs:
+Prenez le script qui correspond à votre système. Ils font le même travail et posent les mêmes questions ; seul le gestionnaire de paquets diffère :
 
-| System | Script |
+| Système | Script |
 |---|---|
 | Ubuntu 22.04 / 24.04 / 26.04, Debian 12 / 13 | `./install.sh` |
 | Fedora | `./install_fedora.sh` |
 | Arch | `./install_arch.sh` |
 | openSUSE Tumbleweed | `./install_opensuse.sh` |
 
-> **One installer for every Debian and Ubuntu release.** `install.sh` reads `/etc/os-release` and the installed Boost version and adapts itself; the old `install_ubuntu22.sh`, `install-Deb12.sh` and `install_ubuntu26.sh` are gone. It sets `DEBIAN_FRONTEND=noninteractive`, so the `tzdata` that arrives with `python3-matplotlib` cannot stop the run to ask for your time zone and then swallow the answer meant for the next question. On Jammy it calls `install_rade_ubuntu22.sh` directly, because Jammy's `python3-websockets` is 10.1 and RADE needs 11.0 or newer. It knows where `intel-opencl-icd` lives on each release: in the repositories on 22.04 and 26.04, in `non-free` on Debian 12, and in Intel's own graphics repository on 24.04 and Debian 13. And where Boost is 1.87 or newer, the websocketpp header patch stops being optional — the installer verifies it landed and refuses to build without it. No newer compiler is ever needed: the stock GCC accepts `-std=c++23` on all five releases, so do not install `gcc-12` for this.
+> **Un seul installateur pour toutes les versions de Debian et d'Ubuntu.** `install.sh` lit `/etc/os-release` et la version de Boost installée puis s'adapte de lui-même ; les anciens `install_ubuntu22.sh`, `install-Deb12.sh` et `install_ubuntu26.sh` ont disparu. Il définit `DEBIAN_FRONTEND=noninteractive`, afin que le `tzdata` qui arrive avec `python3-matplotlib` ne puisse pas interrompre l'exécution pour demander votre fuseau horaire, puis avaler la réponse destinée à la question suivante. Sur Jammy il appelle directement `install_rade_ubuntu22.sh`, car le `python3-websockets` de Jammy est en 10.1 alors que RADE exige 11.0 ou plus récent. Il sait où se trouve `intel-opencl-icd` sur chaque version : dans les dépôts sur 22.04 et 26.04, dans `non-free` sur Debian 12, et dans le dépôt graphique d'Intel sur 24.04 et Debian 13. Et là où Boost est en 1.87 ou plus récent, le correctif des en-têtes websocketpp cesse d'être facultatif : l'installateur vérifie qu'il a bien été appliqué et refuse de compiler sans lui. Aucun compilateur plus récent n'est jamais nécessaire : le GCC d'origine accepte `-std=c++23` sur les cinq versions, n'installez donc pas `gcc-12` pour cela.
 
-The installation runs in 22 numbered steps. With the station questions answered at the start, none of the steps stops to ask anything; only the sudo password is asked, once, right after the questions, and it is kept alive for the whole run. Setting `PHANTOM_CLASSIC=1` brings back the old way — each question asked at its own step, fenced by a **⌨️  YOUR INPUT IS NEEDED** banner. Every answer can also be given in the environment for a fully unattended run (`PHANTOM_NONINTERACTIVE=1`); see *Installing unattended* below.
+L'installation se déroule en 22 étapes numérotées. Les questions de la station étant posées au début, aucune étape ne s'arrête pour demander quoi que ce soit ; seul le mot de passe sudo est demandé, une fois, juste après les questions, et il reste valable pendant toute l'exécution. `PHANTOM_CLASSIC=1` rétablit l'ancien fonctionnement : chaque question à sa propre étape, encadrée par un bandeau **⌨️  YOUR INPUT IS NEEDED**. Chaque réponse peut aussi être donnée par l'environnement pour une exécution entièrement automatique (`PHANTOM_NONINTERACTIVE=1`) ; voir *Installation sans surveillance* plus bas.
 
-**Every run writes `install.txt`.** When the installer finishes — or dies halfway — it writes a report to `install.txt` in the PhantomSDR-Plus directory: the result, each of the 22 steps as OK / SKIPPED / PARTIAL / FAILED, what it detected (distribution, Boost, compiler, Node.js), which components were installed, and every warning that came up. A run that fails leaves a report ending at the step that failed, with the reason and a note that the installer is safe to re-run. It is the first file to read when something did not work, and the first to attach to a bug report. Each run overwrites it, so keep a copy if you want to compare two installations.
+**Chaque exécution écrit `install.txt`.** Quand l'installateur se termine — ou s'arrête en cours de route — il écrit un rapport dans `install.txt`, à la racine du dossier PhantomSDR-Plus : le résultat, chacune des 22 étapes en OK / SKIPPED / PARTIAL / FAILED, ce qu'il a détecté (distribution, Boost, compilateur, Node.js), quels composants ont été installés, et chaque avertissement rencontré. Une exécution qui échoue laisse un rapport qui s'arrête à l'étape fautive, avec la raison et la mention que l'installateur peut être relancé sans risque. C'est le premier fichier à lire quand quelque chose n'a pas marché, et le premier à joindre à un rapport de bogue. Chaque exécution l'écrase : gardez-en une copie si vous voulez comparer deux installations.
 
-> **Ubuntu 26.04, Arch and openSUSE Tumbleweed build, but have not been run on air.** All three ship a Boost newer than 1.87, which removed the `io_service` API that the vendored websocketpp 0.8.2 was written against. The patched headers the installer copies in bridge that gap (`io_context`, `executor_work_guard`, `boost::asio::post`, the modern resolver), and where Boost is 1.87 or newer the installer treats that patch as mandatory rather than optional — it verifies the copies landed and refuses to build without them. A complete install, receiver driver and all optional components included, has been verified end to end in containers on Boost 1.90 (Ubuntu 26.04), 1.91 (openSUSE Tumbleweed) and 1.92 (Arch). That proves the server compiles and starts — not that it serves a receiver for hours. Treat all three as untested in production until someone reports back.
+> **Ubuntu 26.04, Arch et openSUSE Tumbleweed se compilent, mais n'ont pas été éprouvés en exploitation.** Tous trois embarquent un Boost plus récent que 1.87, qui a supprimé l'API `io_service` pour laquelle le websocketpp 0.8.2 embarqué a été écrit. Les en-têtes corrigés que l'installateur copie comblent cet écart (`io_context`, `executor_work_guard`, `boost::asio::post`, le resolver moderne), et là où Boost est en 1.87 ou plus récent l'installateur traite ce correctif comme obligatoire et non facultatif : il vérifie que les copies sont en place et refuse de compiler sans elles. Une installation complète, pilote du récepteur et tous les composants optionnels compris, a été vérifiée de bout en bout en conteneurs sur Boost 1.90 (Ubuntu 26.04), 1.91 (openSUSE Tumbleweed) et 1.92 (Arch). Cela prouve que le serveur compile et démarre — pas qu'il sert un récepteur pendant des heures. Considérez les trois comme non testés en production tant que personne n'a fait de retour.
 
-> **openSUSE means Tumbleweed.** That is where `install_opensuse.sh` is verified. Leap 15.6 does not work: its repositories carry no `liquid-dsp-devel` at all, which the backend needs, and Boost is only available under versioned package names. Supporting Leap would mean adding third-party OBS repositories, so it is out of scope for now.
+> **openSUSE signifie ici Tumbleweed.** C'est là que `install_opensuse.sh` est vérifié. Leap 15.6 ne fonctionne pas : ses dépôts ne contiennent aucun `liquid-dsp-devel`, dont le backend a besoin, et Boost n'existe que sous des noms de paquets versionnés. Prendre en charge Leap imposerait d'ajouter des dépôts OBS tiers ; c'est donc hors périmètre pour l'instant.
 
-### The station questions
+### Les questions de la station
 
-`configure-station.sh` — run by the installer at the start, and runnable on its own at any time — asks five groups of questions. ENTER takes the value shown in brackets; when it is run again, the previous answers are the defaults.
+`configure-station.sh` — lancé par l'installateur au début, et utilisable seul à tout moment — pose cinq groupes de questions. ENTRÉE accepte la valeur entre crochets ; lors d'une nouvelle exécution, les réponses précédentes sont les valeurs par défaut.
 
-| # | Asked | Notes |
+| # | Question | Remarques |
 |---|---|---|
-| 1 | Which receiver | The one plugged in is recognised and suggested (RX888, RTL-SDR, RSP1A, Airspy HF+, HackRF, Fobos). For an RTL-SDR it also asks whether it is a Blog V4. |
-| 2 | What to receive | Ready choices for each receiver (for example *HF 0–30 MHz* for the RX888, *2 m* for an RTL-SDR), or your own centre frequency and sample rate. |
-| 3 | Your station | Callsign, name, e-mail, QTH locator, city and country, antenna, computer, ITU region (suggested from the locator). |
-| 4 | Internet | Your public address (IP or DNS name), and whether to list the receiver on sdr-list.xyz and on the websdr.org map. Also whether to serve the receiver over https:// as well (needs a DNS name). Type a name or an IP, not a port — the port comes in step 5. |
-| 5 | Ports and extras | Admin panel, FreeDV RADE, statistics, WebSDR relay, start at boot — and the public port. |
+| 1 | Quel récepteur | Celui qui est branché est reconnu et proposé (RX888, RTL-SDR, RSP1A, Airspy HF+, HackRF, Fobos). Pour un RTL-SDR, il demande aussi s'il s'agit d'un Blog V4. |
+| 2 | Que recevoir | Des choix tout prêts pour chaque récepteur (par exemple *HF 0–30 MHz* pour le RX888, *2 m* pour un RTL-SDR), ou votre propre fréquence centrale et votre taux d'échantillonnage. |
+| 3 | Votre station | Indicatif, nom, e-mail, QTH locator, ville et pays, antenne, ordinateur, région UIT (proposée d'après le locator). |
+| 4 | Internet | Votre adresse publique (IP ou nom DNS), et si le récepteur doit figurer sur sdr-list.xyz et sur la carte de websdr.org. Et aussi s'il faut servir le récepteur en https:// (nécessite un nom DNS). Saisissez un nom ou une IP, pas un port — le port est demandé à l'étape 5. |
+| 5 | Ports et compléments | Panneau d'administration, FreeDV RADE, statistiques, relais WebSDR, démarrage au boot — et le port public. |
 
-The answers are saved in **`station.conf`**, and from it the wizard writes everything that has to agree: the receiver's `config-<receiver>.toml` (sample rate, frequency, port, directory listings, websdr.org), `frontend/site_information.json` and the relay's settings. The start scripts read the frequency and sample rate from `station.conf` themselves, so they are never edited. Only the settings the wizard owns are changed, and each file is copied to `<name>.bak-<date>` before it is touched.
+Les réponses sont enregistrées dans **`station.conf`**, et l'assistant en tire tout ce qui doit concorder : le `config-<récepteur>.toml` du récepteur (taux d'échantillonnage, fréquence, port, inscriptions aux annuaires, websdr.org), `frontend/site_information.json` et les réglages du relais. Les scripts de démarrage lisent eux-mêmes la fréquence et le taux d'échantillonnage dans `station.conf` ; on ne les modifie donc jamais. Seuls les réglages qui appartiennent à l'assistant changent, et chaque fichier est copié en `<nom>.bak-<date>` avant d'être modifié.
 
-**Only one port has to be open on your router.** Everything listeners use goes through it:
+**Un seul port doit être ouvert sur votre routeur.** Tout ce qu'utilisent les auditeurs passe par lui :
 
-| Port | What | Open on the router |
+| Port | Quoi | Ouvert sur le routeur |
 |---|---|---|
-| 9000 | the receiver page — `proxy.py`, which also carries `/admin`, `/rade`, `/stats` and `/relay` | **yes, only this one** |
-| 9001 | spectrumserver | no |
-| 9010 | admin panel | no |
-| 9011 | statistics server | no |
-| 9012 | FreeDV RADE decoder | no |
-| 9013 | WebSDR diversity relay | no |
+| 9000 | la page du récepteur — `proxy.py`, qui transmet aussi `/admin`, `/rade`, `/stats` et `/relay` | **oui, uniquement celui-ci** |
+| 9001 | spectrumserver | non |
+| 9010 | panneau d'administration | non |
+| 9011 | serveur de statistiques | non |
+| 9012 | décodeur FreeDV RADE | non |
+| 9013 | relais de diversité WebSDR | non |
 
-A port that is already in use on the computer is skipped for the next free one. To change anything later:
+Un port déjà utilisé sur l'ordinateur est remplacé par le suivant qui est libre. Pour changer quelque chose plus tard :
 
 ```bash
-bash configure-station.sh          # ask again (ENTER keeps each answer)
-bash configure-station.sh --show   # print the current answers
+bash configure-station.sh          # reposer les questions (ENTRÉE garde chaque réponse)
+bash configure-station.sh --show   # afficher les réponses actuelles
 ```
 
-On an installed station the wizard then carries the change everywhere it is needed — new ports into `admin_config.json` and the statistics service, a new receiver into start at boot — and asks once whether to rebuild the page and restart what runs. Changing a port is therefore this one command, plus the forwarding on your router if the public port moved. The public port must be 1024 or more, because the proxy does not run as root: to be reached on port 80, keep 9000 here and forward the router's outside port 80 to it.
+Sur une station déjà installée, l'assistant reporte ensuite le changement partout où il le faut — nouveaux ports dans `admin_config.json` et dans le service de statistiques, nouveau récepteur dans le démarrage au boot — et demande une fois s'il faut reconstruire la page et redémarrer ce qui tourne. Changer un port se résume donc à cette seule commande, plus la redirection sur votre routeur si le port public a changé. Le port public doit être 1024 ou plus, car le proxy ne tourne pas en root : pour être joignable sur le port 80, gardez 9000 ici et redirigez vers lui le port extérieur 80 du routeur.
 
-A station installed before the wizard existed keeps its own ports: run there, the wizard offers the ports that station already uses.
+Une station installée avant l'existence de l'assistant garde ses propres ports : lancé sur celle-ci, l'assistant propose les ports qu'elle utilise déjà.
 
-### What the installer does
+### Ce que fait l'installateur
 
-Nothing has to be prepared by hand first — no dependency list to paste, no Node.js to fetch, no OpenCL packages to hunt down. Allow anywhere from about twenty minutes to well over an hour, depending on the machine and on whether RADE is installed (its download is the long part).
+Rien n'est à préparer à la main : pas de liste de dépendances à coller, pas de Node.js à télécharger, pas de paquets OpenCL à chercher. Comptez d'une vingtaine de minutes à bien plus d'une heure, selon la machine et selon que RADE est installé ou non (son téléchargement est la partie longue).
 
-| # | Step |
+| # | Étape |
 |---|---|
-| 1 | Lists the PhantomSDR-Plus services running right now and offers to stop them before anything is touched (only on a computer that already has them) |
-| 2 | Detects the distribution — then come the station questions and the sudo password, once |
-| 3–6 | Installs every build dependency, with Node.js 22 through nvm if the system Node is missing or too old |
-| 7 | Builds the backend with meson |
-| 8 | Builds the driver for your receiver, with its udev rule, so the server never needs `sudo` for the device |
-| 9 | Writes the receiver's `.toml` and `site_information.json` from your answers |
-| 10–11 | Installs the frontend dependencies and builds the desktop and `/mobile` pages |
-| 12 | Installs OpenCL for the hardware it finds |
-| 13 | Installs the admin panel — or, without it, only the proxy on the public port |
-| 14–16 | Installs the WebSDR relay, FreeDV RADE and the statistics server, if you chose them |
-| 17 | Re-applies the patched websocketpp headers and verifies them |
-| 18 | Installs the KiwiSDR client emulation, so Kiwi clients such as AetherSDR can connect |
-| 19 | Rebuilds the backend from the patched sources |
-| 20 | Chooses the FFT accelerator — OpenCL only when a device actually answers, otherwise the CPU — and installs start at boot if you chose it, and sets up https:// if you chose it |
-| 21 | Starts the receiver |
-| 22 | Prints the summary: the address listeners use, the port to forward, and every step with its verdict |
+| 1 | Affiche les services PhantomSDR-Plus en cours d'exécution et propose de les arrêter avant de toucher à quoi que ce soit (seulement sur un ordinateur qui les a déjà) |
+| 2 | Détecte la distribution — viennent ensuite les questions de la station et, une fois, le mot de passe sudo |
+| 3–6 | Installe toutes les dépendances de compilation, avec Node.js 22 via nvm si le Node du système manque ou est trop ancien |
+| 7 | Compile le backend avec meson |
+| 8 | Compile le pilote de votre récepteur avec sa règle udev, afin que le serveur n'ait jamais besoin de `sudo` pour l'appareil |
+| 9 | Écrit le `.toml` du récepteur et `site_information.json` à partir de vos réponses |
+| 10–11 | Installe les dépendances du frontend et construit la page de bureau et `/mobile` |
+| 12 | Installe OpenCL pour le matériel trouvé |
+| 13 | Installe le panneau d'administration — ou, sans lui, seulement le proxy sur le port public |
+| 14–16 | Installe le relais WebSDR, FreeDV RADE et le serveur de statistiques, si vous les avez choisis |
+| 17 | Réapplique les en-têtes websocketpp corrigés et les vérifie |
+| 18 | Installe l'émulation de client KiwiSDR, pour que des clients Kiwi comme AetherSDR puissent se connecter |
+| 19 | Recompile le backend à partir des sources corrigées |
+| 20 | Choisit l'accélérateur FFT — OpenCL seulement si un périphérique répond réellement, sinon le processeur — et installe le démarrage au boot si vous l'avez choisi, et met en place https:// si vous l'avez choisi |
+| 21 | Démarre le récepteur |
+| 22 | Affiche le résumé : l'adresse des auditeurs, le port à rediriger, et chaque étape avec son résultat |
 
-#### Installing unattended
+#### Installation sans surveillance
 
-Every question has an environment-variable override, and the installer also switches to defaults on its own when stdin is not a terminal (a pipe, a container, a CI job). This works the same way in all four installers — `install.sh`, `install_arch.sh`, `install_fedora.sh` and `install_opensuse.sh`. Set `PHANTOM_NONINTERACTIVE=1` and the whole run completes without asking anything:
+Chaque question dispose d'une variable d'environnement qui la remplace, et l'installateur bascule de lui-même sur les valeurs par défaut lorsque l'entrée standard n'est pas un terminal (un tube, un conteneur, un travail de CI). Cela vaut de la même façon pour les quatre : `install.sh`, `install_arch.sh`, `install_fedora.sh` et `install_opensuse.sh`. Définissez `PHANTOM_NONINTERACTIVE=1` et le déroulement se termine sans rien demander :
 
-| Variable | Effect |
+| Variable | Effet |
 |---|---|
 | `PHANTOM_NONINTERACTIVE=1` | answer every question with its default |
 | `PHANTOM_SDR=1…7` | RX888 · RTL-SDR · SDRplay RSP1A · skip · Fobos · Airspy HF+ · HackRF (default 4) |
@@ -483,15 +482,15 @@ Every question has an environment-variable override, and the installer also swit
 | `PHANTOM_STATS=y\|n` | statistics server (y interactive, n unattended) |
 | `PHANTOM_KIWI=y\|n` | KiwiSDR client emulation (default y) |
 | `PHANTOM_RECOMPILE=y\|n` | final rebuild (default y) |
-| `PHANTOM_CURLPP=y\|n` | continue without curlpp — Arch and openSUSE only (default y) |
-| `PHANTOM_FIX_CLOCK_SKEW=y\|n` | reset source file timestamps dated in the future, so meson can build (default y) |
-| `PHANTOM_START_RECEIVER=y\|n` | start the receiver at the end (default y) |
-| `PHANTOM_CLASSIC=1` | no station questions: everything is asked on the way, as before |
-| `STATION_…=…` | any answer to the station questions, e.g. `STATION_RECEIVER=rtl STATION_CALLSIGN=SV1XYZ` — see the header of `configure-station.sh` |
+| `PHANTOM_CURLPP=y\|n` | continuer sans curlpp — Arch et openSUSE seulement (défaut y) |
+| `PHANTOM_FIX_CLOCK_SKEW=y\|n` | réinitialiser les horodatages des sources datés dans le futur, pour que meson puisse compiler (défaut y) |
+| `PHANTOM_START_RECEIVER=y\|n` | démarrer le récepteur à la fin (par défaut y) |
+| `PHANTOM_CLASSIC=1` | pas de questions de station : tout est demandé en cours de route, comme avant |
+| `STATION_…=…` | toute réponse aux questions de la station, p. ex. `STATION_RECEIVER=rtl STATION_CALLSIGN=SV1XYZ` — voir l'en-tête de `configure-station.sh` |
 
-With the station questions, the extras you chose take their answers from `station.conf` and run without a terminal, so an unattended run includes them without naming them here.
+Avec les questions de la station, les compléments choisis prennent leurs réponses dans `station.conf` et s'exécutent sans terminal ; une exécution sans surveillance les inclut donc sans qu'il faille les nommer ici.
 
-The three sub-installers marked *n unattended* are interactive scripts of their own, so an unattended run skips them by default rather than hang on their prompts. Name them explicitly to include them:
+Les trois sous-installateurs marqués *n sans surveillance* sont eux-mêmes interactifs ; une exécution sans surveillance les ignore donc plutôt que de bloquer sur leurs questions. Nommez-les explicitement pour les inclure :
 
 ```bash
 # a complete unattended install for an RX888 MkII
@@ -502,20 +501,20 @@ PHANTOM_NONINTERACTIVE=1 PHANTOM_SDR=1 \
   PHANTOM_ADMIN=y PHANTOM_RADE=y PHANTOM_STATS=y ./install.sh
 ```
 
-After a reboot the RX888 udev rules and any OpenCL driver are fully in effect; the installer tells you when a reboot or a re-login is needed.
+Après un redémarrage, les règles udev du RX888 et un éventuel pilote OpenCL sont pleinement actifs ; l'installateur vous indique quand un redémarrage ou une reconnexion est nécessaire.
 
-When it sets up the admin panel, the installer offers to install the two systemd units as well, and **strongly recommends** accepting: the CPU over-temperature guard runs inside the panel, so without them a reboot or a crash leaves the machine unprotected. The offer is skipped automatically where systemd is not running (containers, WSL1, OpenRC) — see the [Admin Panel guide](ADMIN_PANEL_SETUP.md#step-3--start--stop--restart).
+Lorsqu'il installe le panneau d'administration, l'installeur propose aussi les deux unités systemd et **recommande fortement** de les accepter : la protection thermique tourne dans le panneau, donc sans elles un redémarrage ou un plantage laisse la machine sans protection. L'étape est ignorée automatiquement là où systemd ne tourne pas (conteneurs, WSL1, OpenRC) — voir le [guide du panneau](ADMIN_PANEL_SETUP.md).
 
-Each extra is a normal script you can also run on its own at any time — `./setup_admin.sh` ([manual](ADMIN_PANEL_SETUP.md)), `./install_rade.sh` ([manual](RADE_README.md)), `./install-stats-server.sh` ([manual](sdr-stats/README.md)), `./setup-rx888-udev.sh` and the receiver scripts `./setup-rsp1a.sh`, `./setup-fobos.sh`, `./setup-airspyhf.sh` and `./setup-hackrf.sh` — they are exactly what the installer calls.
+Chaque extra est un script normal que vous pouvez aussi lancer seul à tout moment — `./setup_admin.sh` ([manuel](ADMIN_PANEL_SETUP.md)), `./install_rade.sh` ([manuel](RADE_README.md)), `./install-stats-server.sh` ([manuel](sdr-stats/README.md)), `./setup-rx888-udev.sh` et les scripts des récepteurs `./setup-rsp1a.sh`, `./setup-fobos.sh`, `./setup-airspyhf.sh` et `./setup-hackrf.sh` — ce sont exactement ceux que l'installateur appelle.
 
-### Building by hand (reference)
+### Compiler à la main (référence)
 
 > [!IMPORTANT]
-> **You do not need this section for a normal installation.** `./install.sh` — or the installer for your distribution — does all of it for you; see [What the installer does](#what-the-installer-does). What follows is a reference for a manual setup, for a distribution none of the installers covers, or for repairing one piece by hand.
+> **Vous n'avez pas besoin de cette section pour une installation normale.** `./install.sh` — ou l'installateur de votre distribution — fait tout cela pour vous ; voir [Ce que fait l'installateur](#ce-que-fait-linstallateur). Ce qui suit est une référence pour une installation manuelle, pour une distribution qu'aucun script ne couvre, ou pour réparer un élément à la main.
 
-Should you ever have to build without the installer — a distribution none of the scripts covers, or repairing a half-finished build:
+Si vous devez un jour compiler sans l'installateur — une distribution non couverte, ou une compilation à moitié faite à réparer :
 
-#### Build the Backend
+#### Compiler le backend
 
 ```bash
 # Clean any previous builds, Configure build with optimization, Compile
@@ -527,7 +526,7 @@ meson compile -C build
 ls -lh build/spectrumserver
 ```
 
-#### Build the Frontend
+#### Compiler le frontend
 
 ```bash
 cd frontend
@@ -541,7 +540,7 @@ npm run build
 cd ..
 ```
 
-### Verify Installation
+### Vérifiez l'installation
 
 ```bash
 # Check if binary exists
@@ -556,22 +555,22 @@ ls -lh *.sh *.toml
 
 ---
 
-## Installing Opus Audio Codec
+## Installation du codec audio Opus
 
 > [!IMPORTANT]
-> **You do not need this section for a normal installation.** `./install.sh` — or the installer for your distribution — does all of it for you; see [What the installer does](#what-the-installer-does). What follows is a reference for a manual setup, for a distribution none of the installers covers, or for repairing one piece by hand.
+> **Vous n'avez pas besoin de cette section pour une installation normale.** `./install.sh` — ou l'installateur de votre distribution — fait tout cela pour vous ; voir [Ce que fait l'installateur](#ce-que-fait-linstallateur). Ce qui suit est une référence pour une installation manuelle, pour une distribution qu'aucun script ne couvre, ou pour réparer un élément à la main.
 
 
-Opus provides better audio quality and lower latency compared to FLAC.
+Opus offre une meilleure qualité audio et une latence plus faible que FLAC.
 
-### 1. Install libopus System Library
+### 1. Installez la bibliothèque système libopus
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y libopus0 libopus-dev
 ```
 
-### 2. Install Opus Decoder for Frontend
+### 2. Installez le décodeur Opus pour le frontend
 
 ```bash
 cd PhantomSDR-Plus/frontend
@@ -586,7 +585,7 @@ npm run build
 cd ..
 ```
 
-### 3. Verify Opus Installation
+### 3. Vérifiez l'installation d'Opus
 
 ```bash
 # Check if Opus system library is installed
@@ -600,36 +599,36 @@ cd ..
 
 ---
 
-## Autorun Spot Reporter (FT8/FT4/WSPR)
+## Rapporteur de spots autorun (FT8/FT4/WSPR)
 
-PhantomSDR-Plus ships an optional **autorun spot reporter** (in the `autorun/` directory). It decodes FT8/FT4/WSPR server-side straight off the receiver and uploads spots to the reporting networks:
+PhantomSDR-Plus est livré avec un **rapporteur de spots autorun** facultatif (dans le répertoire `autorun/`). Il décode FT8/FT4/WSPR côté serveur, directement à partir du récepteur, et téléverse les spots vers les réseaux de report :
 
 - **FT8 / FT4 → PSK Reporter** (IPFIX/UDP)
 - **WSPR → wsprnet.org** (HTTP)
 
-It is controlled entirely from the **admin panel → "Spot Reporting"** tab, and **reporting is OFF by default** — nothing is transmitted or uploaded until you enable it there. The decoder runs as a separate Node.js daemon and taps the receiver's audio locally, so it adds no extra RF hardware.
+Il se pilote entièrement depuis l'onglet **panneau d'administration → « Spot Reporting »**, et **le report est DÉSACTIVÉ par défaut** — rien n'est transmis ni téléversé tant que vous ne l'activez pas là. Le décodeur s'exécute comme un démon Node.js distinct et prélève l'audio du récepteur localement : il n'ajoute donc aucun matériel RF supplémentaire.
 
-### Requirements
+### Prérequis
 
-| Requirement | Notes |
-|-------------|-------|
-| **Node.js 22+** | Same runtime the frontend build already needs — installed in the [Node.js step](#installing-nodejs-and-npm). |
-| **`ws` + `cbor-x` npm packages** | Resolved through `autorun/node_modules`, a symlink to the frontend's `node_modules` (both packages are declared in `frontend/package.json`). |
-| **`util-linux`** (`taskset`) | The admin "Start" button pins the daemon to the E-cores with `taskset`. Present on virtually every distro; the installers add it explicitly. |
-| **Callsign + grid** | Read from `frontend/site_information.json` (`siteSysop` / `siteGridSquare`) unless overridden in the admin tab. Spots are uploaded under this callsign. PSK Reporter and WSPRnet get a 4- or 6-character locator only — a longer one (KM17VX69JA) is cut to its square (KM17VX). |
+| Prérequis | Remarques |
+|-----------|-----------|
+| **Node.js 22+** | Le même environnement d'exécution que la compilation du frontend — installé à l'[étape Node.js](#installation-de-nodejs-et-npm). |
+| **Paquets npm `ws` + `cbor-x`** | Résolus via `autorun/node_modules`, un lien symbolique vers le `node_modules` du frontend (les deux paquets sont déclarés dans `frontend/package.json`). |
+| **`util-linux`** (`taskset`) | Le bouton « Start » de l'admin épingle le démon sur les E-cores avec `taskset`. Présent sur pratiquement toutes les distributions ; les installateurs l'ajoutent explicitement. |
+| **Indicatif + locator** | Lus dans `frontend/site_information.json` (`siteSysop` / `siteGridSquare`) sauf s'ils sont remplacés dans l'onglet d'administration. Les spots sont téléversés sous cet indicatif. PSK Reporter et WSPRnet ne reçoivent qu'un locator de 4 ou 6 caractères — un plus long (KM17VX69JA) est coupé à son carré (KM17VX). |
 
-> ⚠️ **Report only what you actually receive.** Spots are uploaded to public networks under your callsign — only enable bands/modes your receiver genuinely hears, and use your correct grid square.
+> ⚠️ **Ne rapportez que ce que vous recevez réellement.** Les spots sont téléversés vers des réseaux publics sous votre indicatif — n'activez que les bandes/modes que votre récepteur entend véritablement, et utilisez le bon locator.
 
-### Automatic installation
+### Installation automatique
 
-`install.sh` (and the per-distro variants: `install_arch.sh`, `install_fedora.sh`, `install_opensuse.sh`) handle everything for you: they install Node.js 22 and `util-linux`, run the frontend `npm install`, and then create the `autorun/node_modules` symlink automatically. No extra steps are required — the feature is ready as soon as `install.sh` finishes.
+`install.sh` (et les variantes par distribution : `install_arch.sh`, `install_fedora.sh`, `install_opensuse.sh`) s'occupent de tout : ils installent Node.js 22 et `util-linux`, exécutent le `npm install` du frontend, puis créent automatiquement le lien symbolique `autorun/node_modules`. Aucune étape supplémentaire n'est nécessaire — la fonction est prête dès que `install.sh` se termine.
 
-### Manual installation
+### Installation manuelle
 
 > [!NOTE]
-> The installer already does this for you: it creates the symlink and installs `util-linux`. Use the steps below only to repair an installation by hand.
+> L'installateur le fait déjà pour vous : il crée le lien symbolique et installe `util-linux`. N'utilisez les étapes ci-dessous que pour réparer une installation à la main.
 
-If you installed manually (Option B), create the symlink yourself after the frontend `npm install` so the daemon can resolve its dependencies:
+Si vous avez installé manuellement (option B), créez vous-même le lien symbolique après le `npm install` du frontend, afin que le démon puisse résoudre ses dépendances :
 
 ```bash
 cd ~/PhantomSDR-Plus
@@ -644,9 +643,9 @@ ln -sfn ../frontend/node_modules autorun/node_modules
 sudo apt install -y util-linux
 ```
 
-> **Note:** `autorun/node_modules` is git-ignored, so a fresh `git clone` never contains it — the symlink must be (re)created after every clean checkout. The installers do this for you; the command above is only for manual setups.
+> **Remarque :** `autorun/node_modules` est ignoré par git : un `git clone` frais ne le contient donc jamais — le lien symbolique doit être (re)créé après chaque récupération propre. Les installateurs le font pour vous ; la commande ci-dessus ne concerne que les installations manuelles.
 
-### Verifying
+### Vérification
 
 ```bash
 # The symlink should point at ../frontend/node_modules
@@ -659,56 +658,56 @@ ls -d frontend/node_modules/ws frontend/node_modules/cbor-x
 command -v taskset
 ```
 
-Then open the admin panel, go to the **Spot Reporting** tab, set your identity, tick the bands/modes to decode, enable the destination(s), and press **Start**. A "📶 REPORTING" badge appears on the main waterfall whenever reporting is active. (PSK Reporter uploads batch every 5 minutes and wsprnet every 2 minutes, so a freshly started daemon shows "0 sent" for the first few minutes — that is normal.)
+Ouvrez ensuite le panneau d'administration, allez dans l'onglet **Spot Reporting**, renseignez votre identité, cochez les bandes/modes à décoder, activez la ou les destinations, puis appuyez sur **Start**. Un badge « 📶 REPORTING » apparaît sur la cascade principale chaque fois que le report est actif. (PSK Reporter téléverse par lots toutes les 5 minutes et wsprnet toutes les 2 minutes : un démon fraîchement démarré affiche donc « 0 sent » pendant les premières minutes — c'est normal.)
 
-Two different counters are then shown, and it is easy to mistake one for the other. The **SPOTS UPLOADED PER DECODER** tiles count only the current run, so Stop/Start resets them to zero; the number beside each band/mode checkbox is that slot's **all-time** total, kept in `autorun-totals.json` so it survives restarts. See the [Admin Panel guide](ADMIN_PANEL_SETUP.md) for both, and for the **Graphs** page that plots CPU frequency, load, temperature and users online over the last 15 minutes to 24 hours.
+Deux compteurs différents sont ensuite affichés, et il est facile de les confondre. Les tuiles **SPOTS UPLOADED PER DECODER** ne comptent que l'exécution en cours : Stop/Start les remet à zéro. Le nombre à côté de chaque case bande/mode est le total **depuis toujours** de cet emplacement, conservé dans `autorun-totals.json` et donc préservé au redémarrage. Voir le [guide du panneau d'administration](ADMIN_PANEL_SETUP.md) pour les deux, ainsi que pour la page **Graphiques**, qui trace la fréquence du processeur, la charge, la température et les utilisateurs connectés sur 15 minutes à 24 heures.
 
-> **If your machine runs hot**, the panel also carries a [Thermal Guard](ADMIN_PANEL_SETUP.md#thermal-guard) that stops the server when the CPU reaches a dangerous temperature and restarts it once cool. It derives its thresholds from your own CPU's critical trip point, so there is nothing to calculate, and it works whatever start/stop method you use. It is installed with the panel but starts in log-only mode: it records what it *would* have done and changes nothing until you enable it in Settings. Continuous decoding keeps a CPU busy around the clock, so it is worth reading the CRASH tab after a week of autorun to see how close your machine actually gets.
+> **Si votre machine chauffe**, le panneau embarque aussi une [protection thermique](ADMIN_PANEL_SETUP.md#thermal-guard) qui arrête le serveur lorsque le processeur atteint une température dangereuse et le relance une fois refroidi. Elle déduit ses seuils du seuil critique de votre propre processeur, il n'y a donc rien à calculer, et elle fonctionne quelle que soit votre méthode de démarrage/arrêt. Installée avec le panneau, elle démarre en mode journalisation seule : elle note ce qu'elle *aurait* fait et ne change rien tant que vous ne l'activez pas dans Paramètres. Le décodage continu occupe un processeur 24 h sur 24, il vaut donc la peine de lire l'onglet CRASH après une semaine d'autorun pour voir jusqu'où votre machine monte réellement.
 
-> **Server port is auto-detected.** The daemon taps spectrumserver's own `[server] port` directly (loopback + token, bypassing the proxy). It reads that port from the config file the running spectrumserver was launched with, so it works on any port with no configuration — the `[autorun] tap backend: …` line in `autorun.log` shows what it resolved. If your server wasn't running when the daemon started, or you use an unusual setup, pin it in `autorun.json`:
+> **Le port du serveur est détecté automatiquement.** Le démon se branche directement sur le `[server] port` de spectrumserver (boucle locale + jeton, en contournant le proxy). Il lit ce port dans le fichier de configuration avec lequel le spectrumserver en cours a été lancé, ce qui lui permet de fonctionner sur n'importe quel port sans configuration — la ligne `[autorun] tap backend: …` dans `autorun.log` indique ce qu'il a résolu. Si votre serveur ne tournait pas au démarrage du démon, ou si votre installation est atypique, fixez-le dans `autorun.json` :
 > ```json
 > "server": { "host": "127.0.0.1", "port": 9002 }
 > ```
-> A wrong port shows up as `504` / `tap closed 1006` in `autorun.log` with `decodes` stuck at 0.
+> Un mauvais port se traduit par `504` / `tap closed 1006` dans `autorun.log`, avec `decodes` bloqué à 0.
 
 ---
 
-## KiwiSDR Client Emulation (optional)
+## Émulation des clients KiwiSDR (facultatif)
 
-Since v4.1.0 PhantomSDR-Plus can also answer the **KiwiSDR protocol**, so software written for a KiwiSDR — **AetherSDR**, `kiwiclient` and the rest — connects to your receiver directly, on the same host and port you already publish. It is off until `[kiwi_emulation] enabled = true` is added to the config your receiver runs with.
+Depuis la v4.1.0, PhantomSDR-Plus sait aussi répondre au **protocole KiwiSDR**, si bien qu'un logiciel écrit pour un KiwiSDR — **AetherSDR**, `kiwiclient` et les autres — se connecte directement à votre récepteur, sur le même hôte et le même port que vous publiez déjà. C'est désactivé tant que `[kiwi_emulation] enabled = true` n'est pas ajouté à la configuration avec laquelle tourne votre récepteur.
 
-The installer offers it as step 17, or `./kiwi_install.sh` applies it to a tree that is already installed.
+L'installateur le propose à l'étape 17 ; `./kiwi_install.sh` l'applique à une arborescence déjà installée.
 
-> **Full documentation: [KiwiSDR Client Emulation](Aether_config.md)** — what the bridge does, how to install it, every `[kiwi_emulation]` key, connecting a client, audio level, the S-meter, the waterfall rate, and a symptom table.
+> **Documentation complète : [Émulation des clients KiwiSDR](Aether_config.md)** — ce que fait la passerelle, comment l'installer, chaque clé `[kiwi_emulation]`, connecter un client, le niveau audio, le S-mètre, la cadence de la cascade et un tableau des symptômes.
 
 ---
 
 ## Configuration
 
-> **Installed with the station questions?** Then everything in this chapter is already done from your answers — the `.toml`, `site_information.json`, and the frequency and sample rate the start script uses. Change them with `bash configure-station.sh`. The steps below are for what the wizard does not cover, or for a station set up by hand.
+> **Installé avec les questions de la station ?** Alors tout ce chapitre est déjà fait à partir de vos réponses : le `.toml`, `site_information.json`, ainsi que la fréquence et le taux d'échantillonnage du script de démarrage. Modifiez-les avec `bash configure-station.sh`. Les étapes ci-dessous concernent ce que l'assistant ne couvre pas, ou une station configurée à la main.
 
-### 1. Choose Your Configuration File
+### 1. Choisissez votre fichier de configuration
 
-Select the appropriate config file for your SDR:
+Sélectionnez le fichier de configuration adapté à votre SDR :
 
-- `config-rtl.toml` - RTL-SDR dongles
-- `config-rsp1a.toml` - SDRplay RSP1A
-- `config-airspyhf.toml` - Airspy HF+ Discovery
-- `config-fobos-hf.toml` - RigExpert Fobos SDR, HF1/HF2 direct sampling (0-25 MHz)
-- `config-fobos.toml` - RigExpert Fobos SDR, RF path (25-6000 MHz)
-- `config-rx888mk2.toml` - RX888 MK2
-- `config-hackrf.toml` - HackRF One
-- `config.example.hackrf.toml` - HackRF One
+- `config-rtl.toml` – clés RTL-SDR
+- `config-rsp1a.toml` – SDRplay RSP1A
+- `config-airspyhf.toml` – Airspy HF+ Discovery
+- `config-fobos-hf.toml` – RigExpert Fobos SDR, HF1/HF2 en échantillonnage direct (0-25 MHz)
+- `config-fobos.toml` – RigExpert Fobos SDR, voie RF (25-6000 MHz)
+- `config-rx888mk2.toml` – RX888 MK2
+- `config-hackrf.toml` – HackRF One
+- `config.example.hackrf.toml` – HackRF One
 
-For this example, we'll use RTL-SDR.
+Pour cet exemple, nous utiliserons le RTL-SDR.
 
-### 2. Edit Configuration File
+### 2. Modifiez le fichier de configuration
 
 ```bash
 nano config-rtl.toml
 ```
 
-#### Key Settings to Configure
+#### Réglages clés à configurer
 
 ```toml
 [server]
@@ -747,23 +746,23 @@ frequency = 145500000            # Default tuning frequency
 modulation = "FM"                # Default modulation mode
 ```
 
-#### Sample Rate Guidelines
+#### Repères pour le taux d'échantillonnage
 
-| Coverage | Sample Rate | FFT Size |
-|----------|-------------|----------|
+| Couverture | Taux d'échantillonnage | Taille de FFT |
+|------------|------------------------|---------------|
 | 2 MHz | 2048000 | 131072 |
 | 3.2 MHz | 3200000 | 131072 |
 | 10 MHz | 10000000 | 1048576 |
 | 30 MHz | 30000000 | 2097152 |
 | 60 MHz | 60000000 | 4194304 |
 
-### 3. Configure Site Information
+### 3. Configurez les informations du site
 
 ```bash
 nano frontend/site_information.json
 ```
 
-Edit the following fields:
+Modifiez les champs suivants :
 
 ```json
 {
@@ -785,28 +784,28 @@ Edit the following fields:
 }
 ```
 
-**IARU Regions:**
-- **1**: Europe, Africa, Middle East, Northern Asia
-- **2**: Americas (North, Central, South), Caribbean
-- **3**: Asia-Pacific, Oceania
+**Régions IARU :**
+- **1** : Europe, Afrique, Moyen-Orient, Asie du Nord
+- **2** : Amériques (Nord, Centre, Sud), Caraïbes
+- **3** : Asie-Pacifique, Océanie
 
-### 4. Customize Frequency Markers (Optional)
+### 4. Personnalisez les marqueurs de fréquence (facultatif)
 
 ```bash
 nano markers.json
 ```
 
-Add your favorite frequencies, repeaters, and broadcast stations. A marker whose mode is a digital mode, such as `FT8` or `APRS`, starts that decoder when clicked — see [Decoders](DECODERS.md#starting-a-decoder-from-a-frequency-marker).
+Ajoutez vos fréquences préférées, relais et stations de radiodiffusion. Un marqueur dont le mode est un mode numérique, comme `FT8` ou `APRS`, démarre ce décodeur quand on clique dessus — voir [Décodeurs](DECODERS.md#démarrer-un-décodeur-depuis-un-marqueur-de-fréquence).
 
-### 5. Edit Start Script
+### 5. Modifiez le script de démarrage
 
 ```bash
 nano start-rtl.sh
 ```
 
-> On a station set up with the station questions, the frequency and sample rate come from `STATION_FREQ` and `STATION_SPS` in `station.conf`: `bash configure-station.sh` changes them, and the block above stays as shipped.
+> Sur une station configurée avec les questions de la station, la fréquence et le taux d'échantillonnage viennent de `STATION_FREQ` et `STATION_SPS` dans `station.conf` : `bash configure-station.sh` les modifie, et le bloc ci-dessus reste tel qu'il est livré.
 
-The start script is a self-contained launcher + watchdog. Edit only the **RECEIVER CONFIGURATION** block near the top so the receiver arguments match your setup:
+Le script de démarrage est un lanceur autonome doublé d'un chien de garde. Ne modifiez que le bloc **RECEIVER CONFIGURATION** près du début, afin que les arguments du récepteur correspondent à votre installation :
 
 ```bash
 # ═══ RECEIVER CONFIGURATION (the only receiver-specific part) ═══
@@ -817,39 +816,39 @@ FIFO="$PHANTOMDIR/rtl.fifo"
 RX_ARGS="${RX_ARGS:--f 145000000 -s 2048000 -}"   # receiver args (edit these)
 ```
 
-Parameters inside `RX_ARGS`:
-- `-f 145000000`: Center frequency (145 MHz)
-- `-s 2048000`: Sample rate (2.048 MSPS)
+Paramètres à l'intérieur de `RX_ARGS` :
+- `-f 145000000` : fréquence centrale (145 MHz)
+- `-s 2048000` : taux d'échantillonnage (2,048 MSPS)
 
-`CONFIG` points at your `.toml`. You do **not** need to edit anything else in the script — the start/restart/watchdog/logging logic is generic. You can also override the receiver args at launch without editing the file: `RX_ARGS="-f 145000000 -s 2048000 -" ./start-rtl.sh` (`RX888_ARGS` for `start-rx888mk2.sh`).
+`CONFIG` pointe vers votre `.toml`. Vous n'avez **pas** besoin de modifier autre chose dans le script — la logique de démarrage/redémarrage/chien de garde/journalisation est générique. Vous pouvez aussi remplacer les arguments du récepteur au lancement sans modifier le fichier : `RX_ARGS="-f 145000000 -s 2048000 -" ./start-rtl.sh` (`RX888_ARGS` pour `start-rx888mk2.sh`).
 
 ---
 
-## SDR Device-Specific Setup
+## Configuration propre à chaque appareil SDR
 
 ### RTL-SDR
 
-#### Install RTL-SDR Tools
+#### Installez les outils RTL-SDR
 
 ```bash
 sudo apt install -y rtl-sdr
 ```
 
-#### Test RTL-SDR
+#### Testez le RTL-SDR
 
 ```bash
 rtl_test
 ```
 
-Press Ctrl+C to stop. You should see sample rate information.
+Appuyez sur Ctrl+C pour arrêter. Vous devriez voir des informations sur le taux d'échantillonnage.
 
-#### Edit Configuration
+#### Modifiez la configuration
 
 ```bash
 nano config-rtl.toml
 ```
 
-Common settings for RTL-SDR:
+Réglages courants pour le RTL-SDR :
 ```toml
 sps = 2048000
 frequency = 145000000
@@ -857,27 +856,27 @@ signal = "iq"
 format = "u8"
 ```
 
-### Receivers on SoapySDR (RSP1A, Fobos, Airspy HF+)
+### Récepteurs sur SoapySDR (RSP1A, Fobos, Airspy HF+)
 
-The SDRplay RSP1A, the RigExpert Fobos SDR and the Airspy HF+ all reach the server the same way: a SoapySDR driver for the device, and `rx_sdr` (from rx_tools) to stream its samples into `spectrumserver`. One script per receiver installs the whole chain:
+Le SDRplay RSP1A, le RigExpert Fobos SDR et l'Airspy HF+ rejoignent le serveur de la même façon : un pilote SoapySDR pour l'appareil, et `rx_sdr` (de rx_tools) qui transmet ses échantillons à `spectrumserver`. Un script par récepteur installe toute la chaîne :
 
-| Receiver | Script | Installer option | Launcher | Config |
+| Récepteur | Script | Option de l'installateur | Script de lancement | Configuration |
 |---|---|---|---|---|
 | SDRplay RSP1A | `./setup-rsp1a.sh` | 3 | `start-rsp1a.sh` | `config-rsp1a.toml` |
 | RigExpert Fobos SDR | `./setup-fobos.sh` | 5 | `start-fobos-hf.sh` (HF) / `start-fobos.sh` (RF) | `config-fobos-hf.toml` / `config-fobos.toml` |
 | Airspy HF+ | `./setup-airspyhf.sh` | 6 | `start-airspyhf.sh` | `config-airspyhf.toml` |
 
-Each script:
+Chaque script :
 
-- installs git, cmake, a compiler, libusb and **SoapySDR** from your distribution's own packages — it recognises apt, dnf, pacman and zypper, so it works on Debian/Ubuntu, Fedora, Arch and openSUSE alike;
-- builds the receiver's driver from source into `sdr_drivers/` (not tracked by git);
-- builds **rx_tools** for `rx_sdr`, unless `rx_sdr` is already installed — one copy serves every receiver;
-- installs a **udev rule** and adds you to the `plugdev` group, so the start script never needs `sudo` for the device. **Log out and back in once** for the group to take effect;
-- finishes by checking that SoapySDR really lists the driver, and stops with an error if it does not.
+- installe git, cmake, un compilateur, libusb et **SoapySDR** depuis les paquets de votre distribution — il reconnaît apt, dnf, pacman et zypper, et fonctionne donc aussi bien sur Debian/Ubuntu, Fedora, Arch et openSUSE ;
+- compile le pilote du récepteur depuis les sources dans `sdr_drivers/` (non suivi par git) ;
+- compile **rx_tools** pour `rx_sdr`, sauf si `rx_sdr` est déjà installé — une seule copie sert à tous les récepteurs ;
+- installe une **règle udev** et vous ajoute au groupe `plugdev`, pour que le script de lancement n'ait jamais besoin de `sudo` pour l'appareil. **Déconnectez-vous et reconnectez-vous une fois** pour que le groupe prenne effet ;
+- vérifie pour finir que SoapySDR liste bien le pilote, et s'arrête sur une erreur sinon.
 
-Run them as your normal user — they call `sudo` themselves. They are idempotent, so re-running one updates the driver sources with `git pull` and rebuilds. The installer calls exactly these scripts; on a station that is already installed, run the one for your receiver on its own. The shared parts live in `setup-sdr-common.sh`, which is not meant to be run by itself. Two optional overrides apply to all three: `SDR_USER=<name>` puts another account in `plugdev`, and `SDR_SKIP_DEPS=1` skips the package installation.
+Lancez-les avec votre utilisateur normal — ils appellent `sudo` eux-mêmes. Ils sont idempotents : relancer l'un d'eux met à jour les sources du pilote avec `git pull` et recompile. L'installateur appelle exactement ces scripts ; sur une station déjà installée, lancez seul celui de votre récepteur. La partie commune se trouve dans `setup-sdr-common.sh`, qui ne se lance pas seul. Deux variables facultatives valent pour les trois : `SDR_USER=<nom>` met un autre compte dans `plugdev`, et `SDR_SKIP_DEPS=1` saute l'installation des paquets.
 
-Check that the receiver is seen, with it plugged in:
+Appareil branché, vérifiez que le récepteur est détecté :
 
 ```bash
 SoapySDRUtil --find="driver=soapyMiri"   # RSP1A
@@ -887,29 +886,29 @@ SoapySDRUtil --find="driver=airspyhf"    # Airspy HF+
 
 #### SDRplay RSP1A
 
-`setup-rsp1a.sh` installs the **open-source driver**: libmirisdr-5, the reverse-engineered driver for the Mirics MSi2500/MSi001 chips inside the RSP1 and RSP1A, with its SoapySDR module SoapyMiri (`driver=soapyMiri`). It needs no background service and no root. The script also blacklists the kernel's `msi2500` and `msi001` drivers in `/etc/modprobe.d/blacklist-msi2500.conf`, because they claim the RSP1A as a V4L2 radio before `rx_sdr` can open it. If the device was plugged in while they were loaded, replug it once (or reboot).
+`setup-rsp1a.sh` installe le **pilote open source** : libmirisdr-5, le pilote issu de la rétro-ingénierie des puces Mirics MSi2500/MSi001 des RSP1 et RSP1A, avec son module SoapySDR SoapyMiri (`driver=soapyMiri`). Il ne demande aucun service en arrière-plan ni root. Le script met aussi sur liste noire les pilotes noyau `msi2500` et `msi001` dans `/etc/modprobe.d/blacklist-msi2500.conf`, car ils prennent le RSP1A comme radio V4L2 avant que `rx_sdr` puisse l'ouvrir. Si l'appareil était branché pendant qu'ils étaient chargés, débranchez-le et rebranchez-le une fois (ou redémarrez).
 
-SDRplay's own closed API (`driver=sdrplay`, with SoapySDRPlay and the `sdrplay` service) still works — the included file `instructions-for-rsp1a` describes that installation. `start-rsp1a.sh` chooses between the two by itself: if SoapySDR has the `sdrplay` driver it uses the API and restarts the `sdrplay` service first, otherwise it uses libmirisdr-5. A station set up on the API therefore keeps working unchanged. To force one, start it with `RX_DRIVER=miri` or `RX_DRIVER=sdrplay`. The chosen driver is written to `logwebsdr.txt` as `RSP1A driver: miri` or `RSP1A driver: sdrplay`.
+L'API fermée de SDRplay (`driver=sdrplay`, avec SoapySDRPlay et le service `sdrplay`) fonctionne toujours — le fichier inclus `instructions-for-rsp1a` décrit cette installation. `start-rsp1a.sh` choisit seul entre les deux : si SoapySDR a le pilote `sdrplay`, il utilise l'API et redémarre d'abord le service `sdrplay`, sinon il utilise libmirisdr-5. Une station installée sur l'API continue donc de fonctionner sans changement. Pour en imposer un, lancez avec `RX_DRIVER=miri` ou `RX_DRIVER=sdrplay`. Le pilote choisi est écrit dans `logwebsdr.txt` sous la forme `RSP1A driver: miri` ou `RSP1A driver: sdrplay`.
 
 #### RigExpert Fobos SDR
 
-The Fobos streams **one path at a time**, so it has two launchers that share the watchdog lock like every `start-*.sh` — starting one stops the other:
+Le Fobos ne diffuse **qu'une voie à la fois** ; il a donc deux scripts de lancement qui partagent le verrou du chien de garde comme tout `start-*.sh` — lancer l'un arrête l'autre :
 
-- **`start-fobos-hf.sh`** — the HF1/HF2 inputs in direct sampling, 0-25 MHz, on port 9003. There is no local oscillator in this mode: the ADC digitises 0-25 MHz all the time (`-f 0` is intentional, and rx_sdr's *Failed to set center freq* warning is expected). `rx_sdr` delivers CF32 at 50 Msps; the small converter `cf32_to_real` (built by `setup-fobos.sh` from `cf32_to_real.c`) keeps the I channel and scales it to s16, so `config-fobos-hf.toml` uses `signal="real"` and `format="s16"`.
-- **`start-fobos.sh`** — the RF path, 25-6000 MHz, IQ, on port 9002. Choose the window before the first start: `-f` (centre) and `-s` (sample rate) in the `RX_ARGS` line must match `frequency=` and `sps=` in `config-fobos.toml`. The shipped values (97 MHz, 20 Msps) are only a starting point to check that it runs.
+- **`start-fobos-hf.sh`** — les entrées HF1/HF2 en échantillonnage direct, 0-25 MHz, sur le port 9003. Dans ce mode il n'y a pas d'oscillateur local : l'ADC numérise 0-25 MHz en permanence (`-f 0` est voulu, et l'avertissement *Failed to set center freq* de rx_sdr est attendu). `rx_sdr` fournit du CF32 à 50 Msps ; le petit convertisseur `cf32_to_real` (compilé par `setup-fobos.sh` à partir de `cf32_to_real.c`) garde la voie I et la met à l'échelle en s16, d'où `signal="real"` et `format="s16"` dans `config-fobos-hf.toml`.
+- **`start-fobos.sh`** — la voie RF, 25-6000 MHz, IQ, sur le port 9002. Choisissez la fenêtre avant le premier lancement : `-f` (centre) et `-s` (fréquence d'échantillonnage) sur la ligne `RX_ARGS` doivent correspondre à `frequency=` et `sps=` dans `config-fobos.toml`. Les valeurs livrées (97 MHz, 20 Msps) ne sont qu'un point de départ pour vérifier que cela tourne.
 
 > [!IMPORTANT]
-> `config-fobos-hf.toml` ships with `accelerator="opencl"`: a 50 Msps stream through a 1M-bin FFT is as heavy as the RX888's 60 Msps, and on the CPU it drops samples and heats the machine. On a machine with no OpenCL device `spectrumserver` will not start with that setting — set `accelerator="none"` there.
+> `config-fobos-hf.toml` est livré avec `accelerator="opencl"` : un flux de 50 Msps à travers une FFT de 1M bins est aussi lourd que les 60 Msps du RX888, et sur le CPU il perd des échantillons et fait chauffer la machine. Sur une machine sans périphérique OpenCL, `spectrumserver` ne démarre pas avec ce réglage — mettez-y `accelerator="none"`.
 
-SoapyFobosSDR needs the headers of both libfobos and libfobos-sdr-agile to build, so `setup-fobos.sh` builds both, even for the stock firmware. The Fobos support comes from a script another station wrote after bringing a Fobos up on PhantomSDR-Plus; the HF values in `config-fobos-hf.toml` are the ones that worked there.
+SoapyFobosSDR a besoin des en-têtes de libfobos et de libfobos-sdr-agile pour se compiler, donc `setup-fobos.sh` compile les deux, même pour le firmware standard. La prise en charge du Fobos vient d'un script écrit par une autre station après avoir mis un Fobos en service sous PhantomSDR-Plus ; les valeurs HF de `config-fobos-hf.toml` sont celles qui ont fonctionné chez elle.
 
 #### Airspy HF+
 
-`setup-airspyhf.sh` installs libairspyhf from the distribution where it is packaged (Debian and Ubuntu, Fedora, openSUSE) and builds it from source where it is not (Arch has it only in the AUR), then builds SoapyAirspyHF (`driver=airspyhf`). `start-airspyhf.sh` streams 912 ksps IQ in CS16, which `config-airspyhf.toml` reads as `format="s16"`. The included file `instructions-for-airspy` describes the manual route.
+`setup-airspyhf.sh` installe libairspyhf depuis la distribution là où elle est empaquetée (Debian et Ubuntu, Fedora, openSUSE) et la compile depuis les sources ailleurs (Arch ne l'a que dans l'AUR), puis compile SoapyAirspyHF (`driver=airspyhf`). `start-airspyhf.sh` fournit 912 ksps IQ en CS16, que `config-airspyhf.toml` lit en `format="s16"`. Le fichier inclus `instructions-for-airspy` décrit la voie manuelle.
 
 ### RX888 MK2
 
-#### Install RX888 Tools
+#### Installez les outils RX888
 
 ```bash
 # Install rx_tools
@@ -925,23 +924,23 @@ sudo ldconfig
 # Follow manufacturer instructions
 ```
 
-#### Run rx888_stream Without sudo (udev rules)
+#### Exécuter rx888_stream sans sudo (règles udev)
 
-By default the RX-888's Cypress FX3 USB device is only accessible to root, so `rx888_stream` would need `sudo`. Run the bundled helper once to install udev rules and add yourself to the `plugdev` group:
+Par défaut, le périphérique USB Cypress FX3 du RX-888 n'est accessible qu'à root, donc `rx888_stream` nécessiterait `sudo`. Exécutez une fois l'assistant fourni pour installer les règles udev et vous ajouter au groupe `plugdev` :
 
 ```bash
 ./setup-rx888-udev.sh          # re-runs itself with sudo automatically
 ```
 
-It writes `/etc/udev/rules.d/99-rx888.rules` for all three Cypress FX3 product ids (`04b4:00f1`/`00f3` bootloader and `04b4:8613` firmware-loaded), reloads udev, and creates a stable `/dev/rx888` symlink. **Log out and back in** (for the group change) and **replug the device** once, then `rx888_stream` — and the `start-rx888mk2.sh` launcher — run without `sudo`. It is idempotent, so it's safe to re-run. To set up a different account: `RX888_USER=<name> ./setup-rx888-udev.sh`.
+Il écrit `/etc/udev/rules.d/99-rx888.rules` pour les trois identifiants de produit Cypress FX3 (`04b4:00f1`/`00f3` bootloader et `04b4:8613` firmware chargé), recharge udev et crée un lien symbolique stable `/dev/rx888`. **Déconnectez-vous puis reconnectez-vous** (pour le changement de groupe) et **rebranchez l'appareil** une fois ; ensuite `rx888_stream` — et le lanceur `start-rx888mk2.sh` — s'exécutent sans `sudo`. Le script est idempotent : vous pouvez le relancer sans risque. Pour configurer un autre compte : `RX888_USER=<nom> ./setup-rx888-udev.sh`.
 
-#### Edit Configuration
+#### Modifiez la configuration
 
 ```bash
 nano config-rx888mk2.toml
 ```
 
-Common settings for RX888:
+Réglages courants pour le RX888 :
 ```toml
 sps = 60000000
 frequency = 0
@@ -952,72 +951,72 @@ fft_size = 4194304
 
 ### HackRF One
 
-The HackRF needs nothing built: `hackrf_transfer`, from your distribution's `hackrf` package, streams the samples straight into `spectrumserver`. `./setup-hackrf.sh` (installer option 7) installs that package with apt, dnf, pacman or zypper and adds a udev rule plus the `plugdev` group, so `start-hackrf.sh` runs without `sudo` — log out and back in once afterwards.
+Pour le HackRF, rien n'est compilé : `hackrf_transfer`, du paquet `hackrf` de votre distribution, transmet les échantillons directement à `spectrumserver`. `./setup-hackrf.sh` (option 7 de l'installateur) installe ce paquet avec apt, dnf, pacman ou zypper et ajoute une règle udev et le groupe `plugdev`, pour que `start-hackrf.sh` tourne sans `sudo` — déconnectez-vous et reconnectez-vous une fois ensuite.
 
 ```bash
 ./setup-hackrf.sh    # installs the hackrf package and the udev rule
 hackrf_info          # with the HackRF plugged in: must list the board
 ```
 
-`start-hackrf.sh` streams one window at a time. Choose it before the first start: `-f` (centre) and `-s` (sample rate) in its `RX_ARGS` line must match `frequency=` and `sps=` in `config-hackrf.toml`. `-l` and `-g` are the LNA (0-40 dB, 8 dB steps) and VGA (0-62 dB, 2 dB steps) gains, and `-a 1` switches the RF amplifier on. The shipped values (98 MHz, 20 Msps) are only a starting point to check that it runs.
+`start-hackrf.sh` diffuse une fenêtre à la fois. Choisissez-la avant le premier lancement : `-f` (centre) et `-s` (fréquence d'échantillonnage) sur sa ligne `RX_ARGS` doivent correspondre à `frequency=` et `sps=` dans `config-hackrf.toml`. `-l` et `-g` sont les gains du LNA (0-40 dB, pas de 8 dB) et du VGA (0-62 dB, pas de 2 dB), et `-a 1` allume l'amplificateur RF. Les valeurs livrées (98 MHz, 20 Msps) ne sont qu'un point de départ pour vérifier que cela tourne.
 
-`hackrf_transfer` writes **signed** 8-bit IQ, so the config needs `format="s8"`. `config.example.hackrf.toml` said `u8` until September 2026; with `u8` every sample is off by 128 and the waterfall shows only noise — check an older copy of it.
+`hackrf_transfer` écrit de l'IQ 8 bits **signé**, la configuration a donc besoin de `format="s8"`. `config.example.hackrf.toml` indiquait `u8` jusqu'en septembre 2026 ; avec `u8` chaque échantillon est décalé de 128 et la chute d'eau ne montre que du bruit — vérifiez toute copie plus ancienne.
 
-### Several receivers on one computer
+### Plusieurs récepteurs sur un ordinateur
 
-One computer can run more than one of the receivers above at the same time — for example an RX-888 for HF and an RTL-SDR for 2 m — each as its own server, with a receiver picker on the page. Each extra receiver is started with `INSTANCE=<name> ./start-<radio>.sh` and set up in `instances/<name>/`; `receivers.toml` lists them for the proxy and for `start-all.sh`. Everything is in [Several Receivers](MULTI_RECEIVER.md). The quickest way to add a receiver is `./add-receiver.sh`, which the installers offer at the end: it installs the driver (`setup-rtlsdr.sh` for an RTL-SDR, the matching `setup-*.sh` for the others) and writes the instance folder and `receivers.toml` for you.
+Un ordinateur peut faire tourner en même temps plusieurs des récepteurs ci-dessus — par exemple un RX-888 pour les ondes courtes et un RTL-SDR pour le 2 m — chacun comme serveur à part, avec un sélecteur de récepteur sur la page. Chaque récepteur supplémentaire se démarre avec `INSTANCE=<nom> ./start-<radio>.sh` et se configure dans `instances/<nom>/` ; `receivers.toml` les recense pour le proxy et pour `start-all.sh`. Tout est décrit dans [Plusieurs récepteurs](MULTI_RECEIVER.md). Le plus rapide pour ajouter un récepteur est `./add-receiver.sh`, que les installeurs proposent à la fin : il installe le pilote (`setup-rtlsdr.sh` pour un RTL-SDR, le `setup-*.sh` correspondant pour les autres) et écrit pour vous le dossier de l'instance et `receivers.toml`.
 
 ---
 
-## Testing and Verification
+## Tests et vérification
 
-### 1. Test Run
+### 1. Essai
 
 ```bash
 # For RTL-SDR
 ./start-rtl.sh
 ```
 
-This starts the server **in the background** (it detaches and returns immediately) and begins logging to `logwebsdr.txt`.
+Cela démarre le serveur **en arrière-plan** (il se détache et rend la main immédiatement) et commence à journaliser dans `logwebsdr.txt`.
 
-### 2. Check for Errors
+### 2. Recherchez d'éventuelles erreurs
 
-The script logs its progress to `logwebsdr.txt` — watch it live:
+Le script journalise sa progression dans `logwebsdr.txt` — suivez-la en direct :
 
 ```bash
 tail -f logwebsdr.txt
 ```
 
-Look for:
+Cherchez :
 - ✅ `Starting the initialization script of the PhantomSDR Server`
 - ✅ `<receiver> running (PID …)`
 - ✅ `Server started normally`
-- ❌ `Server … FAILED …` or `ERROR: receiver binary '…' not found` (fix the receiver args/`.toml`, or install the receiver tool, then re-run the start script)
+- ❌ `Server … FAILED …` ou `ERROR: receiver binary '…' not found` (corrigez les arguments du récepteur ou le `.toml`, ou installez l'outil du récepteur, puis relancez le script de démarrage)
 
-### 3. Access Web Interface
+### 3. Accédez à l'interface web
 
-Open your browser to:
+Ouvrez votre navigateur sur :
 ```
 http://localhost:9002
 ```
 
-(Replace port number with your configured port)
+(Remplacez le numéro de port par celui que vous avez configuré)
 
-### 4. Verify Functionality
+### 4. Vérifiez le fonctionnement
 
-- Waterfall should be displaying
-- Audio should play when clicking on signals
-- S-meter should respond to signals
-- User count should show "1"
+- La cascade doit s'afficher
+- L'audio doit jouer lorsque vous cliquez sur des signaux
+- Le S-mètre doit réagir aux signaux
+- Le nombre d'utilisateurs doit indiquer « 1 »
 
-### 5. Test from Another Device
+### 5. Testez depuis un autre appareil
 
-From another computer on your network:
+Depuis un autre ordinateur de votre réseau :
 ```
 http://YOUR_SERVER_IP:9002
 ```
 
-### 6. Check Resource Usage
+### 6. Vérifiez l'utilisation des ressources
 
 ```bash
 # Monitor CPU usage
@@ -1031,9 +1030,9 @@ radeontop   # For AMD
 iftop
 ```
 
-### 7. Stop the Server
+### 7. Arrêtez le serveur
 
-The server runs in the background under a watchdog, so **Ctrl+C won't stop it** (and the watchdog would just restart it). Use the shared stop script, which works for any receiver — it stops the watchdog first, then the receiver and `spectrumserver`:
+Le serveur s'exécute en arrière-plan sous la surveillance d'un chien de garde : **Ctrl+C ne l'arrêtera donc pas** (et le chien de garde le relancerait). Utilisez le script d'arrêt partagé, valable pour tous les récepteurs — il arrête d'abord le chien de garde, puis le récepteur et `spectrumserver` :
 
 ```bash
 ./stop-websdr.sh
@@ -1041,28 +1040,28 @@ The server runs in the background under a watchdog, so **Ctrl+C won't stop it** 
 
 ---
 
-## Setting Up Autostart
+## Mise en place du démarrage automatique
 
-The simple way — and what the installer does when you answer yes to *start at boot*:
+La manière simple — et ce que fait l'installateur quand vous répondez oui au *démarrage au boot* :
 
 ```bash
-bash setup-autostart.sh                # the start script from station.conf
-bash setup-autostart.sh start-rtl.sh   # or name it
-bash setup-autostart.sh --remove       # stop starting at boot
+bash setup-autostart.sh                # le script de démarrage de station.conf
+bash setup-autostart.sh start-rtl.sh   # ou nommez-le
+bash setup-autostart.sh --remove       # ne plus démarrer au boot
 ```
 
-It installs `phantomsdr-receiver.service`, which runs your start script at boot and `stop-websdr.sh` at shutdown, with the `plugdev` group, so the USB receiver opens without anyone logged in. The rest of this chapter shows the same by hand.
+Il installe `phantomsdr-receiver.service`, qui lance votre script de démarrage au boot et `stop-websdr.sh` à l'arrêt, avec le groupe `plugdev`, afin que le récepteur USB s'ouvre sans que personne ne soit connecté. La suite de ce chapitre montre la même chose à la main.
 
 
-### Using systemd (Recommended)
+### Avec systemd (recommandé)
 
-#### 1. Create Service File
+#### 1. Créez le fichier de service
 
 ```bash
 sudo nano /etc/systemd/system/phantomsdr.service
 ```
 
-Add the following content (adjust paths and user):
+Ajoutez le contenu suivant (ajustez les chemins et l'utilisateur) :
 
 ```ini
 [Unit]
@@ -1085,9 +1084,9 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-> The `--watchdog` process already auto-restarts the receiver/`spectrumserver` on its own; `Restart=always` is just a backstop for the rare case the watchdog itself exits. Because systemd supervises the server here, you can use `systemctl start/stop/restart` and `journalctl -u phantomsdr -f` in place of running the scripts by hand.
+> Le processus `--watchdog` relance déjà de lui-même le récepteur et `spectrumserver` ; `Restart=always` n'est qu'un filet de sécurité pour le cas rare où le chien de garde s'arrêterait lui-même. Comme systemd supervise ici le serveur, vous pouvez utiliser `systemctl start/stop/restart` et `journalctl -u phantomsdr -f` au lieu de lancer les scripts à la main.
 
-#### 2. Enable and Start Service
+#### 2. Activez et démarrez le service
 
 ```bash
 # Reload systemd
@@ -1103,7 +1102,7 @@ sudo systemctl start phantomsdr.service
 sudo systemctl status phantomsdr.service
 ```
 
-#### 3. Manage Service
+#### 3. Gérez le service
 
 ```bash
 # Start
@@ -1119,26 +1118,26 @@ sudo systemctl restart phantomsdr
 sudo journalctl -u phantomsdr -f
 ```
 
-### Using Screen (Alternative)
+### Avec Screen (alternative)
 
-> Usually unnecessary: `./start-rtl.sh` already detaches into the background (via `setsid`) and keeps running after you log out, with its own watchdog. Screen is only handy if you specifically want an interactive session to run the foreground `./start-rtl.sh --watchdog` form.
+> Généralement inutile : `./start-rtl.sh` se détache déjà en arrière-plan (via `setsid`) et continue de tourner après votre déconnexion, avec son propre chien de garde. Screen n'est utile que si vous voulez expressément une session interactive pour exécuter la forme au premier plan `./start-rtl.sh --watchdog`.
 
-#### 1. Install Screen
+#### 1. Installez Screen
 
 ```bash
 sudo apt install -y screen
 ```
 
-#### 2. Start in Screen Session
+#### 2. Démarrez dans une session Screen
 
 ```bash
 screen -S phantomsdr
 ./start-rtl.sh
 ```
 
-Press Ctrl+A, then D to detach.
+Appuyez sur Ctrl+A, puis D pour détacher.
 
-#### 3. Reattach to Session
+#### 3. Rattachez-vous à la session
 
 ```bash
 screen -r phantomsdr
@@ -1146,15 +1145,15 @@ screen -r phantomsdr
 
 ---
 
-## CPU Thermal Protection
+## Protection thermique du processeur
 
-> 📖 **Full manual: [THERMAL_GUARD.md](THERMAL_GUARD.md)** — the four modes and what a sysop must do for each, the standalone systemd service, enabling the throttle stage without root, testing and troubleshooting.
+> 📖 **Manuel complet : [THERMAL_GUARD.md](THERMAL_GUARD.md)** — les quatre modes et ce que le sysop doit faire pour chacun, le fonctionnement sans le panneau, l'étage throttle sans root, les tests et le dépannage.
 
-PhantomSDR-Plus ships a guard that stops the server if the CPU reaches a dangerous temperature and starts it again once it has cooled. It derives its thresholds from the critical trip point your own CPU publishes, so there is nothing to calculate, and it works whatever start/stop method you use.
+PhantomSDR-Plus embarque un garde qui arrête le serveur si le processeur atteint une température dangereuse et le relance une fois refroidi. Il déduit ses seuils du seuil critique que publie votre propre processeur, il n'y a donc rien à calculer, et il fonctionne quelle que soit votre méthode de démarrage/arrêt.
 
-**If you run the admin panel, you already have it** — it runs inside the panel and is configured on its Settings page. See the [Admin Panel guide](ADMIN_PANEL_SETUP.md#thermal-guard). The rest of this section is for installations **without** the panel.
+**Si vous utilisez le panneau d'administration, vous l'avez déjà** : il tourne dans le panneau et se configure depuis sa page Paramètres. Voir le [guide du panneau d'administration](ADMIN_PANEL_SETUP.md#thermal-guard). Le reste de cette section concerne les installations **sans** panneau.
 
-### 1. Check what the guard sees on your machine
+### 1. Vérifier ce que le garde voit sur votre machine
 
 ```bash
 cd ~/PhantomSDR-Plus
@@ -1170,13 +1169,13 @@ thresholds : warn 88.0  throttle 92.0  stop 95.0  resume 75.0 (C)
 cpufreq    : not writable — throttle stage disabled
 ```
 
-Only real CPU-die sensors are used (`coretemp`, `k10temp`, `zenpower`, `cpu_thermal`); `acpitz` and unlabelled thermal zones are ignored on purpose, because they often report a case or board temperature tens of degrees below the CPU. If this prints `sensor : NONE`, that machine cannot be protected — common on a VPS or inside a container — and the guard will stay inactive rather than pretend.
+Seuls de vrais capteurs sur la puce sont utilisés (`coretemp`, `k10temp`, `zenpower`, `cpu_thermal`) ; `acpitz` et les zones thermiques non étiquetées sont ignorés à dessein, car ils rapportent souvent une température de boîtier ou de carte inférieure de plusieurs dizaines de degrés au processeur. Si cela affiche `sensor : NONE`, cette machine ne peut pas être protégée — fréquent sur un VPS ou dans un conteneur — et le garde restera inactif plutôt que de faire semblant.
 
-Nothing needs to be installed for this: `thermal_guard.py` uses only the Python standard library.
+Rien à installer : `thermal_guard.py` n'utilise que la bibliothèque standard de Python.
 
-### 2. Configure it
+### 2. Le configurer
 
-The guard reads `admin_config.json` next to `thermal_guard.py`. Create it if you do not have one — with no panel installed you will not. The minimum useful file:
+Le garde lit `admin_config.json` à côté de `thermal_guard.py`. Créez-le si vous n'en avez pas — sans panneau, vous n'en aurez pas. Le fichier minimal utile :
 
 ```json
 {
@@ -1187,15 +1186,15 @@ The guard reads `admin_config.json` next to `thermal_guard.py`. Create it if you
 }
 ```
 
-- `thermal_mode` — `log` (record only, the default), `throttle`, `stop`, or `stop+restart`. **This is the one you must set**, because the guard ships inert: left alone it only writes what it *would* have done. You can also pass it on the command line as `--mode stop+restart`, which overrides the file — so if you are happy with every other default you need no config file at all.
-- `stop_script` / `start_script` — how the guard stops and starts your server. Without a stop script it falls back to `SIGTERM`, then `SIGKILL` after 10 seconds, on `sdr_process_name`. Without a start script it stops but never restarts.
-- Thresholds and timings can be set here too, with the same key names the panel uses — the full table is in the [Admin Panel guide](ADMIN_PANEL_SETUP.md#thermal-guard).
+- `thermal_mode` — `log` (journaliser seulement, la valeur par défaut), `throttle`, `stop` ou `stop+restart`. **C'est celui que vous devez définir**, car le garde est livré inerte : tel quel, il note seulement ce qu'il *aurait* fait. Vous pouvez aussi le passer en ligne de commande avec `--mode stop+restart`, ce qui l'emporte sur le fichier — si tous les autres réglages par défaut vous conviennent, vous n'avez donc besoin d'aucun fichier de configuration.
+- `stop_script` / `start_script` — comment il arrête et démarre votre serveur. Sans script d'arrêt, il se rabat sur `SIGTERM` puis, après 10 secondes, sur `SIGKILL` visant `sdr_process_name`. Sans script de démarrage, il arrête mais ne relance jamais.
+- Les seuils et durées peuvent aussi être définis ici, avec les mêmes noms de clés que dans le panneau — le tableau complet figure dans le [guide du panneau d'administration](ADMIN_PANEL_SETUP.md#thermal-guard).
 
-> **If systemd supervises your SDR server**, point `stop_script` at a small wrapper that runs `systemctl stop your-unit` rather than letting the guard signal the process directly. The guard will win either way — while the CPU is too hot it re-issues the stop every 2 seconds, so anything that revives the server is undone — but a clean stop beats a fight every two seconds.
+> **Si systemd supervise votre serveur SDR**, faites pointer `stop_script` vers un petit script exécutant `systemctl stop votre-unité`, plutôt que de laisser le garde signaler le processus directement. Le garde l'emportera de toute façon — tant que le processeur est trop chaud, il réémet l'arrêt toutes les 2 secondes, si bien que tout ce qui relance le serveur est défait — mais un arrêt propre vaut mieux qu'un bras de fer toutes les deux secondes.
 
-### 3. Run it as a service
+### 3. L'exécuter comme service
 
-The repository includes a ready-made unit, `thermal-guard.service`. Edit `User=` and the two paths in it, then:
+Le dépôt contient une unité prête à l'emploi, `thermal-guard.service`. Modifiez-y `User=` et les deux chemins, puis :
 
 ```bash
 sudo cp thermal-guard.service /etc/systemd/system/
@@ -1204,26 +1203,26 @@ sudo systemctl enable --now thermal-guard
 systemctl status thermal-guard
 ```
 
-`User=` must be an account allowed to run your start/stop scripts — normally the same user that runs the SDR server. **A guard running as a user that cannot stop the server leaves you unprotected while looking protected.**
+`User=` doit être un compte autorisé à exécuter vos scripts de démarrage/arrêt — normalement le même utilisateur que celui qui fait tourner le serveur SDR. **Un garde tournant sous un utilisateur incapable d'arrêter le serveur vous laisse sans protection tout en ayant l'air de vous protéger.**
 
-To arm the guard from the unit instead of the config file, add `--mode` to `ExecStart`:
+Pour armer le garde depuis l'unité plutôt que depuis le fichier de configuration, ajoutez `--mode` à `ExecStart` :
 
 ```ini
 ExecStart=/usr/bin/python3 -u /home/sysop/PhantomSDR-Plus/thermal_guard.py --mode stop+restart
 ```
 
-To run it without systemd:
+Sans systemd :
 
 ```bash
 cd ~/PhantomSDR-Plus
 nohup python3 -u thermal_guard.py --mode stop+restart >> thermal.log 2>&1 &
 ```
 
-`python3 thermal_guard.py --help` lists every option, including `--config` for a config file somewhere other than beside the script.
+`python3 thermal_guard.py --help` liste toutes les options, dont `--config` pour un fichier de configuration ailleurs qu'à côté du script.
 
-### 4. Watch it, then trust it
+### 4. L'observer, puis lui faire confiance
 
-Everything the guard does is written to `crash.log` in the PhantomSDR-Plus directory, one event per line:
+Tout ce que fait le garde est écrit dans `crash.log`, dans le répertoire PhantomSDR-Plus, un événement par ligne :
 
 ```
 [THERMAL] warn: 89.0C (warn=88.0 crit=100.0) sustained 31s
@@ -1236,23 +1235,23 @@ Everything the guard does is written to `crash.log` in the PhantomSDR-Plus direc
 grep THERMAL crash.log
 ```
 
-Leave `thermal_mode` at `"log"` for a week first and read that file after your heavy moments — a full rebuild, a hot afternoon. If nothing appears, your machine never came close. Then set the mode to `stop`.
+Laissez d'abord `thermal_mode` sur `"log"` pendant une semaine et lisez ce fichier après vos moments chargés — une recompilation complète, un après-midi de canicule. Si rien n'y figure, votre machine n'a jamais approché. Passez ensuite le mode à `stop`.
 
-Before relying on it, prove the whole path once by adding a fake reading above your stop threshold:
+Avant de vous y fier, éprouvez tout le parcours une fois avec une mesure fictive au-dessus de votre seuil d'arrêt :
 
 ```json
 "thermal_test_temp": 97
 ```
 
-The guard treats it as real, so warn → stop → lockout → recover → restart all run on demand. Remove the line (or set it to `null`) to return to the real sensor. With the mode at `stop` this really does stop the server and disconnect your listeners, so do it when nobody is on — or run the test at `log`, where it shows what *would* have happened without touching anything.
+Le garde la traite comme réelle, si bien que warn → stop → verrouillage → récupération → redémarrage se déroulent à la demande. Retirez la ligne (ou mettez-la à `null`) pour revenir au capteur réel. En mode `stop`, cela arrête réellement le serveur et déconnecte vos auditeurs : faites-le quand personne n'écoute, ou testez en `log`, où l'on voit ce qui *serait* arrivé sans rien toucher.
 
 ---
 
-## Troubleshooting
+## Dépannage
 
-### Build Errors
+### Erreurs de compilation
 
-#### Dependency Issues
+#### Problèmes de dépendances
 
 ```bash
 # Ubuntu: Install missing dependencies
@@ -1262,7 +1261,7 @@ sudo apt install --fix-broken
 sudo dnf install <package-name>
 ```
 
-#### Meson Configuration Fails
+#### La configuration Meson échoue
 
 ```bash
 # Clean and reconfigure
@@ -1270,7 +1269,7 @@ rm -rf build
 meson setup build --buildtype=release
 ```
 
-#### `meson setup` dies with `ModuleNotFoundError: No module named 'mesonbuild'`
+#### `meson setup` s'arrête sur `ModuleNotFoundError: No module named 'mesonbuild'`
 
 ```
 Traceback (most recent call last):
@@ -1279,48 +1278,50 @@ Traceback (most recent call last):
 ModuleNotFoundError: No module named 'mesonbuild'
 ```
 
-Nothing is wrong with the source tree. A leftover `pip install --user meson` left a launcher script in `~/.local/bin`, which comes before `/usr/bin` on
-`PATH` and therefore hides the working copy the package manager installed. A
-distribution upgrade (Ubuntu 24.04 → 26.04, for example) moves Python to a new version, the old `site-packages` that held `mesonbuild` is no longer on the import path, and the script dies before it does any work. The same thing can happen to `ninja`.
+L'arborescence des sources n'est pas en cause. Une ancienne installation par
+`pip install --user meson` a laissé un script de lancement dans `~/.local/bin`,
+qui passe avant `/usr/bin` dans le `PATH` et masque donc la copie installée par le gestionnaire de paquets. Une montée de version de la distribution (Ubuntu 24.04 → 26.04, par exemple) fait passer Python à une nouvelle version, l'ancien
+`site-packages` qui contenait `mesonbuild` n'est plus dans le chemin d'import, et
+le script meurt sans avoir rien fait. La même chose peut arriver à `ninja`.
 
-The installer detects this and works around it for the duration of the run, warning you in the process, but repair the system:
+L'installateur détecte ce cas et le contourne le temps de l'exécution, en vous avertissant, mais réparez tout de même le système :
 
 ```bash
 rm -f ~/.local/bin/meson
 hash -r
-meson --version        # must print a version
+meson --version        # doit afficher une version
 ```
 
-Keep a pip-installed meson instead if you prefer, by reinstalling it for the Python this system has now:
+Si vous préférez garder meson installé via pip, réinstallez-le pour le Python dont dispose maintenant ce système :
 
 ```bash
 python3 -m pip install --user --force-reinstall --break-system-packages meson
 ```
 
-#### `meson setup` stops with `Clock skew detected`
+#### `meson setup` s'arrête sur `Clock skew detected`
 
 ```
 ERROR: Clock skew detected. File /home/pi/PhantomSDR-Plus/build/../meson.build has a time stamp 10392.2144s in the future.
 ```
 
-Nothing is wrong with the source tree: the system clock is behind the files. meson and ninja refuse to build when an input is newer than the current time, because they cannot tell which outputs are out of date. It happens on a Raspberry Pi with no cell in its RTC holder — every boot starts from the last time it knew, so a build launched before NTP catches up sees the whole tree dated in the future — and on any tree unpacked or copied from a machine whose clock is ahead.
+L'arborescence des sources n'a rien d'anormal : c'est l'horloge du système qui est en retard sur les fichiers. meson et ninja refusent de compiler quand une entrée est plus récente que l'heure courante, car ils ne peuvent pas savoir ce qui est périmé. Cela arrive sur un Raspberry Pi dont le support de pile RTC est vide — chaque démarrage repart de la dernière heure connue, et une compilation lancée avant que NTP ne se synchronise voit toute l'arborescence datée dans le futur — ainsi que sur une arborescence décompressée ou copiée depuis une machine en avance.
 
-Correct the clock first:
+Corrigez d'abord l'horloge :
 
 ```bash
-timedatectl                       # is the time right? is NTP synchronised?
+timedatectl                       # l'heure est-elle juste ? NTP est-il synchronisé ?
 sudo timedatectl set-ntp true
 ```
 
-Wait a few seconds for it to settle, then run the installer again. It checks for this before calling meson and offers to reset the offending timestamps (`PHANTOM_FIX_CLOCK_SKEW=y|n`). By hand, from the source tree, that is:
+Attendez quelques secondes, puis relancez l'installateur. Il vérifie ce point avant d'appeler meson et propose de réinitialiser les horodatages fautifs (`PHANTOM_FIX_CLOCK_SKEW=y|n`). À la main, depuis l'arborescence des sources :
 
 ```bash
 find . -path ./build -prune -o -path ./.git -prune -o -newermt now -print0 | xargs -0r touch
 ```
 
-#### The backend built but there is no web page
+#### Le backend est compilé mais il n'y a pas de page web
 
-The symptom is an installation that looks like it mostly worked: `build/spectrumserver` exists, the server starts, and the browser gets nothing — because `frontend/dist/` was never produced. Look back through the installer output for:
+Le symptôme est une installation qui semble avoir largement réussi : `build/spectrumserver` est là, le serveur démarre, et le navigateur ne reçoit rien — parce que `frontend/dist/` n'a jamais été produit. Cherchez dans la sortie de l'installateur :
 
 ```
 [vite-plugin-top-level-await] missing field `type`
@@ -1329,9 +1330,9 @@ error during build:
    ❌ Failed: Default
 ```
 
-`vite-plugin-top-level-await` asks for `@swc/core` `^1.12.14`, so a fresh `npm install` resolves 1.16.0, whose `printSync()` rejects the syntax tree the plugin gives it. It has nothing to do with your distribution — every installer now pins the working version, and so does `frontend/package.json`. A machine installed before that pin was added keeps working until its `node_modules` is deleted, which is why this appears out of nowhere on a reinstall.
+`vite-plugin-top-level-await` demande `@swc/core` `^1.12.14`, si bien qu'un `npm install` neuf résout vers 1.16.0, dont `printSync()` rejette l'arbre syntaxique que le greffon lui transmet. Cela n'a rien à voir avec votre distribution : chaque installateur épingle désormais la version qui fonctionne, et `frontend/package.json` aussi. Une machine installée avant cet épinglage continue de fonctionner jusqu'à la suppression de son `node_modules` — d'où l'apparition soudaine du problème lors d'une réinstallation.
 
-If you are repairing an older checkout by hand:
+Si vous réparez à la main une copie plus ancienne :
 
 ```bash
 cd frontend
@@ -1340,9 +1341,9 @@ npm install
 ./build-all.sh
 ```
 
-### Runtime Errors
+### Erreurs d'exécution
 
-#### Port Already in Use
+#### Port déjà utilisé
 
 ```bash
 # Find process using port
@@ -1352,7 +1353,7 @@ sudo lsof -i :9002
 sudo kill -9 <PID>
 ```
 
-#### Permission Denied for SDR
+#### Permission refusée pour le SDR
 
 ```bash
 # Add user to plugdev group
@@ -1362,13 +1363,13 @@ sudo usermod -a -G plugdev $USER
 newgrp plugdev
 ```
 
-For an **RX-888 MkII** this isn't enough on its own — the Cypress FX3 device also needs udev rules. Run the bundled helper (installs the rules *and* adds you to `plugdev`), then log out/in and replug the device:
+Pour un **RX-888 MkII**, cela ne suffit pas à soi seul — le périphérique Cypress FX3 a aussi besoin de règles udev. Exécutez l'assistant fourni (il installe les règles *et* vous ajoute à `plugdev`), puis déconnectez-vous/reconnectez-vous et rebranchez l'appareil :
 
 ```bash
 ./setup-rx888-udev.sh
 ```
 
-#### Audio Issues
+#### Problèmes audio
 
 ```bash
 # Try different codec
@@ -1379,9 +1380,9 @@ audio_compression = "flac"  # or "opus"
 cd frontend && npm run build && cd ..
 ```
 
-### OpenCL Issues
+### Problèmes OpenCL
 
-#### clinfo Shows No Devices
+#### clinfo n'affiche aucun appareil
 
 ```bash
 # Verify drivers are loaded
@@ -1395,7 +1396,7 @@ sudo apt remove --purge intel-opencl-icd
 sudo apt install intel-opencl-icd
 ```
 
-#### Performance Not Improved
+#### Aucune amélioration des performances
 
 ```bash
 # Verify OpenCL is enabled in config
@@ -1407,9 +1408,9 @@ accelerator = "opencl"
 device_id = 0  # Try 0, 1, 2, etc.
 ```
 
-### Network Issues
+### Problèmes réseau
 
-#### Can't Access from Other Devices
+#### Impossible d'accéder depuis d'autres appareils
 
 ```bash
 # Check firewall
@@ -1420,7 +1421,7 @@ sudo ufw allow 9000/tcp
 sudo ufw disable
 ```
 
-#### High Latency
+#### Latence élevée
 
 ```bash
 # Reduce waterfall size in config
@@ -1433,9 +1434,9 @@ buffer_size = 16384
 audio_compression = "opus"
 ```
 
-### SDR Device Issues
+### Problèmes d'appareil SDR
 
-#### RTL-SDR Not Found
+#### RTL-SDR introuvable
 
 ```bash
 # Check if device is recognized
@@ -1449,11 +1450,11 @@ echo "blacklist dvb_usb_rtl28xxu" | sudo tee /etc/modprobe.d/blacklist-rtl.conf
 sudo rmmod dvb_usb_rtl28xxu
 ```
 
-#### SDRplay Not Found
+#### SDRplay introuvable
 
-`grep "RSP1A driver" logwebsdr.txt` shows which driver `start-rsp1a.sh` picked.
+`grep "RSP1A driver" logwebsdr.txt` indique le pilote choisi par `start-rsp1a.sh`.
 
-With the open driver (libmirisdr-5, `RSP1A driver: miri`):
+Avec le pilote ouvert (libmirisdr-5, `RSP1A driver: miri`) :
 
 ```bash
 # The kernel's msi2500 driver must not hold the device
@@ -1463,7 +1464,7 @@ lsmod | grep msi2500 && sudo modprobe -r msi2500 msi001
 SoapySDRUtil --find="driver=soapyMiri"
 ```
 
-With SDRplay's API (`RSP1A driver: sdrplay`):
+Avec l'API de SDRplay (`RSP1A driver: sdrplay`) :
 
 ```bash
 # Check API installation
@@ -1476,7 +1477,7 @@ sudo systemctl restart sdrplay
 SoapySDRUtil --find="driver=sdrplay"
 ```
 
-#### Fobos or Airspy HF+ Not Found
+#### Fobos ou Airspy HF+ introuvable
 
 ```bash
 SoapySDRUtil --info | grep -i factories   # must list fobos / airspyhf
@@ -1484,13 +1485,13 @@ SoapySDRUtil --find="driver=fobos"         # or driver=airspyhf
 id | grep plugdev                          # log out and back in if missing
 ```
 
-If the driver is missing from the list, re-run `./setup-fobos.sh` or `./setup-airspyhf.sh`: it stops with the reason if the build or the SoapySDR check fails.
+Si le pilote manque dans la liste, relancez `./setup-fobos.sh` ou `./setup-airspyhf.sh` : il s'arrête en donnant la raison si la compilation ou la vérification SoapySDR échoue.
 
 ---
 
-## Performance Optimization
+## Optimisation des performances
 
-### CPU Optimization
+### Optimisation du processeur
 
 ```toml
 # Adjust thread counts based on CPU cores
@@ -1501,7 +1502,7 @@ threads = 4  # Set to number of cores
 fft_threads = 4  # Set to number of cores
 ```
 
-### Memory Optimization
+### Optimisation de la mémoire
 
 ```toml
 # Reduce memory usage
@@ -1510,7 +1511,7 @@ waterfall_size = 512  # Lower value = less memory
 fft_size = 65536      # Lower value = less memory
 ```
 
-### Network Optimization
+### Optimisation du réseau
 
 ```toml
 # Optimize for limited bandwidth
@@ -1521,116 +1522,119 @@ waterfall_compression = "zstd"  # Efficient compression
 
 ---
 
-## Updating PhantomSDR-Plus
+## Mise à jour de PhantomSDR-Plus
 
-Since version 4.1.0 the repository ships **`update.sh`**, an updater that brings an installed receiver up to date with the published tree **without touching the files that make it your site**. It replaces the hand-written `git pull` script that earlier editions of this guide asked you to create, and it does not need git at all: the published tree is downloaded as a tarball and compared with yours file by file, so it works the same whether you cloned the repository, unpacked an `update.zip`, or copied the tree off a USB stick.
+Depuis la version 4.1.0, le dépôt fournit **`update.sh`**, un outil qui met une installation à jour à partir de l'arborescence publiée **sans toucher aux fichiers qui font qu'elle est votre station**. Il remplace le script `git pull` que les éditions précédentes de ce guide vous demandaient d'écrire, et il n'a pas besoin de git du tout : l'arborescence publiée est téléchargée sous forme d'archive tar et comparée à la vôtre fichier par fichier. Il fonctionne donc de la même façon que vous ayez cloné le dépôt, décompressé un `update.zip` ou copié l'arborescence depuis une clé USB.
 
-### If your installation does not have update.sh yet
+### Si votre installation n'a pas encore update.sh
 
-An older tree will not contain the script. Fetch it once — it is the only step you ever do by hand:
+Une arborescence ancienne ne contient pas le script. Récupérez-le une fois — c'est la seule étape que vous ferez jamais à la main :
 
 ```bash
 cd ~/PhantomSDR-Plus
 curl -fLO https://raw.githubusercontent.com/sv1btl/PhantomSDR-Plus/main/update.sh
 ```
 
-From then on everything — sources, frontend, documentation, installers, and `update.sh` itself — is brought in by the tool.
+Ensuite tout — sources, frontend, documentation, installateurs et `update.sh` lui-même — arrive par l'outil.
 
-### Running it
+### Utilisation
 
 ```bash
 cd ~/PhantomSDR-Plus
 bash update.sh
 ```
 
-It downloads the published tree, compares it with yours and prints a report. Then it asks **Update these files now?** — ENTER means *no*, and then nothing at all has been written. Answer `y` and it:
+Il télécharge l'arborescence publiée, la compare à la vôtre et affiche un rapport. Il demande ensuite **Update these files now?** — ENTRÉE signifie *non*, et alors absolument rien n'a été écrit. Répondez `y` et il :
 
-1. stops the receiver, the admin panel, the proxy and the relay **of this installation** (another installation on the same computer keeps running),
-2. saves every file it is about to replace in a dated archive in `update-backups/`,
-3. writes the new files,
-4. rebuilds only what changed — the server, the web page, or both — without asking anything,
-5. starts again exactly what it stopped.
+1. arrête le récepteur, le panneau d'administration, le proxy et le relais **de cette installation** (une autre installation sur le même ordinateur continue de tourner),
+2. enregistre chaque fichier qu'il va remplacer dans une archive datée dans `update-backups/`,
+3. écrit les nouveaux fichiers,
+4. recompile seulement ce qui a changé — le serveur, la page ou les deux — sans rien demander,
+5. redémarre exactement ce qu'il a arrêté.
 
-Three kinds of file are treated differently:
+Trois sortes de fichiers sont traitées différemment :
 
-| Files | What happens |
+| Fichiers | Ce qui se passe |
 |---|---|
-| `station.conf`, `config.toml`, `config-<receiver>.toml`, `markers.json`, `admin_config.json`, `autorun.json`, `frontend/site_information.json`, `frontend/variant.json`, `frequencylist/`, `chat_history.txt`, the logs, `build/`, `frontend/dist/` | **Never touched**, never even shown in a prompt. These are what make the machine *your* receiver. |
-| `start-*.sh`, `stop-websdr.sh`, the `*.service` units, `install*.sh`, `recompile.sh`, `setup_admin.sh`, `proxy.py`, `admin_server.py`, `frontend/src/bands-config.js` and the other files a sysop has reason to edit | **Updated if you never edited them, asked about if you did.** |
-| Everything else | Updated. |
+| `station.conf`, `config.toml`, `config-<récepteur>.toml`, `markers.json`, `admin_config.json`, `autorun.json`, `frontend/site_information.json`, `frontend/variant.json`, `frequencylist/`, `chat_history.txt`, les logs, `build/`, `frontend/dist/` | **Jamais touchés**, jamais même montrés dans une question. Ce sont eux qui font de la machine *votre* récepteur. |
+| `start-*.sh`, `stop-websdr.sh`, les unités `*.service`, `install*.sh`, `recompile.sh`, `setup_admin.sh`, `proxy.py`, `admin_server.py`, `frontend/src/bands-config.js` et les autres fichiers qu'un sysop a des raisons de modifier | **Mis à jour si vous ne les avez jamais modifiés ; question posée si vous l'avez fait.** |
+| Tout le reste | Mis à jour. |
 
-Each release carries `update-known.txt`, the fingerprint of every version of every file ever published. A file of yours that matches one of them is simply older, and it is updated without a question — so even a first update asks only about the files you really changed. For each of those you choose:
+Chaque version apporte `update-known.txt`, l'empreinte de chaque version de chaque fichier jamais publiée. Un de vos fichiers qui correspond à l'une d'elles est simplement plus ancien et il est mis à jour sans question ; ainsi même une première mise à jour ne pose de questions que sur les fichiers que vous avez vraiment changés. Pour chacun d'eux vous choisissez :
 
 ```
   ❓ start-rx888mk2.sh  [K]eep mine / [u]pstream / [b]oth  (ENTER = Keep mine)
 ```
 
-* **Keep mine** — your file stays exactly as it is.
-* **upstream** — the new version is installed; yours is in the backup.
-* **both** — the new version is written beside yours as `start-rx888mk2.sh.new`, to merge in your own time.
+* **Keep mine** — votre fichier reste exactement tel quel.
+* **upstream** — la nouvelle version est installée ; la vôtre est dans la sauvegarde.
+* **both** — la nouvelle version est écrite à côté de la vôtre sous `start-rx888mk2.sh.new`, à fusionner quand vous voulez.
 
-Nothing is ever deleted: files that have gone from the repository are reported, and removed only if you ask with `--prune`. The exit status of a run that writes nothing is `0` when you are up to date and `10` when an update is waiting, so a cron job running `bash update.sh --check` can tell you when there is something to do.
+Rien n'est jamais supprimé : les fichiers disparus du dépôt sont signalés, et retirés seulement si vous le demandez avec `--prune`. Une exécution qui n'écrit rien se termine avec `0` si tout est à jour et `10` si une mise à jour attend ; une tâche cron lançant `bash update.sh --check` peut donc vous prévenir quand il y a quelque chose à faire.
 
-### Undoing an update
+### Annuler une mise à jour
 
 ```bash
 ./update.sh --restore LAST
 ```
 
-Every file an update overwrites is saved first, in one dated archive per run in the plain, visible folder `update-backups/`:
+Chaque fichier qu'une mise à jour écrase est d'abord sauvegardé, dans une archive datée par exécution, dans le dossier ordinaire et visible `update-backups/` :
 
 ```
 update-backups/phantomsdr-backup-20260923-164530.zip
 ```
 
-The archive holds only the files that run replaced, each at the path it has in your tree, so it can be copied to another machine as a single file, opened anywhere, or unpacked straight back over the installation. Where `zip` is not installed it is written as `.tar.gz` instead. The three most recent are kept. Either of these puts back what an update replaced:
+L'archive ne contient que les fichiers que cette exécution a remplacés, chacun à son chemin dans votre arborescence : elle peut donc être copiée sur une autre machine en un seul fichier, ouverte n'importe où ou décompressée directement sur l'installation. Si `zip` n'est pas installé, elle est écrite en `.tar.gz`. Les trois plus récentes sont gardées. L'une ou l'autre de ces commandes remet ce qu'une mise à jour a remplacé :
 
 ```bash
 ./update.sh --restore LAST
 ./update.sh --restore phantomsdr-backup-20260923-164530.zip
 ```
 
-Each archive also carries its own `restore.sh`, for the case where `update.sh` itself is the problem: unpack the archive and give it your installation directory, for example `./restore.sh /home/pi/PhantomSDR-Plus`. While restoring, `update.sh` runs from a copy outside the tree, because it is usually one of the files being put back.
+Chaque archive contient aussi son propre `restore.sh`, pour le cas où `update.sh` lui-même serait le problème : décompressez l'archive et donnez-lui le répertoire de votre installation, par exemple `./restore.sh /home/pi/PhantomSDR-Plus`. Pendant la restauration, `update.sh` s'exécute depuis une copie hors de l'arborescence, car il fait généralement partie des fichiers remis en place.
 
-Backups made before 23 September 2026 sit in the hidden folder `.update-backups/<timestamp>/`; they can still be restored the same way and count towards the three that are kept.
+Les sauvegardes antérieures au 23 septembre 2026 se trouvent dans le dossier caché `.update-backups/<horodatage>/` ; elles se restaurent de la même façon et comptent parmi les trois gardées.
 
-### Other options
+### Autres options
 
 ```bash
-./update.sh --apply --yes     # never asks; every file you edited is KEPT
-./update.sh --check           # report only, never ask — for cron (10 = update waiting)
-./update.sh --from FILE|DIR   # the new version from a .zip/.tar.gz or a folder — no network
-./update.sh --ref v5.1.0      # a tag, branch or commit instead of the current tree
-./update.sh --list-excludes   # print the never-touch rules as they resolve here
-./update.sh --verbose         # list every file, not only the first 40
+./update.sh --apply --yes     # ne demande jamais rien ; tout fichier modifié est CONSERVÉ
+./update.sh --check           # rapport seul, jamais de question — pour cron (10 = mise à jour en attente)
+./update.sh --from FILE|DIR   # la nouvelle version depuis un .zip/.tar.gz ou un dossier — sans réseau
+./update.sh --ref v5.1.0      # une étiquette, une branche ou un commit précis
+./update.sh --list-excludes   # affiche les règles « ne pas toucher » telles qu'appliquées ici
+./update.sh --verbose         # liste tous les fichiers, pas seulement les 40 premiers
 ```
 
-You can add your own never-touch rules by putting one glob per line in `update-exclude.txt` in the root folder of the installation.
+Vous pouvez ajouter vos propres règles « ne pas toucher » en écrivant un motif par ligne dans
+`update-exclude.txt`, à la racine de l'installation.
 
-### If the rebuild fails on a very old installation
+### Si la recompilation échoue sur une installation très ancienne
 
-`update.sh` updates files, not system packages. If your tree is old enough that the build
-now needs libraries you do not have, `recompile.sh` will stop with a compiler or meson error. That is not a broken update — you need the dependencies:
+`update.sh` met à jour des fichiers, pas des paquets système. Si votre arborescence est
+assez ancienne pour que la compilation réclame des bibliothèques que vous n'avez pas,
+`recompile.sh` s'arrêtera sur une erreur du compilateur ou de meson. Ce n'est pas une mise à
+jour cassée : il manque les dépendances :
 
 ```bash
 ./install.sh
 ```
 
-The installer is itself brought up to date by the same run, and your configuration survives it too.
+L'installateur est lui-même mis à jour par la même exécution, et votre configuration y survit également.
 
-### Without an internet connection on the receiver
+### Sans connexion internet sur le récepteur
 
-Download the whole repository on another computer (GitHub → *Code* → *Download ZIP*), carry it over, and:
+Téléchargez tout le dépôt sur un autre ordinateur (GitHub → *Code* → *Download ZIP*), apportez-le, puis :
 
 ```bash
 bash update.sh --from ~/PhantomSDR-Plus-main.zip
 ```
 
-Everything else is exactly as above — report, question, backup, rebuild, restart.
+Tout le reste se passe exactement comme ci-dessus : rapport, question, sauvegarde, recompilation, redémarrage.
 
-### Updating by hand
+### Mettre à jour à la main
 
-If you would rather apply a file drop yourself:
+Si vous préférez appliquer vous-même un lot de fichiers :
 
 ```bash
 cd ~
@@ -1640,27 +1644,27 @@ cd PhantomSDR-Plus
 cp -a ~/update/. .
 chmod +x *.sh
 ./recompile.sh
-./start-rx888mk2.sh          # or the start script for your receiver
+./start-rx888mk2.sh          # ou le script de démarrage de votre récepteur
 ```
 
-Back up your configuration first — `config-*.toml`, `frontend/site_information.json`,
-`admin_config.json` and `markers.json` — because a file drop cannot tell your edits from the
-release's. That is exactly the problem `update.sh` exists to solve.
+Sauvegardez d'abord votre configuration — `config-*.toml`, `frontend/site_information.json`,
+`admin_config.json` et `markers.json` — car un lot de fichiers ne peut pas distinguer vos
+modifications de celles de la version publiée. C'est exactement le problème que `update.sh` résout.
 
 ---
 
-## Backup and Restore
+## Sauvegarde et restauration
 
-### Files to Backup
+### Fichiers à sauvegarder
 
-- Configuration files: `*.toml`
-- Site information: `frontend/site_information.json`
-- Markers: `markers.json`
-- Custom scripts: `start-*.sh`, `stop-*.sh`
-- Chat history: `chat_history.txt`
-- Background image: `frontend/src/assets/background.jpg`
+- Fichiers de configuration : `*.toml`
+- Informations du site : `frontend/site_information.json`
+- Marqueurs : `markers.json`
+- Scripts personnalisés : `start-*.sh`, `stop-*.sh`
+- Historique du chat : `chat_history.txt`
+- Image de fond : `frontend/src/assets/background.jpg`
 
-### Backup Command
+### Commande de sauvegarde
 
 ```bash
 cd ~/PhantomSDR-Plus
@@ -1673,7 +1677,7 @@ tar -czf phantomsdr-backup-$(date +%Y%m%d).tar.gz \
   frontend/src/assets/background.jpg
 ```
 
-### Restore Command
+### Commande de restauration
 
 ```bash
 tar -xzf phantomsdr-backup-YYYYMMDD.tar.gz
@@ -1681,9 +1685,9 @@ tar -xzf phantomsdr-backup-YYYYMMDD.tar.gz
 
 ---
 
-## Security Considerations
+## Considérations de sécurité
 
-### Firewall Configuration
+### Configuration du pare-feu
 
 ```bash
 # Allow only necessary ports
@@ -1691,17 +1695,17 @@ sudo ufw allow 9000/tcp
 sudo ufw enable
 ```
 
-### Reverse Proxy (Optional)
+### Proxy inverse (facultatif)
 
-Consider using nginx or Apache as a reverse proxy for:
-- SSL/TLS encryption
-- Domain name mapping
-- Load balancing
-- Access control
+Envisagez d'utiliser nginx ou Apache comme proxy inverse pour :
+- le chiffrement SSL/TLS
+- l'association d'un nom de domaine
+- la répartition de charge
+- le contrôle d'accès
 
-### User Limits
+### Limites d'utilisateurs
 
-Edit `config.toml`:
+Modifiez `config.toml` :
 ```toml
 [server]
 max_users = 100  # Limit concurrent users
@@ -1709,35 +1713,35 @@ max_users = 100  # Limit concurrent users
 
 ---
 
-## Getting Help
+## Obtenir de l'aide
 
-### Resources
+### Ressources
 
-- **Documentation**: This guide, README.md, USER_GUIDE.md
-- **GitHub Issues**: https://github.com/sv1btl/PhantomSDR-Plus/issues
-- **Live Demo**: http://phantomsdr.no-ip.org:8900/
+- **Documentation** : ce guide, README.md, USER_GUIDE.md
+- **GitHub Issues** : https://github.com/sv1btl/PhantomSDR-Plus/issues
+- **Démo en direct** : http://phantomsdr.no-ip.org:8900/
 
-### Reporting Issues
+### Signaler un problème
 
-When reporting issues, include:
-1. Operating system and version
-2. SDR device model
-3. Configuration file contents
-4. Error messages
-5. System resource usage (CPU, RAM, GPU)
+Lorsque vous signalez un problème, indiquez :
+1. le système d'exploitation et sa version
+2. le modèle d'appareil SDR
+3. le contenu du fichier de configuration
+4. les messages d'erreur
+5. l'utilisation des ressources système (CPU, RAM, GPU)
 
-### Community Support
+### Soutien de la communauté
 
-- Check existing GitHub issues before creating new ones
-- Provide detailed information about your setup
-- Include logs and error messages
-- Be patient and respectful
+- Consultez les issues GitHub existantes avant d'en créer de nouvelles
+- Fournissez des informations détaillées sur votre installation
+- Joignez les journaux et les messages d'erreur
+- Soyez patient et respectueux
 
 ---
 
-## Appendix A: Complete Dependency List
+## Annexe A : liste complète des dépendances
 
-### Ubuntu 24.04 Package List
+### Liste des paquets Ubuntu 24.04
 
 ```
 build-essential
@@ -1767,9 +1771,9 @@ clinfo (for OpenCL)
 
 ---
 
-## Appendix B: Configuration Examples
+## Annexe B : exemples de configuration
 
-### Example 1: RTL-SDR for VHF/UHF
+### Exemple 1 : RTL-SDR pour VHF/UHF
 
 ```toml
 [input]
@@ -1785,19 +1789,19 @@ frequency = 145500000
 modulation = "FM"
 ```
 
-### Example 2: RX-888 mk2 for HF (0-30 MHz)
+### Exemple 2 : RX-888 mk2 pour HF (0-30 MHz)
 
-The receiver most sysops run. This is a complete `[input]` section rather than a fragment, with the values from the `config-rx888mk2.toml` that ships with the repository.
+Le récepteur qu'utilisent la plupart des sysops. Voici une section `[input]` complète, et non un extrait, avec les valeurs du `config-rx888mk2.toml` fourni avec le dépôt.
 
 ```toml
 [input]
-sps = 60000000            # 0-30 MHz by direct sampling
-fft_size = 4194304        # see the note below
+sps = 60000000            # 0-30 MHz par échantillonnage direct
+fft_size = 4194304        # voir la note ci-dessous
 fft_threads = 8
-brightness_offset = -9    # more negative if the waterfall shows black patches
-frequency = 0             # baseband: the RX-888 samples from DC
-signal = "real"           # not "iq" - direct sampling gives a real stream
-accelerator = "opencl"    # "none" if there is no OpenCL runtime
+brightness_offset = -9    # plus négatif si la cascade montre des zones noires
+frequency = 0             # bande de base : le RX-888 échantillonne depuis le continu
+signal = "real"           # pas "iq" : l'échantillonnage direct donne un flux réel
+accelerator = "opencl"    # "none" s'il n'y a pas d'environnement OpenCL
 audio_sps = 12000
 audio_compression = "flac"
 waterfall_size = 1024
@@ -1814,16 +1818,16 @@ frequency = 7120000
 modulation = "LSB"
 ```
 
-Feed it from `rx888_stream`, which `start-rx888mk2.sh` does for you:
+Il est alimenté par `rx888_stream`, ce dont `start-rx888mk2.sh` se charge pour vous :
 
 ```bash
 rx888_stream -f /path/to/SDDC_FX3.img -s 60000000 -g 50 -a 0 -m low --pga -d -r -o - \
   | build/spectrumserver --config config-rx888mk2.toml
 ```
 
-**On `fft_size`:** 4194304 is the size to use at 60 MSPS. 8388608 doubles the waterfall resolution and doubles the memory and CPU cost of every transform with it, which on most machines buys sharper bins at the price of dropped frames. Start at 4194304 and only go higher if the server is comfortably idle.
+**À propos de `fft_size` :** à 60 MSPS, la bonne taille est 4194304. 8388608 double la résolution de la cascade et, avec elle, la mémoire et le coût CPU de chaque transformée : sur la plupart des machines, on paie des bins plus fins par des trames perdues. Commencez à 4194304 et ne montez que si le serveur est largement au repos.
 
-### Example 3: HackRF for Wideband FM
+### Exemple 3 : HackRF pour la FM à large bande
 
 ```toml
 [input]
@@ -1841,6 +1845,6 @@ modulation = "WBFM"
 
 ---
 
-**Installation complete! You should now have a fully functional PhantomSDR-Plus server.**
+**Installation terminée ! Vous devriez maintenant disposer d'un serveur PhantomSDR-Plus pleinement fonctionnel.**
 
 **73 de SV1BTL, 9A7AOF, F1NSK & SV2AMK**

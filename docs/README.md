@@ -1,90 +1,90 @@
 # PhantomSDR-Plus
 
-**An enhanced open-source WebSDR server with advanced features and futuristic design**
+**Un serveur WebSDR open-source amélioré, doté de fonctions avancées et d'un design futuriste**
 
-PhantomSDR-Plus is a fork of PhantomSDR that provides a high-performance Software Defined Radio (SDR) web server capable of handling hundreds of simultaneous users. It features an enhanced user interface, multiple decoder support, band plan visualization, and compatibility with various SDR hardware platforms.
-
----
-
-## 🌟 Key Features
-
-### Performance & Scalability
-- **Multi-user support**: Handle hundreds of concurrent users depending on hardware
-- **High sample rate**: Support for SDRs up to 70 MSPS (real) / 35 MSPS (IQ)
-- **Hardware acceleration**: OpenCL and CUDA support for GPU-accelerated processing
-- **Optimized streaming**: Low-latency FLAC and Opus audio compression. The browser decodes each FLAC packet the moment it arrives, and its playback buffer adjusts itself to the listener's connection, keeping only as much audio in hand as needed — typically 100–150 ms from receiver to loudspeaker on a phone over Wi-Fi
-
-### User Interface
-- **Futuristic design**: Modern, responsive web interface
-- **Mobile-optimized**: Enhanced mobile GUI for on-the-go listening
-- **Band plan visualization**: Interactive waterfall with frequency band overlays
-- **Customizable colormaps**: Multiple waterfall color schemes
-- **Dual S-meter**: Choice between analog or digital signal meter display
-- **One-touch decoder buttons**: A Decoders row sits on the main panel directly under the Modes selector (FT8, FT4, FT2, JS8, CW, WSPR, FAX, SSTV, NAVTX, FLDIGI), with RADEL and RADEU beside the Modes selector itself and repeated in the Modes and Bands pop-ups. One press starts the decoder and opens its window, a second press stops it. The old Bandwidth row has been removed.
-- **Channel scanner**: sweeps the band, or exactly what the waterfall is showing, and stops on the first channel rising a chosen number of dB above the band's own noise floor, then carries on by itself once that channel goes quiet. The step follows the mode and stops land on the channel grid (1 kHz SSB, 100 Hz CW, 5 kHz shortwave AM, 9/10 kHz medium wave, 9 kHz long wave); a *Skip empty* mode reads the waterfall spectrum and jumps straight to the signals; a lockout button drops an always-busy channel out of the sweep. Everything is local to the listener's browser, so scanning never moves the receiver for anyone else (see [User Guide](USER_GUIDE.md))
-- **Receive diversity**: pairs the receiver with a second one somewhere else and plays whichever of the two currently has the better signal, so a fade at one site is covered by the other. The partner can be another PhantomSDR-Plus, a KiwiSDR, an UberSDR or a WebSDR; the first three need nothing beyond the listener's browser, and only a WebSDR needs a small relay on your own server. Alignment takes about fifteen seconds, and a remote SNR trim balances the two sites against each other. Each listener keeps a named list of second receivers in their own browser, in whatever order they choose, and can export it to a file and import it back (see [Receive Diversity](RECEIVE_DIVERSITY.md))
-- **Several receivers, one page**: one computer can run two or more receivers at once — for example an RX-888 for HF and an RTL-SDR for 2 m — and listeners switch between them with buttons in the page header. Each receiver keeps its own waterfall, chat, markers, listener list and station details, and the S-meter reads VHF S-units (S9 = −93 dBm) above 30 MHz (see [Several Receivers](MULTI_RECEIVER.md))
-
-### Signal Processing
-- **Multiple demodulation modes**: AM, FM, USB, LSB, CW, and more. A version 1 RADE decoder has also been implemented.
-- **Synchronous AM detection**: Improved AM reception quality
-- **Noise reduction**: Advanced NR, NC (Noise Cancel), and NB (Noise Blanker)
-- **AGC options**: Multiple Automatic Gain Control modes
-- **Auto squelch**: Automatic noise-based squelch threshold
-- **CTCSS tone squelch**: FM audio passes only while the chosen subtone — or any standard one — is received; the tone is picked from a small window beside the CTCSS button, which then shows it
-- **AI noise reduction**: RNNoise neural network in the listener's browser, removes band noise from speech (voice modes only; see [User Guide](USER_GUIDE.md))
-
-### Advanced Features
-- **Digital decoders**: FT8, FT4, FT2, JS8, CW, QRSS Grabber, WSPR, HF FAX, SSTV, NAVTEX, the FLDIGI modes (RTTY, PSK31, Olivia, MFSK16/32/64, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet (AX.25), APRS with a live map of the stations heard) and FreeDV RADE, each running on its own background thread so decoding never interrupts the audio (see [Decoders](DECODERS.md))
-- **Decoder ID**: names the digital mode in the passband and offers the matching decoder in one click, from measured bandwidth, tone spacing, symbol rate and burst timing, with the frequency taken into account as supporting evidence — which is also what separates **FT8 from JS8**, two modes whose signals are identical. It only suggests, never switches by itself, and stays quiet rather than guessing when the signal is too weak. Fading does not silence it: when QSB breaks a two-minute WSPR transmission into fragments it still names the mode, reading the cadence from the whole listening history, and lowers the confidence it shows to say that the evidence is weaker. Between about 400 Hz and 2700 Hz the position in the passband makes no difference; outside that an amber **Recentre & retry** button appears, which moves the dial once and starts a fresh measurement. When you do accept a suggestion, the receiver is set up to work that mode: the tuned frequency moves to the middle of the waterfall, the view becomes about 100 kHz wide around it, and the sideband and passband become the ones the mode is worked with — the 3 kHz sub-band for the FT8 family, 1350–1650 Hz for WSPR, ±250 Hz and CW for Morse, and so on. Off by default, and about 0.5% of one core while running (see [Decoders](DECODERS.md))
-- **Digital mode presets**: pressing FT8, FT4, FT2, JS8 or WSPR sets both the sideband and the passband
-- **JS8 conversation panel**: multi-frame messages are reassembled into whole sentences
-- **Statistics dashboard**: Real-time server and user statistics
-- **Connected users list**: everyone listening, with a tune-to button on each row. Your own session is marked **you** — both in the pop-up window and when `users.html` is opened as a page of its own
-- **Automatic spot reporting**: an autorun daemon decodes FT8, FT4 and WSPR on the server and uploads spots to PSK Reporter and WSPRnet, with two counters in the admin panel — per-decoder tiles for the current run, and an all-time total beside each band/mode checkbox
-- **Server graphs**: an admin **Graphs** page plotting CPU frequency, CPU load, CPU temperature and users online over the last 15 minutes to 24 hours (see [Admin Panel](ADMIN_PANEL_SETUP.md))
-- **Thermal protection**: a guard in the admin panel stops the server if the CPU overheats and restarts it once cool, with thresholds derived from your own CPU's critical trip point and no assumptions about how you start or stop the server; it ships in log-only mode, so it does nothing until you enable it (see the [Thermal Guard manual](THERMAL_GUARD.md))
-- **KiwiSDR client emulation**: an optional bridge that answers the KiwiSDR protocol on the same host and port, so Kiwi software such as **AetherSDR** and `kiwiclient` connects to the receiver directly — with real retuning, waterfall and an S-meter on the same scale as the web one. Off until `[kiwi_emulation] enabled = true` is added to your config (see [KiwiSDR Client Emulation](Aether_config.md))
-- **Transceiver control (CAT)**: keeps your own rig and your receiver window on the same frequency, mode and filter, in either direction or both — through the Rig menu of [Desktop PhantomSDR+](https://www.dropbox.com/scl/fo/kjwj96zg3kj7dgq4fjef9/APnA3c9hhv4hk3YMGIGjH7s?rlkey=jfiwklly63kv73poalx631pk3&st=m37uvaym&dl=0) (Icom, Yaesu, Kenwood, Elecraft, FlexRadio and QRP Labs directly, every other rig through Hamlib, or flrig) or the CATsync Tool for WebSDRs in a browser. Pages expose `catsync_*` functions for frequency, mode, filter width and mute. It works with PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR and UberSDR receivers (see [Rig Control](RIG_CONTROL.md))
-- **Bookmark system**: Import/export frequency bookmarks
-- **Keyboard shortcuts**: Efficient navigation and control
-- **Mouse wheel support**: Intuitive frequency tuning
-- **WebSDR directory**: Integration with https://sdr-list.xyz
+PhantomSDR-Plus est un fork de PhantomSDR qui fournit un serveur web de radio logicielle (SDR) haute performance, capable de gérer des centaines d'utilisateurs simultanés. Il propose une interface utilisateur améliorée, la prise en charge de plusieurs décodeurs, la visualisation du plan de bandes et la compatibilité avec diverses plateformes matérielles SDR.
 
 ---
 
-## 📋 Supported Hardware
+## 🌟 Fonctions principales
 
-PhantomSDR-Plus supports a wide range of SDR receivers:
+### Performances et évolutivité
+- **Multi-utilisateurs** : gère des centaines d'utilisateurs simultanés selon le matériel
+- **Taux d'échantillonnage élevé** : prise en charge des SDR jusqu'à 70 MSPS (réel) / 35 MSPS (IQ)
+- **Accélération matérielle** : prise en charge d'OpenCL et de CUDA pour un traitement accéléré par GPU
+- **Diffusion optimisée** : compression audio FLAC et Opus à faible latence. Le navigateur décode chaque paquet FLAC dès son arrivée, et son tampon de lecture s'adapte à la connexion de l'auditeur en ne gardant que le son nécessaire — en général 100–150 ms du récepteur au haut-parleur sur un téléphone en Wi-Fi
 
-| Device | Sample Rate | Format | Interface |
-|--------|-------------|--------|-----------|
-| **RX888 MK2** | Up to 64 MHz | 16-bit | Native |
-| **RTL-SDR** | Up to 3.2 MHz | 8-bit | rtl_sdr |
-| **HackRF One** | Up to 20 MHz | 8-bit | hackrf_transfer |
-| **Airspy HF+ / Discovery** | Up to 912 kHz | 16-bit | SoapySDR (SoapyAirspyHF) + rx_sdr |
-| **SDRplay RSP1A** | Up to 10 MHz | 16-bit | SoapySDR (libmirisdr-5 + SoapyMiri, or the SDRplay API) + rx_sdr |
-| **RigExpert Fobos SDR** | 50 MHz (HF direct sampling) / up to 20 MHz (RF) | 16-bit / 32-bit float | SoapySDR (SoapyFobosSDR) + rx_sdr |
-| **Other devices** | Variable | Various | SoapySDR/rx_tools |
+### Interface utilisateur
+- **Design futuriste** : interface web moderne et responsive
+- **Optimisée pour mobile** : interface mobile améliorée pour l'écoute en déplacement
+- **Visualisation du plan de bandes** : cascade interactive avec superposition des bandes de fréquences
+- **Palettes personnalisables** : plusieurs jeux de couleurs pour la cascade
+- **Double S-mètre** : au choix, affichage analogique ou numérique du niveau de signal
+- **Boutons de décodeur en une pression** : une rangée Decoders sur le panneau principal, juste sous le sélecteur de modes (FT8, FT4, FT2, JS8, CW, WSPR, FAX, SSTV, NAVTX, FLDIGI), avec RADEL et RADEU à côté du sélecteur de modes lui-même et repris dans les fenêtres surgissantes des modes et des bandes. Une pression démarre le décodeur et ouvre sa fenêtre, une seconde l'arrête. L'ancienne rangée de largeur de bande a été supprimée.
+- **Scanner de canaux** : balaie la bande, ou exactement ce que montre la cascade, et s'arrête sur le premier canal dépassant d'un nombre de dB choisi le plancher de bruit de la bande elle-même, puis repart tout seul dès que ce canal redevient silencieux. Le pas suit le mode et les arrêts tombent sur la grille de canaux (1 kHz SSB, 100 Hz CW, 5 kHz AM ondes courtes, 9/10 kHz ondes moyennes, 9 kHz ondes longues). Un mode *Sauter les vides* lit le spectre de la cascade et saute directement aux signaux, et un bouton de verrouillage retire du balayage un canal toujours occupé. Tout se passe localement dans le navigateur de l'auditeur : le balayage ne déplace le récepteur pour personne d'autre (voir le [Guide de l'utilisateur](USER_GUIDE.md))
+- **Diversité de réception** : associe le récepteur à un second situé ailleurs et restitue celui des deux qui a le meilleur signal à cet instant, de sorte qu'un évanouissement d'un côté est couvert par l'autre. Le second peut être un autre PhantomSDR-Plus, un KiwiSDR, un UberSDR ou un WebSDR ; les trois premiers ne demandent rien de plus que le navigateur de l'auditeur, et seul un WebSDR nécessite un petit relais sur votre propre serveur. L'alignement prend une quinzaine de secondes, et un réglage de SNR distant équilibre les deux stations l'une par rapport à l'autre. Chaque auditeur conserve dans son propre navigateur une liste nommée de seconds récepteurs, dans l'ordre qu'il veut, et peut l'exporter dans un fichier puis la réimporter (voir [Diversité de réception](RECEIVE_DIVERSITY.md))
+- **Plusieurs récepteurs, une page** : un ordinateur peut faire tourner deux récepteurs ou plus à la fois — par exemple un RX-888 pour les ondes courtes et un RTL-SDR pour le 2 m — et les auditeurs passent de l'un à l'autre par des boutons dans l'en-tête de la page. Chaque récepteur garde sa propre cascade, son chat, ses repères, sa liste d'auditeurs et ses informations de station, et au-dessus de 30 MHz le S-mètre indique des points S VHF (S9 = −93 dBm) (voir [Plusieurs récepteurs](MULTI_RECEIVER.md))
+
+### Traitement du signal
+- **Modes de démodulation multiples** : AM, FM, USB, LSB, CW et davantage. Un décodeur RADE version 1 a également été implémenté.
+- **Détection AM synchrone** : meilleure qualité de réception en AM
+- **Réduction de bruit** : NR (spectrale), NB (silencieux d'impulsions), NS (suppression du bruit de fond) et AN (notch automatique), tous sur l'écoute et jamais sur les décodeurs
+- **Options AGC** : plusieurs modes de contrôle automatique de gain
+- **Squelch automatique** : seuil de squelch calculé automatiquement d'après le bruit
+- **Squelch à sous-tonalité CTCSS** : l'audio FM ne passe que tant que la sous-tonalité choisie — ou n'importe quelle tonalité normalisée — est reçue ; la tonalité se choisit dans une petite fenêtre à côté du bouton CTCSS, qui l'affiche ensuite
+- **Réduction de bruit par IA** : réseau de neurones RNNoise dans le navigateur de l'auditeur, retire le bruit de bande de la parole (modes phonie seulement ; voir le [Guide de l'utilisateur](USER_GUIDE.md))
+
+### Fonctions avancées
+- **Décodeurs numériques** : FT8, FT4, FT2, JS8, CW, QRSS Grabber, WSPR, FAX HF, SSTV, NAVTEX, les modes FLDIGI (RTTY, PSK31, Olivia, MFSK16/32/64, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet (AX.25), APRS avec une carte en direct des stations entendues) et FreeDV RADE, chacun s'exécutant sur son propre thread d'arrière-plan afin que le décodage n'interrompe jamais l'audio (voir [Décodeurs](DECODERS.md))
+- **Decoder ID** : nomme le mode numérique présent dans la bande passante et propose le décodeur correspondant en un clic, à partir de la largeur de bande, de l'écart entre tons, de la rapidité de modulation et du rythme des salves mesurés, la fréquence étant prise en compte comme indice supplémentaire — ce qui distingue aussi **FT8 de JS8**, deux modes au signal identique. Il ne fait que suggérer, ne bascule jamais de lui-même, et préfère se taire plutôt que deviner quand le signal est trop faible. Le fading ne le réduit pas au silence : quand le QSB découpe en fragments une émission WSPR de deux minutes, il nomme toujours le mode, lisant la cadence sur tout l'historique d'écoute, et abaisse la confiance affichée pour signaler une preuve plus faible. Entre 400 Hz et 2700 Hz environ, la position dans la bande passante est sans importance ; au-delà, un bouton ambre **Recentre & retry** apparaît, qui déplace l'accord une fois et relance la mesure. Lorsque vous acceptez une suggestion, le récepteur est réglé pour ce mode : la fréquence accordée passe au milieu de la cascade, la vue s'établit sur environ 100 kHz autour d'elle, et la bande latérale ainsi que la bande passante deviennent celles avec lesquelles ce mode se travaille — la sous-bande de 3 kHz pour la famille FT8, 1350–1650 Hz pour WSPR, ±250 Hz et CW pour la télégraphie, et ainsi de suite. Désactivé par défaut, et environ 0,5 % d'un cœur en fonctionnement (voir [Décodeurs](DECODERS.md))
+- **Préréglages des modes numériques** : FT8, FT4, FT2, JS8 ou WSPR règlent à la fois la bande latérale et la bande passante
+- **Panneau de conversation JS8** : les messages en plusieurs trames sont réassemblés en phrases complètes
+- **Tableau de bord de statistiques** : statistiques du serveur et des utilisateurs en temps réel
+- **Liste des utilisateurs connectés** : toutes les personnes à l'écoute, avec un bouton d'accord sur chaque ligne. Votre propre session est marquée **you**, aussi bien dans la fenêtre de l'interface que lorsque `users.html` est ouvert comme page autonome
+- **Report automatique des spots** : un démon autorun décode FT8, FT4 et WSPR sur le serveur et téléverse les spots vers PSK Reporter et WSPRnet, avec deux compteurs dans le panneau d'administration — des tuiles par décodeur pour l'exécution en cours et un total depuis toujours à côté de chaque case bande/mode
+- **Graphiques du serveur** : une page **Graphiques** du panneau d'administration traçant la fréquence du processeur, la charge, la température et les utilisateurs connectés sur les 15 dernières minutes à 24 heures (voir [Panneau d'administration](ADMIN_PANEL_SETUP.md))
+- **Protection thermique** : un garde intégré au panneau d'administration arrête le serveur si le processeur surchauffe et le relance une fois refroidi, avec des seuils déduits du seuil critique de votre propre processeur et sans aucune hypothèse sur votre façon de démarrer ou d'arrêter le serveur ; livrée en mode journalisation seule, elle ne fait rien tant que vous ne l'activez pas (voir [Thermal Guard](THERMAL_GUARD.md)) Pour un récepteur non surveillé, il est **fortement recommandé** de faire tourner le panneau en unité systemd : le garde vit à l'intérieur, sinon un redémarrage emporte la protection avec lui (voir [Panneau d'administration](ADMIN_PANEL_SETUP.md#redémarrer-le-panneau)).
+- **Émulation des clients KiwiSDR** : une passerelle facultative qui répond aussi au protocole KiwiSDR, sur le même hôte et le même port, si bien que les logiciels Kiwi comme **AetherSDR** et `kiwiclient` se connectent directement au récepteur — avec un accord réel, la cascade et un S-mètre à la même échelle que celui de la page web. Inactive tant que `[kiwi_emulation] enabled = true` n'est pas dans votre configuration (voir [Installation](Aether_config.md))
+- **Pilotage du transceiver (CAT)** : garde votre propre poste et la fenêtre du récepteur sur la même fréquence, le même mode et la même largeur de filtre, dans un sens ou dans les deux — par le menu Rig de [Desktop PhantomSDR+](https://www.dropbox.com/scl/fo/kjwj96zg3kj7dgq4fjef9/APnA3c9hhv4hk3YMGIGjH7s?rlkey=jfiwklly63kv73poalx631pk3&st=m37uvaym&dl=0) (Icom, Yaesu, Kenwood, Elecraft, FlexRadio et QRP Labs en direct, tout autre poste via Hamlib, ou flrig) ou avec le CATsync Tool for WebSDRs dans un navigateur. Les pages proposent des fonctions `catsync_*` pour la fréquence, le mode, la largeur de filtre et la coupure du son. Cela fonctionne avec les récepteurs PhantomSDR-Plus, KiwiSDR, PA3FWM WebSDR et UberSDR (voir [Pilotage du transceiver](RIG_CONTROL.md))
+- **Système de favoris** : import/export de fréquences favorites
+- **Raccourcis clavier** : navigation et commande efficaces
+- **Prise en charge de la molette** : accord en fréquence intuitif
+- **Annuaire WebSDR** : intégration avec https://sdr-list.xyz
 
 ---
 
-## 🚀 Quick Start
+## 📋 Matériel pris en charge
 
-### System Requirements
+PhantomSDR-Plus prend en charge une large gamme de récepteurs SDR :
 
-**Minimum:**
-- Ubuntu 22.04 LTS (recommended) or Fedora
-- 2-core CPU
-- 4 GB RAM
-- 10 GB disk space
+| Appareil | Taux d'échantillonnage | Format | Interface |
+|----------|------------------------|--------|-----------|
+| **RX888 MK2** | Jusqu'à 64 MHz | 16 bits | Native |
+| **RTL-SDR** | Jusqu'à 3.2 MHz | 8 bits | rtl_sdr |
+| **HackRF One** | Jusqu'à 20 MHz | 8 bits | hackrf_transfer |
+| **Airspy HF+ / Discovery** | Jusqu'à 912 kHz | 16 bits | SoapySDR (SoapyAirspyHF) + rx_sdr |
+| **SDRplay RSP1A** | Jusqu'à 10 MHz | 16 bits | SoapySDR (libmirisdr-5 + SoapyMiri, ou l'API SDRplay) + rx_sdr |
+| **RigExpert Fobos SDR** | 50 MHz (HF, échantillonnage direct) / jusqu'à 20 MHz (RF) | 16 bits / flottant 32 bits | SoapySDR (SoapyFobosSDR) + rx_sdr |
+| **Autres appareils** | Variable | Divers | SoapySDR/rx_tools |
 
-**Recommended:**
+---
+
+## 🚀 Démarrage rapide
+
+### Configuration système requise
+
+**Minimum :**
+- Ubuntu 22.04 LTS (recommandé) ou Fedora
+- Processeur 2 cœurs
+- 4 Go de RAM
+- 10 Go d'espace disque
+
+**Recommandé :**
 - Ubuntu 24.04 LTS
-- 4+ core CPU (Ryzen 5 2600 or Intel i5-6500T or better)
-- 8 GB RAM
-- GPU with OpenCL support (optional but highly recommended)
-- SSD storage
+- Processeur 4 cœurs ou plus (Ryzen 5 2600 ou Intel i5-6500T, ou mieux)
+- 8 Go de RAM
+- GPU compatible OpenCL (facultatif mais vivement recommandé)
+- Stockage SSD
 
 ### Installation
 
@@ -94,9 +94,9 @@ cd PhantomSDR-Plus
 bash install.sh
 ```
 
-The installer asks every question first — the receiver, what to receive, your station, your address on the internet and the extras — then installs everything on its own, starts the receiver, and shows the one port to open on your router (9000). No `chmod`, and no terminal to restart. The station questions are described in [INSTALLATION.md](INSTALLATION.md).
+L'installateur pose toutes les questions d'abord — le récepteur, ce qu'il doit recevoir, votre station, votre adresse sur internet et les compléments —, puis il installe tout seul, démarre le récepteur et affiche l'unique port à ouvrir sur le routeur (9000). Pas de `chmod`, et pas de terminal à redémarrer. Les questions de la station sont décrites dans [INSTALLATION.md](INSTALLATION.md).
 
-> **Already running PhantomSDR-Plus?** Do not install it again — update it. Fetch the updater once and run it; it shows what would change and asks before writing anything, and your configuration, markers, admin password, frequency list and chat history are never touched:
+> **PhantomSDR-Plus tourne déjà ?** Ne le réinstallez pas : mettez-le à jour. Récupérez une fois l'outil de mise à jour et lancez-le ; il montre ce qui changerait et demande avant d'écrire quoi que ce soit, et votre configuration, vos marqueurs, le mot de passe d'administration, la liste de fréquences et l'historique du chat ne sont jamais touchés :
 >
 > ```bash
 > cd ~/PhantomSDR-Plus
@@ -104,51 +104,51 @@ The installer asks every question first — the receiver, what to receive, your 
 > bash update.sh
 > ```
 >
-> The *Updating PhantomSDR-Plus* chapter has the details.
+> Les détails sont dans le chapitre *Mise à jour de PhantomSDR-Plus*.
 
-Use `install_fedora.sh` on Fedora, `install_arch.sh` on Arch or `install_opensuse.sh` on openSUSE Tumbleweed — they do the same work with a different package manager. Every Debian and Ubuntu release is covered by `install.sh` itself.
+Utilisez `install_fedora.sh` sur Fedora, `install_arch.sh` sur Arch ou `install_opensuse.sh` sur openSUSE Tumbleweed : ils font le même travail avec un autre gestionnaire de paquets. Toutes les versions de Debian et d'Ubuntu sont couvertes par `install.sh` lui-même.
 
-Nothing has to be installed by hand first. The script installs the build dependencies and Node.js, builds the backend, builds the driver for the receiver you choose (and the RX888 udev rules with it), opens `site_information.json` for you to fill in, builds the frontend, installs OpenCL when the hardware supports it, then sets up the **admin panel**, the **FreeDV RADE decoder** and the **statistics server** — all three by default, answer `n` to skip any — and finishes with a full `recompile.sh`. It is interactive throughout and can take from twenty minutes to over an hour.
+Rien n'est à installer à la main au préalable. Le script installe les dépendances de compilation et Node.js, compile le backend, compile le pilote du récepteur que vous choisissez (et, pour le RX888, les règles udev avec), ouvre `site_information.json` pour que vous le remplissiez, construit le frontend, installe OpenCL quand le matériel le permet, puis met en place le **panneau d'administration**, le **décodeur FreeDV RADE** et le **serveur de statistiques** — les trois par défaut, répondez `n` pour en sauter un — et se termine par un `recompile.sh` complet. Il est interactif d'un bout à l'autre et peut durer de vingt minutes à plus d'une heure.
 
-For the step-by-step description, see [INSTALLATION.md → What the installer does](INSTALLATION.md#what-the-installer-does).
-
----
-
-## 📊 Performance Benchmarks
-
-| Hardware | Sample Rate | CPU Usage | User Capacity |
-|----------|-------------|-----------|---------------|
-| Ryzen 5 2600 (all cores) | 64 MHz (32 MHz IQ) | 38-40% | 100+ users |
-| AMD RX 580 (GPU) | 64 MHz (32 MHz IQ) | 28-35% | 100+ users |
-| Intel i5-6500T (with OpenCL) | 60 MHz (30 MHz IQ) | 10-12% | 100+ users |
-
-*Note: Per-user CPU overhead is minimal (<1% per user) when hardware acceleration is enabled.*
+Pour le détail étape par étape, voir [INSTALLATION.md → Ce que fait l'installateur](INSTALLATION.md#ce-que-fait-linstallateur). Pour des instructions d'installation détaillées, voir [INSTALLATION.md](INSTALLATION.md).
 
 ---
 
-## 🎯 Usage
+## 📊 Mesures de performance
 
-### Basic Operation
+| Matériel | Taux d'échantillonnage | Charge CPU | Capacité utilisateurs |
+|----------|------------------------|------------|------------------------|
+| Ryzen 5 2600 (tous cœurs) | 64 MHz (32 MHz IQ) | 38-40 % | 100+ utilisateurs |
+| AMD RX 580 (GPU) | 64 MHz (32 MHz IQ) | 28-35 % | 100+ utilisateurs |
+| Intel i5-6500T (avec OpenCL) | 60 MHz (30 MHz IQ) | 10-12 % | 100+ utilisateurs |
 
-1. **Configure your SDR**: Edit the appropriate config file (e.g., `config-rtl.toml`)
-2. **Update site information**: Edit `frontend/site_information.json`
-3. **Start the server**: Run the appropriate start script:
+*Remarque : la charge CPU supplémentaire par utilisateur est minime (< 1 % par utilisateur) lorsque l'accélération matérielle est activée.*
+
+---
+
+## 🎯 Utilisation
+
+### Fonctionnement de base
+
+1. **Configurez votre SDR** : modifiez le fichier de configuration approprié (par ex. `config-rtl.toml`)
+2. **Mettez à jour les informations du site** : modifiez `frontend/site_information.json`
+3. **Démarrez le serveur** : lancez le script de démarrage approprié :
    ```bash
-   ./start-rtl.sh      # For RTL-SDR
-   ./start-rsp1a.sh    # For SDRplay RSP1A
-   ./start-airspyhf.sh # For Airspy HF+
-   ./start-fobos-hf.sh # For RigExpert Fobos SDR, HF1/HF2 (0-25 MHz)
-   ./start-fobos.sh    # For RigExpert Fobos SDR, RF (25-6000 MHz)
-   ./start-hackrf.sh   # For HackRF One
-   ./start-rx888mk2.sh # For RX888 MK2
+   ./start-rtl.sh      # Pour RTL-SDR
+   ./start-rsp1a.sh    # Pour SDRplay RSP1A
+   ./start-airspyhf.sh # Pour Airspy HF+
+   ./start-fobos-hf.sh # Pour RigExpert Fobos SDR, HF1/HF2 (0-25 MHz)
+   ./start-fobos.sh    # Pour RigExpert Fobos SDR, RF (25-6000 MHz)
+   ./start-hackrf.sh   # Pour HackRF One
+   ./start-rx888mk2.sh # Pour RX888 MK2
    ```
-   The RSP1A, Airspy HF+ and Fobos run through SoapySDR and `rx_sdr`; the installer sets up their driver when you pick them (options 3, 6 and 5), or run `./setup-rsp1a.sh`, `./setup-airspyhf.sh` or `./setup-fobos.sh` on an installed station. See [INSTALLATION.md](INSTALLATION.md#receivers-on-soapysdr-rsp1a-fobos-airspy-hf). The HackRF One (option 7) needs only the distribution's `hackrf` package: `./setup-hackrf.sh`.
-   Each start script is **self-contained**: it stops any running instance, launches the receiver + `spectrumserver`, **detaches into the background** (survives closing the terminal), and runs a **watchdog** that auto-restarts the chain if it dies. Progress is logged to `logwebsdr.txt` — watch it with `tail -f logwebsdr.txt`. Re-running a start script is a clean restart, and a `flock` lock ensures only one receiver runs at a time. Optional: `SPECTRUM_CORES=0-3` to pin CPUs, `RX_ARGS="…"` to override receiver args without editing the file (`RX888_ARGS` for RX888), `RX_DRIVER=miri|sdrplay` to choose the RSP1A driver.
-4. **Access the interface**: Open your browser to `http://localhost:PORT` (default varies by config)
+   Le RSP1A, l'Airspy HF+ et le Fobos passent par SoapySDR et `rx_sdr` ; l'installateur prépare leur pilote quand vous les choisissez (options 3, 6 et 5), ou lancez `./setup-rsp1a.sh`, `./setup-airspyhf.sh` ou `./setup-fobos.sh` sur une station déjà installée. Voir [INSTALLATION.md](INSTALLATION.md#récepteurs-sur-soapysdr-rsp1a-fobos-airspy-hf). Le HackRF One (option 7) n'a besoin que du paquet `hackrf` de la distribution : `./setup-hackrf.sh`.
+   Chaque script de démarrage est **autonome** : il arrête toute instance en cours, lance le récepteur + `spectrumserver`, **passe en arrière-plan** (il survit à la fermeture du terminal) et exécute un **chien de garde** qui relance automatiquement la chaîne si elle s'arrête. La progression est journalisée dans `logwebsdr.txt` — suivez-la avec `tail -f logwebsdr.txt`. Relancer un script de démarrage équivaut à un redémarrage propre, et un verrou `flock` garantit qu'un seul récepteur fonctionne à la fois. Facultatif : `SPECTRUM_CORES=0-3` pour épingler des cœurs CPU, `RX_ARGS="…"` pour remplacer les arguments du récepteur sans modifier le fichier (`RX888_ARGS` pour le RX888), `RX_DRIVER=miri|sdrplay` pour choisir le pilote du RSP1A.
+4. **Accédez à l'interface** : ouvrez votre navigateur sur `http://localhost:PORT` (le port par défaut dépend de la configuration)
 
-### Stopping the Server
+### Arrêt du serveur
 
-One shared stop script works for **every** receiver — it stops the watchdog first (so it can't auto-restart), then the receiver and `spectrumserver`:
+Un seul script d'arrêt partagé fonctionne pour **tous** les récepteurs — il arrête d'abord le chien de garde (pour qu'il ne puisse pas relancer le service), puis le récepteur et `spectrumserver` :
 
 ```bash
 ./stop-websdr.sh
@@ -158,26 +158,26 @@ One shared stop script works for **every** receiver — it stops the watchdog fi
 
 ## 🔧 Configuration
 
-### Essential Configuration Files
+### Fichiers de configuration essentiels
 
-1. **`config-[device].toml`** - Server and SDR configuration
-   - Server settings (port, threads, HTML root)
-   - Input settings (sample rate, FFT size, frequency)
-   - WebSDR registration options
-   - Audio compression settings
-   - After modifying it, restart the server.
+1. **`config-[appareil].toml`** – configuration du serveur et du SDR
+   - Paramètres du serveur (port, threads, racine HTML)
+   - Paramètres d'entrée (taux d'échantillonnage, taille FFT, fréquence)
+   - Options d'enregistrement WebSDR
+   - Paramètres de compression audio
+   - Après modification, redémarrez le serveur.
 
-2. **`frontend/site_information.json`** - Public site information
-   - Operator details (callsign, email, location)
-   - Hardware and antenna information
-   - Region and bandwidth settings
-   - Chat enable/disable
-   - After modifying it, run recompile.sh in a terminal.
+2. **`frontend/site_information.json`** – informations publiques du site
+   - Détails de l'opérateur (indicatif, e-mail, localisation)
+   - Informations sur le matériel et l'antenne
+   - Paramètres de région et de largeur de bande
+   - Activation/désactivation du chat
+   - Après modification, exécutez recompile.sh dans un terminal.
 
-3. **`markers.json`** - Frequency markers and band plan
+3. **`markers.json`** – marqueurs de fréquence et plan de bandes
 
-4. **`frontend/src/bands-config.js`** - Band plan configuration This file is located in frontend/src/bands-config.js and defines the bands the SysOp creates. <br />
-- You will see something like the following, and you are free to edit it as you like:
+4. **`frontend/src/bands-config.js`** – configuration du plan de bandes Ce fichier se trouve dans frontend/src/bands-config.js et définit les bandes créées par le SysOp. <br />
+- Vous verrez quelque chose comme ce qui suit, et vous êtes libre de le modifier à votre guise :
    ```
    - const bands = 
    .....
@@ -201,222 +201,222 @@ One shared stop script works for **every** receiver — it stops the watchdog fi
    .....
    etc
    ```
-   **Where:** <br />
-   - **ITU** is the region in which the server is located,
-   - **min & max** are the waterfall brightness limits for the given band,
-   - **initFreq** is the initial frequency to tune to when the band is selected,
-   - **publishBand** sets whether the band is shown: 1 for amateur bands, 2 for broadcast bands,
-   - **startFreq & endFreq** define the band limits,
-   - **stepi** is the default mouse-wheel step for the band, and **modes** is the preferred default mode for the band.
+   **Où :** <br />
+   - **ITU** est la région dans laquelle se trouve le serveur,
+   - **min et max** sont les limites de luminosité de la cascade pour la bande donnée,
+   - **initFreq** est la fréquence initiale sur laquelle s'accorder lorsque la bande est sélectionnée,
+   - **publishBand** définit si la bande est affichée : 1 pour les bandes amateurs, 2 pour les bandes de radiodiffusion,
+   - **startFreq et endFreq** définissent les limites de la bande,
+   - **stepi** est le pas par défaut de la molette pour la bande, et **modes** est le mode par défaut préféré pour la bande.
 
-- After making changes, **run recompile.sh in a terminal** from the PhantomSDR-Plus folder.
+- Après avoir effectué des modifications, **exécutez recompile.sh dans un terminal** depuis le dossier PhantomSDR-Plus.
 
-For configuration examples, see the included sample files:
-- `config-rtl.toml` - RTL-SDR configuration
-- `config-rsp1a.toml` - SDRplay RSP1A configuration
-- `config-airspyhf.toml` - Airspy HF+ configuration
-- `config-fobos-hf.toml` / `config-fobos.toml` - RigExpert Fobos SDR configuration (HF / RF)
-- `config-hackrf.toml` - HackRF One
-- `config-rx888mk2.toml` - RX888 MK2 configuration
+Pour des exemples de configuration, voir les fichiers d'exemple inclus :
+- `config-rtl.toml` – configuration RTL-SDR
+- `config-rsp1a.toml` – configuration SDRplay RSP1A
+- `config-airspyhf.toml` – configuration Airspy HF+
+- `config-fobos-hf.toml` / `config-fobos.toml` – configuration RigExpert Fobos SDR (HF / RF)
+- `config-hackrf.toml` – HackRF One
+- `config-rx888mk2.toml` – configuration RX888 MK2
 
 ---
 
-## 🌊 Waterfall Floor — `waterfall.sh`
+## 🌊 Plancher de la cascade — `waterfall.sh`
 
-`waterfall.sh` (in the repository root) changes the **default minimum waterfall level** in dB — the floor the waterfall starts from on a fresh visit.
+`waterfall.sh` (à la racine du dépôt) modifie le **niveau minimal de cascade par défaut**, en dB — c'est-à-dire la valeur à partir de laquelle la cascade démarre lors d'une nouvelle visite.
 
-That value lives in two source files at five different places (`frontend/src/waterfall.js` → `this.minWaterfall`, and `frontend/src/App.svelte` → the initial `let min_waterfall`, the two "min" reset cases and the bookmark default). Editing them by hand is easy to get wrong, so the script does it for you. It never uses hard-coded line numbers — every spot is located by pattern, so it keeps working after the sources are updated.
+Cette valeur figure dans deux fichiers source, à cinq endroits différents (`frontend/src/waterfall.js` → `this.minWaterfall`, et `frontend/src/App.svelte` → le `let min_waterfall` initial, les deux cas de réinitialisation « min » et la valeur par défaut des favoris). Les éditer à la main se rate facilement : le script s'en charge pour vous. Il n'utilise jamais de numéros de ligne figés — chaque emplacement est repéré par motif, si bien qu'il continue de fonctionner après une mise à jour des sources.
 
-- A **higher** value (e.g. `-15`) gives a **darker** waterfall.
-- A **lower** value (e.g. `-45`) gives a **brighter** waterfall.
+- Une valeur **plus élevée** (par ex. `-15`) donne une cascade **plus sombre**.
+- Une valeur **plus basse** (par ex. `-45`) donne une cascade **plus lumineuse**.
 
 ```bash
-./waterfall.sh              # interactive — shows the current values and asks for the new one
-./waterfall.sh -v -15       # set the value without being asked
-./waterfall.sh -v -15 -y    # ... and skip every confirmation
-./waterfall.sh -s           # show the current values only, change nothing
+./waterfall.sh              # interactif — affiche les valeurs actuelles et demande la nouvelle
+./waterfall.sh -v -15       # fixe la valeur sans poser de question
+./waterfall.sh -v -15 -y    # ... et saute toutes les confirmations
+./waterfall.sh -s           # affiche seulement les valeurs actuelles, sans rien changer
 ```
 
-Before editing, it timestamps a backup of both files (`*.bak-YYYYmmdd-HHMMSS`) and prints the restore command. Only literals equal to the value currently in use are touched, so unrelated numbers in those files can never be rewritten by accident. If the new value does not show up afterwards, the script restores the backups by itself and exits with an error. It also warns you when the two files are out of sync and sets both.
+Avant de modifier, il crée une sauvegarde horodatée des deux fichiers (`*.bak-AAAAmmjj-HHMMSS`) et affiche la commande de restauration. Seuls les littéraux égaux à la valeur en cours d'utilisation sont touchés : les autres nombres de ces fichiers ne peuvent donc jamais être réécrits par accident. Si la nouvelle valeur n'apparaît pas ensuite, le script restaure lui-même les sauvegardes et sort en erreur. Il avertit également lorsque les deux fichiers sont désynchronisés et règle les deux.
 
-- After the change the frontend must be rebuilt — the script offers to run `recompile.sh` for you (with `-y` it skips the rebuild, so run `./recompile.sh` yourself when you are ready).
+- Après la modification, le frontend doit être reconstruit — le script propose d'exécuter `recompile.sh` pour vous (avec `-y` il saute la reconstruction : lancez alors `./recompile.sh` vous-même le moment venu).
 
 ---
 
-## 🎨 Customization
+## 🎨 Personnalisation
 
-### Changing the Background Image
+### Changer l'image de fond
 
-Replace `frontend/src/assets/background.jpg` with your preferred image (keep the same filename).
+Remplacez `frontend/src/assets/background.jpg` par l'image de votre choix (en conservant le même nom de fichier).
 
-- After modifying it, run recompile.sh in a terminal.
+- Après modification, exécutez recompile.sh dans un terminal.
 
 
-### Audio Codec Selection
+### Choix du codec audio
 
-Choose between FLAC and Opus in your `.toml` configuration:
+Choisissez entre FLAC et Opus dans votre configuration `.toml` :
 ```toml
 [input]
 audio_compression="opus"  # or "flac"
 ```
-- After modifying it, restart the server.
+- Après modification, redémarrez le serveur.
 
 
-### S-meter calibration
+### Étalonnage du S-mètre
 
-The two meters are deliberately on **separate chains**, so they are tuned with two different knobs.
+Les deux instruments sont volontairement sur des **chaînes séparées** ; ils se règlent donc avec deux réglages différents.
 
-#### The two knobs
+#### Les deux réglages
 
-Both live in the `[input]` section of the config the server is started with (`config.toml`, `config-rx888mk2.toml`, etc.):
+Tous deux se trouvent dans la section `[input]` du fichier de configuration avec lequel le serveur démarre (`config.toml`, `config-rx888mk2.toml`, etc.) :
 
 ```toml
 [input]
-smeter_offset=5         # digital bar only
-analog_smeter_offset=5  # analog needle only
+smeter_offset=5         # barre numérique uniquement
+analog_smeter_offset=5  # aiguille analogique uniquement
 ```
 
-They are read in `src/websocket.cpp` and sent to the browser in the first `basic_info` frame, so **a server restart is enough** — no frontend rebuild is required.
+Ils sont lus dans `src/websocket.cpp` et envoyés au navigateur dans la première trame `basic_info` : **un redémarrage du serveur suffit** — aucune recompilation du frontend n'est nécessaire.
 
-#### Analog chain
-
-```
-displayed dBm = -130 + (rawDb + analog_smeter_offset + 130) x 1.1
-```
-
-- The visual gain of 1.1 is applied *after* the offset, pivoting at -130 dBm. So one unit of `analog_smeter_offset` moves the reading by 1.1 dB. To shift the display by X dB, use `analog_smeter_offset ~= 0.91 x X`. The TOML value is parsed as an integer, so only whole steps are available.
-- The needle law (`powerFromDbm` in `frontend/src/lib/SMeterAnalog.svelte`) puts **S9 at -73 dBm**, at 60 of 100 needle units, with a `pow(...,0.6)` curve from -130 to -73 below S9 and a `pow(...,0.8)` curve from -73 to -13 (S9+60) above it.
-- It is **not** a linear 6 dB per S-unit scale, so S9 is the meaningful calibration anchor — the marks below S9 will not track a signal generator in 6 dB steps.
-
-#### Digital chain
+#### Chaîne analogique
 
 ```
-value    = (rawDb / 150) x 100 + smeter_offset   -> clamped to [-100, 0]
+dBm affichés = -130 + (rawDb + analog_smeter_offset + 130) x 1,1
+```
+
+- Le gain visuel de 1,1 s'applique *après* l'offset, avec pivot à -130 dBm. Une unité d'`analog_smeter_offset` déplace donc la lecture de 1,1 dB. Pour décaler l'affichage de X dB : `analog_smeter_offset ~= 0,91 x X`. La valeur TOML est lue comme un entier : seuls des pas entiers sont possibles.
+- La loi de l'aiguille (`powerFromDbm` dans `frontend/src/lib/SMeterAnalog.svelte`) place **S9 à -73 dBm**, à 60 unités d'aiguille sur 100, avec une courbe `pow(...,0,6)` de -130 à -73 sous S9 et une courbe `pow(...,0,8)` de -73 à -13 (S9+60) au-dessus.
+- Ce n'est **pas** une échelle linéaire de 6 dB par point S ; le point d'étalonnage pertinent est donc S9 — les graduations sous S9 ne suivront pas un générateur par pas de 6 dB.
+
+#### Chaîne numérique
+
+```
+value    = (rawDb / 150) x 100 + smeter_offset   -> borné à [-100, 0]
 segments = round((value + 100) x 35 / 100) + DIGITAL_BAR_TRIM
 ```
 
-- Note the `/150 x 100`: the digital scale is **compressed to 2/3**, and it never sees `analog_smeter_offset` or the 1.1 visual gain. That is why the bar and the needle never agree exactly — it is intentional.
-- 35 segments over 100 units means one segment is 2.86 offset units, roughly 4.3 raw dB. So `smeter_offset=3` is about one segment.
-- `DIGITAL_BAR_TRIM` in `frontend/src/lib/SMeterDigital.svelte` (currently 0) shifts the bar by whole segments. Changing it is a source edit and **does** require a frontend rebuild.
+- Noter le `/150 x 100` : l'échelle numérique est **comprimée aux 2/3** et ne voit jamais ni `analog_smeter_offset` ni le gain visuel de 1,1. C'est pourquoi la barre et l'aiguille ne coïncident jamais exactement — c'est voulu.
+- 35 segments sur 100 unités : un segment vaut 2,86 unités d'offset, soit environ 4,3 dB bruts. `smeter_offset=3` correspond donc à peu près à un segment.
+- `DIGITAL_BAR_TRIM` dans `frontend/src/lib/SMeterDigital.svelte` (actuellement 0) décale la barre par segments entiers. Le modifier touche au code source et **exige** une recompilation du frontend.
 
-#### The LED windows are analog-driven in both meters
+#### Les fenêtres LED sont pilotées par l'analogique dans les deux instruments
 
-The dBm / dBµV / SNR / NF windows in **both** meters read the analog-calibrated value and add a fixed `VISUAL_DBM_OFFSET` of 5, hardcoded in `SMeterAnalog.svelte` and `SMeterDigital.svelte`. Therefore:
+Les fenêtres dBm / dBµV / SNR / NF des **deux** instruments lisent la valeur calibrée analogique et ajoutent un `VISUAL_DBM_OFFSET` fixe de 5, codé en dur dans `SMeterAnalog.svelte` et `SMeterDigital.svelte`. Par conséquent :
 
-- `smeter_offset` does **not** change any number in the windows, only the bar length.
-- dBµV = dBm + 107 (50 ohm), and NF = dBm - SNR by construction, so NF follows automatically.
-- To correct the **numbers** without touching the needle position, `VISUAL_DBM_OFFSET` is the knob — but it is a source constant, needs a rebuild, and must be changed in **both** files to stay consistent.
+- `smeter_offset` ne change **aucun** nombre dans les fenêtres, seulement la longueur de la barre.
+- dBµV = dBm + 107 (50 ohms), et NF = dBm - SNR par construction, donc NF suit automatiquement.
+- Si l'on veut de bons **nombres** sans toucher à la position de l'aiguille, le réglage est `VISUAL_DBM_OFFSET` — mais c'est une constante du code source, il faut recompiler et la modifier dans **les deux** fichiers pour rester cohérent.
 
-#### Procedure
+#### Procédure
 
-1. Feed a known level into the antenna port (signal generator at -73 dBm = S9), in SSB/CW with a stable passband. Readings depend on bandwidth and AGC, so fix the mode and bandwidth first.
-2. Note what the analog dBm window shows, then set `analog_smeter_offset ~= 0.91 x (-73 - shown)`. Restart the server and recheck. One iteration should be enough; the needle should land on S9.
-3. Switch to the digital meter and set `smeter_offset` so the bar length places S9 where you want it — roughly 3 units per segment. This step is cosmetic matching only and has no effect on the readouts.
-4. Without a signal generator, a quiet band with a known-level reference beacon is a reasonable substitute, or simply anchor the noise floor to a plausible value (e.g. -120 dBm on 20 m with a decent antenna) — accepting that this calibrates the whole chain including antenna gain, not the receiver alone.
+1. Injecter un niveau connu à l'entrée d'antenne (générateur à -73 dBm = S9), en SSB/CW avec une bande passante stable. Les lectures dépendent de la bande passante et de l'AGC : fixer d'abord le mode et la largeur.
+2. Relever ce qu'affiche la fenêtre dBm analogique, puis poser `analog_smeter_offset ~= 0,91 x (-73 - valeur affichée)`. Redémarrer le serveur et vérifier à nouveau. Une itération suffit ; l'aiguille doit se poser sur S9.
+3. Passer à l'instrument numérique et régler `smeter_offset` pour que la longueur de barre place S9 où vous le souhaitez — environ 3 unités par segment. Cette étape est purement cosmétique et n'affecte pas les valeurs affichées.
+4. Sans générateur, une bande calme avec une balise de niveau connu constitue un bon substitut, ou bien on ancre simplement le plancher de bruit à une valeur plausible (par ex. -120 dBm sur 20 m avec une antenne correcte) — en acceptant que cela étalonne toute la chaîne, gain d'antenne compris, et pas seulement le récepteur.
 
 
-### GUI Variants
+### Variantes de l'interface graphique
 
-All four GUI variants (analog/digital S-meter x v1/v2 layout) live in the one build. Visitors switch between them with the ⚙️ menu at the top right of the page — nothing reloads, so audio, the waterfall and any running decoder carry on — and each visitor's choice is remembered in their own browser.
-- Run recompile.sh in a terminal to set the *starting* variant, the one a first-time visitor sees.
-- **[EDITING_VARIANTS.md](EDITING_VARIANTS.md)** - How to edit the frontend variants (S-meter and layout) and rebuild them
+Les quatre variantes de l'interface (S-mètre analogique/numérique x disposition v1/v2) tiennent dans une seule construction. Les visiteurs passent de l'une à l'autre avec le menu ⚙️ en haut à droite — rien n'est rechargé, l'audio, la cascade et tout décodeur en cours continuent — et le choix est conservé dans chaque navigateur.
+- Exécutez recompile.sh dans un terminal pour définir la variante de *départ*, celle que voit un visiteur qui arrive pour la première fois.
+- **[EDITING_VARIANTS.md](EDITING_VARIANTS.md)** – comment modifier les variantes du frontend (S-mètre et disposition) et les reconstruire
 
 ---
 
 ## 📚 Documentation
 
-- **[INSTALLATION.md](INSTALLATION.md)** - Complete installation guide for system operators
-- **[ADMIN_PANEL_SETUP.md](ADMIN_PANEL_SETUP.md)** - Installation guide for admin system operators
-- **[USER_GUIDE.md](USER_GUIDE.md)** - End-user guide for operating the WebSDR
-- **[THERMAL_GUARD.md](THERMAL_GUARD.md)** - Sysop manual for the CPU over-temperature guard: the four modes and what to do with each
-- **[CONNECTION_LIMITS.md](CONNECTION_LIMITS.md)** - Sysop manual for connection limits: protecting a public receiver from connection floods
-- **[MULTI_RECEIVER.md](MULTI_RECEIVER.md)** - Sysop manual for running several receivers on one computer: instances, `receivers.toml`, the receiver picker and `start-all.sh`
-- **[HTTPS.md](HTTPS.md)** - Secure access: serving the receiver over https:// with Caddy and a free Let's Encrypt certificate, `setup-https.sh`, the local-network mode, and an existing nginx or Apache
-- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Directory structure and code organization
-- **[EDITING_VARIANTS.md](EDITING_VARIANTS.md)** - How to edit the frontend variants (S-meter and layout) and rebuild them
+- **[INSTALLATION.md](INSTALLATION.md)** – guide d'installation complet pour les opérateurs système
+- **[ADMIN_PANEL_SETUP.md](ADMIN_PANEL_SETUP.md)** – guide d'installation pour les administrateurs système
+- **[USER_GUIDE.md](USER_GUIDE.md)** – guide de l'utilisateur final pour l'exploitation du WebSDR
+- **[THERMAL_GUARD.md](THERMAL_GUARD.md)** - Manuel du sysop pour la protection contre la surchauffe du processeur : les quatre modes et ce qu'il faut faire pour chacun
+- **[CONNECTION_LIMITS.md](CONNECTION_LIMITS.md)** - Manuel du sysop pour les limites de connexion : protéger un récepteur public contre les afflux de connexions
+- **[MULTI_RECEIVER.md](MULTI_RECEIVER.md)** - Manuel du sysop pour plusieurs récepteurs sur un ordinateur : instances, `receivers.toml`, le sélecteur de récepteur et `start-all.sh`
+- **[HTTPS.md](HTTPS.md)** - Accès sécurisé : servir le récepteur en https:// avec Caddy et un certificat Let's Encrypt gratuit, `setup-https.sh`, le mode réseau local, et un nginx ou Apache déjà en place
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** – structure des répertoires et organisation du code
+- **[EDITING_VARIANTS.md](EDITING_VARIANTS.md)** – comment modifier les variantes du frontend (S-mètre et disposition) et les reconstruire
 
 ---
 
-## 🌐 Online WebSDR List
+## 🌐 Liste WebSDR en ligne
 
-Register your WebSDR on the official directory: https://sdr-list.xyz
+Enregistrez votre WebSDR sur l'annuaire officiel : https://sdr-list.xyz
 
-Set `register_online=true` in your `.toml` configuration file to automatically register.
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**OpenCL Not Working**
-- Ensure drivers are properly installed
-- Check with `clinfo` command
-- See INSTALLATION.md for detailed OpenCL setup
-
-**Audio Latency Issues**
-- Keep FLAC as the codec: it is the lower-latency one, while Opus holds back up to 20 ms per packet
-- Open the page with `?diag=1` added to its address (for example `/mobile?diag=1`) to see the delay split into packet, buffer and output; the buffer shrinks by itself within a minute or two of a network hiccup
-- If the audio breaks up, move the buffer control one step higher (see the User Guide, *Audio Buffer and Delay*)
-- Ensure adequate CPU/GPU resources
-
-**Build Failures**
-- Verify all dependencies are installed
-- Try cleaning build directory: `rm -rf build && meson setup build`
-- Check for conflicting library versions
+Définissez `register_online=true` dans votre fichier de configuration `.toml` pour un enregistrement automatique.
 
 ---
 
-## 🤝 Contributing
+## 🐛 Dépannage
 
-Contributions are welcome! This is an independent fork with additional features. Please:
+### Problèmes courants
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+**OpenCL ne fonctionne pas**
+- Vérifiez que les pilotes sont correctement installés
+- Contrôlez avec la commande `clinfo`
+- Voir INSTALLATION.md pour la configuration détaillée d'OpenCL
 
----
+**Problèmes de latence audio**
+- Gardez FLAC comme codec : c'est le plus faible en latence, alors qu'Opus retient jusqu'à 20 ms par paquet
+- Ouvrez la page en ajoutant `?diag=1` à son adresse (par exemple `/mobile?diag=1`) pour voir le retard réparti entre paquet, tampon et sortie ; le tampon se réduit tout seul en une ou deux minutes après un incident réseau
+- Si le son se coupe, montez le tampon d'un cran (voir le Guide de l'utilisateur, *Tampon audio et retard*)
+- Assurez-vous de disposer de ressources CPU/GPU suffisantes
 
-## 📄 License
-
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](../LICENSE) file for details.
-
----
-
-## 👥 Authors & Credits
-
-- **SV1BTL, 9A7AOF, F1NSK & SV2AMK** - PhantomSDR-Plus development and enhancements
-- Based on the original PhantomSDR project
+**Échecs de compilation**
+- Vérifiez que toutes les dépendances sont installées
+- Essayez de nettoyer le répertoire de build : `rm -rf build && meson setup build`
+- Recherchez d'éventuels conflits de versions de bibliothèques
 
 ---
 
-## 🔗 Links
+## 🤝 Contribuer
 
-- **Live Demo**: http://phantomsdr.no-ip.org:8900/
-- **WebSDR Directory**: https://sdr-list.xyz
-- **GitHub Repository**: https://github.com/sv1btl/PhantomSDR-Plus
+Les contributions sont les bienvenues ! Il s'agit d'un fork indépendant proposant des fonctions supplémentaires. Merci de :
 
----
-
-## 📞 Support
-
-- **Issues**: Report bugs via [GitHub Issues](https://github.com/sv1btl/PhantomSDR-Plus/issues)
-- **Email**: contact sv1btl@otenet.gr
+1. Forker le dépôt
+2. Créer une branche de fonctionnalité
+3. Valider vos modifications
+4. Pousser la branche
+5. Créer une Pull Request
 
 ---
 
-## ⚡ Performance Tips
+## 📄 Licence
 
-1. **Enable OpenCL/CUDA** for GPU acceleration - dramatically reduces CPU usage
-2. **Use SSD storage** for better I/O performance
-3. **Allocate sufficient RAM** - at least 8 GB recommended
-4. **Optimize FFT size** - larger FFT = better resolution but more CPU usage
-5. **Consider dedicated GPU** - AMD or NVIDIA with OpenCL support
+Ce projet est distribué sous licence GNU General Public License v3.0 – voir le fichier [LICENSE](../LICENSE) pour les détails.
+
+---
+
+## 👥 Auteurs et remerciements
+
+- **SV1BTL, 9A7AOF, F1NSK et SV2AMK** – développement et améliorations de PhantomSDR-Plus
+- Basé sur le projet PhantomSDR d'origine
+
+---
+
+## 🔗 Liens
+
+- **Démo en direct** : http://phantomsdr.no-ip.org:8900/
+- **Annuaire WebSDR** : https://sdr-list.xyz
+- **Dépôt GitHub** : https://github.com/sv1btl/PhantomSDR-Plus
+
+---
+
+## 📞 Assistance
+
+- **Problèmes** : signalez les bogues via [GitHub Issues](https://github.com/sv1btl/PhantomSDR-Plus/issues)
+- **E-mail** : contactez sv1btl@otenet.gr
+
+---
+
+## ⚡ Conseils de performance
+
+1. **Activez OpenCL/CUDA** pour l'accélération GPU – réduit considérablement la charge CPU
+2. **Utilisez un stockage SSD** pour de meilleures performances d'E/S
+3. **Allouez suffisamment de RAM** – au moins 8 Go recommandés
+4. **Optimisez la taille de la FFT** – une FFT plus grande = meilleure résolution mais plus de CPU
+5. **Envisagez un GPU dédié** – AMD ou NVIDIA compatible OpenCL
 
 ---
 
 **73 de SV1BTL, 9A7AOF, F1NSK & SV2AMK**
 
-*For detailed setup instructions, see INSTALLATION.md* *For end-user operation guide, see USER_GUIDE.md* *For other translations in various languages, please refer to the folders in this section*
+*Pour des instructions de configuration détaillées, voir INSTALLATION.md* *Pour le guide d'utilisation destiné à l'utilisateur final, voir USER_GUIDE.md*

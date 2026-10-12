@@ -1,43 +1,43 @@
-# Secure Access — https://
+# Accès sécurisé — https://
 
-A PhantomSDR-Plus station can be reached over **https://** as well as http://. The browser then shows the padlock, the connection is encrypted, and browsers allow the page their better audio path (the AudioWorklet), which they keep from plain http pages. The http address keeps working exactly as before, side by side.
+Une station PhantomSDR-Plus peut être joignable en **https://** aussi bien qu'en http://. Le navigateur affiche alors le cadenas, la connexion est chiffrée, et les navigateurs accordent à la page leur meilleur chemin audio (l'AudioWorklet), qu'ils refusent aux simples pages http. L'adresse http continue de fonctionner exactement comme avant, côte à côte.
 
-It is done by **Caddy**, a small web server placed in front of the receiver on port 443. Caddy obtains a free certificate from **Let's Encrypt** for your station's DNS name and renews it by itself, every couple of months, with nothing for you to do.
+C'est **Caddy** qui s'en charge, un petit serveur web placé devant le récepteur sur le port 443. Caddy obtient un certificat gratuit auprès de **Let's Encrypt** pour le nom DNS de votre station et le renouvelle tout seul, tous les quelques mois, sans que vous ayez quoi que ce soit à faire.
 
 ---
 
-## What you need
+## Ce qu'il vous faut
 
 | | |
 |---|---|
-| **A DNS name** | Let's Encrypt certifies names, not bare IP addresses. A free dynamic-DNS name (no-ip, DuckDNS, dynu and the like) pointing at your public address is fine, and it may change address — the name follows. |
-| **Two more ports on the router** | Forward TCP **443** (https) and TCP **80** to the receiver computer, as well as your public port (9000). Port 80 is only used to prove to Let's Encrypt that the name is yours when the certificate is issued and renewed. |
-| **A station set up with the station questions** | `station.conf` must exist. On a station installed before the station questions, run `bash configure-station.sh` once first — it offers the ports your station already uses, so nothing moves. |
+| **Un nom DNS** | Let's Encrypt certifie des noms, pas de simples adresses IP. Un nom de DNS dynamique gratuit (no-ip, DuckDNS, dynu et autres) pointant vers votre adresse publique suffit, et l'adresse peut changer — le nom la suit. |
+| **Deux ports de plus sur le routeur** | Redirigez TCP **443** (https) et TCP **80** vers l'ordinateur du récepteur, en plus de votre port public (9000). Le port 80 sert seulement à prouver à Let's Encrypt que le nom est à vous lors de l'émission et du renouvellement du certificat. |
+| **Une station configurée avec les questions de la station** | `station.conf` doit exister. Sur une station installée avant les questions de la station, lancez d'abord une fois `bash configure-station.sh` : il propose les ports que votre station utilise déjà, donc rien ne bouge. |
 
 ---
 
-## Turning it on
+## L'activer
 
-### At installation
+### À l'installation
 
-Among the station questions, under **Internet**, answer yes to:
+Parmi les questions de la station, dans le groupe **Internet**, répondez oui à :
 
 ```
   Also serve the receiver over https://? [y/N]: y
 ```
 
-The installer installs Caddy, obtains the certificate and, at the end, shows both addresses.
+L'installateur installe Caddy, obtient le certificat et affiche à la fin les deux adresses.
 
-### On a station that already runs
+### Sur une station qui tourne déjà
 
 ```bash
 cd ~/PhantomSDR-Plus
 bash setup-https.sh
 ```
 
-It reads your DNS name from `station.conf`, installs Caddy (from your distribution; on Ubuntu 22.04 from Caddy's own repository), points it at the receiver, rebuilds the page so that it links its https address, restarts the proxy, and waits for the certificate. Answering yes to the https question in `bash configure-station.sh` does exactly the same.
+Il lit votre nom DNS dans `station.conf`, installe Caddy (depuis votre distribution ; sous Ubuntu 22.04 depuis le dépôt de Caddy lui-même), le dirige vers le récepteur, reconstruit la page pour qu'elle pointe vers son adresse https, redémarre le proxy et attend le certificat. Répondre oui à la question https de `bash configure-station.sh` fait exactement la même chose.
 
-When it finishes:
+À la fin :
 
 ```
   ✔ https://myname.ddns.net/ is live
@@ -45,62 +45,62 @@ When it finishes:
   https://myname.ddns.net/   — and http://myname.ddns.net:9000/ as before
 ```
 
-### Checking and turning it off
+### Vérifier et désactiver
 
 ```bash
-bash setup-https.sh --status    # is it on, and does the certificate answer?
-bash setup-https.sh --remove    # turn https off; http stays exactly as it is
+bash setup-https.sh --status    # est-ce actif, et le certificat répond-il ?
+bash setup-https.sh --remove    # désactive https ; http reste exactement tel quel
 ```
 
-Changing the DNS name later with `bash configure-station.sh` moves Caddy to the new name by itself.
+Si vous changez plus tard le nom DNS avec `bash configure-station.sh`, Caddy passe tout seul au nouveau nom.
 
 ---
 
-## How it works
+## Comment ça marche
 
 ```
   visitor ──https──► Caddy :443 ──► proxy.py :9014 (this computer only) ──► spectrumserver, panel, RADE …
   visitor ──http───────────────────► proxy.py :9000 ───────────────────────► the same
 ```
 
-| Port | What | Open on the router |
+| Port | Quoi | Ouvert sur le routeur |
 |---|---|---|
-| 443 | Caddy — https | yes |
-| 80 | Caddy — the certificate check, and a redirect to https | yes |
-| 9000 | proxy.py — http, as before | yes |
-| 9014 | proxy.py — where Caddy hands the visitors over | no — inside the computer |
+| 443 | Caddy — https | oui |
+| 80 | Caddy — la vérification du certificat, et une redirection vers https | oui |
+| 9000 | proxy.py — http, comme avant | oui |
+| 9014 | proxy.py — là où Caddy remet les visiteurs | non — à l'intérieur de l'ordinateur |
 
-Caddy reaches the proxy on a port of its own because, seen from the proxy, every visitor coming through Caddy would otherwise come from the computer itself — and a request from the computer itself is trusted: it may disconnect listeners, and it is not counted against the per-IP limits. On port 9014 the proxy takes the visitor's real address from Caddy and never treats a visitor as local, so the listener list, the per-IP limits and the sysop's kick all work exactly as over http, and nobody can kick a listener through https.
-
----
-
-## What changes for listeners
-
-- **Both addresses work.** Directories and the websdr.org map keep listing the http address; websdr.org's callback and Kiwi clients use http.
-- **Better audio over https.** Browsers give a secure page the AudioWorklet, a steadier audio path than the one plain http pages have to use.
-- **Receive Diversity with http-only partners.** A browser does not let an https page open plain `ws://` connections, so from the https page a partner station that has only http cannot be added; partners with https work, and WebSDR partners work through the relay. For an http-only partner, use the http address of the page.
-- **Rig control (TCI-CAT).** Connections to `127.0.0.1` on the listener's own computer are allowed from an https page in current Chrome, Edge and Firefox.
+Caddy rejoint le proxy par un port à lui parce que, vu du proxy, tout visiteur passant par Caddy semblerait sinon venir de l'ordinateur lui-même — et une requête de l'ordinateur lui-même est jugée fiable : elle peut déconnecter des auditeurs et n'est pas comptée dans les limites par IP. Sur le port 9014, le proxy prend auprès de Caddy l'adresse réelle du visiteur et ne traite jamais un visiteur comme local ; la liste des auditeurs, les limites par IP et le kick du sysop fonctionnent donc exactement comme en http, et personne ne peut expulser un auditeur par https.
 
 ---
 
-## The local network only — `--lan`
+## Ce qui change pour les auditeurs
 
-Without a DNS name, https can still be used inside the house:
+- **Les deux adresses fonctionnent.** Les annuaires et la carte de websdr.org continuent d'afficher l'adresse http ; le rappel de websdr.org et les clients Kiwi utilisent http.
+- **Meilleur son en https.** Les navigateurs donnent à une page sécurisée l'AudioWorklet, un chemin audio plus stable que celui que les simples pages http doivent utiliser.
+- **Receive Diversity avec des partenaires uniquement http.** Un navigateur ne laisse pas une page https ouvrir de simples connexions `ws://` ; depuis la page https, on ne peut donc pas ajouter une station partenaire qui n'a que http. Les partenaires en https fonctionnent, et les partenaires WebSDR fonctionnent via le relais. Pour un partenaire uniquement http, utilisez l'adresse http de la page.
+- **Commande du poste (TCI-CAT).** Les connexions vers `127.0.0.1` sur l'ordinateur de l'auditeur sont autorisées depuis une page https dans les versions actuelles de Chrome, Edge et Firefox.
+
+---
+
+## Réseau local uniquement — `--lan`
+
+Sans nom DNS, https peut tout de même servir à la maison :
 
 ```bash
 bash setup-https.sh --lan
 ```
 
-Caddy then issues its own certificate for the computer's local address and name. Browsers do not know that certificate and warn the first time; accept it, or make the computers you use trust Caddy's root certificate:
+Caddy émet alors son propre certificat pour l'adresse locale et le nom de l'ordinateur. Les navigateurs ne connaissent pas ce certificat et avertissent la première fois ; acceptez-le, ou faites en sorte que les ordinateurs que vous utilisez fassent confiance au certificat racine de Caddy :
 
-- on the receiver computer itself: `sudo caddy trust`
-- on another computer: copy `/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt` from the receiver (the exact path is printed by `sudo caddy environ`, under `caddy.AppDataDir`) and import it into the browser or the system as a trusted authority.
+- sur l'ordinateur du récepteur lui-même : `sudo caddy trust`
+- sur un autre ordinateur : copiez `/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt` depuis le récepteur (le chemin exact est donné par `sudo caddy environ`, sous `caddy.AppDataDir`) et importez-le dans le navigateur ou le système comme autorité de confiance.
 
 ---
 
-## A web server is already running on this computer
+## Un serveur web tourne déjà sur cet ordinateur
 
-If nginx, Apache or another Caddy setup already uses port 443 or 80, `setup-https.sh` does not take it over: it stops and prints what to add to your server instead. For nginx, inside the `server { … }` block of your https site:
+Si nginx, Apache ou une autre configuration Caddy utilise déjà le port 443 ou 80, `setup-https.sh` ne le reprend pas : il s'arrête et affiche ce qu'il faut ajouter à votre serveur. Pour nginx, dans le bloc `server { … }` de votre site https :
 
 ```nginx
 location / {
@@ -113,14 +113,14 @@ location / {
 }
 ```
 
-For Apache (with `mod_proxy`, `mod_proxy_http` and `mod_proxy_wstunnel`):
+Pour Apache (avec `mod_proxy`, `mod_proxy_http` et `mod_proxy_wstunnel`) :
 
 ```apache
 ProxyPass        / http://127.0.0.1:9014/ upgrade=websocket
 ProxyPassReverse / http://127.0.0.1:9014/
 ```
 
-Then mark the station as https in `station.conf` so that the proxy opens port 9014 and the page links its https address — the wizard will say once more that the port is taken, which is expected:
+Marquez ensuite la station comme https dans `station.conf`, pour que le proxy ouvre le port 9014 et que la page pointe vers son adresse https — l'assistant signalera encore que le port est occupé, ce qui est normal :
 
 ```bash
 STATION_HTTPS=y bash configure-station.sh
@@ -128,14 +128,14 @@ STATION_HTTPS=y bash configure-station.sh
 
 ---
 
-## Troubleshooting
+## Dépannage
 
-| Symptom | What to check |
+| Symptôme | À vérifier |
 |---|---|
-| `no certificate yet` | The DNS name must point at your public address (`ping myname.ddns.net` from outside your network), and the router must forward 443 and 80 to this computer. Caddy keeps trying by itself; its log: `sudo journalctl -u caddy -n 50`. |
-| The provider blocks port 80 | Caddy also proves the name over port 443 alone, so 443 is enough in most cases; leave 80 forwarded if you can. |
-| `too many failed authorizations` in Caddy's log | Let's Encrypt allows a few failures per hour. Fix the cause, wait an hour, then `sudo systemctl restart caddy`. |
-| Caddy's log shows `Invalid response … /.well-known/acme-challenge/…` (a 502 or the receiver's page), or `Timeout during connect` | The router sends 80 or 443 somewhere else — often to the receiver's public port. The rules must be TCP 80 → this computer, port **80**, and TCP 443 → this computer, port **443**; switch off the router's own remote management on those ports. Then `sudo systemctl restart caddy` to try again at once. |
-| https works at home but not from outside | The router forwards 443 to another computer, or not at all. |
-| The listener list or the users panel is empty over https | Run `bash configure-station.sh` once and say yes to the rebuild: the page must know its https address. |
-| `Port 443 is already used by another web server` | See *A web server is already running on this computer* above. |
+| `no certificate yet` | Le nom DNS doit pointer vers votre adresse publique (`ping myname.ddns.net` depuis l'extérieur de votre réseau), et le routeur doit rediriger 443 et 80 vers cet ordinateur. Caddy réessaie tout seul ; son journal : `sudo journalctl -u caddy -n 50`. |
+| Le fournisseur bloque le port 80 | Caddy prouve aussi le nom par le seul port 443, donc 443 suffit le plus souvent ; laissez 80 redirigé si vous le pouvez. |
+| `too many failed authorizations` dans le journal de Caddy | Let's Encrypt n'accepte que quelques échecs par heure. Corrigez la cause, attendez une heure, puis `sudo systemctl restart caddy`. |
+| Le journal de Caddy montre `Invalid response … /.well-known/acme-challenge/…` (un 502 ou la page du récepteur) ou `Timeout during connect` | Le routeur envoie le 80 ou le 443 ailleurs — souvent vers le port public du récepteur. Les règles doivent être TCP 80 → cet ordinateur, port **80**, et TCP 443 → cet ordinateur, port **443** ; désactivez l'administration à distance du routeur lui-même sur ces ports. Ensuite `sudo systemctl restart caddy` pour qu'il réessaie aussitôt. |
+| https marche à la maison mais pas de l'extérieur | Le routeur redirige 443 vers un autre ordinateur, ou pas du tout. |
+| La liste des auditeurs ou le panneau des utilisateurs est vide en https | Lancez une fois `bash configure-station.sh` et acceptez la reconstruction : la page doit connaître son adresse https. |
+| `Port 443 is already used by another web server` | Voir plus haut *Un serveur web tourne déjà sur cet ordinateur*. |

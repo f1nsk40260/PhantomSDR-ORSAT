@@ -1,235 +1,236 @@
-# Connection Limits — Sysop Manual
+# Limites de connexion — Manuel du sysop
 
-**Protecting a public receiver from connection floods.**
+**Protéger un récepteur public contre les afflux de connexions.**
 
-A WebSDR is a public service that hands anyone who asks a continuous stream of audio and spectrum. That is the point of it, and it is also the problem: nothing about a normal listener looks different, to the server, from someone opening sessions in a loop. On 16 September 2026 this receiver was hit by exactly that — one address opened 134 listener sessions inside a single minute and sat on 181 of them at once, while the station's genuine audience was around a dozen.
+Un WebSDR est un service public qui remet à quiconque le demande un flux continu d'audio et de spectre. C'est tout son intérêt, et c'est aussi le problème : pour le serveur, rien ne distingue un auditeur normal de quelqu'un qui ouvre des sessions en boucle. Le 16 septembre 2026, ce récepteur a subi exactement cela — une seule adresse a ouvert 134 sessions d'écoute en une minute et en a maintenu 181 simultanément, alors que le public réel de la station tournait autour d'une douzaine.
 
-This manual is about the three layers that stop it, what each one can and cannot do, and how to tell whether yours are set sensibly.
+Ce manuel traite des trois couches qui l'arrêtent, de ce que chacune peut et ne peut pas faire, et de la manière de savoir si les vôtres sont raisonnablement réglées.
 
-> **In a hurry?** The example `config.toml` already ships with sensible values, so a fresh installation is protected without you doing anything. If your own `.toml` predates this and has no `[limits]` keys beyond `audio`/`waterfall`/`events`, the per-IP limits are simply **off** — copy the block from the example to switch them on. The one command worth knowing afterwards is `grep Refused spectrumserver.log`, which tells you whether anyone is being turned away.
-
----
-
-## Contents
-
-1. [What you are actually defending against](#1-what-you-are-actually-defending-against)
-2. [The three layers](#2-the-three-layers)
-3. [Per-IP limits — the listener policy](#3-per-ip-limits)
-4. [Idle connections — the silent attack](#4-idle-connections)
-5. [The kernel guard — `setup-firewall.sh`](#5-the-kernel-guard)
-6. [Configuration reference](#6-configuration-reference)
-7. [What a refused listener sees](#7-what-a-refused-listener-sees)
-8. [Reading the logs and counters](#8-reading-the-logs-and-counters)
-9. [Choosing your numbers](#9-choosing-your-numbers)
-10. [Traps worth knowing about](#10-traps-worth-knowing-about)
-11. [Turning it all off](#11-turning-it-all-off)
+> **Pressé ?** Le `config.toml` d'exemple est déjà livré avec des valeurs sensées : une installation neuve est donc protégée sans que vous fassiez quoi que ce soit. Si votre propre `.toml` est plus ancien et ne comporte pas de clés `[limits]` au-delà de `audio`/`waterfall`/`events`, les limites par adresse sont tout simplement **désactivées** — copiez le bloc depuis l'exemple pour les activer. La seule commande à connaître ensuite est `grep Refused spectrumserver.log`, qui vous dit si quelqu'un se fait refuser.
 
 ---
 
-## 1. What you are actually defending against
+## Sommaire
 
-It is worth being precise, because the word "DDoS" covers two very different things and only one of them can be solved on your own machine.
-
-**Single-source flooding.** One host, or a small handful, opening connections as fast as it can. This is what happened here, and it is entirely fixable: the connections arrive from an address you can count, and counting is enough.
-
-**A genuine distributed attack.** Thousands of hosts, often with forged source addresses, filling your uplink. By the time those packets reach your network card the bandwidth has already been spent. **Nothing described in this manual helps**, and nothing you install on the server can — the only answer is a service upstream of you, which is a different conversation involving a real domain and a provider such as Cloudflare in front of the receiver.
-
-Everything below addresses the first case. That is not a limitation worth apologising for: the first case is what actually happens to amateur stations.
+1. [Contre quoi vous vous défendez réellement](#1-contre-quoi-vous-vous-défendez-réellement)
+2. [Les trois couches](#2-les-trois-couches)
+3. [Limites par adresse — la politique des auditeurs](#3-limites-par-adresse)
+4. [Connexions inactives — l'attaque silencieuse](#4-connexions-inactives)
+5. [La protection au niveau du noyau — `setup-firewall.sh`](#5-la-protection-au-niveau-du-noyau)
+6. [Référence de configuration](#6-référence-de-configuration)
+7. [Ce que voit un auditeur refusé](#7-ce-que-voit-un-auditeur-refusé)
+8. [Lire les journaux et les compteurs](#8-lire-les-journaux-et-les-compteurs)
+9. [Choisir vos nombres](#9-choisir-vos-nombres)
+10. [Pièges à connaître](#10-pièges-à-connaître)
+11. [Tout désactiver](#11-tout-désactiver)
 
 ---
 
-## 2. The three layers
+## 1. Contre quoi vous vous défendez réellement
+
+Il vaut la peine d'être précis, car le mot « DDoS » recouvre deux choses très différentes et une seule d'entre elles peut se régler sur votre propre machine.
+
+**Afflux d'une source unique.** Une machine, ou une poignée, ouvrant des connexions aussi vite qu'elle le peut. C'est ce qui s'est produit ici, et cela se corrige entièrement : les connexions arrivent d'une adresse que l'on peut compter, et compter suffit.
+
+**Une véritable attaque distribuée.** Des milliers de machines, souvent avec des adresses source falsifiées, qui saturent votre lien. Quand ces paquets atteignent votre carte réseau, la bande passante est déjà dépensée. **Rien de ce que décrit ce manuel n'aide**, et rien de ce que vous installez sur le serveur ne le peut — la seule réponse est un service en amont de vous, ce qui est une autre discussion, impliquant un vrai domaine et un fournisseur comme Cloudflare devant le récepteur.
+
+Tout ce qui suit traite du premier cas. Ce n'est pas une limite dont il faille s'excuser : le premier cas est ce qui arrive réellement aux stations d'amateur.
+
+---
+
+## 2. Les trois couches
 
 ```
-   the internet
+   l'internet
         │
         ▼
    ┌─────────────────────────────────────────────────────────┐
    │  1. nftables          setup-firewall.sh                 │
-   │     blunt, cheap, sheds volume before anything reads it │
+   │     grossier, peu coûteux, écrête le volume avant que   │
+   │     quoi que ce soit ne le lise                         │
    └─────────────────────────────────────────────────────────┘
         │
         ▼
    ┌─────────────────────────────────────────────────────────┐
-   │  2. spectrumserver    [limits] in config.toml           │
-   │     exact, per listener, knows who is who               │
+   │  2. spectrumserver    [limits] dans config.toml         │
+   │     exact, par auditeur, sait qui est qui               │
    └─────────────────────────────────────────────────────────┘
         │
         ▼
    ┌─────────────────────────────────────────────────────────┐
-   │  3. the browser       says why, and never retries       │
+   │  3. le navigateur     dit pourquoi, et ne réessaie jamais │
    └─────────────────────────────────────────────────────────┘
 ```
 
-They are deliberately not redundant. The kernel layer is fast but stupid — it counts packets from an address and knows nothing about listeners. The server layer is precise but only sees a connection once it has been accepted and parsed, which costs something. The browser layer exists so that a refused listener is told what happened instead of staring at a page that never loads.
+Elles ne sont délibérément pas redondantes. La couche noyau est rapide mais bête — elle compte les paquets venant d'une adresse et ne sait rien des auditeurs. La couche serveur est précise mais ne voit une connexion qu'une fois acceptée et analysée, ce qui coûte quelque chose. La couche navigateur existe pour qu'un auditeur refusé sache ce qui s'est passé, au lieu de fixer une page qui ne charge jamais.
 
 ---
 
-## 3. Per-IP limits
+## 3. Limites par adresse
 
-### What counts as one listener
+### Ce qui compte pour un auditeur
 
-A listener is **one `/audio` connection** — or, where `[kiwi_emulation]` is enabled, **one Kiwi sound connection**, which counts exactly the same. That is the same unit the user count, `users.json` and the labels on the waterfall already use, so a Kiwi client consumes a slot and appears in the user list just as a browser does.
+Un auditeur, c'est **une connexion `/audio`** — ou, là où `[kiwi_emulation]` est activé, **une connexion son Kiwi**, qui compte exactement pareil. C'est la même unité que celle qu'utilisent déjà le compteur d'utilisateurs, `users.json` et les étiquettes sur la cascade : un client Kiwi occupe donc une place et apparaît dans la liste des utilisateurs comme un navigateur.
 
-This matters because a single desktop browser tab opens **four** sockets to your server:
+Cela compte, car un seul onglet de navigateur sur ordinateur ouvre **quatre** connexions vers votre serveur :
 
-| Socket | Purpose |
+| Connexion | Rôle |
 |---|---|
-| `/audio` | the demodulated audio stream — **this is the listener** |
-| `/waterfall` | the spectrum display |
-| `/events` | user list, other listeners' frequencies |
-| `/chat` | the chat panel |
+| `/audio` | le flux audio démodulé — **c'est lui, l'auditeur** |
+| `/waterfall` | l'affichage du spectre |
+| `/events` | liste des utilisateurs, fréquences des autres auditeurs |
+| `/chat` | le panneau de discussion |
 
-A phone on `/mobile` opens two (`/audio` and `/chat`), because it has no waterfall. So a limit that counted raw sockets would refuse everybody: three tabs is twelve sockets.
+Un téléphone sur `/mobile` en ouvre deux (`/audio` et `/chat`), car il n'a pas de cascade. Une limite qui compterait les connexions brutes refuserait donc tout le monde : trois onglets, cela fait douze connexions.
 
-### The three keys
-
-```toml
-[limits]
-per_ip=3            # simultaneous listeners from one address
-per_ip_sockets=0    # simultaneous sockets of any path; 0 derives per_ip * 4 + 4
-per_ip_rate=40      # new sockets per minute from one address
-per_ip_ban_s=600    # how long an address that breaks the rate is refused
-```
-
-**`per_ip`** is the headline number and the one you will think about. Three is a good starting point.
-
-**`per_ip_sockets`** exists because `/audio` is not the only thing worth flooding. `/waterfall` is the heaviest stream your server produces, and a limit that counted only listeners could be sidestepped simply by opening waterfall sockets instead. Left at `0` it becomes `per_ip * 4 + 4`, which fits `per_ip` full desktop tabs with a little slack for sockets the kernel has not finished reaping after a page reload.
-
-**`per_ip_rate`** is what actually ends a flood. A cap alone does not: refusing a connection is cheap but not free, and an attacker can keep reconnecting as fast as the refusals come back, burning your CPU on setup and teardown. The rate limit gives them a ban instead of an answer. Remember one tab costs four, so 40/minute is about ten page loads a minute from one address.
-
-> **A deliberate ordering.** The rate is charged *before* the simultaneous cap is tested. This looks backwards until you consider an address already sitting at its cap and reconnecting in a loop: if the cheap "you are at the cap" refusal answered it every time, the rate violations would never accumulate and the ban that ends the loop would never trigger.
-
-### Who is exempt
-
-**Loopback is never limited.** The autorun spot-reporting tap, the admin panel and a browser opened on the server machine itself all arrive from `127.0.0.1`, and letting them consume slots would mean your own station locking out your listeners.
-
-This also covers `proxy.py`: connections through the proxy reach `spectrumserver` from loopback, and the real client address arrives in the `X-Forwarded-For` header, which is what the limits are keyed on.
-
-Since v5.0.0 that header is believed **only from a loopback peer** — a proxy on the same machine. Sent by anyone else it is ignored and the TCP address counts, because otherwise a direct visitor could write `X-Forwarded-For: 127.0.0.1` and pass as loopback, past every limit on this page. `proxy.py` also drops any `X-Forwarded-For` or `X-Real-IP` a client sends before adding its own, and answers the sysop kick (`/~~kick`) only for clients on the same machine. A station running several receivers behind the proxy is described in [Several Receivers](MULTI_RECEIVER.md); the limits there apply per receiver.
-
----
-
-## 4. Idle connections
-
-There is an attack that none of the above can see.
-
-Open a TCP connection. Send nothing. Hold it.
-
-Such a peer never completes a request, so it never reaches the code where the per-IP limits live — no listener exists, no client object exists, nothing has a name to count. Meanwhile it costs the attacker a few bytes and costs you a file descriptor and a slot for as long as it is held.
+### Les trois clés
 
 ```toml
 [limits]
-idle_per_ip=8       # idle (pre-request) connections per address
-idle_total=512      # ceiling across all addresses
+per_ip=3            # auditeurs simultanés depuis une adresse
+per_ip_sockets=0    # connexions simultanées de tout type ; 0 donne per_ip * 4 + 4
+per_ip_rate=40      # nouvelles connexions par minute depuis une adresse
+per_ip_ban_s=600    # durée de refus d'une adresse qui dépasse le débit
 ```
 
-The limit is on **how many**, not **how long**, and that distinction is the whole design. **There is no deadline on an idle connection, and deliberately so.** A deadline seems the obvious answer and is a trap (see [§10](#10-traps-worth-knowing-about)): there are legitimate peers that connect and then sit silent for a long time before speaking. What separates them from an attack is quantity — a legitimate peer holds one such connection, an attacker holds thousands.
+**`per_ip`** est le nombre principal, celui auquel vous penserez. Trois est un bon point de départ.
 
-An idle connection therefore lives until it makes a request or dies, and its slot is released either way.
+**`per_ip_sockets`** existe parce que `/audio` n'est pas la seule chose qu'il vaille la peine d'inonder. `/waterfall` est le flux le plus lourd que produit votre serveur, et une limite qui ne compterait que les auditeurs se contournerait en ouvrant simplement des connexions de cascade. Laissé à `0`, il devient `per_ip * 4 + 4`, ce qui loge `per_ip` onglets complets avec un peu de marge pour les connexions que le noyau n'a pas encore recyclées après un rechargement de page.
 
-`idle_total` bounds a flood spread across many source addresses. When the ceiling is reached, **new** idle connections are refused rather than established ones evicted, so a legitimate long-lived connection is never what gets dropped to make room.
+**`per_ip_rate`** est ce qui met réellement fin à un afflux. Le plafond seul n'y suffit pas : refuser une connexion est peu coûteux mais pas gratuit, et un attaquant peut se reconnecter aussi vite que les refus reviennent, en brûlant votre processeur en montages et démontages. La limite de débit lui donne un blocage au lieu d'une réponse. Rappelez-vous qu'un onglet coûte quatre : 40/minute, c'est environ dix chargements de page par minute depuis une adresse.
 
-Both are enforced at the moment the socket is accepted, using the peer address — there is no request yet, so there is no `X-Forwarded-For` to consult. That is fine: loopback is uncounted, which covers everything arriving through `proxy.py`, and a direct flood carries its own address.
+> **Un ordre délibéré.** Le débit est débité *avant* que le plafond de simultanéité ne soit testé. Cela semble à l'envers jusqu'à ce qu'on pense à une adresse déjà à son plafond et qui se reconnecte en boucle : si le refus bon marché « tu es au plafond » lui répondait à chaque fois, les infractions de débit ne s'accumuleraient jamais et le blocage qui met fin à la boucle ne se déclencherait jamais.
+
+### Qui est exempté
+
+**La boucle locale n'est jamais limitée.** Le tap autorun pour les rapports de spots, le panneau d'administration et un navigateur ouvert sur la machine du serveur elle-même arrivent tous depuis `127.0.0.1`, et les laisser consommer des places reviendrait à ce que votre propre station enferme dehors vos auditeurs.
+
+Cela couvre aussi `proxy.py` : les connexions passant par le proxy atteignent `spectrumserver` depuis la boucle locale, et l'adresse réelle du client arrive dans l'en-tête `X-Forwarded-For`, sur lequel les limites sont indexées.
+
+Depuis la v5.0.0, cet en-tête n'est cru **que s'il vient d'un pair loopback** — un proxy sur la même machine. Envoyé par n'importe qui d'autre, il est ignoré et c'est l'adresse TCP qui compte, car sinon un visiteur direct pourrait écrire `X-Forwarded-For: 127.0.0.1` et passer pour loopback, au-delà de toutes les limites de cette page. `proxy.py` supprime en outre tout `X-Forwarded-For` ou `X-Real-IP` envoyé par un client avant d'ajouter les siens, et ne répond à l'expulsion du sysop (`/~~kick`) que pour les clients de la même machine. Une station à plusieurs récepteurs derrière le proxy est décrite dans [Plusieurs récepteurs](MULTI_RECEIVER.md) ; les limites s'y appliquent par récepteur.
 
 ---
 
-## 5. The kernel guard
+## 4. Connexions inactives
 
-`setup-firewall.sh` installs an nftables table that sheds volume before `spectrumserver` ever reads a byte. It is deliberately blunt, and its numbers sit well above the ones in `config.toml`, so a normal listener can never be caught by both.
+Il existe une attaque qu'aucun des mécanismes ci-dessus ne peut voir.
+
+Ouvrir une connexion TCP. Ne rien envoyer. La garder.
+
+Un tel interlocuteur ne complète jamais de requête : il n'atteint donc jamais le code où vivent les limites par adresse — pas d'auditeur, pas d'objet client, rien qui porte un nom que l'on puisse compter. Pendant ce temps, cela lui coûte quelques octets et vous coûte un descripteur de fichier et une place tant qu'elle est tenue.
+
+```toml
+[limits]
+idle_per_ip=8       # connexions inactives (avant requête) par adresse
+idle_total=512      # plafond toutes adresses confondues
+```
+
+La limite porte sur le **combien**, pas sur le **combien de temps**, et cette distinction fait toute la conception. **Il n'y a aucun délai sur une connexion inactive, et c'est délibéré.** Un délai semble la réponse évidente et c'est un piège (voir [§10](#10-pièges-à-connaître)) : il existe des interlocuteurs légitimes qui se connectent puis restent silencieux longtemps avant de parler. Ce qui les sépare d'une attaque, c'est la quantité — un interlocuteur légitime tient une telle connexion, un attaquant en tient des milliers.
+
+Une connexion inactive vit donc jusqu'à ce qu'elle fasse une requête ou qu'elle meure, et sa place est rendue dans les deux cas.
+
+`idle_total` borne un afflux réparti sur de nombreuses adresses source. Une fois le plafond atteint, ce sont les **nouvelles** connexions inactives qui sont refusées plutôt que les existantes évincées : une connexion légitime et de longue durée n'est donc jamais ce que l'on sacrifie pour faire de la place.
+
+Les deux s'appliquent au moment où la socket est acceptée, à partir de l'adresse du pair — il n'y a pas encore de requête, donc pas de `X-Forwarded-For` à consulter. Ce n'est pas gênant : la boucle locale n'est pas comptée, ce qui couvre tout ce qui arrive par `proxy.py`, et un afflux direct porte sa propre adresse.
+
+---
+
+## 5. La protection au niveau du noyau
+
+`setup-firewall.sh` installe une table nftables qui écrête le volume avant que `spectrumserver` n'en lise le moindre octet. Elle est délibérément grossière, et ses nombres se situent bien au-dessus de ceux de `config.toml`, afin qu'un auditeur normal ne puisse jamais être pris par les deux.
 
 ```bash
-./setup-firewall.sh --show        # print the rules, change nothing
-sudo ./setup-firewall.sh --check  # validate against your kernel
-sudo ./setup-firewall.sh --apply  # load, with a 60-second auto-rollback
-sudo ./setup-firewall.sh --persist # reload at boot
-sudo ./setup-firewall.sh --status  # the per-rule packet counters
-sudo ./setup-firewall.sh --remove  # undo all of it
+./setup-firewall.sh --show        # afficher les règles, ne rien changer
+sudo ./setup-firewall.sh --check  # valider vis-à-vis de votre noyau
+sudo ./setup-firewall.sh --apply  # charger, avec retour arrière automatique à 60 s
+sudo ./setup-firewall.sh --persist # recharger au démarrage
+sudo ./setup-firewall.sh --status  # les compteurs de paquets par règle
+sudo ./setup-firewall.sh --remove  # tout annuler
 ```
 
-It covers four things: a concurrent-connection ceiling per source address on your proxy and receiver ports, a new-connection rate per source, an SSH brute-force brake, and Windows file sharing closed to everything outside private address ranges — `smbd` listens on `0.0.0.0` on many machines, and whether that is reachable depends on a router the script cannot see.
+Elle couvre quatre choses : un plafond de connexions simultanées par adresse source sur vos ports de proxy et de récepteur, un débit de nouvelles connexions par source, un frein contre la force brute SSH, et le partage de fichiers Windows fermé à tout ce qui se trouve hors des plages d'adresses privées — `smbd` écoute sur `0.0.0.0` sur bien des machines, et son accessibilité depuis l'extérieur dépend d'un routeur que le script ne peut pas voir.
 
-Ports are read from `admin_config.json`, the same file `proxy.py` uses, so it follows your setup.
+Les ports sont lus dans `admin_config.json`, le fichier même qu'utilise `proxy.py` : la configuration suit donc la vôtre.
 
-### Why it cannot lock you out
+### Pourquoi elle ne peut pas vous enfermer dehors
 
-Two properties, both deliberate:
+Deux propriétés, toutes deux délibérées :
 
-- The table's policy is **accept**, and it only ever drops specific named patterns. A rule that fails to match lets the packet through to whatever else you have configured. It cannot black-hole the machine.
-- **Established connections are accepted in the very first rule.** The SSH session you are typing in is never affected by anything that follows.
+- La politique de la table est **accept**, et elle ne rejette que des motifs nommés précis. Une règle qui ne correspond pas laisse passer le paquet vers ce que vous avez configuré par ailleurs. Elle ne peut pas rendre la machine injoignable.
+- **Les connexions établies sont acceptées dès la toute première règle.** La session SSH dans laquelle vous tapez n'est jamais affectée par ce qui suit.
 
-On top of that, `--apply` arms an automatic rollback: load the rules, then confirm within 60 seconds or they are removed again. Say nothing, close the terminal, lose your connection — the ruleset disappears by itself.
+Par-dessus cela, `--apply` arme un retour arrière automatique : charger les règles, puis confirmer dans les 60 secondes, faute de quoi elles sont retirées. Ne dites rien, fermez le terminal, perdez votre connexion — le jeu de règles disparaît de lui-même.
 
-Use that window properly. Check **from another device, off your own network** that the receiver still loads and that a *new* SSH session still opens. Testing with the session you already have proves nothing, because it was accepted by rule one.
+Utilisez bien cette fenêtre. Vérifiez **depuis un autre appareil, hors de votre propre réseau**, que le récepteur charge toujours et qu'une *nouvelle* session SSH s'ouvre. Tester avec la session que vous avez déjà ne prouve rien, puisqu'elle a été acceptée par la règle un.
 
 ---
 
-## 6. Configuration reference
+## 6. Référence de configuration
 
-Every key below lives under `[limits]` in your `.toml` file. **All of them default to off or to generous values**, so a configuration that does not mention them behaves exactly as it always did.
+Chaque clé ci-dessous vit sous `[limits]` dans votre fichier `.toml`. **Toutes sont par défaut désactivées ou généreuses** : une configuration qui ne les mentionne pas se comporte donc exactement comme avant.
 
-| Key | Default | Meaning |
+| Clé | Défaut | Signification |
 |---|---|---|
-| `per_ip` | `0` (off) | Simultaneous listeners per address |
-| `per_ip_sockets` | `0` → `per_ip * 4 + 4` | Simultaneous sockets of any path per address |
-| `per_ip_rate` | `0` (off) | New sockets per minute per address |
-| `per_ip_ban_s` | `600` | Seconds an address is refused after breaking the rate |
-| `idle_per_ip` | `8` | Idle, pre-request connections per address |
-| `idle_total` | `512` | Idle connections across all addresses |
+| `per_ip` | `0` (désactivé) | Auditeurs simultanés par adresse |
+| `per_ip_sockets` | `0` → `per_ip * 4 + 4` | Connexions simultanées de tout type par adresse |
+| `per_ip_rate` | `0` (désactivé) | Nouvelles connexions par minute et par adresse |
+| `per_ip_ban_s` | `600` | Secondes de refus après dépassement du débit |
+| `idle_per_ip` | `8` | Connexions inactives, avant requête, par adresse |
+| `idle_total` | `512` | Connexions inactives toutes adresses confondues |
 
-Setting any key to `0` disables that particular check.
+Mettre n'importe quelle clé à `0` désactive ce contrôle précis.
 
-### The three that are not limits
+### Les trois qui ne sont pas des limites
 
-`[limits]` also holds `audio`, `waterfall` and `events`, inherited from upstream PhantomSDR, and **none of the three is enforced.** `waterfall` and `events` are read by no code at all. `audio` is read in exactly one place: it is posted as `max_users` in the registration JSON sent to the directories in `[websdr] register_urls`, so it is the figure sdr-list.xyz and the others display, and it does nothing whatsoever when `register_online=false`. If you want a cap on listeners, `per_ip` above is the one that acts.
+`[limits]` contient aussi `audio`, `waterfall` et `events`, héritées du PhantomSDR d'origine, et **aucune des trois n'est appliquée.** `waterfall` et `events` ne sont lues par aucun code. `audio` est lue en un seul endroit : elle est envoyée comme `max_users` dans le JSON d'enregistrement aux annuaires de `[websdr] register_urls`, c'est donc le chiffre qu'affichent sdr-list.xyz et les autres, et elle ne fait absolument rien lorsque `register_online=false`. Si vous voulez un plafond d'auditeurs, c'est `per_ip` plus haut qui agit.
 
-### One more, under `[server]`
+### Une de plus, sous `[server]`
 
 ```toml
 [server]
 min_client_version=0
 ```
 
-Not a limit but a refusal, and it shares the same close code, so it belongs here. Pages announce the build they were loaded from as `/audio?v=N`, and anything below `min_client_version` is turned away with *"this page is out of date — please reload it"*.
+Ce n'est pas une limite mais un refus, et comme il partage le même code de fermeture, sa place est ici. Les pages annoncent la version depuis laquelle elles ont été chargées sous la forme `/audio?v=N`, et tout ce qui est en dessous de `min_client_version` est éconduit avec *« cette page est périmée — veuillez la recharger »*.
 
-It exists because the server cannot reach JavaScript that is already running in somebody's browser. A tab keeps the code it loaded until someone reloads it, so a change to the page only reaches listeners who happen to reload — and a station that has just changed how sessions behave may need the old pages gone now, not eventually.
+Cela existe parce que le serveur ne peut pas atteindre du JavaScript qui tourne déjà dans le navigateur de quelqu'un. Un onglet conserve le code qu'il a chargé jusqu'à ce que quelqu'un le recharge : une modification de la page n'atteint donc que les auditeurs qui rechargent par hasard — et une station qui vient de changer le comportement des sessions peut avoir besoin que les anciennes pages disparaissent maintenant, et non un jour.
 
-Only `/audio` is checked, because that is the socket a session lives on, and loopback and the Kiwi paths are exempt so the autorun tap and Kiwi clients are untouched. `0` disables it and is the default. Leaving it on once the old pages have drained is fine: a current diversity client that is refused on a bare `/audio` retries with the marker, so what is still turned away is a diversity client on an older PhantomSDR-Plus build and any third-party tool that opens `/audio` without `?v=`. Set it back to `0` if another station reports that it can no longer use you as a diversity partner.
+Seul `/audio` est vérifié, car c'est là que vit une session, et la boucle locale ainsi que les chemins Kiwi sont exemptés afin que le tap autorun et les clients Kiwi ne soient pas touchés. `0` le désactive et c'est la valeur par défaut. Le laisser actif une fois les anciennes pages écoulées ne pose pas de problème : un client de diversité actuel refusé sur un `/audio` nu réessaie avec le marqueur, si bien que seuls restent éconduits les clients de diversité d'une version plus ancienne de PhantomSDR-Plus et les outils tiers qui ouvrent `/audio` sans `?v=`. Remettez-le à `0` si une autre station signale qu'elle ne peut plus vous utiliser comme partenaire de diversité.
 
 ---
 
-## 7. What a refused listener sees
+## 7. Ce que voit un auditeur refusé
 
-### Nothing ever reconnects
+### Rien ne se reconnecte jamais
 
-Start here, because it governs everything else: **a dropped `/audio` socket ends the session.** There is no automatic reconnection, by design.
+Commencez par là, car cela gouverne tout le reste : **une connexion `/audio` qui tombe met fin à la session.** Il n'y a pas de reconnexion automatique, et c'est voulu.
 
-A reconnect is the right instinct for a chat application and the wrong one for a receiver. `/waterfall` and `/events` never came back with it, so a retried session was a live audio socket bolted to a frozen waterfall; and stopping the server no longer cleared it, because every listener was back a few seconds later, filling the user list with sessions nobody was really in. The page goes quiet and the listener loads it again — which is what this receiver did before a reconnect was ever added.
+Se reconnecter est le bon réflexe pour une application de discussion et le mauvais pour un récepteur. `/waterfall` et `/events` ne revenaient jamais avec elle : une session réessayée était donc une connexion audio vivante boulonnée à une cascade figée ; et arrêter le serveur ne le vidait plus, puisque chaque auditeur était de retour quelques secondes plus tard, remplissant la liste d'utilisateurs de sessions où en réalité personne ne se trouvait. La page se tait et l'auditeur la recharge — ce que faisait précisément ce récepteur avant qu'une reconnexion n'y soit ajoutée.
 
-For the limits in this manual that also removes a trap: against a rate limit, an automatic retry would extend the very ban it was trying to get around.
+Pour les limites de ce manuel, cela supprime aussi un piège : face à une limite de débit, une tentative automatique prolongerait justement le blocage qu'elle cherchait à contourner.
 
-### The two close codes
+### Les deux codes de fermeture
 
-| Code | Meaning | Who sends it |
+| Code | Signification | Qui l'envoie |
 |---|---|---|
-| **4003** | refused — over a per-IP limit, or the page is out of date | `spectrumserver` |
-| **4001** | kicked by the sysop | `spectrumserver`, when the admin panel calls `/~~kick` |
+| **4003** | refusé — au-delà d'une limite par adresse, ou page périmée | `spectrumserver` |
+| **4001** | exclu par le sysop | `spectrumserver`, quand le panneau appelle `/~~kick` |
 
-Both are in the 4000–4999 private range, so neither can be confused with a protocol status, and both are treated as final by every page. The reason text travels in the close frame rather than as a message, because the first frame on `/audio` is reserved for the receiver's settings and anything sent ahead of it would break every normal connection.
+Tous deux sont dans la plage privée 4000–4999, aucun ne peut donc être confondu avec un état de protocole, et tous deux sont tenus pour définitifs par toutes les pages. Le texte du motif voyage dans la trame de fermeture plutôt qu'en message, car la première trame sur `/audio` est réservée aux réglages du récepteur et tout ce qui serait envoyé avant casserait toute connexion normale.
 
-### On the page
+### Sur la page
 
-**Refused as the page loads** — the listener never gets going, so both pages explain themselves. The desktop shows a panel: *"This receiver refused the connection"*, the reason, and the note that everyone sharing an internet connection counts as one address. `/mobile` shows the same in its notice area.
+**Refusé au chargement de la page** — l'auditeur ne démarre même pas, les deux pages s'expliquent donc. Le bureau affiche un panneau : *« Ce récepteur a refusé la connexion »*, le motif, et la note que tous ceux qui partagent un accès internet comptent pour une seule adresse. `/mobile` affiche la même chose dans sa zone d'avis.
 
-**Refused or kicked mid-session** — the desktop page simply stops, deliberately without a message: the waterfall's draw loop halts and that is all. `/mobile` shows one line telling the listener to reload, except after a kick, where it too stays silent.
+**Refusé ou exclu en cours de session** — la page de bureau s'arrête simplement, délibérément sans message : la boucle de dessin de la cascade s'interrompt, et c'est tout. `/mobile` affiche une ligne invitant l'auditeur à recharger, sauf après une exclusion, où elle reste silencieuse elle aussi.
 
-That silence after a kick is intentional. **Kicking is the sysop ending a session, not a punishment** — nothing is announced, and whoever wants back in loads the page again and is an ordinary listener one second later. The only thing the 4001 code buys is that the browser knows this was not a dropped connection, so the kick actually takes instead of undoing itself.
+Ce silence après une exclusion est intentionnel. **Exclure, c'est le sysop qui met fin à une session, ce n'est pas une punition** — rien n'est annoncé, et qui veut revenir recharge la page et redevient un auditeur ordinaire une seconde plus tard. Tout ce qu'apporte le code 4001, c'est que le navigateur sache qu'il ne s'agissait pas d'une connexion tombée : l'exclusion prend donc effet au lieu de s'annuler d'elle-même.
 
-The kick is done by `spectrumserver` itself, not by `proxy.py`: listeners connect to the receiver's own port directly, so the proxy owns none of their sockets and its version of a kick reaches nobody. The panel calls `/~~kick?ip=&secs=`, which is loopback-only and checks the real TCP peer rather than `X-Forwarded-For`, that being client-supplied. `secs` defaults to zero — no ban — but it accepts a length if you do want the address kept out for a while, and that reuses the same ban machinery as `per_ip_rate` so the reconnect is refused at the door.
+L'exclusion est faite par `spectrumserver` lui-même, et non par `proxy.py` : les auditeurs se connectent directement au port du récepteur, le proxy ne possède donc aucune de leurs connexions et son exclusion n'atteint personne. Le panneau appelle `/~~kick?ip=&secs=`, joignable en boucle locale seulement et vérifié sur le vrai pair TCP, non sur `X-Forwarded-For`, que le client fournit. `secs` vaut zéro par défaut — aucun bannissement — mais accepte une durée si vous voulez garder l'adresse dehors un moment, et cela réutilise le mécanisme de bannissement de `per_ip_rate`, si bien que la reconnexion est refusée à la porte.
 
-## 8. Reading the logs and counters
+## 8. Lire les journaux et les compteurs
 
-### The server
+### Le serveur
 
 ```bash
 grep Refused spectrumserver.log
@@ -240,73 +241,73 @@ Refused /audio from 203.0.113.5: too many simultaneous connections
 Refused /audio from 198.51.100.7: too many connection attempts
 ```
 
-Nothing there means nobody is being turned away. Logging is throttled to at most one line per address every five seconds — without that, an attack would turn into unbounded disk writes, which is simply a slower way of taking the station down.
+S'il n'y a rien, personne n'est refusé. La journalisation est limitée à au plus une ligne par adresse toutes les cinq secondes — sans cela, une attaque se transformerait en écritures disque sans borne, ce qui n'est qu'une façon plus lente de faire tomber la station.
 
-### The kernel
+### Le noyau
 
 ```bash
 sudo ./setup-firewall.sh --status
 ```
 
-Read the **`counter packets N`** on each rule; that is the number actually dropped. All zeros means nothing has been blocked and your thresholds are comfortably loose.
+Lisez le **`counter packets N`** de chaque règle ; c'est le nombre réellement rejeté. Tout à zéro signifie que rien n'a été bloqué et que vos seuils sont confortablement larges.
 
-Do not be alarmed by the `elements = { ... }` lists in the sets above the rules. Those are your ordinary listeners being *tracked* against the limits — an entry appears on an address's first connection and ages out a couple of minutes later. Tracking is not blocking.
+Ne vous alarmez pas des listes `elements = { ... }` dans les ensembles au-dessus des règles. Ce sont vos auditeurs ordinaires *suivis* par rapport aux limites — une entrée apparaît à la première connexion d'une adresse et expire une ou deux minutes plus tard. Suivre n'est pas bloquer.
 
 ---
 
-## 9. Choosing your numbers
+## 9. Choisir vos nombres
 
-Guessing is unnecessary; your own logs will tell you. This is the measurement that set `per_ip=3` here, run over a week of `logs/users_*.jsonl`:
+Deviner est inutile ; vos propres journaux vous le diront. Voici la mesure qui a fixé ici `per_ip=3`, sur une semaine de `logs/users_*.jsonl` :
 
-| Concurrent sessions from one address | Number of addresses |
+| Sessions simultanées depuis une adresse | Nombre d'adresses |
 |---|---|
 | 1 | 682 |
 | 2 | 54 |
 | 3 | 13 |
-| more than 3 | **8** |
+| plus de 3 | **8** |
 
-758 distinct addresses over seven days, and a limit of three would have touched eight of them. The flood sat at 181.
+758 adresses distinctes en sept jours, et une limite de trois en aurait touché huit. L'afflux, lui, était à 181.
 
-To repeat it on your own station, pair the session ids per address in `logs/users_*.jsonl` and take the maximum overlap. Note that the log records `tune` and `disconnect` events but has no `connect` event, so a session's start has to be inferred from its first `tune`.
+Pour refaire la mesure sur votre propre station, appariez les identifiants de session par adresse dans `logs/users_*.jsonl` et prenez le recouvrement maximal. Notez que le journal enregistre des événements `tune` et `disconnect` mais n'a pas d'événement `connect` : le début d'une session doit donc être déduit de son premier `tune`.
 
-**Remember NAT.** A club, a school, an office or a mobile carrier appears as a single address, and everyone behind it shares one allowance. This is inherent to any limit keyed on an address; the only mitigation is choosing a number you are comfortable with. If a listener ever reports being unable to connect, this is the first thing to suspect — check `grep Refused` before anything else.
+**N'oubliez pas le NAT.** Un club, une école, un bureau ou un opérateur mobile apparaissent comme une adresse unique, et tous ceux qui sont derrière partagent un même quota. C'est inhérent à toute limite indexée sur une adresse ; la seule atténuation est de choisir un nombre qui vous convienne. Si un auditeur signale un jour ne pas pouvoir se connecter, c'est la première chose à soupçonner — regardez `grep Refused` avant toute autre chose.
 
 ---
 
-## 10. Traps worth knowing about
+## 10. Pièges à connaître
 
-### Never put a deadline on an idle connection
+### Jamais de délai sur une connexion inactive
 
-There is no `handshake_s` knob any more, and this is why. A 30-second deadline on idle connections looks like the obvious defence against a slowloris. It was built, switched on, and produced this within a minute:
+Il n'y a plus de réglage `handshake_s`, et voici pourquoi. Un délai de 30 secondes sur les connexions inactives a l'air de la défense évidente contre un slowloris. Il a été écrit, activé, et a produit ceci en une minute :
 
 ```
 Idle deadline: closed 1 connection(s) idle past 30s: 192.87.173.88
 ```
 
-`192.87.173.88` is `etgd-websdr.ewi.utwente.nl` — **websdr.org's own callback host**. It connects back to your server and then sits idle, for well over 30 seconds, before sending its `GET /~~orgstatus`. The deadline cut it every time and registration stopped. The setting was removed rather than left as an option, because a footgun that breaks your directory listing is not worth the sixty lines that implement it.
+`192.87.173.88`, c'est `etgd-websdr.ewi.utwente.nl` — **la machine de rappel de websdr.org elle-même**. Elle se reconnecte vers votre serveur puis reste inactive, bien plus de 30 secondes, avant d'envoyer son `GET /~~orgstatus`. Le délai la coupait à chaque fois et l'enregistrement s'est arrêté. Le réglage a été supprimé plutôt que laissé en option : une arme qui se retourne contre vous et casse votre fiche d'annuaire ne vaut pas les soixante lignes qui l'implémentent.
 
-**The same reasoning applies to websocketpp's `open_handshake_timeout`, which is still there.** The ten-minute value in `spectrumserver.cpp` looks absurd and is load-bearing: it is what allows the websdr.org callback to sit idle at all. There is a second reason too — the `/~~orgstatus` handler answers from a thread holding a `dup()` of the socket, and websocketpp ends a timed-out connection with `shutdown()`, a socket-level call that reaches through the duplicate and would break the callback even if the idle time were not an issue.
+**Le même raisonnement vaut pour `open_handshake_timeout` de websocketpp, qui est toujours là.** La valeur de dix minutes dans `spectrumserver.cpp` paraît absurde et elle est porteuse : c'est elle qui permet au rappel de websdr.org de rester inactif. Il y a une seconde raison — le gestionnaire de `/~~orgstatus` répond depuis un fil qui détient un `dup()` de la socket, et websocketpp termine une connexion expirée par `shutdown()`, un appel au niveau de la socket qui traverse le duplicata et casserait le rappel même si le temps d'inactivité n'était pas en cause.
 
-If you need to bound silent connections, bound their number, not their age. That is what `idle_per_ip` and `idle_total` are.
+S'il faut borner les connexions silencieuses, bornez leur nombre, pas leur âge. C'est exactement ce que sont `idle_per_ip` et `idle_total`.
 
-### An nftables file must be idempotent
+### Un fichier nftables doit être idempotent
 
-`nft -f` **appends** to a table that already exists rather than replacing it. A ruleset file without a `delete table` prologue therefore doubles the entire chain every time it is reloaded — which is what a naive systemd unit does on every service restart. `setup-firewall.sh` generates the prologue for you; if you write your own rules, do the same.
+`nft -f` **ajoute** à une table déjà existante au lieu de la remplacer. Un fichier de règles sans préambule `delete table` double donc toute la chaîne à chaque rechargement — ce que fait précisément une unité systemd naïve à chaque redémarrage du service. `setup-firewall.sh` produit le préambule pour vous ; si vous écrivez vos propres règles, faites de même.
 
 ```bash
-sudo ./setup-firewall.sh --status | grep -c dport   # should be 8, not 16
+sudo ./setup-firewall.sh --status | grep -c dport   # doit donner 8, pas 16
 ```
 
 ---
 
-## 11. Turning it all off
+## 11. Tout désactiver
 
-The server limits: set the keys to `0`, or delete them from your `.toml`, and restart the receiver. There is no other state; nothing persists across a restart.
+Les limites du serveur : mettez les clés à `0`, ou effacez-les de votre `.toml`, puis redémarrez le récepteur. Il n'y a pas d'autre état ; rien ne survit à un redémarrage.
 
-The firewall:
+Le pare-feu :
 
 ```bash
 sudo ./setup-firewall.sh --remove
 ```
 
-That deletes the table, removes the saved ruleset and disables the boot service. Your machine returns to exactly the state it was in before — which, on most installations, means no firewall at all. That is worth thinking about before you remove it.
+Cela supprime la table, retire le jeu de règles enregistré et désactive le service de démarrage. Votre machine revient exactement dans l'état où elle était avant — ce qui, sur la plupart des installations, signifie aucun pare-feu du tout. Cela mérite réflexion avant de le retirer.

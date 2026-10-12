@@ -1,82 +1,82 @@
-# PhantomSDR-Plus User Guide
+# Guide de l'utilisateur PhantomSDR-Plus
 
-Welcome to PhantomSDR-Plus! This guide will help you get the most out of your WebSDR listening experience.
+Bienvenue dans PhantomSDR-Plus ! Ce guide vous aidera à tirer le meilleur parti de votre écoute WebSDR.
 
 ---
 
-## Table of Contents
+## Table des matières
 
 1. [Introduction](#introduction)
-2. [Getting Started](#getting-started)
-3. [Interface Overview](#interface-overview)
-4. [Basic Operations](#basic-operations)
-5. [Advanced Features](#advanced-features)
-6. [Demodulation Modes](#demodulation-modes)
-7. [Digital Decoders](#digital-decoders)
-8. [Keyboard Shortcuts](#keyboard-shortcuts)
-9. [Bookmarks](#bookmarks)
-10. [Mobile Usage](#mobile-usage)
-11. [Tips and Best Practices](#tips-and-best-practices)
-12. [Troubleshooting](#troubleshooting)
-13. [Frequently Asked Questions](#frequently-asked-questions)
+2. [Premiers pas](#premiers-pas)
+3. [Vue d'ensemble de l'interface](#vue-densemble-de-linterface)
+4. [Opérations de base](#opérations-de-base)
+5. [Fonctions avancées](#fonctions-avancées)
+6. [Modes de démodulation](#modes-de-démodulation)
+7. [Décodeurs numériques](#décodeurs-numériques)
+8. [Raccourcis clavier](#raccourcis-clavier)
+9. [Favoris](#favoris)
+10. [Utilisation sur mobile](#utilisation-sur-mobile)
+11. [Conseils et bonnes pratiques](#conseils-et-bonnes-pratiques)
+12. [Dépannage](#dépannage)
+13. [Foire aux questions](#foire-aux-questions)
 
 ---
 
 ## Introduction
 
-### What is PhantomSDR-Plus?
+### Qu'est-ce que PhantomSDR-Plus ?
 
-PhantomSDR-Plus is a web-based Software Defined Radio (SDR) that allows you to listen to radio signals over the internet. No special software or hardware is required on your end—just a modern web browser!
+PhantomSDR-Plus est une radio logicielle (SDR) accessible par le web qui vous permet d'écouter des signaux radio via Internet. Aucun logiciel ni matériel particulier n'est requis de votre côté — il suffit d'un navigateur web moderne !
 
-### What Can You Listen To?
+### Que pouvez-vous écouter ?
 
-Depending on the WebSDR's configuration, you can tune into:
+Selon la configuration du WebSDR, vous pouvez vous accorder sur :
 
-- **Amateur Radio**: Ham radio operators worldwide
-- **Broadcast Stations**: AM/FM radio, shortwave broadcasting
-- **Aviation**: Air traffic control, aircraft communications
-- **Marine**: Ship-to-shore, maritime weather
-- **Weather Satellites**: NOAA, METEOR-M
-- **Digital Modes**: FT8, JS8, RTTY, PSK31, and more
-- **Utility Stations**: Time signals, military, government
+- **Radioamateurs** : opérateurs radioamateurs du monde entier
+- **Stations de radiodiffusion** : radio AM/FM, radiodiffusion en ondes courtes
+- **Aviation** : contrôle aérien, communications aéronautiques
+- **Maritime** : liaisons navire-côte, météo maritime
+- **Satellites météo** : NOAA, METEOR-M
+- **Modes numériques** : FT8, RTTY, PSK31 et davantage
+- **Stations utilitaires** : signaux horaires, militaires, gouvernementaux
 
-### System Requirements
+### Configuration requise
 
-- **Browser**: Chrome/Edge (recommended), Firefox, Safari
-- **Connection**: Broadband internet (1+ Mbps recommended)
-- **Audio**: Working speakers or headphones
-- **Optional**: Mouse with scroll wheel for easier tuning
-
----
-
-## Getting Started
-
-### 1. Access the WebSDR
-
-Open your browser and navigate to the WebSDR URL provided by the operator.
-
-Example: `http://websdr.example.com:9002`
-
-### 2. Initial Page Load
-
-When the page loads, you'll see:
-- A colorful waterfall display showing radio activity
-- Control panel with frequency display and buttons
-- S-meter showing signal strength
-- User count indicator
-
-### 3. Start Listening
-
-1. **Click on a signal** in the waterfall display
-2. **Audio will automatically start** playing
-3. **Adjust volume** using your browser's volume control or the on-screen slider
-4. **Fine-tune frequency** by clicking precisely on the signal
+- **Navigateur** : Chrome/Edge (recommandé), Firefox, Safari
+- **Connexion** : Internet haut débit (1 Mbit/s ou plus recommandé)
+- **Audio** : haut-parleurs ou écouteurs fonctionnels
+- **Facultatif** : souris à molette pour un accord plus facile
 
 ---
 
-## Interface Overview
+## Premiers pas
 
-### Main Components
+### 1. Accéder au WebSDR
+
+Ouvrez votre navigateur et rendez-vous à l'adresse du WebSDR fournie par l'opérateur.
+
+Exemple : `http://websdr.example.com:9002`
+
+### 2. Chargement initial de la page
+
+Au chargement de la page, vous verrez :
+- un affichage en cascade coloré montrant l'activité radio
+- un panneau de commande avec l'affichage de fréquence et des boutons
+- un S-mètre indiquant la force du signal
+- un indicateur du nombre d'utilisateurs
+
+### 3. Commencer à écouter
+
+1. **Cliquez sur un signal** dans l'affichage en cascade
+2. **L'audio démarre automatiquement**
+3. **Réglez le volume** avec la commande de volume de votre navigateur ou le curseur à l'écran
+4. **Affinez la fréquence** en cliquant précisément sur le signal
+
+---
+
+## Vue d'ensemble de l'interface
+
+### Composants principaux
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -102,532 +102,533 @@ When the page loads, you'll see:
 └───────────────────────┴────────────────────────────┴─────────────────────┘
 ```
 
-The three panels below the waterfall scroll as one page; on a narrow window they stack instead of sitting side by side. **RADEL** and **RADEU** sit on the *Modes selector* heading line itself, to its right.
+Les trois panneaux sous la cascade défilent comme une seule page ; dans une fenêtre étroite ils s'empilent au lieu de se placer côte à côte. **RADEL** et **RADEU** se trouvent sur la ligne de titre *Modes selector* elle-même, à sa droite.
 
-### 1. Waterfall Display
+### 1. Affichage en cascade
 
-The waterfall is a visual representation of radio signals:
+La cascade est une représentation visuelle des signaux radio :
 
-- **Horizontal axis**: Frequency
-- **Vertical axis**: Time (scrolls downward)
-- **Colors**: Signal strength
-  - **Dark blue/black**: No signal (noise floor)
-  - **Green/yellow**: Weak to moderate signals
-  - **Orange/red**: Strong signals
-  - **White**: Very strong signals
+- **Axe horizontal** : la fréquence
+- **Axe vertical** : le temps (défile vers le bas)
+- **Couleurs** : la force du signal
+  - **Bleu foncé/noir** : aucun signal (plancher de bruit)
+  - **Vert/jaune** : signaux faibles à moyens
+  - **Orange/rouge** : signaux forts
+  - **Blanc** : signaux très forts
 
-### 2. Frequency Display
+### 2. Affichage de la fréquence
 
-Shows the currently tuned frequency in various formats:
-- **MHz**: 7.100.000 MHz (HF bands)
-- **kHz**: 14200 kHz
-- **Hz**: 145500000 Hz (VHF/UHF)
+Indique la fréquence actuellement accordée dans divers formats :
+- **MHz** : 7.100.000 MHz (bandes HF)
+- **kHz** : 14200 kHz
+- **Hz** : 145500000 Hz (VHF/UHF)
 
-### 3. S-Meter (analog or digital)
+### 3. S-mètre (analogique ou numérique)
 
-Displays signal strength:
-- **S1-S9**: Standard signal strength scale
-- **+dB**: Signals above S9 (e.g., S9+20dB)
-- **Analog or Digital**: Depending on configuration
+Affiche la force du signal :
+- **S1-S9** : échelle standard de force de signal
+- **+dB** : signaux au-dessus de S9 (p. ex. S9+20dB)
+- **Analogique ou numérique** : selon la configuration
 
-### 4. Mode Buttons
+### 4. Boutons de mode
 
-Select demodulation mode:
-- **AM**: Amplitude Modulation
-- **FM**: Frequency Modulation
-- **USB**: Upper Sideband
-- **LSB**: Lower Sideband
-- **CW**: Morse Code (Continuous Wave)
-- **WBFM**: Wideband FM (broadcast)
-- **QUAM**: C-QUAM AM stereo — the label turns green when a stereo pilot is detected
+Sélectionnez le mode de démodulation :
+- **AM** : modulation d'amplitude
+- **FM** : modulation de fréquence
+- **USB** : bande latérale supérieure
+- **LSB** : bande latérale inférieure
+- **CW** : code Morse (onde entretenue)
+- **WBFM** : FM à large bande (radiodiffusion)
+- **QUAM** : AM stéréo C-QUAM — le libellé passe au vert dès qu'un pilote stéréo est détecté
 
-Next to the **Modes selector** heading sit the **RADEL** and **RADEU** buttons, which start RADE v1 digital voice in one press — see [Digital Decoders](#digital-decoders).
+À côté du titre **Modes selector** se trouvent les boutons **RADEL** et **RADEU**, qui lancent la voix numérique RADE v1 en une seule pression — voir [Décodeurs numériques](#décodeurs-numériques).
 
-### 5. Control Panel
+### 5. Panneau de commande
 
-Additional controls:
-- **AGC**: Automatic Gain Control
-- **NR**: Noise Reduction (spectral)
-- **NB**: Noise Blanker (impulse)
-- **NS**: Background Noise Suppression
-- **AN**: Auto Notch
-- **CTCSS**: Sub-audible tone squelch (FM). Pressing it opens a small window beside the button with *Any tone* and the 49 standard subtones (67.0–254.1 Hz); pick one and the button shows it (for example *88.5*, or *ANY*), and the audio then passes only while that tone is received. The window's *Heard:* line shows the tone the receiver hears on the channel right now and how strong it is, so an unknown repeater tone can be read off. While CTCSS is on, FM audio plays 0.4 s behind the receiver, so the squelch is already open when a station's first words arrive; with *Any tone* the start can still be clipped slightly, so pick the exact tone where you can. Press the button again to switch CTCSS off; Escape or a click outside closes the window without changing anything. Bookmarks keep the chosen tone.
-- **SQL**: Squelch
-- **AI**: AI noise reduction (voice modes)
-- **Zoom**: Waterfall zoom level
-- **Wheel Tuning Steps**: step size used by the mouse wheel, from 10 Hz to 12.5 kHz (12.5 kHz is the VHF/UHF channel spacing)
-- **Decoders**: one-touch buttons that start and stop each decoder
+Commandes supplémentaires :
+- **AGC** : contrôle automatique de gain
+- **NR** : réduction de bruit (spectrale)
+- **NB** : silencieux d'impulsions
+- **NS** : suppression du bruit de fond
+- **AN** : notch automatique
+- **CTCSS** : squelch à sous-tonalité (FM). Un appui ouvre à côté du bouton une petite fenêtre avec *Any tone* et les 49 sous-tonalités normalisées (67,0–254,1 Hz) ; une fois la tonalité choisie, le bouton l'affiche (par exemple *88.5*, ou *ANY*) et l'audio ne passe que tant que cette tonalité est reçue. La ligne *Heard:* de la fenêtre indique la sous-tonalité que le récepteur entend sur le canal à cet instant et son intensité, ce qui permet de lire la tonalité inconnue d'un relais. Tant que le CTCSS est activé, l'audio FM est joué 0,4 s derrière le récepteur, afin que le squelch soit déjà ouvert quand arrivent les premiers mots d'une station ; avec *Any tone*, le début peut encore être légèrement coupé, choisissez donc la tonalité exacte quand vous le pouvez. Un nouvel appui désactive le CTCSS ; Échap ou un clic à l'extérieur ferme la fenêtre sans rien changer. Les signets conservent la tonalité choisie.
+- **SQL** : squelch
+- **AI** : réduction de bruit par IA (modes phonie)
+- **Zoom** : niveau de zoom de la cascade
+- **Wheel Tuning Steps** : pas d'accord de la molette de la souris, de 10 Hz à 12,5 kHz (12,5 kHz est l'espacement des canaux en VHF/UHF)
+- **Decoders** : boutons qui démarrent et arrêtent chaque décodeur en une pression
 
-### 6. Band Plan Overlay
+### 6. Superposition du plan de bandes
 
-Colored bars showing frequency allocations:
-- Different colors for different services
-- Helps identify what's allowed on each frequency
+Barres colorées indiquant les attributions de fréquences :
+- des couleurs différentes pour différents services
+- aide à identifier ce qui est autorisé sur chaque fréquence
 
 ---
 
-## Basic Operations
+## Opérations de base
 
-### Tuning to a Frequency
+### S'accorder sur une fréquence
 
-#### Method 1: Click on Waterfall
+#### Méthode 1 : cliquer sur la cascade
 
-1. Click directly on a signal in the waterfall
-2. The receiver will tune to that frequency
-3. Audio will begin playing
+1. Cliquez directement sur un signal dans la cascade
+2. Le récepteur s'accorde sur cette fréquence
+3. L'audio démarre
 
-#### Method 2: Type Frequency
+#### Méthode 2 : saisir la fréquence
 
-1. Click on the frequency display
-2. Type the desired frequency
-3. Press Enter
+1. Cliquez sur l'affichage de la fréquence
+2. Tapez la fréquence souhaitée
+3. Appuyez sur Entrée
 
-Examples:
+Exemples :
 - `7100` → 7.100 MHz
 - `14200.0` → 14.200 MHz
 - `145.500` → 145.500 MHz
 
-#### Method 3: Use Mouse Wheel
+#### Méthode 3 : utiliser la molette de la souris
 
-1. Hover over the frequency display
-2. Scroll wheel up to increase frequency
-3. Scroll wheel down to decrease frequency
+1. Placez le pointeur sur l'affichage de la fréquence
+2. Molette vers le haut pour augmenter la fréquence
+3. Molette vers le bas pour la diminuer
 
-#### Method 4: Step Buttons
+#### Méthode 4 : boutons de pas
 
-1. Use the **▲** and **▼** buttons next to frequency
-2. Step size varies by mode:
-   - **AM/FM**: 1 kHz steps
-   - **SSB**: 100 Hz steps
-   - **CW**: 10 Hz steps
+1. Utilisez les boutons **▲** et **▼** à côté de la fréquence
+2. Le pas varie selon le mode :
+   - **AM/FM** : pas de 1 kHz
+   - **BLU** : pas de 100 Hz
+   - **CW** : pas de 10 Hz
 
 ### Scanner
 
-The scanner walks the receiver across a range of channels and stops on the first one carrying a signal. It sits on the **Fine Tuning (kHz)** row, hard right:
+Le scanner promène le récepteur sur une plage de canaux et s'arrête sur le premier qui porte un signal. Il se trouve sur la ligne **Fine Tuning (kHz)**, tout à droite :
 
 ```
 7 152.0   ◀  ■  ▶  ⊘   30 dB · 4 ▾
 ```
 
-| Control | What it does |
-|---------|--------------|
-| **◀ ▶** | Scan down / up. While parked on a signal, an arrow resumes the scan. |
-| **■** | Stop. |
-| **⊘** | Lock this channel out of the scan — for a birdie or a permanent carrier. |
-| **30 dB · 4 ▾** | The threshold, with the level being measured right now beside it. Opens the settings. |
+| Commande | Rôle |
+|----------|------|
+| **◀ ▶** | Balayer vers le bas / le haut. À l'arrêt sur un signal, une flèche relance le balayage. |
+| **■** | Arrêter. |
+| **⊘** | Exclure ce canal du balayage — pour une porteuse permanente ou un birdie. |
+| **30 dB · 4 ▾** | Le seuil, et à côté le niveau mesuré à l'instant. Ouvre les réglages. |
 
-The text to the left shows what the scanner is doing: `Scanner` when idle, the frequency it has reached while scanning, `◉ 3s` while counting down to resume,
-`◉ 30·22s` while the channel is still busy, `◉ hold` when it will stay put.
+Le texte à gauche indique ce que fait le scanner : `Scanner` au repos, la fréquence atteinte pendant le balayage, `◉ 3s` pendant le décompte avant reprise, `◉ 30·22s` tant que le canal est encore occupé, `◉ hold` quand il reste en place.
 
-**Settings**
+**Réglages**
 
-- **Range** — *Scan Band* sweeps the band the scan starts in; *Scan Visible*
-sweeps exactly what the waterfall shows, and follows it if you zoom or drag.
-- **Scan** — *Every channel* tunes and listens to every channel in turn;
-  *Skip empty* reads the spectrum and jumps straight to the signals.
-- **Stop at** — how far above the band noise floor a channel must be to stop the
-scan, in dB. The floor is tracked continuously, so one setting works by day and by night. An empty channel does not read 0 dB — watch the live figure on the button for a moment and set the threshold above it.
-- **Resume after** — how long a channel must stay quiet before the scan moves on.
-Pauses in speech do not restart it. *Hold* stays until you press a button.
-- **Max stay** — moves on after this long even if the signal is still there, so a
-permanent carrier cannot hold the scan for ever.
+- **Range** — *Scan Band* balaie la bande où commence le balayage ;
+  *Scan Visible* balaie exactement ce que montre la cascade et la suit si vous
+zoomez ou la déplacez.
+- **Scan** — *Every channel* accorde et écoute chaque canal à son tour ;
+  *Skip empty* lit le spectre et saute directement aux signaux.
+- **Stop at** — de combien un canal doit dépasser le bruit de fond de la bande
+pour arrêter le balayage, en dB. Le bruit est suivi en continu : le même réglage convient de jour comme de nuit. Un canal vide n'affiche pas 0 dB — regardez un instant la valeur sur le bouton et placez le seuil au-dessus.
+- **Resume after** — combien de temps un canal doit rester calme avant que le
+balayage reparte. Les pauses de la parole ne le relancent pas. *Hold* reste en place jusqu'à ce que vous appuyiez sur un bouton.
+- **Max stay** — repart au bout de ce temps même si le signal est toujours là,
+pour qu'une porteuse permanente ne bloque pas le balayage indéfiniment.
 
-The step follows the mode — 1 kHz in SSB, 0.1 kHz in CW, 5 kHz in AM, 9 or 10 kHz on medium wave and 9 kHz on long wave — and stops land on the channel grid. The scan stays inside its range and inside what the receiver can tune; at an edge it wraps round and carries on.
+Le pas suit le mode — 1 kHz en BLU, 0,1 kHz en CW, 5 kHz en AM, 9 ou 10 kHz en ondes moyennes et 9 kHz en grandes ondes — et les arrêts tombent sur la grille des canaux. Le balayage reste dans sa plage et dans ce que le récepteur peut accorder ; à une extrémité il reprend à l'autre.
 
-Settings and the locked-out channels are remembered in your browser.
+Les réglages et les canaux exclus sont mémorisés dans votre navigateur.
 
 
-### Selecting Demodulation Mode
+### Choisir le mode de démodulation
 
-Choose the appropriate mode for the signal:
+Choisissez le mode adapté au signal :
 
-**For Voice Communications:**
-- **AM**: Aviation, broadcast AM, some amateur
-- **FM**: VHF/UHF repeaters, FM broadcast
-- **USB**: HF ham radio (20m, 17m, 15m, 12m, 10m)
-- **LSB**: HF ham radio (160m, 80m, 40m, 30m)
+**Pour les communications vocales :**
+- **AM** : aviation, radiodiffusion AM, certains trafics amateurs
+- **FM** : relais VHF/UHF, radiodiffusion FM
+- **USB** : radioamateur HF (20 m, 17 m, 15 m, 12 m, 10 m)
+- **LSB** : radioamateur HF (160 m, 80 m, 40 m, 30 m)
 
-**For Data/Digital:**
-- **USB**: Most digital modes (FT8, PSK31, RTTY)
-- **LSB**: Some digital modes on lower HF bands
+**Pour les données / le numérique :**
+- **USB** : la plupart des modes numériques (FT8, PSK31, RTTY)
+- **LSB** : certains modes numériques sur les bandes HF basses
 
-**For Morse Code:**
-- **CW**: Telegraph/Morse code signals
+**Pour le code Morse :**
+- **CW** : signaux télégraphiques / Morse
 
-### Adjusting Volume
+### Régler le volume
 
-- **On-screen slider**: Drag the volume slider
-- **Browser volume**: Use browser's media controls
-- **System volume**: Adjust your computer's volume
-- **Keyboard**: Use + and - keys (if supported)
+- **Curseur à l'écran** : faites glisser le curseur de volume
+- **Volume du navigateur** : utilisez les commandes multimédias du navigateur
+- **Volume système** : ajustez le volume de votre ordinateur
+- **Clavier** : utilisez les touches + et - (si prises en charge)
 
-### Using the S-Meter
+### Utiliser le S-mètre
 
-The S-meter shows signal strength:
+Le S-mètre indique la force du signal :
 
-- **S0-S3**: Very weak signal, difficult to copy
-- **S4-S6**: Weak to fair signal
-- **S7-S9**: Good to strong signal
-- **S9+**: Extremely strong signal
+- **S0-S3** : signal très faible, difficile à copier
+- **S4-S6** : signal faible à moyen
+- **S7-S9** : signal bon à fort
+- **S9+** : signal extrêmement fort
 
-**Tip**: For best audio, tune to signals showing S7 or higher.
+**Astuce** : pour un meilleur son, accordez-vous sur des signaux affichant S7 ou plus.
 
-**Changing the meter face**: on the analog (needle) meter, click the meter itself — or focus it and press Enter or Space — to cycle through three backgrounds: dark brushed metal, a light pale-grey face, and a warm vintage amber face. Your browser remembers the choice, so it is still there after a refresh or a restart. It is per browser and per address, so opening the receiver by hostname and by IP gives two separate settings, and a private window always starts from the site default.
+**Changer le cadran de l'instrument** : sur le S-mètre analogique (à aiguille), cliquez sur l'instrument lui-même — ou sélectionnez-le et appuyez sur Entrée ou Espace — pour faire défiler trois fonds : métal brossé sombre, un cadran clair gris pâle et un cadran ambre chaud de style vintage. Votre navigateur retient le choix : il est toujours là après un rafraîchissement ou un redémarrage. Il vaut par navigateur et par adresse : ouvrir le récepteur par nom d'hôte et par IP donne deux réglages distincts, et une fenêtre privée repart toujours du réglage par défaut du site.
 
-**Above 30 MHz** the meter follows the VHF standard of IARU Region 1: S9 is −93 dBm there instead of −73 dBm on HF, still six dB per S-unit. The needle and the bar switch by themselves with the tuned frequency; the dBm and dBµV figures are always the measured level. Some stations also set their VHF/UHF receivers to rest at **0 on an empty channel**, like a VHF/UHF transceiver's meter: above 60 MHz the needle and the bar then come up only when a signal stands out of the noise. The dBm, dBµV, SNR and NF figures always show the real values.
+**Au-dessus de 30 MHz**, le S-mètre suit la norme VHF de l'IARU Région 1 : S9 y vaut −93 dBm au lieu de −73 dBm en ondes courtes, toujours avec six dB par point S. L'aiguille et la barre basculent d'elles-mêmes selon la fréquence accordée ; les valeurs en dBm et dBµV indiquent toujours le niveau mesuré. Certaines stations règlent en outre leurs récepteurs VHF/UHF pour que les instruments restent à **0 sur un canal vide**, comme sur un transceiver VHF/UHF : au-dessus de 60 MHz, l'aiguille et la barre ne montent alors que lorsqu'un signal sort du bruit. Les valeurs dBm, dBµV, SNR et NF indiquent toujours les valeurs réelles.
 
-### Choosing a receiver
+### Choisir un récepteur
 
-Some stations run more than one receiver — for example one for HF and one for the 2 m band. They show a line *Receivers:* in the page header with one button per receiver; the one you are on is shown in yellow. Pressing another button opens that receiver's page, with its own waterfall, bands, chat and listener list. On the /mobile page the same buttons sit in the top bar. A station with a single receiver shows no such line.
+Certaines stations ont plus d'un récepteur — par exemple un pour les ondes courtes et un pour la bande des 2 m. Elles affichent dans l'en-tête de la page une ligne *Receivers:* avec un bouton par récepteur ; celui sur lequel vous êtes apparaît en jaune. Appuyer sur un autre bouton ouvre la page de ce récepteur, avec sa propre cascade, ses bandes, son chat et sa liste d'auditeurs. Sur la page /mobile, les mêmes boutons se trouvent dans la barre supérieure. Une station à un seul récepteur n'affiche pas cette ligne.
 
 ---
 
-## Advanced Features
+## Fonctions avancées
 
-### Auto Gain Control (AGC)
+### Contrôle automatique de gain (AGC)
 
-AGC keeps the audio at a steady level. The four buttons work like the AGC switch on a transceiver: all four give the same loudness, and they differ only in how quickly the gain comes back up when a signal gets weaker or stops.
+L'AGC maintient l'audio à un niveau stable. Les quatre boutons fonctionnent comme le commutateur d'AGC d'un transceiver : tous les quatre donnent le même volume et ne diffèrent que par la vitesse à laquelle le gain remonte lorsqu'un signal faiblit ou s'arrête.
 
-- **Auto**: the receiver's own AGC, tuned separately for SSB, AM and C-QUAM. This is the default.
-- **Fast**: no hang; the gain recovers in about 0.3 s. The noise comes up between words, and rapid fading is followed closely. Good for CW and for picking a weak station out between strong ones.
-- **Medium**: holds for 0.25 s, then recovers in about 1.2 s. A good everyday setting for SSB.
-- **Slow**: holds for 1 s, then recovers in about 3 s. The background stays down between words and between overs; a weak station right after a strong one sounds quieter for a few seconds.
+- **Auto** : l'AGC propre au récepteur, réglée séparément pour la BLU, l'AM et le C-QUAM. C'est le réglage par défaut.
+- **Fast** : pas de maintien ; le gain remonte en 0,3 s environ. Le bruit remonte entre les mots et le fading rapide est suivi de près. Bien pour la CW et pour extraire une station faible entre des fortes.
+- **Medium** : maintient 0,25 s, puis remonte en 1,2 s environ. Un bon réglage de tous les jours pour la BLU.
+- **Slow** : maintient 1 s, puis remonte en 3 s environ. Le fond reste bas entre les mots et entre les passages ; une station faible juste après une forte paraît plus faible pendant quelques secondes.
 
-**While a decoder is open** the AGC is held on Slow, whichever button is selected: the decoder hears the same audio as you and needs a steady gain. A small **Slow (decoder)** note appears next to the AGC heading, and your own choice returns as soon as the last decoder is closed.
+**Tant qu'un décodeur est ouvert**, l'AGC est maintenue sur Slow, quel que soit le bouton choisi : le décodeur entend le même audio que vous et a besoin d'un gain stable. Une petite mention **Slow (decoder)** apparaît à côté du titre AGC, et votre propre choix revient dès que le dernier décodeur est fermé.
 
-**Recommendation**: Start with "Fast" for AM, "Slow" for SSB.
+**Recommandation** : commencez par « Fast » pour l'AM, « Slow » pour la BLU.
 
-### The four noise controls
+### Les quatre commandes de bruit
 
-NR, NB, NS and AN are separate on/off buttons that each attack a different kind of noise. They are independent — switching one on does not switch on another — and they can be combined freely.
+NR, NB, NS et AN sont des boutons marche/arrêt distincts, chacun s'attaquant à un type de bruit différent. Ils sont indépendants — en activer un n'en active aucun autre — et se combinent librement.
 
-None of them reach the decoders: FT8, CW, WSPR, SSTV, FAX, NAVTEX, RTTY/PSK31/Olivia/Packet/APRS and the QRSS grabber all read the audio *before* these filters, so you can set them purely by ear without affecting what decodes. See the
-[Decoder manual](DECODERS.md#12-general-tips).
+Aucun n'atteint les décodeurs : FT8, CW, WSPR, SSTV, FAX, NAVTEX, RTTY/PSK31/Olivia/Packet/APRS et le grabber QRSS lisent l'audio *avant* ces filtres. Vous pouvez donc les régler purement à l'oreille sans influer sur ce qui est décodé. Voir le [manuel des décodeurs](DECODERS.md#12-conseils-généraux).
 
-### Noise Reduction (NR)
+### Réduction de bruit (NR)
 
-Spectral noise reduction. It estimates the noise level in each part of the audio spectrum and turns those parts down, leaving what stands above the noise alone.
+Réduction de bruit spectrale. Elle estime le niveau de bruit dans chaque partie du spectre audio et baisse ces parties, en laissant tranquille ce qui dépasse du bruit.
 
-**Use when**: You hear steady hiss or white noise behind the signal.
+**À utiliser quand** : vous entendez un souffle régulier ou un bruit blanc
+derrière le signal.
 
-Steady tones — a CW note, a carrier — are recognised as signal and protected, so NR does not eat a CW signal the way a naive filter would. Typical effect is a 10 dB drop in the noise between speech, for a few tenths of a dB off the speech itself.
+Les tonalités continues — une note CW, une porteuse — sont reconnues comme du signal et protégées : NR ne mange donc pas un signal CW comme le ferait un filtre naïf. Effet typique : 10 dB de bruit en moins entre les mots, pour quelques dixièmes de dB perdus sur la parole elle-même.
 
-### Noise Blanker (NB)
+### Silencieux d'impulsions (NB)
 
-Removes impulse noise: clicks, pops, static crashes, ignition and power-line noise. It watches the audio envelope and silences only the samples that spike far above it — about a millisecond per crash, ramped in and out so the blanking does not itself click.
+Supprime le bruit impulsionnel : clics, claquements, parasites atmosphériques, allumage et bruit de ligne électrique. Il surveille l'enveloppe audio et ne silence que les échantillons qui la dépassent largement — environ une milliseconde par parasite, avec des rampes d'entrée et de sortie pour que le blanking ne claque pas lui-même.
 
-**Use when**: You hear clicks or crashes from power lines, motors, thunderstorms
-or vehicle ignition.
+**À utiliser quand** : vous entendez des clics ou des claquements dus aux lignes
+électriques, aux moteurs, aux orages ou à l'allumage des véhicules.
 
-The 50 Hz and 60 Hz mains hum notches follow this button.
+Les notchs de ronflement secteur 50 Hz et 60 Hz suivent ce bouton.
 
-### Background Noise Suppression (NS)
+### Suppression du bruit de fond (NS)
 
-Measures the band's own noise floor over several seconds and applies a fixed cut to whatever sits at that floor, deeper at high audio frequencies than low. Where NR reacts moment to moment, NS is a slow, steady hand: it lowers the band hiss without changing how the signal itself sounds.
+Mesure sur plusieurs secondes le plancher de bruit propre à la bande et applique une atténuation fixe à ce qui s'y trouve, plus profonde dans l'aigu que dans le grave. Là où NR réagit d'instant en instant, NS est la main lente et sûre : elle abaisse le souffle de la bande sans changer la sonorité du signal.
 
-**Use when**: The band is quiet but hissy and you want the noise pushed down
-without the "underwater" quality of aggressive NR.
+**À utiliser quand** : la bande est calme mais soufflante et vous voulez faire
+descendre le bruit sans la sonorité « sous-marine » d'une NR agressive.
 
-Active in USB, LSB and AM only — CW, FM and digital modes are left untouched. It re-measures the floor whenever you retune or change mode, and settles within a few seconds.
+Active seulement en USB, LSB et AM — CW, FM et les modes numériques restent intacts. Elle remesure le plancher à chaque changement de fréquence ou de mode et se stabilise en quelques secondes.
 
-### Auto Notch (AN)
+### Notch automatique (AN)
 
-Automatically finds and removes steady interfering tones — heterodynes, carriers, birdies — without you having to place a notch by hand. It adapts continuously, so several tones can be removed at once and a drifting one stays notched.
+Trouve et supprime automatiquement les tonalités parasites continues — hétérodynes, porteuses, sifflements — sans que vous ayez à placer un notch à la main. Il s'adapte en continu : plusieurs tonalités peuvent être supprimées à la fois, et une tonalité qui dérive reste notchée.
 
-**Use when**: You hear a whistle or tone on top of the signal you want.
+**À utiliser quand** : vous entendez un sifflement ou une tonalité par-dessus le
+signal voulu.
 
-Bypassed in CW, where the wanted signal *is* a steady tone.
+Contourné en CW, où le signal utile *est* une tonalité continue.
 
-**Delay note**: NR and NS each add about 40 ms of audio delay while switched on
-(both together, about 80 ms). NB and AN add none. This affects listening only, never the decoders.
+**Note sur le retard** : NR et NS ajoutent chacun environ 40 ms de retard audio
+lorsqu'ils sont activés (les deux ensemble, environ 80 ms). NB et AN n'en ajoutent aucun. Cela ne concerne que l'écoute, jamais les décodeurs.
 
-### Auto Squelch (SQL)
+### Squelch automatique (SQL)
 
-Mutes audio when no signal is present:
+Coupe l'audio en l'absence de signal :
 
-- **Off**: Always playing (hear static)
-- **Auto**: Automatically sets threshold
-- **Manual**: Adjust threshold manually
+- **Off** : audio permanent (souffle audible)
+- **Auto** : seuil défini automatiquement
+- **Manual** : réglage manuel du seuil
 
-**Use when**: Monitoring a frequency for activity.
+**À utiliser quand** : vous surveillez une fréquence en attendant du trafic.
 
-### AI Noise Reduction (AI)
+### Réduction de bruit par IA (AI)
 
-The **AI** button, with a strength slider beside it, sits in the Audio & Buffer panel right under SQ. On the /mobile page it is in the Audio tab, under Squelch. It removes band noise from speech with RNNoise, a small neural network trained on voice.
+Le bouton **AI**, avec un curseur d'intensité à côté, se trouve dans le panneau Audio & Buffer, juste sous SQ. Sur la page /mobile, il est dans l'onglet Audio, sous Squelch. Il retire le bruit de bande de la parole grâce à RNNoise, un petit réseau de neurones entraîné sur la voix.
 
-Everything happens in your own browser: nothing is sent to an outside server, there is no account, and the receiver does no extra work.
+Tout se passe dans votre propre navigateur : rien n'est envoyé à un serveur extérieur, aucun compte n'est nécessaire, et le récepteur n'a aucun travail supplémentaire.
 
-- **On/off**: Click **AI**; the button turns blue. The first click downloads the module (about 1.3 MB), and the button pulses while it loads.
-- **Strength**: The slider sets how strongly it works while someone is talking — lower values keep more of the original sound. The top of the scale is deliberately softer than a full cut, so that speech is not damaged even at 100%, which still cleans more than 50% does. Between words it works harder on its own, so the hiss drops further there. The default is 50%. You can set it while AI is off.
-- **Status label**: The AI label under the frequency display lights cyan while AI is working, and shows half-dimmed when AI is on but the current mode is not a voice mode.
+- **Marche/arrêt** : cliquez sur **AI** ; le bouton devient bleu. Le premier clic télécharge le module (environ 1,3 Mo), et le bouton pulse pendant le chargement.
+- **Intensité** : règle l'intensité de son action pendant que quelqu'un parle — des valeurs plus basses gardent davantage du son d'origine. Le haut de l'échelle est volontairement plus doux qu'une coupure totale, pour que la parole ne soit pas abîmée même à 100 %, qui nettoie pourtant davantage que 50 %. Entre les mots, elle agit plus fort d'elle-même, si bien que le souffle y baisse davantage. La valeur par défaut est 50 %. Vous pouvez la régler même quand l'IA est coupée.
+- **Voyant d'état** : le voyant AI sous l'affichage de fréquence s'allume en cyan quand AI travaille, et apparaît à demi atténué quand AI est actif mais que le mode courant n'est pas un mode phonie.
 
-**Use when**: Listening to SSB or AM voice on a noisy band. The hiss between words typically drops by about 10 dB at the default 50%, and more at 100%, up to about 20 dB, while the speech keeps its level.
+**À utiliser quand** : vous écoutez de la phonie SSB ou AM sur une bande bruyante. Le souffle entre les mots baisse en général d'environ 10 dB avec les 50 % par défaut, et davantage à 100 %, jusqu'à environ 20 dB, tandis que la parole garde son niveau.
 
-Voice modes only — USB, LSB, AM and SAM. In CW, FM, the data modes and C-QUAM the audio passes through untouched, because the network treats a CW tone or music as noise. Like the four noise controls, it never reaches the decoders. On weak stations (below about +6 dB SNR) it measures the signal-to-noise ratio itself and smooths its decisions more, so speech does not take on the bubbling, "watery" sound this kind of filter can give; strong stations are processed exactly as before. If a very weak signal still sounds processed, lower the slider. It adds about 50 ms of audio delay.
+Modes phonie seulement — USB, LSB, AM et SAM. En CW, FM, modes numériques et C-QUAM, le son passe sans modification, car le réseau traite une tonalité CW ou de la musique comme du bruit. Comme les quatre commandes de bruit, elle n'atteint jamais les décodeurs. Sur les stations faibles (en dessous d'environ +6 dB de SNR), elle mesure elle-même le rapport signal/bruit et lisse davantage ses décisions, pour que la parole ne prenne pas le son gargouillant, « aqueux », que peut donner ce type de filtre ; les stations fortes sont traitées exactement comme avant. Si un signal très faible sonne encore traité, baissez le curseur. Elle ajoute environ 50 ms de retard au son.
 
-### Audio Buffer and Delay
+### Tampon audio et retard
 
-Audio reaches the browser in small packets, 35 ms each on a typical receiver, and the browser keeps a little of it in hand so that a packet arriving late does not cause a gap. That reserve is the **buffer**, and it is most of the delay between the receiver and your loudspeaker.
+Le son arrive au navigateur par petits paquets, de 35 ms chacun sur un récepteur typique, et le navigateur en garde un peu en réserve pour qu'un paquet en retard ne provoque pas de trou. Cette réserve est le **tampon**, et elle représente l'essentiel du retard entre le récepteur et votre haut-parleur.
 
-- **Desktop**: in the Audio & Buffer panel, the button with the network icon moves the buffer one step up per click (it turns green above the lowest step), and the slider beside it picks a step from 1 to 6 directly. The lowest step suits a wired connection; phones start on step 2.
-- **/mobile**: the **BUF** button and the **Buffer** slider in the Audio tab do the same.
+- **Ordinateur** : dans le panneau Audio & Buffer, le bouton à l'icône réseau monte le tampon d'un cran par clic (il passe au vert au-dessus du cran le plus bas), et le curseur à côté choisit directement un cran de 1 à 6. Le cran le plus bas convient à une connexion filaire ; les téléphones commencent au cran 2.
+- **/mobile** : le bouton **BUF** et le curseur **Buffer** de l'onglet Audio font la même chose.
 
-The buffer adjusts itself. The page measures how irregularly your connection delivers the audio and keeps only as much in hand as the last minute showed was needed, plus the safety margin of the step you chose: 20 ms on step 1, 50 ms on step 2, more on the higher steps. After a moment of network trouble the extra delay drains away again within a minute or two, and a small difference between your sound card's clock and the receiver's no longer leads to a break every few minutes. The adjustments are a few milliseconds at a time, made where the sound repeats itself, and cannot be heard. The decoders and your recordings are never affected: they receive every sample.
+Le tampon se règle tout seul. La page mesure l'irrégularité avec laquelle votre connexion livre le son et ne garde en réserve que ce que la dernière minute a montré nécessaire, plus la marge de sécurité du cran choisi : 20 ms au cran 1, 50 ms au cran 2, davantage aux crans supérieurs. Après un moment de difficulté réseau, le retard supplémentaire se résorbe en une ou deux minutes, et une petite différence entre l'horloge de votre carte son et celle du récepteur ne provoque plus de coupure toutes les quelques minutes. Les ajustements sont de quelques millisecondes à la fois, faits là où le son se répète, et sont inaudibles. Les décodeurs et vos enregistrements ne sont jamais touchés : ils reçoivent chaque échantillon.
 
-If the audio breaks up, move the buffer one step higher. On a phone over home Wi-Fi the delay from the receiver to the loudspeaker is typically about 100–150 ms; the network between you and the receiver adds to it.
+Si le son se coupe, montez le tampon d'un cran. Sur un téléphone en Wi-Fi domestique, le retard du récepteur au haut-parleur est en général d'environ 100–150 ms ; le réseau entre vous et le récepteur s'y ajoute.
 
 ### Chat
 
-When the operator has enabled the chat, it has its own panel on the desktop page and a **Chat** tab on /mobile. Enter your name or callsign, type your message and send it.
+Quand l'opérateur a activé le chat, il a son propre panneau sur la page de bureau et un onglet **Chat** sur /mobile. Saisissez votre nom ou indicatif, tapez votre message et envoyez-le.
 
-To answer a particular message, click **↪ Reply** next to its time. A line above the input box shows who and what you are answering; type and send as usual, or press ✕ or Esc to cancel. The answer appears indented under the message it answers, with a short quote line. A reply to a reply joins the same thread. The server keeps the last 20 messages; when the original has already dropped out of that history, a reply shows only the name and time it answers.
+Pour répondre à un message précis, cliquez sur **↪ Reply** à côté de son heure. Une ligne au-dessus de la zone de saisie indique à qui et à quoi vous répondez ; tapez et envoyez comme d'habitude, ou appuyez sur ✕ ou Échap pour annuler. La réponse apparaît en retrait sous le message auquel elle répond, avec une courte ligne de citation. Une réponse à une réponse rejoint le même fil. Le serveur garde les 20 derniers messages ; quand l'original a déjà quitté cet historique, la réponse n'affiche que le nom et l'heure auxquels elle répond.
 
-### Zoom Function
+### Fonction de zoom
 
-Magnifies the waterfall display:
+Agrandit l'affichage en cascade :
 
-- **1x**: Normal view (wide coverage)
-- **2x**: 2× magnification
-- **4x**: 4× magnification
-- **8x**: 8× magnification
+- **1x** : vue normale (large couverture)
+- **2x** : grossissement ×2
+- **4x** : grossissement ×4
+- **8x** : grossissement ×8
 
-**Use when**: You need to see signals more clearly or tune precisely.
+**À utiliser quand** : vous devez mieux voir les signaux ou vous accorder finement.
 
-### Auto Adj. (waterfall)
+### Auto Adj. (cascade)
 
-The **Auto Adj.** switch under Waterfall Controls sets the waterfall's brightness and contrast for you. It measures the noise floor across the visible span and turns it into an even, dark background — also where the noise differs from one part of the span to another — and stretches everything above it, so that weak signals stand out and the strongest reach the top colours. It works the same with every colour map, and only the waterfall changes: the spectrum trace keeps its true dB scale. While it is on, the Min and Max sliders are locked and show the measured noise floor and peak; switching it off returns them to the band's own settings.
+L'interrupteur **Auto Adj.** des commandes de la cascade règle pour vous la luminosité et le contraste de la cascade. Il mesure le bruit de fond sur toute l'étendue visible et en fait un fond sombre et régulier — y compris là où le bruit diffère d'une partie de l'étendue à l'autre — puis étire tout ce qui se trouve au-dessus, si bien que les signaux faibles ressortent et que les plus forts atteignent les couleurs du haut. Il fonctionne de la même façon avec toutes les palettes, et seule la cascade change : la trace du spectre garde sa véritable échelle en dB. Tant qu'il est actif, les curseurs Min et Max sont verrouillés et affichent le bruit de fond et le pic mesurés ; en le désactivant, ils reviennent aux réglages de la bande.
 
-### Transceiver control (CAT)
+### Pilotage du transceiver (CAT)
 
-Your own transceiver and the receiver page can be kept on the same frequency: turn the rig's dial and the waterfall follows, or click a signal on the waterfall and the rig tunes to it. It only moves *your* listening session — nobody else on the receiver is affected.
+Votre propre transceiver et la page du récepteur peuvent rester sur la même fréquence : tournez le bouton d'accord du poste et la cascade suit, ou cliquez sur un signal dans la cascade et le poste s'y accorde. Cela ne concerne que *votre* session d'écoute ; personne d'autre sur le récepteur n'est affecté.
 
-**With Desktop PhantomSDR+ (4.0 or later).** The desktop application has a **Rig** menu. *Rig → Rig control...* opens a window where you choose your rig and how to reach it, and the menu itself switches the sync on and off. It syncs frequency, mode and filter width, in either direction or both, and can mute the receiver while you transmit. Besides PhantomSDR-Plus it drives **KiwiSDR, PA3FWM WebSDR and UberSDR** receivers the same way. It reaches the rig in one of four ways:
+**Avec Desktop PhantomSDR+ (4.0 ou ultérieur).** L'application de bureau possède un menu **Rig**. *Rig → Rig control...* ouvre une fenêtre où vous choisissez votre poste et la façon de le joindre, et le menu lui-même active ou coupe la synchronisation. Elle synchronise la fréquence, le mode et la largeur de filtre, dans un sens ou dans les deux, et peut couper le son du récepteur pendant que vous émettez. Outre PhantomSDR-Plus, elle pilote de la même façon les récepteurs **KiwiSDR, PA3FWM WebSDR et UberSDR**. Le poste est joint de l'une de ces quatre façons :
 
-- **Built-in** — no other software: Icom (CI-V), Yaesu (new CAT and the FT-817/857/897), Kenwood, Elecraft, FlexRadio SmartSDR CAT, QRP Labs and other Kenwood-compatible rigs.
-- **Hamlib** — every rig Hamlib knows, more than 300 of them, picked from a searchable list. The Windows installers include Hamlib; on Linux install `libhamlib-utils`.
-- **rigctld on the network** — a `rigctld` that is already running.
-- **flrig** — for a rig that flrig already shares with fldigi, WSJT-X or a logger.
+- **Intégré** — sans autre logiciel : Icom (CI-V), Yaesu (nouveau CAT et FT-817/857/897), Kenwood, Elecraft, FlexRadio SmartSDR CAT, QRP Labs et autres postes compatibles Kenwood.
+- **Hamlib** — tous les postes que connaît Hamlib, plus de 300, choisis dans une liste avec recherche. Les installateurs Windows incluent Hamlib ; sous Linux, installez `libhamlib-utils`.
+- **rigctld sur le réseau** — un `rigctld` déjà lancé.
+- **flrig** — pour un poste que flrig partage déjà avec fldigi, WSJT-X ou un logiciel de carnet de trafic.
 
-The application, its installers and its full manual are at [Desktop PhantomSDR+ (Dropbox)](https://www.dropbox.com/scl/fo/kjwj96zg3kj7dgq4fjef9/APnA3c9hhv4hk3YMGIGjH7s?rlkey=jfiwklly63kv73poalx631pk3&st=m37uvaym&dl=0).
+L'application, ses installateurs et son manuel complet se trouvent sur [Desktop PhantomSDR+ (Dropbox)](https://www.dropbox.com/scl/fo/kjwj96zg3kj7dgq4fjef9/APnA3c9hhv4hk3YMGIGjH7s?rlkey=jfiwklly63kv73poalx631pk3&st=m37uvaym&dl=0).
 
-**With a web browser.** The [CATsync Tool for WebSDRs](https://catsyncsdr.wordpress.com/) (Windows) couples a rig to the receiver page open in your browser. It syncs frequency and mode.
+**Avec un navigateur web.** Le [CATsync Tool for WebSDRs](https://catsyncsdr.wordpress.com/) (Windows) couple un poste à la page du récepteur ouverte dans votre navigateur. Il synchronise la fréquence et le mode.
 
-**Filter width and mute on transmit** work on KiwiSDR, WebSDR and UberSDR receivers, and on a PhantomSDR-Plus receiver running 4.1.0 or later. On an older PhantomSDR-Plus frequency and mode still sync; the filter does not.
+**La largeur de filtre et la coupure du son en émission** fonctionnent sur les récepteurs KiwiSDR, WebSDR et UberSDR, et sur un récepteur PhantomSDR-Plus en 4.1.0 ou ultérieure. Sur un PhantomSDR-Plus plus ancien, la fréquence et le mode se synchronisent toujours ; le filtre non.
 
-The full manual — every setting, the supported rigs, how the two sides are kept from fighting, and troubleshooting — is **[Rig Control](RIG_CONTROL.md)**.
+Le manuel complet — chaque réglage, les postes pris en charge, comment on empêche les deux côtés de se battre, et le dépannage — est **[Pilotage du transceiver](RIG_CONTROL.md)**.
 
-**For developers.** Every receiver page offers these functions on `window`, which is what both tools use:
+**Pour les développeurs.** Chaque page de récepteur propose ces fonctions sur `window` ; ce sont elles qu'utilisent les deux outils :
 
-| Function | Does |
+| Fonction | Rôle |
 |---|---|
-| `catsync_getFrequency()` / `catsync_setFrequency(hz)` | Tuned frequency, in Hz |
+| `catsync_getFrequency()` / `catsync_setFrequency(hz)` | Fréquence d'accord, en Hz |
 | `catsync_getMode()` / `catsync_setMode(mode)` | `USB`, `LSB`, `CW`, `CW-L`, `AM`, `FM`, `WBFM` … |
-| `catsync_getBandwidth()` / `catsync_setBandwidth(hz)` | Whole passband width, in Hz. Set it after the mode: changing mode resets the passband |
-| `catsync_getMute()` / `catsync_setMute(on)` | Mute, through the page's own mute button |
-| `catsync_ready` | `true` once the functions are installed |
+| `catsync_getBandwidth()` / `catsync_setBandwidth(hz)` | Largeur totale de la bande passante, en Hz. À régler après le mode : changer de mode réinitialise la bande passante |
+| `catsync_getMute()` / `catsync_setMute(on)` | Coupure du son, via le bouton muet de la page |
+| `catsync_ready` | `true` dès que les fonctions sont installées |
 
-The last three rows are new in 4.1.0; check that a function exists before calling it.
-
----
-
-## Demodulation Modes
-
-### AM (Amplitude Modulation)
-
-**Used for:**
-- Aviation communications
-- AM broadcast radio
-- Some amateur radio
-- Maritime communications
-
-**Characteristics:**
-- Wide bandwidth (typically 10 kHz)
-- Susceptible to noise
-- Easy to tune (just click on signal)
-
-**Best Practices:**
-- Use Fast AGC
-- Enable Noise Blanker if you hear clicks
-- Tune to peak of signal on waterfall
-
-### QUAM (C-QUAM AM Stereo)
-
-**Used for:**
-- Medium-wave broadcasters transmitting AM stereo
-
-**Characteristics:**
-- 10 kHz wide, decoded as a stereo pair rather than mono AM
-- The button label turns **green** on its own when the 25 Hz stereo pilot is present, so you can see which stations are actually in stereo before selecting it
-- From AM, pressing the button again switches to synchronous AM on the carrier; the label turns **yellow** and reads `SAM`. A third press returns to plain AM
-- C-QUAM audio is carried with Opus; every other mode uses FLAC
-
-**Best Practices:**
-- Look for the green label on strong medium-wave signals at night
-- If stereo sounds unstable, `SAM` is the steadier choice on a weak carrier
-
-### FM (Frequency Modulation)
-
-**Used for:**
-- VHF/UHF amateur radio repeaters
-- Public service (police, fire, EMS)
-- Commercial two-way radio
-- Some satellite communications
-
-**Characteristics:**
-- Narrow bandwidth (typically 12.5 or 25 kHz)
-- Excellent noise immunity
-- "Capture effect" (strongest signal wins)
-
-**Best Practices:**
-- Tune precisely to center of signal
-- Use squelch to mute when idle
-- Disable noise reduction (not needed)
-
-### USB (Upper Sideband)
-
-**Used for:**
-- HF amateur radio (above 10 MHz)
-- Most HF digital modes
-- Maritime communications (above 8 MHz)
-
-**Characteristics:**
-- Narrow bandwidth (typically 2.4 kHz)
-- Efficient use of spectrum
-- Requires precise tuning
-
-**Best Practices:**
-- Use Slow AGC
-- Tune to lower edge of signal on waterfall
-- Enable Noise Reduction if needed
-
-### LSB (Lower Sideband)
-
-**Used for:**
-- HF amateur radio (below 10 MHz)
-- Some HF digital modes
-- Maritime communications (below 8 MHz)
-
-**Characteristics:**
-- Same as USB but mirror image
-- Convention: LSB on lower HF bands
-
-**Best Practices:**
-- Use Slow AGC
-- Tune to upper edge of signal on waterfall
-- Enable Noise Reduction if needed
-
-### CW (Continuous Wave / Morse Code)
-
-**Used for:**
-- Amateur radio telegraphy
-- Navigational beacons
-- Time signal stations
-
-**Characteristics:**
-- Very narrow bandwidth (100-500 Hz)
-- High efficiency
-- Requires learning Morse code to understand
-
-**Best Practices:**
-- Use narrow filter (400-500 Hz)
-- Tune precisely to tone center
-- Enable audio filter for better tone
-
-### CW-L (CW, Lower Sideband)
-
-The same ±250 Hz Morse filter as **CW**, but the tone is taken from below the carrier instead of above it. Use it when a signal is easier to copy on the low side, or when an interfering carrier sits just above the one you want.
-
-**There is no CW-L button on the desktop page.** Its mode row is `USB · LSB · CW · AM · QUAM · FM`. CW-L is offered on the simplified `/mobile` page, and on the desktop it can still be set by a link or a bookmark that names it.
-
-### WBFM (Wideband FM)
-
-**Used for:**
-- FM broadcast radio (88-108 MHz)
-- Some satellite downlinks
-
-**Characteristics:**
-- Very wide bandwidth (200 kHz)
-- Excellent audio quality
-- High fidelity
-
-**Best Practices:**
-- Tune to exact center frequency
-- No squelch needed for broadcast
-- Enjoy high-quality audio!
+Les trois dernières lignes sont nouvelles avec la 4.1.0 ; vérifiez qu'une fonction existe avant de l'appeler.
 
 ---
 
-## Digital Decoders
+## Modes de démodulation
 
-PhantomSDR-Plus includes built-in decoders for digital modes. For a complete guide, see [Decoders](DECODERS.md).
+### AM (modulation d'amplitude)
 
-The quickest way in is the **Decoders** button row on the main panel, just below **Wheel Tuning Steps**: ten buttons — **FT8, FT4, FT2, JS8, CW, WSPR, FAX, SSTV, NAVTX, FLDIGI** — that each start their decoder, switch the master Decoder toggle ON and scroll the decoder's window into view in a single press. The button stays blue while the decoder runs; press it again to stop the decoder and close its window. The **Decoder Options** dropdown still works exactly as before and stays in sync with the buttons.
+**Utilisé pour :**
+- les communications aéronautiques
+- la radiodiffusion AM
+- certains trafics radioamateurs
+- les communications maritimes
 
-**RADEL** and **RADEU** (RADE v1 digital voice) have their own buttons next to the **Modes selector** heading and inside the **Modes** and **Bands** popup windows, and work the same press-on / press-off way.
+**Caractéristiques :**
+- large bande passante (typiquement 10 kHz)
+- sensible au bruit
+- facile à accorder (il suffit de cliquer sur le signal)
 
-The SSTV, HF FAX, NAVTEX, FSK/RTTY and CW decoders each run on their own background thread, so switching a decoder on or off never interrupts the audio, and the waterfall stays smooth while decoding. They are fed audio taken before the noise reduction and mute of your browser — you can mute the receiver and decoding continues unaffected. While a decoder is open the AGC is held on Slow, so the gain stays steady for it.
+**Bonnes pratiques :**
+- utilisez l'AGC rapide (Fast)
+- activez le silencieux d'impulsions si vous entendez des clics
+- accordez-vous sur le maximum du signal dans la cascade
 
-**While a decoder runs it holds the mode and the passband.** Normally the mode follows the band plan — tune into a segment marked LSB or AM and the receiver switches to it. A running decoder overrides that, keeping the mode and the narrow passband it needs even if you tune to another band. The band's own mode returns as soon as you switch the decoder off, and the mode buttons still work at any time if you want to take over. The CW decoder is the exception: it decodes in whatever mode you are listening in.
+### QUAM (AM stéréo C-QUAM)
 
-### FT8, FT4 Decoder
+**Utilisé pour :**
+- Les émetteurs en ondes moyennes diffusant en AM stéréo
 
-**What is FT8, FT4?**
-- Popular amateur radio digital mode
-- Weak signal communication
-- 15-second transmissions for FT8, 7.5-second transmissions for FT4
+**Caractéristiques :**
+- 10 kHz de large, décodé en paire stéréo plutôt qu'en AM mono
+- Le libellé du bouton passe au **vert** de lui-même dès que le pilote stéréo de 25 Hz est présent : on voit ainsi quelles stations émettent réellement en stéréo avant de sélectionner le mode
+- Depuis l'AM, un nouvel appui bascule en détection synchrone sur la porteuse ; le libellé passe au **jaune** et affiche `SAM`. Un troisième appui revient à l'AM simple
+- L'audio C-QUAM est transporté en Opus ; tous les autres modes utilisent FLAC
 
-**How to use:**
-1. Tune to FT8 or FT4 frequencies
-2. Select USB mode
-3. Enable the FT8 decoder — press the **FT8** button, or pick it from the menu
-4. Watch decoded messages appear
+**Bonnes pratiques :**
+- Cherchez le libellé vert sur les signaux puissants en ondes moyennes la nuit
+- Si la stéréo est instable, `SAM` est plus stable sur une porteuse faible
 
-**Common FT8 Frequencies (USB):**
-- 160 meters: 1.840 MHz
-- 80 meters: 3.573 MHz
-- 60 meters: 5.357 MHz
-- 40 meters: 7.074 MHz
-- 30 meters: 10.136 MHz
-- 20 meters: 14.074 MHz
-- 17 meters: 18.100 MHz
-- 15 meters: 21.074 MHz
-- 12 meters: 24.915 MHz
-- 10 meters: 28.074 MHz
-- 6 meters: 50.313 MHz (50.323 MHz for DX)
+### FM (modulation de fréquence)
 
-**Common FT4 Frequencies (USB):**
+**Utilisé pour :**
+- les relais radioamateurs VHF/UHF
+- les services publics (police, pompiers, secours)
+- la radio professionnelle bidirectionnelle
+- certaines communications par satellite
 
-- 80m: 3.575 MHz
-- 40m: 7.0475 MHz
-- 30m: 10.140 MHz
-- 20m: 14.080 MHz
-- 17m: 18.104 MHz
-- 15m: 21.140 MHz
-- 12m: 24.919 MHz
-- 10m: 28.180 MHz
-- 6m: 50.318 MHz
+**Caractéristiques :**
+- bande passante étroite (typiquement 12,5 ou 25 kHz)
+- excellente immunité au bruit
+- « effet de capture » (le signal le plus fort l'emporte)
+
+**Bonnes pratiques :**
+- accordez-vous précisément au centre du signal
+- utilisez le squelch pour couper l'audio au repos
+- désactivez la réduction de bruit (inutile)
+
+### USB (bande latérale supérieure)
+
+**Utilisé pour :**
+- le radioamateurisme HF (au-dessus de 10 MHz)
+- la plupart des modes numériques HF
+- les communications maritimes (au-dessus de 8 MHz)
+
+**Caractéristiques :**
+- bande passante étroite (typiquement 2.4 kHz)
+- utilisation efficace du spectre
+- exige un accord précis
+
+**Bonnes pratiques :**
+- utilisez l'AGC lente (Slow)
+- accordez-vous sur le bord inférieur du signal dans la cascade
+- activez la réduction de bruit si nécessaire
+
+### LSB (bande latérale inférieure)
+
+**Utilisé pour :**
+- le radioamateurisme HF (en dessous de 10 MHz)
+- certains modes numériques HF
+- les communications maritimes (en dessous de 8 MHz)
+
+**Caractéristiques :**
+- identique à l'USB mais en image miroir
+- convention : LSB sur les bandes HF basses
+
+**Bonnes pratiques :**
+- utilisez l'AGC lente (Slow)
+- accordez-vous sur le bord supérieur du signal dans la cascade
+- activez la réduction de bruit si nécessaire
+
+### CW (onde entretenue / code Morse)
+
+**Utilisé pour :**
+- la télégraphie radioamateur
+- les balises de radionavigation
+- les stations de signaux horaires
+
+**Caractéristiques :**
+- bande passante très étroite (100-500 Hz)
+- grande efficacité
+- nécessite d'apprendre le code Morse pour être compris
+
+**Bonnes pratiques :**
+- utilisez un filtre étroit (400-500 Hz)
+- accordez-vous précisément sur le centre de la tonalité
+- activez le filtre audio pour une meilleure tonalité
+
+### CW-L (CW, bande latérale inférieure)
+
+Le même filtre morse de ±250 Hz que **CW**, mais la tonalité est prise sous la porteuse au lieu d'au-dessus. Utile lorsqu'un signal se copie mieux du côté bas, ou lorsqu'une porteuse brouilleuse se trouve juste au-dessus de celle visée.
+
+**Il n'y a pas de bouton CW-L sur la page de bureau.** Sa rangée de modes est `USB · LSB · CW · AM · QUAM · FM`. CW-L est proposé sur la page simplifiée `/mobile` ; sur le bureau il reste accessible par un lien ou un signet qui le nomme.
+
+### WBFM (FM à large bande)
+
+**Utilisé pour :**
+- la radiodiffusion FM (88-108 MHz)
+- certaines liaisons descendantes satellite
+
+**Caractéristiques :**
+- bande passante très large (200 kHz)
+- excellente qualité audio
+- haute fidélité
+
+**Bonnes pratiques :**
+- accordez-vous exactement sur la fréquence centrale
+- aucun squelch nécessaire pour la radiodiffusion
+- profitez d'un son de haute qualité !
 
 ---
 
-### JS8 Decoder
+## Décodeurs numériques
 
-**What is JS8?**
-- FT8's weak-signal engine used for keyboard-to-keyboard conversation
-- Free text instead of fixed exchanges, so long messages arrive over several cycles
-- Five speeds; **Normal** (15 s) is the calling speed and carries almost all traffic
+PhantomSDR-Plus intègre des décodeurs pour les modes numériques. Pour un guide complet, voir [Décodeurs](DECODERS.md).
 
-**How to use:**
-1. Tune to a JS8 frequency
-2. Select USB mode
-3. Enable the JS8 decoder — press the **JS8** button, or pick it from the menu
-4. Leave **Speed** on *Normal* and leave the sync offset on **Auto**
+Le plus rapide est la rangée de boutons **Decoders** du panneau principal, juste sous **Wheel Tuning Steps** : dix boutons — **FT8, FT4, FT2, JS8, CW, WSPR, FAX, SSTV, NAVTX, FLDIGI** — qui, en une seule pression, démarrent leur décodeur, basculent l'interrupteur principal Decoder sur ON et amènent la fenêtre du décodeur à l'écran. Le bouton reste bleu tant que le décodeur tourne ; appuyez de nouveau pour l'arrêter et fermer sa fenêtre. Le menu déroulant **Decoder Options** fonctionne exactement comme avant et reste synchronisé avec les boutons.
 
-**Reading the panel:**
-- Messages still arriving show at the top in green with a blinking cursor — a message can take a full minute to complete on Normal
-- Completed messages list below as `Mode | Hz | dB | Message`, with **callsigns in green**
-- A dimmed, italic row timed out before its last frame arrived: the text is real but may be cut short
+**RADEL** et **RADEU** (voix numérique RADE v1) disposent de leurs propres boutons à côté du titre **Modes selector** ainsi que dans les fenêtres **Modes** et **Bands**, et fonctionnent de la même manière : une pression pour démarrer, une seconde pour arrêter.
 
-**Common JS8 Frequencies (USB):**
+Les décodeurs SSTV, FAX HF, NAVTEX, FSK/RTTY et CW s'exécutent chacun sur leur propre thread d'arrière-plan : activer ou désactiver un décodeur n'interrompt jamais l'audio, et la cascade reste fluide pendant le décodage. Ils reçoivent l'audio prélevé avant la réduction de bruit et la coupure du son de votre navigateur — vous pouvez couper le son du récepteur, le décodage se poursuit sans être affecté. Tant qu'un décodeur est ouvert, l'AGC est maintenue sur Slow pour que le gain reste stable pour lui.
+
+**Tant qu'un décodeur tourne, il conserve le mode et la bande passante.** Normalement le mode suit le plan de bande : accordez dans un segment marqué LSB ou AM et le récepteur bascule. Un décodeur en marche l'emporte sur ce comportement et garde le mode et la bande passante étroite qu'il lui faut, même si vous partez sur une autre bande. Le mode propre à la bande revient dès que vous arrêtez le décodeur, et les boutons de mode restent utilisables à tout moment si vous voulez reprendre la main. Le décodeur CW fait exception : il décode dans le mode où vous écoutez.
+
+### Décodeur FT8, FT4
+
+**Qu'est-ce que FT8, FT4 ?**
+- mode numérique radioamateur très répandu
+- communication à signaux faibles
+- transmissions de 15 secondes pour FT8, de 7,5 secondes pour FT4
+
+**Comment l'utiliser :**
+1. Accordez-vous sur les fréquences FT8 ou FT4
+2. Sélectionnez le mode USB
+3. Activez le décodeur FT8 — appuyez sur le bouton **FT8** ou choisissez-le depuis le menu
+4. Observez l'apparition des messages décodés
+
+**Fréquences FT8 courantes (USB) :**
+- 160 mètres : 1.840 MHz
+- 80 mètres : 3.573 MHz
+- 60 mètres : 5.357 MHz
+- 40 mètres : 7.074 MHz
+- 30 mètres : 10.136 MHz
+- 20 mètres : 14.074 MHz
+- 17 mètres : 18.100 MHz
+- 15 mètres : 21.074 MHz
+- 12 mètres : 24.915 MHz
+- 10 mètres : 28.074 MHz
+- 6 mètres : 50.313 MHz (50.323 MHz pour le DX)
+
+**Fréquences FT4 courantes (USB) :**
+
+- 80 m : 3.575 MHz
+- 40 m : 7.0475 MHz
+- 30 m : 10.140 MHz
+- 20 m : 14.080 MHz
+- 17 m : 18.104 MHz
+- 15 m : 21.140 MHz
+- 12 m : 24.919 MHz
+- 10 m : 28.180 MHz
+- 6 m : 50.318 MHz
+
+---
+
+### Décodeur JS8
+
+**Qu'est-ce que JS8 ?**
+- Le moteur signal faible de FT8, utilisé pour converser au clavier
+- Du texte libre au lieu d'échanges figés : les messages longs arrivent sur plusieurs cycles
+- Cinq vitesses ; **Normal** (15 s) est la vitesse d'appel et porte presque tout le trafic
+
+**Utilisation :**
+1. Accordez-vous sur une fréquence JS8
+2. Choisissez le mode **USB**
+3. Activez le décodeur JS8 — bouton **JS8** ou depuis le menu
+4. Laissez **Speed** sur *Normal* et le sync offset sur **Auto**
+
+**Lire le panneau :**
+- Les messages en cours d'arrivée s'affichent en haut en vert avec un curseur clignotant — en Normal, un message peut demander une minute entière
+- Les messages terminés se listent en dessous sous la forme `Mode | Hz | dB | Message`, **indicatifs en vert**
+- Une ligne grisée et en italique a expiré avant sa dernière trame : le texte est authentique mais peut être tronqué
+
+**Fréquences JS8 courantes (USB) :**
 
 - 160m: 1.842 MHz
 - 80m: 3.578 MHz
@@ -639,488 +640,488 @@ The SSTV, HF FAX, NAVTEX, FSK/RTTY and CW decoders each run on their own backgro
 - 12m: 24.922 MHz
 - 10m: 28.078 MHz
 
-JS8 is far quieter than FT8 — one transmission every few minutes is normal, and quiet spells are not a fault. See [Decoders](DECODERS.md) for the full guide.
+JS8 est bien plus calme que FT8 : une émission toutes les quelques minutes est normale, et les silences ne sont pas une panne. Guide complet : [Décodeurs](DECODERS.md).
 
 ---
 
-### CW Decoder
-Just press the CW button and the decoded text will appear. Press the CW button once more to clear the window and restart the decoder.
+### Décodeur CW
+Appuyez simplement sur le bouton CW et le texte décodé apparaîtra. Appuyez de nouveau sur le bouton CW pour effacer la fenêtre et redémarrer le décodeur.
 
 ---
 
 ### WSPR
 
-WSPR (Weak Signal Propagation Reporter, pronounced "whisper") is an ultra-weak-signal beacon mode that maps HF propagation paths worldwide. Each transmission takes approximately 110 seconds and fits inside a 200 Hz-wide slot. The decoder waits for a complete 2-minute UTC-aligned slot before decoding. Enable the decoder and select **WSPR** from the dropdown. Or simply press the **WSPR** button.
+WSPR (Weak Signal Propagation Reporter, prononcé « whisper ») est un mode balise à signaux ultra-faibles qui cartographie les chemins de propagation HF dans le monde entier. Chaque transmission dure environ 110 secondes et tient dans un créneau de 200 Hz de large. Le décodeur attend un créneau complet de 2 minutes aligné sur l'UTC avant de décoder. Activez le décodeur et sélectionnez **WSPR** dans la liste déroulante. Ou appuyez simplement sur le bouton **WSPR**.
 
 ---
 
-### HF FAX / WEFAX
+### FAX HF / WEFAX
 
-HF Radiofax (also known as WEFAX) is used by coast guard and meteorological services worldwide to broadcast weather maps, sea-state charts, and surface analyses over shortwave. The decoder reconstructs the image line by line as it is received.
+Le radiofax HF (également appelé WEFAX) est utilisé par les garde-côtes et les services météorologiques du monde entier pour diffuser des cartes météo, des cartes d'état de la mer et des analyses de surface en ondes courtes. Le décodeur reconstitue l'image ligne par ligne au fur et à mesure de sa réception.
 
 ---
 
 ### NAVTEX
 
-NAVTEX is the international maritime broadcast system for coastal safety information — navigational warnings, weather forecasts, and search-and-rescue notices.
+NAVTEX est le système international de diffusion maritime des informations de sécurité côtière — avertissements de navigation, prévisions météorologiques et avis de recherche et de sauvetage.
 
 ---
 
-### FLDIGI — RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet and APRS
+### FLDIGI — RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet et APRS
 
-One window for the narrow-band keyboard modes fldigi made popular, with thirteen variants: Maritime FSK (SITOR), Weather RTTY, Amateur RTTY, **PSK31** (phase-shift keying, 31.25 baud), **Olivia** and **MFSK16/32/64** (multi-tone with forward error correction), **DominoEX** and **THOR** (incremental frequency keying, THOR with error correction), **THROB**, **Hellschreiber** (painted as a picture), **MT63** (64 carriers), **Packet (AX.25)** and **APRS**. It opens from the **FLDIGI** button, or from **FLDIGI** in the decoder dropdown; fldigi itself is not needed. The panel adapts to the variant — the shift, baud and framing controls disappear for everything but the three FSK variants, and the other modes add a Mode selector and, except Hellschreiber, a squelch slider.
+Une fenêtre pour les modes clavier à bande étroite que fldigi a popularisés, avec treize variantes : FSK maritime (SITOR), RTTY météo, RTTY amateur, **PSK31** (modulation par déplacement de phase, 31,25 bauds), **Olivia** et **MFSK16/32/64** (multitons avec correction d'erreurs), **DominoEX** et **THOR** (sauts de fréquence incrémentaux, THOR avec correction d'erreurs), **THROB**, **Hellschreiber** (peint comme une image), **MT63** (64 porteuses), **Packet (AX.25)** et **APRS**. Elle s'ouvre par le bouton **FLDIGI**, ou par **FLDIGI** dans le menu des décodeurs ; fldigi lui-même n'est pas nécessaire. Le panneau s'adapte à la variante — les commandes de shift, de bauds et de trame disparaissent pour toutes sauf les trois FSK, et les autres modes ajoutent un sélecteur Mode et, sauf Hellschreiber, un curseur de squelch.
 
-Amateur RTTY and Weather RTTY have a **Squelch (SNR)** slider that stops noise from printing as random letters, and every variant except Olivia shows a real SNR on the same 3 kHz scale. Two things to know: PSK31 corrects its own tuning error over about ±25 Hz, so you only need to get close; Olivia needs its **Mode** (tones / bandwidth) set to exactly match the transmission, sends no preamble, and therefore takes a few seconds to synchronise before any text appears. The panel opens on Olivia **8 / 250**. For the other fldigi modes, put the signal on the centre frequency or press **⟳ Auto-tune Center** and pick the matching **Mode**: THROB needs tuning within ±3 Hz, DominoEX, THOR and MT63 forgive much more, and MFSK, THOR and MT63 print a few seconds behind the signal. Hellschreiber shows a picture, not text.
+Le RTTY amateur et le RTTY météo ont un curseur **Squelch (SNR)** qui empêche le bruit de s'afficher en lettres aléatoires, et toutes les variantes sauf Olivia affichent un vrai SNR sur la même échelle de 3 kHz. Deux points à retenir : PSK31 corrige lui-même son erreur d'accord sur environ ±25 Hz, il suffit donc de s'approcher ; Olivia exige que **Mode** (tonalités / largeur de bande) corresponde exactement à l'émission, n'envoie pas de préambule et met donc quelques secondes à se synchroniser avant que du texte apparaisse. Le panneau s'ouvre sur Olivia **8 / 250**. Pour les autres modes de fldigi, placez le signal sur la fréquence centrale ou appuyez sur **⟳ Auto-tune Center** et choisissez le bon **Mode** : THROB demande un accord à ±3 Hz près, DominoEX, THOR et MT63 pardonnent bien davantage, et MFSK, THOR et MT63 affichent le texte quelques secondes après le signal. Hellschreiber affiche une image, pas du texte.
 
-**Packet** prints every AX.25 frame it hears, like a TNC monitor; **APRS** turns APRS packets into plain text — position with locator, speed, altitude, weather, messages, objects and status. Choose the **Speed**: **1200 Bd** for VHF/UHF, which switches the receiver to **FM** on the channel (144.800 MHz in Europe is in the frequency list), or **300 Bd** for HF, in USB. Only packets with a correct checksum are printed, so nothing appears on a quiet channel. Under the text, a map shows every station heard with a position, with tracks for moving ones and your receiver in amber; it can be minimised, and clicking a decoded line zooms to that station. See the [Decoder manual](DECODERS.md#packet-and-aprs-notes).
+**Packet** affiche chaque trame AX.25 entendue, comme un moniteur de TNC ; **APRS** transforme les paquets APRS en texte clair — position avec locator, vitesse, altitude, météo, messages, objets et état. Choisissez la **Speed** : **1200 Bd** pour les VHF/UHF, qui passe le récepteur en **FM** sur le canal (le 144,800 MHz européen est dans la liste des fréquences), ou **300 Bd** pour les HF, en USB. Seuls les paquets dont la somme de contrôle est correcte sont affichés, donc rien n'apparaît sur un canal calme. Sous le texte, une carte montre chaque station entendue avec une position, avec des traces pour celles qui se déplacent et votre récepteur en ambre ; elle peut être réduite, et un clic sur une ligne décodée centre la carte sur cette station. Voir le [manuel des décodeurs](DECODERS.md#notes-sur-packet-et-aprs).
 
 ---
 
-### QRSS Grabber
+### Grabber QRSS
 
-QRSS is CW sent so slowly that a single dot lasts seconds, and it is watched rather than heard — the grabber paints the trace on its own display. It is not in the Decoder dropdown; it has its own **QRSS** section and can run at the same time as a decoder.
+La QRSS est de la CW envoyée si lentement qu'un seul point dure plusieurs secondes ; elle se regarde plutôt qu'elle ne s'écoute — le grabber trace le signal sur son propre affichage. Il ne figure pas dans le menu des décodeurs : il a sa propre section **QRSS** et peut tourner en même temps qu'un décodeur.
 
-Press **🐌 Show**, then pick a window from the **Band** list and press **Tune**: the receiver goes to that frequency in **CW** with a passband sized for the mode, and the trace lands on the centre line of the display. 30 m (10,140.00 kHz) is the busiest window. Set **Speed** to match the beacon — **QRSS 10** if you do not know — and be patient: a callsign can take ten minutes to cross the screen. Full details in [Decoders](DECODERS.md).
+Cliquez sur **🐌 Show**, choisissez ensuite une fenêtre dans la liste **Band** et appuyez sur **Tune** : le récepteur se place sur cette fréquence en **CW**, avec une bande passante taillée pour le mode, et la trace tombe sur la ligne centrale de l'affichage. La fenêtre la plus fréquentée est celle du 30 m (10 140,00 kHz). Réglez **Speed** sur la balise — **QRSS 10** si vous l'ignorez — et soyez patient : un indicatif peut mettre dix minutes à traverser l'écran. Tous les détails dans [Décodeurs](DECODERS.md).
 
 ---
 
 ### SSTV
 
-Slow-Scan Television sends still pictures over a normal SSB channel, one line at a time. Enable the decoder, select **SSTV**, and tune to an SSTV frequency — 14.230 MHz is the main international calling frequency. Leave **Mode** on **Auto**: the decoder reads the transmission's VIS header, and falls back to identifying the mode from the sync timing if you tuned in after the header. Martin, Scottie and Robot modes are supported, and the picture builds line by line as it arrives. Or simply press the **SSTV** button.
+La télévision à balayage lent transmet des images fixes sur un canal BLU ordinaire, une ligne à la fois. Activez le décodeur, sélectionnez **SSTV** et accordez-vous sur une fréquence SSTV — 14.230 MHz est la principale fréquence d'appel internationale. Laissez **Mode** sur **Auto** : le décodeur lit l'en-tête VIS de la transmission et, si vous vous êtes accordé après l'en-tête, identifie le mode d'après la synchronisation. Les modes Martin, Scottie et Robot sont pris en charge, et l'image se construit ligne par ligne à mesure qu'elle arrive. Ou appuyez simplement sur le bouton **SSTV**.
 
-### Automatic spot reporting and server graphs
+### Report automatique des spots et graphiques du serveur
 
-FT8, FT4 and WSPR decodes can also be uploaded automatically by the server itself — FT8/FT4 to PSK Reporter, WSPR to WSPRnet — by an autorun daemon the sysop starts from the admin panel. It is independent of the decoders in your browser: it keeps running whether or not anyone is listening, and nothing you decode in the browser is reported.
+Les décodages FT8, FT4 et WSPR peuvent aussi être téléversés par le serveur lui-même — FT8/FT4 vers PSK Reporter, WSPR vers WSPRnet — par un démon autorun que le sysop démarre depuis le panneau d'administration. Il est indépendant des décodeurs de votre navigateur : il continue de tourner qu'il y ait des auditeurs ou non, et rien de ce que vous décodez dans le navigateur n'est rapporté.
 
-The sysop follows it with two counters, which are easy to mistake for each other: the per-decoder tiles count the spots uploaded since the daemon last started, while the number beside each band/mode checkbox is that slot's all-time total and survives restarts. The same panel has a **Graphs** page plotting CPU frequency, CPU load, CPU temperature and users online over the last 15 minutes to 24 hours. Both are described in the [Admin Panel guide](ADMIN_PANEL_SETUP.md).
+Le sysop le suit à l'aide de deux compteurs, faciles à confondre : les tuiles par décodeur comptent les spots téléversés depuis le dernier démarrage du démon, tandis que le nombre à côté de chaque case bande/mode est le total depuis toujours de cet emplacement et survit aux redémarrages. Le même panneau propose une page **Graphiques** traçant la fréquence du processeur, la charge, la température et les utilisateurs connectés sur les 15 dernières minutes à 24 heures. Les deux sont décrits dans le [guide du panneau d'administration](ADMIN_PANEL_SETUP.md).
 
 
 ---
 
-## Keyboard Shortcuts
+## Raccourcis clavier
 
-Keyboard shortcuts for faster operation.
-
----
-
-### Frequency Control
-
-The frequency display is a row of digits you drive directly. **Click a digit first** — that selects it, and everything below acts on the selection.
-
-- **Arrow Left / Right**: move the selection to the next digit (eight digits, 100 MHz down to 10 Hz)
-- **Arrow Up / Down**: step the *selected* digit up or down by its own place value — so the step is 1 MHz on the MHz digit, 10 Hz on the last one
-- **0 – 9**: type that digit straight into the selected position
-
-**Mouse wheel over the frequency display**: steps by the band's tuning step (1 kHz unless the band plan sets another). Hold **Shift** for 1 kHz, **Alt** for 10 kHz.
-
-**Mouse wheel over the waterfall**: zooms. Hold **Ctrl** (or **Cmd**) or **Shift** to tune instead of zooming, and **Shift + Ctrl** together to snap to the nearest whole kHz.
-
-> There are no Page Up / Page Down shortcuts.
+Raccourcis clavier pour une utilisation plus rapide.
 
 ---
 
-## Bookmarks
+### Commande de fréquence
 
-Save your favorite frequencies for quick access. You can also export the list of bookmarks and save it locally, then import the list into any other PhantomSDR.
+L'affichage de fréquence est une rangée de chiffres que l'on pilote directement. **Cliquez d'abord sur un chiffre** : cela le sélectionne, et tout ce qui suit agit sur la sélection.
 
-When bookmarks and markers overlap:
+- **Flèche gauche / droite** : déplace la sélection au chiffre voisin (huit chiffres, de 100 MHz à 10 Hz)
+- **Flèche haut / bas** : incrémente ou décrémente le chiffre *sélectionné* de sa valeur de position — 1 MHz sur le chiffre des MHz, 10 Hz sur le dernier
+- **0 – 9** : saisit ce chiffre directement à la position sélectionnée
 
-🔵 Blue bookmarks appear on top <br /> 🟡 Yellow markers appear underneath <br />
-✅ Bookmark clicks take priority <br />
+**Molette au-dessus de l'affichage de fréquence** : avance du pas d'accord de la bande (1 kHz sauf indication du plan de bandes). **Shift** pour 1 kHz, **Alt** pour 10 kHz.
+
+**Molette au-dessus de la cascade** : zoome. Maintenez **Ctrl** (ou **Cmd**) ou **Shift** pour accorder au lieu de zoomer, et **Shift + Ctrl** ensemble pour caler sur le kHz entier le plus proche.
+
+> Il n'y a pas de raccourcis Page précédente / Page suivante.
+
+---
+
+## Favoris
+
+Enregistrez vos fréquences préférées pour y accéder rapidement. Vous pouvez aussi exporter la liste des favoris et la sauvegarder localement, puis l'importer dans n'importe quel autre PhantomSDR.
+
+Lorsque favoris et marqueurs se chevauchent :
+
+🔵 Les favoris bleus apparaissent au-dessus <br /> 🟡 Les marqueurs jaunes apparaissent en dessous <br />
+✅ Les clics sur les favoris sont prioritaires <br />
 
 
-### Adding a Bookmark
+### Ajouter un favori
 
-1. Tune to desired frequency
-2. Click "Bookmarks" button
-3. Click "Add Bookmark"
-4. Enter description
-5. Click "Save"
+1. Accordez-vous sur la fréquence souhaitée
+2. Cliquez sur le bouton « Bookmarks »
+3. Cliquez sur « Add Bookmark »
+4. Saisissez une description
+5. Cliquez sur « Save »
 
 ┌──────────────┬────────────────┬────────┐ │ Bookmark name│Label (optional)│ [Add]  │ └──────────────┴────────────────┴────────┘
 
-### How to Use:
+### Comment l'utiliser :
 
-**Add bookmark:**
-- Name: "Local News Station"
-- Label: "NEWS"
-- Click Add
+**Ajouter un favori :**
+- Nom : « Local News Station »
+- Étiquette : « NEWS »
+- Cliquez sur Add
 
-**View on waterfall:**
-- Zoom in until markers appear
-- See marine blue box with "NEWS" in bold yellow
+**Affichage dans la cascade :**
+- zoomez jusqu'à ce que les marqueurs apparaissent
+- vous verrez un cadre bleu marine avec « NEWS » en jaune gras
 
-**Click bookmark:**
-- Tunes to frequency
-- Sets demodulation mode
-- Works exactly like clicking a marker
+**Cliquer sur un favori :**
+- s'accorde sur la fréquence
+- règle le mode de démodulation
+- fonctionne exactement comme un clic sur un marqueur
 
-### Managing Bookmarks
-- **Edit**: Click pencil icon next to bookmark
-- **Delete**: Click trash icon next to bookmark
-- **Export**: Download bookmarks as JSON file
-- **Import**: Upload bookmarks from JSON file
+### Gérer les favoris
+- **Modifier** : cliquez sur l'icône crayon à côté du favori
+- **Supprimer** : cliquez sur l'icône corbeille à côté du favori
+- **Exporter** : téléchargez les favoris sous forme de fichier JSON
+- **Importer** : envoyez des favoris depuis un fichier JSON
 
-### Sharing Bookmarks
+### Partager des favoris
 
-1. Click "Export Bookmarks"
-2. Share the JSON file with others
-3. Recipients click "Import Bookmarks"
-4. Select your file
+1. Cliquez sur « Export Bookmarks »
+2. Partagez le fichier JSON avec d'autres personnes
+3. Les destinataires cliquent sur « Import Bookmarks »
+4. Ils sélectionnent votre fichier
 ---
 
-## Mobile Usage
+## Utilisation sur mobile
 
-PhantomSDR-Plus works great on mobile devices!
+PhantomSDR-Plus fonctionne très bien sur les appareils mobiles !
 
-### Two mobile views
+### Deux vues mobiles
 
-There are two ways to use the receiver on a phone:
+Il y a deux façons d'utiliser le récepteur sur un téléphone :
 
-- **`http://your_server:PORT/mobile`** — the simplified page. No waterfall, so it uses roughly half the data. Frequency entry, tuning steps, modes, S-meter, bands, bookmarks, users and chat.
-- **The extended view** — the main interface's own phone layout, with the waterfall and the full set of controls.
+- **`http://votre_serveur:PORT/mobile`** — la page simplifiée. Pas de cascade, donc environ moitié moins de données. Saisie de fréquence, pas d'accord, modes, S-mètre, bandes, favoris, utilisateurs et chat.
+- **La vue étendue** — la disposition téléphone de l'interface principale, avec la cascade et l'ensemble des commandes.
 
-Switch between them with the buttons at the bottom of `/mobile` (**Mobile extended view**, **Full desktop view**) and the **Simplified mobile** button in the extended layout.
+On passe de l'une à l'autre avec les boutons en bas de `/mobile` (**Mobile extended view**, **Full desktop view**) et avec **Simplified mobile** dans la vue étendue.
 
-**Your frequency follows you.** Switching view keeps you on the same signal — the frequency and mode travel in the link, so you no longer land back on the receiver's default frequency. The address bar tracks your tuning as well, which means reloading the page, bookmarking it, or sending the link to someone else all return to that exact frequency.
+**Votre fréquence vous suit.** Changer de vue vous laisse sur le même signal — la fréquence et le mode voyagent dans le lien, vous n'atterrissez donc plus sur la fréquence par défaut du récepteur. La barre d'adresse suit également votre accord : recharger la page, la mettre en favori ou envoyer le lien à quelqu'un ramènent exactement à cette fréquence.
 
-**The mode follows the band plan on both pages.** Tune into a segment marked AM, LSB, USB or CW — by typing a frequency, stepping to it or pressing a band button — and the receiver switches to that mode, on the simplified page as well as the full interface. A mode you pick by hand stays put while you move around inside the same segment, and outside the defined bands your mode is left alone. While RADE (RADEL/RADEU) is running it keeps the receiver, so tuning does not interrupt it.
+**Le mode suit le plan de bande sur les deux pages.** Accordez-vous sur un segment déclaré AM, LSB, USB ou CW — en saisissant une fréquence, en avançant par pas ou en appuyant sur un bouton de bande — et le récepteur bascule sur ce mode, sur la page simplifiée comme dans l'interface complète. Un mode choisi à la main est conservé tant que vous vous déplacez à l'intérieur du même segment, et hors des bandes définies votre mode n'est pas touché. Tant que **RADE** (RADEL/RADEU) tourne, il garde le récepteur : s'accorder ne l'interrompt pas.
 
-When you switch between the two views your current mode travels with you, but if the view you are switching to has no equivalent for it, the mode for that frequency is taken from the band plan — a broadcast frequency arrives in AM, 40 m in LSB, a CW segment in CW. `SAM` on the simplified page becomes AM with the synchronous detector in the extended view, and back again. `RADEL` and `RADEU` exist only on the simplified page, so switching away from one of those keeps your frequency and lets the band plan pick the mode.
+Lors d'un changement de vue, votre mode actuel vous accompagne ; si la vue d'arrivée n'a pas d'équivalent, le plan de bande décide pour cette fréquence — une fréquence de radiodiffusion arrive en AM, le 40 m en LSB, un segment CW en CW. `SAM` sur la page simplifiée devient AM avec le détecteur synchrone dans la vue étendue, et inversement. `RADEL` et `RADEU` n'existent que sur la page simplifiée : en la quittant, la fréquence est conservée et le plan de bande choisit le mode.
 
-A frequency outside the receiver's coverage is pulled back to the nearest edge, so an old link can never strand you off-band.
+Une fréquence hors de la couverture du récepteur est ramenée au bord le plus proche : un ancien lien ne peut donc jamais vous laisser hors bande.
 
-### Mobile-Specific Features
+### Fonctions propres au mobile
 
-- **Touch-friendly controls**: Large buttons and sliders
-- **Swipe to tune**: Swipe left/right on waterfall
-- **Pinch to zoom**: Pinch waterfall to zoom in/out
-- **Landscape mode**: Rotate for better view
+- **Commandes tactiles** : grands boutons et curseurs
+- **Balayage pour s'accorder** : balayez vers la gauche/droite sur la cascade
+- **Pincement pour zoomer** : pincez la cascade pour zoomer/dézoomer
+- **Mode paysage** : tournez l'appareil pour une meilleure vue
 
-### Mobile Tips
+### Conseils pour mobile
 
-1. **Use WiFi**: Streaming audio uses data
-2. **Landscape orientation**: Better waterfall view
-3. **Headphones**: Better audio quality
-4. **Bookmark favorites**: Easier to revisit stations
-5. **Close other apps**: Ensure smooth performance
+1. **Utilisez le Wi-Fi** : la diffusion audio consomme des données
+2. **Orientation paysage** : meilleure vue de la cascade
+3. **Écouteurs** : meilleure qualité audio
+4. **Enregistrez vos favoris** : plus facile de revenir sur des stations
+5. **Fermez les autres applications** : garantit des performances fluides
 
-### Mobile Browser Recommendations
+### Navigateurs mobiles recommandés
 
-- **Android**: Chrome or Samsung Internet
-- **iOS**: Mozilla
-- **Both**: Ensure browser is up to date
-
----
-
-## Tips and Best Practices
-
-### For Best Reception
-
-1. **Choose strong signals**: Look for orange/red on waterfall
-2. **Tune precisely**: Click directly on signal center
-3. **Select correct mode**: Match the signal type
-4. **Adjust AGC**: Fast for AM, Slow for SSB
-5. **Use NR/NB**: Help with noisy conditions
-
-### Finding Activity
-
-1. **Watch the waterfall**: Colors show signal strength
-2. **Listen on popular frequencies**:
-   - 40m: 7.100-7.300 MHz (LSB)
-   - 20m: 14.200-14.350 MHz (USB)
-   - 2m: 145.200-145.600 MHz (FM)
-3. **Check band plan overlay**: Shows frequency allocations
-4. **Use bookmarks**: Quick access to active frequencies
-
-### Understanding Band Conditions
-
-**Daytime HF (High Frequency):**
-- Higher bands work better (20m, 15m, 10m)
-- Long-distance (DX) communication possible
-- Broadcast stations audible
-
-**Nighttime HF:**
-- Lower bands work better (80m, 40m)
-- Different propagation patterns
-- Different stations audible
-
-**VHF/UHF:**
-- Mostly line-of-sight
-- Local communications
-- More consistent conditions
-
-### Etiquette
-
-1. **Don't tie up the receiver**: Others want to listen too
-2. **Use chat respectfully**: Be courteous to other users
-3. **Report problems**: Help the operator maintain the station
-4. **Don't ask for tech support**: This is a listening platform. Send a message to the Sysop for help.
+- **Android** : Chrome ou Samsung Internet
+- **iOS** : Mozilla
+- **Les deux** : veillez à ce que le navigateur soit à jour
 
 ---
 
-## Troubleshooting
+## Conseils et bonnes pratiques
 
-### No Audio
+### Pour une réception optimale
 
-**Possible causes:**
-1. Browser muted → Check browser volume controls
-2. System muted → Check computer volume
-3. Weak signal → Tune to stronger signal (S7+)
-4. Wrong mode → Try different demodulation modes
+1. **Choisissez des signaux forts** : cherchez l'orange/rouge dans la cascade
+2. **Accordez-vous précisément** : cliquez au centre du signal
+3. **Sélectionnez le bon mode** : adaptez-le au type de signal
+4. **Réglez l'AGC** : rapide pour l'AM, lente pour la BLU
+5. **Utilisez NR/NB** : utile en conditions bruyantes
 
-**Solutions:**
-1. Click a strong signal (orange/red on waterfall)
-2. Check browser isn't muted (look for mute icon in tab)
-3. Try a different frequency
-4. Reload the page (F5)
+### Trouver de l'activité
 
-### Distorted Audio
+1. **Observez la cascade** : les couleurs indiquent la force des signaux
+2. **Écoutez sur les fréquences populaires** :
+   - 40 m : 7.100-7.300 MHz (LSB)
+   - 20 m : 14.200-14.350 MHz (USB)
+   - 2 m : 145.200-145.600 MHz (FM)
+3. **Consultez la superposition du plan de bandes** : elle montre les attributions de fréquences
+4. **Utilisez les favoris** : accès rapide aux fréquences actives
 
-**Possible causes:**
-1. Overdriven signal → Signal too strong
-2. Wrong mode → AM signal on SSB mode, etc.
-3. Interference → Adjacent signals bleeding over
+### Comprendre les conditions de propagation
 
-**Solutions:**
-1. Reduce volume
-2. Try different demodulation mode
-3. Use narrower filter bandwidth
-4. Tune away from interfering signals
+**HF de jour (hautes fréquences) :**
+- les bandes hautes fonctionnent mieux (20 m, 15 m, 10 m)
+- communications à longue distance (DX) possibles
+- stations de radiodiffusion audibles
 
-### Audio Breaks Up or Lags Behind
+**HF de nuit :**
+- les bandes basses fonctionnent mieux (80 m, 40 m)
+- schémas de propagation différents
+- stations différentes audibles
 
-**Possible causes:**
-1. Irregular connection → packets arrive late and the buffer runs dry
-2. Busy phone or computer → the browser cannot keep up
+**VHF/UHF :**
+- principalement à vue directe
+- communications locales
+- conditions plus stables
 
-**Solutions:**
-1. Move the buffer one step higher (see *Audio Buffer and Delay*)
-2. Prefer Wi-Fi or a cable to mobile data
-3. Close other tabs and apps
+### Savoir-vivre
 
-For a closer look, open the page with `?diag=1` added to its address (for example `http://your_server:PORT/mobile?diag=1`). The /mobile page then shows the delay, how irregular the connection is and how the buffer is doing under its controls; the desktop page writes the same line to the browser console (F12) every ten seconds. Useful when reporting a problem to the station operator.
-
-### Waterfall Not Updating
-
-**Possible causes:**
-1. Network issue → Slow or interrupted connection
-2. Browser performance → Too many tabs open
-3. Server overload → Too many users
-
-**Solutions:**
-1. Check internet connection
-2. Close unnecessary browser tabs
-3. Reload page (F5)
-4. Try again later when fewer users online
-
-### Can't Tune to Frequency
-
-**Possible causes:**
-1. Frequency out of range → SDR doesn't cover that frequency
-2. Typing wrong format → Use correct format (e.g., "14200" not "14.200.000")
-
-**Solutions:**
-1. Check SDR's frequency coverage (shown on page)
-2. Use frequency format examples provided
-3. Click on waterfall instead
-
-### Stuttering/Choppy Audio
-
-**Possible causes:**
-1. Slow internet connection
-2. High server load
-3. Browser performance issues
-
-**Solutions:**
-1. Close other applications using bandwidth
-2. Try again during off-peak hours
-3. Close unnecessary browser tabs
-4. Use wired connection instead of WiFi
+1. **Ne monopolisez pas le récepteur** : d'autres veulent aussi écouter
+2. **Utilisez le chat avec respect** : soyez courtois envers les autres utilisateurs
+3. **Signalez les problèmes** : aidez l'opérateur à entretenir la station
+4. **Ne demandez pas d'assistance technique** : c'est une plateforme d'écoute. Envoyez un message au SysOp pour obtenir de l'aide.
 
 ---
 
-## Frequently Asked Questions
+## Dépannage
 
-### General Questions
+### Aucun son
 
-**Q: Do I need special equipment to use WebSDR?**
-A: No! Just a computer or mobile device with internet access.
+**Causes possibles :**
+1. Navigateur en sourdine → vérifiez les commandes de volume du navigateur
+2. Système en sourdine → vérifiez le volume de l'ordinateur
+3. Signal faible → accordez-vous sur un signal plus fort (S7+)
+4. Mauvais mode → essayez d'autres modes de démodulation
 
-**Q: Is WebSDR free to use?**
-A: Yes, most WebSDRs are free. They're operated by volunteers.
+**Solutions :**
+1. Cliquez sur un signal fort (orange/rouge dans la cascade)
+2. Vérifiez que le navigateur n'est pas en sourdine (icône de coupure dans l'onglet)
+3. Essayez une autre fréquence
+4. Rechargez la page (F5)
 
-**Q: Can I transmit with WebSDR?**
-A: No, WebSDR is receive-only. You cannot transmit.
+### Son déformé
 
-**Q: What frequencies can I listen to?**
-A: Depends on the WebSDR's configuration. Check the station info.
+**Causes possibles :**
+1. Signal saturé → signal trop fort
+2. Mauvais mode → signal AM écouté en BLU, etc.
+3. Interférences → signaux adjacents qui débordent
 
-**Q: Can I record audio?**
-A: Some browsers allow recording. Check your browser's features.
+**Solutions :**
+1. Baissez le volume
+2. Essayez un autre mode de démodulation
+3. Utilisez un filtre plus étroit
+4. Éloignez-vous des signaux perturbateurs
 
-### Technical Questions
+### Le son se coupe ou traîne
 
-**Q: What sample rate does the SDR use?**
-A: Varies by station. Check the station information page.
+**Causes possibles :**
+1. Connexion irrégulière → les paquets arrivent en retard et le tampon se vide
+2. Téléphone ou ordinateur surchargé → le navigateur ne suit pas
 
-**Q: What's the latency?**
-A: Usually a few tenths of a second between the radio signal and your speakers: the receiver's processing, the network, and the browser's playback buffer, which adjusts itself to your connection (about 100–150 ms on a phone over home Wi-Fi). See *Audio Buffer and Delay*.
+**Solutions :**
+1. Montez le tampon d'un cran (voir *Tampon audio et retard*)
+2. Préférez le Wi-Fi ou le câble aux données mobiles
+3. Fermez les autres onglets et applications
 
-**Q: Can I use multiple instances?**
-A: Usually yes, but it may strain the server. Be considerate.
+Pour y regarder de plus près, ouvrez la page en ajoutant `?diag=1` à son adresse (par exemple `http://your_server:PORT/mobile?diag=1`). La page /mobile affiche alors sous ses commandes le retard, l'irrégularité de la connexion et l'état du tampon ; la page de bureau écrit la même ligne dans la console du navigateur (F12) toutes les dix secondes. Utile pour signaler un problème à l'opérateur de la station.
 
-**Q: Does it work offline?**
-A: No, WebSDR requires internet connection.
+### La cascade ne se met pas à jour
 
-**Q: What browsers are supported?**
-A: Chrome, Firefox, Edge, Safari (all recent versions)
+**Causes possibles :**
+1. Problème réseau → connexion lente ou interrompue
+2. Performances du navigateur → trop d'onglets ouverts
+3. Serveur surchargé → trop d'utilisateurs
 
-### Usage Questions
+**Solutions :**
+1. Vérifiez votre connexion Internet
+2. Fermez les onglets inutiles
+3. Rechargez la page (F5)
+4. Réessayez plus tard, quand il y a moins d'utilisateurs
 
-**Q: How many people can listen at once?**
-A: Depends on server capacity. Often 50-200+ users.
+### Impossible de s'accorder sur une fréquence
 
-**Q: Can I see what others are listening to?**
-A: If enabled, yes. Look for "other users" indicators.
+**Causes possibles :**
+1. Fréquence hors plage → le SDR ne couvre pas cette fréquence
+2. Format de saisie incorrect → utilisez le bon format (p. ex. « 14200 » et non « 14.200.000 »)
 
-**Q: Can I chat with other listeners?**
-A: If enabled by the operator. Look for the chat box; **↪ Reply** answers a particular message (see *Chat* above).
+**Solutions :**
+1. Vérifiez la couverture en fréquence du SDR (indiquée sur la page)
+2. Utilisez les exemples de format de fréquence fournis
+3. Cliquez plutôt dans la cascade
 
-**Q: Why do some frequencies show nothing?**
-A: No signals on that frequency at the moment. Try others!
+### Son haché ou saccadé
 
-**Q: What are the colored bands on the waterfall?**
-A: Band plan overlay showing frequency allocations.
+**Causes possibles :**
+1. connexion Internet lente
+2. charge élevée du serveur
+3. problèmes de performances du navigateur
+
+**Solutions :**
+1. Fermez les autres applications qui consomment de la bande passante
+2. Réessayez en dehors des heures de pointe
+3. Fermez les onglets inutiles
+4. Utilisez une connexion filaire plutôt que le Wi-Fi
 
 ---
 
-## Resources
+## Foire aux questions
 
-### Learning More About Radio
+### Questions générales
 
-- **Band Plans**: Search "amateur radio band plan" + your region
-- **Propagation**: Learn about HF radio wave propagation
-- **Digital Modes**: Research FT8, PSK31, RTTY
-- **Ham Radio**: Consider getting an amateur radio license!
+**Q : Ai-je besoin d'un équipement spécial pour utiliser un WebSDR ?**
+R : Non ! Juste un ordinateur ou un appareil mobile connecté à Internet.
 
-### Finding More WebSDRs
+**Q : L'utilisation du WebSDR est-elle gratuite ?**
+R : Oui, la plupart des WebSDR sont gratuits. Ils sont exploités par des bénévoles.
 
-- **WebSDR Directory**: http://sdr-list.xyz
-- **WebSDR.org**: http://websdr.org
-- **KiwiSDR**: http://kiwisdr.com/public/
+**Q : Puis-je émettre avec un WebSDR ?**
+R : Non, le WebSDR est uniquement en réception. Vous ne pouvez pas émettre.
 
-### Getting Help
+**Q : Quelles fréquences puis-je écouter ?**
+R : Cela dépend de la configuration du WebSDR. Consultez les informations de la station.
 
-1. **Station operator**: Check contact info on page
-2. **User chat**: Ask other listeners (if available)
-3. **Online forums**: Search for WebSDR communities
-4. **Documentation**: Refer to this guide!
+**Q : Puis-je enregistrer l'audio ?**
+R : Certains navigateurs permettent l'enregistrement. Vérifiez les fonctions de votre navigateur.
+
+### Questions techniques
+
+**Q : Quel taux d'échantillonnage le SDR utilise-t-il ?**
+R : Cela varie selon la station. Consultez la page d'informations de la station.
+
+**Q : Quelle est la latence ?**
+R : En général quelques dixièmes de seconde entre le signal radio et vos haut-parleurs : le traitement dans le récepteur, le réseau et le tampon de lecture du navigateur, qui s'adapte à votre connexion (environ 100–150 ms sur un téléphone en Wi-Fi domestique). Voir *Tampon audio et retard*.
+
+**Q : Puis-je ouvrir plusieurs instances ?**
+R : En général oui, mais cela peut solliciter le serveur. Soyez prévenant.
+
+**Q : Cela fonctionne-t-il hors ligne ?**
+R : Non, le WebSDR nécessite une connexion Internet.
+
+**Q : Quels navigateurs sont pris en charge ?**
+R : Chrome, Firefox, Edge, Safari (toutes versions récentes)
+
+### Questions d'utilisation
+
+**Q : Combien de personnes peuvent écouter en même temps ?**
+R : Cela dépend de la capacité du serveur. Souvent 50 à 200 utilisateurs ou plus.
+
+**Q : Puis-je voir ce que les autres écoutent ?**
+R : Si la fonction est activée, oui. Cherchez les indicateurs « autres utilisateurs ».
+
+**Q : Puis-je discuter avec les autres auditeurs ?**
+R : Si l'opérateur l'a activé. Cherchez la zone de chat ; **↪ Reply** répond à un message précis (voir *Chat* plus haut).
+
+**Q : Pourquoi certaines fréquences n'affichent-elles rien ?**
+R : Aucun signal sur cette fréquence pour le moment. Essayez-en d'autres !
+
+**Q : Que sont les bandes colorées sur la cascade ?**
+R : La superposition du plan de bandes, qui montre les attributions de fréquences.
 
 ---
 
-## Appendix: Common Frequencies
+## Ressources
 
-### HF Amateur Radio Bands
+### Pour en savoir plus sur la radio
 
-| Band | Frequency Range | Mode | Activity |
-|------|----------------|------|----------|
-| 160m | 1.800-2.000 MHz | LSB | Night/Local |
-| 80m | 3.500-4.000 MHz | LSB | Night/Regional |
-| 40m | 7.000-7.300 MHz | LSB | Day/Night/DX |
-| 30m | 10.100-10.150 MHz | USB | Data/CW only |
-| 20m | 14.000-14.350 MHz | USB | Daytime/DX |
-| 17m | 18.068-18.168 MHz | USB | Daytime/DX |
-| 15m | 21.000-21.450 MHz | USB | Daytime/DX |
-| 12m | 24.890-24.990 MHz | USB | Daytime/DX |
-| 10m | 28.000-29.700 MHz | USB | Sporadic/DX |
+- **Plans de bandes** : recherchez « amateur radio band plan » + votre région
+- **Propagation** : renseignez-vous sur la propagation des ondes HF
+- **Modes numériques** : documentez-vous sur FT8, PSK31, RTTY
+- **Radioamateurisme** : pensez à passer une licence radioamateur !
 
-### VHF/UHF Amateur Bands
+### Trouver d'autres WebSDR
 
-| Band | Frequency Range | Mode | Activity |
-|------|----------------|------|----------|
-| 6m | 50.000-54.000 MHz | USB/FM | Sporadic |
-| 2m | 144.000-148.000 MHz | FM | Very Active |
-| 70cm | 420.000-450.000 MHz | FM | Active |
+- **Annuaire WebSDR** : http://sdr-list.xyz
+- **WebSDR.org** : http://websdr.org
+- **KiwiSDR** : http://kiwisdr.com/public/
 
-### Broadcast Bands
+### Obtenir de l'aide
 
-| Service | Frequency Range | Mode |
-|---------|----------------|------|
-| AM Radio | 530-1710 kHz | AM |
-| Shortwave | 2.3-26.1 MHz | AM |
-| FM Radio | 88-108 MHz | WBFM |
+1. **Opérateur de la station** : coordonnées indiquées sur la page
+2. **Chat des utilisateurs** : demandez aux autres auditeurs (si disponible)
+3. **Forums en ligne** : cherchez des communautés WebSDR
+4. **Documentation** : reportez-vous à ce guide !
+
+---
+
+## Annexe : fréquences courantes
+
+### Bandes radioamateurs HF
+
+| Bande | Plage de fréquences | Mode | Activité |
+|-------|---------------------|------|----------|
+| 160 m | 1.800-2.000 MHz | LSB | Nuit/local |
+| 80 m | 3.500-4.000 MHz | LSB | Nuit/régional |
+| 40 m | 7.000-7.300 MHz | LSB | Jour/nuit/DX |
+| 30 m | 10.100-10.150 MHz | USB | Données/CW uniquement |
+| 20 m | 14.000-14.350 MHz | USB | Jour/DX |
+| 17 m | 18.068-18.168 MHz | USB | Jour/DX |
+| 15 m | 21.000-21.450 MHz | USB | Jour/DX |
+| 12 m | 24.890-24.990 MHz | USB | Jour/DX |
+| 10 m | 28.000-29.700 MHz | USB | Sporadique/DX |
+
+### Bandes radioamateurs VHF/UHF
+
+| Bande | Plage de fréquences | Mode | Activité |
+|-------|---------------------|------|----------|
+| 6 m | 50.000-54.000 MHz | USB/FM | Sporadique |
+| 2 m | 144.000-148.000 MHz | FM | Très active |
+| 70 cm | 420.000-450.000 MHz | FM | Active |
+
+### Bandes de radiodiffusion
+
+| Service | Plage de fréquences | Mode |
+|---------|---------------------|------|
+| Radio AM | 530-1710 kHz | AM |
+| Ondes courtes | 2.3-26.1 MHz | AM |
+| Radio FM | 88-108 MHz | WBFM |
 
 ### Aviation
 
-| Service | Frequency Range | Mode |
-|---------|----------------|------|
-| Air Traffic Control | 118-137 MHz | AM |
-| ACARS (data) | 130-136 MHz | Data |
+| Service | Plage de fréquences | Mode |
+|---------|---------------------|------|
+| Contrôle du trafic aérien | 118-137 MHz | AM |
+| ACARS (données) | 130-136 MHz | Données |
 
 ### Maritime
 
-| Service | Frequency Range | Mode |
-|---------|----------------|------|
-| Marine VHF | 156-162 MHz | FM |
-| Marine HF | 2-22 MHz | USB |
+| Service | Plage de fréquences | Mode |
+|---------|---------------------|------|
+| VHF marine | 156-162 MHz | FM |
+| HF marine | 2-22 MHz | USB |
 
 ---
 
-## Glossary
+## Glossaire
 
-**AGC**: Automatic Gain Control - adjusts audio levels automatically
+**AGC** : contrôle automatique de gain — ajuste automatiquement les niveaux audio
 
-**AM**: Amplitude Modulation - voice mode used for aviation and broadcast
+**AM** : modulation d'amplitude — mode phonie utilisé en aviation et en radiodiffusion
 
-**Bandwidth**: The frequency range of a signal
+**Bande passante** : la plage de fréquences occupée par un signal
 
-**CW**: Continuous Wave - Morse code signals
+**CW** : onde entretenue — signaux en code Morse
 
-**DX**: Long distance communication
+**DX** : communication à longue distance
 
-**FFT**: Fast Fourier Transform - converts time to frequency domain
+**FFT** : transformée de Fourier rapide — convertit le domaine temporel en domaine fréquentiel
 
-**FLDIGI**: the decoder window for RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet and APRS, named after the fldigi program that made these modes popular
+**FLDIGI** : la fenêtre de décodage pour RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet et APRS, nommée d'après le logiciel fldigi qui a popularisé ces modes
 
-**FM**: Frequency Modulation - voice mode for VHF/UHF
+**FM** : modulation de fréquence — mode phonie pour la VHF/UHF
 
-**HF**: High Frequency (3-30 MHz) - long distance bands
+**HF** : hautes fréquences (3-30 MHz) — bandes à longue portée
 
-**kHz**: Kilohertz (1,000 Hz)
+**kHz** : kilohertz (1 000 Hz)
 
-**LSB**: Lower Sideband - voice mode for lower HF bands
+**LSB** : bande latérale inférieure — mode phonie pour les bandes HF basses
 
-**MHz**: Megahertz (1,000,000 Hz)
+**MHz** : mégahertz (1 000 000 Hz)
 
-**NB**: Noise Blanker - removes impulse noise
+**NB** : silencieux d'impulsions — supprime le bruit impulsionnel
 
-**NR**: Noise Reduction - reduces background noise
+**NR** : réduction de bruit — atténue le bruit de fond
 
-**PSK**: Phase Shift Keying - digital mode
+**PSK** : modulation par déplacement de phase — mode numérique
 
-**RTTY**: Radio Teletype - digital text mode
+**RTTY** : télétype radio — mode texte numérique
 
-**S-meter**: Signal strength meter
+**S-mètre** : indicateur de force du signal
 
-**SDR**: Software Defined Radio
+**SDR** : radio logicielle
 
-**SQL**: Squelch - mutes audio when no signal present
+**SQL** : squelch — coupe l'audio en l'absence de signal
 
-**SSB**: Single Sideband (USB or LSB)
+**BLU (SSB)** : bande latérale unique (USB ou LSB)
 
-**USB**: Upper Sideband - voice mode for higher HF bands
+**USB** : bande latérale supérieure — mode phonie pour les bandes HF hautes
 
-**VHF**: Very High Frequency (30-300 MHz) - line-of-sight
+**VHF** : très hautes fréquences (30-300 MHz) — propagation à vue directe
 
-**UHF**: Ultra High Frequency (300-3000 MHz) - line-of-sight
+**UHF** : ultra hautes fréquences (300-3000 MHz) — propagation à vue directe
 
-**Waterfall**: Visual display of radio spectrum over time
+**Cascade** : affichage visuel du spectre radio au fil du temps
 
 ---
 
-**Enjoy exploring the radio spectrum with PhantomSDR-Plus!**
+**Bonne exploration du spectre radio avec PhantomSDR-Plus !**
 
-**73 (Best regards) de SV1BTL, 9A7AOF, F1NSK & SV2AMK**
+**73 (meilleures salutations) de SV1BTL, 9A7AOF, F1NSK & SV2AMK**
 
-For installation instructions, see [INSTALLATION.md](INSTALLATION.md). For technical details, see [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md).
+Pour les instructions d'installation, voir [INSTALLATION.md](INSTALLATION.md). Pour les détails techniques, voir [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md).

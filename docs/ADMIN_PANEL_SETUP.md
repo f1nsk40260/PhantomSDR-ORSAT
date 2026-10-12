@@ -1,55 +1,55 @@
-# PhantomSDR-Plus Admin Panel — Setup Guide
+# Panneau d'administration PhantomSDR-Plus — Guide de configuration
 
-> ⚠️ **Security notice:** Keep this admin panel on your home network or behind a VPN. Public exposure of the admin port is not recommended without proper authentication hardening.
+> ⚠️ **Avis de sécurité :** gardez ce panneau d'administration sur votre réseau domestique ou derrière un VPN. L'exposition publique du port d'administration n'est pas recommandée sans un durcissement d'authentification approprié.
 
 ---
 
-## Overview
+## Vue d'ensemble
 
-The admin panel consists of two Python services:
+Le panneau d'administration se compose de deux services Python :
 
-| Service | File | Role |
+| Service | Fichier | Rôle |
 |---|---|---|
-| Admin panel | `admin_server.py` | Flask web app, binds to `127.0.0.1` (internal only) |
-| Reverse proxy | `proxy.py` | Exposes both the SDR and the admin panel on a single public port |
+| Panneau d'administration | `admin_server.py` | Application web Flask, liée à `127.0.0.1` (interne uniquement) |
+| Proxy inverse | `proxy.py` | Expose à la fois le SDR et le panneau d'administration sur un seul port public |
 
-Both services read their configuration from `admin_config.json`, which is written by `setup_admin.sh`. **Do not edit port constants directly in the Python files** — all ports and the SDR host IP are stored in `admin_config.json`.
-
----
-
-## What the admin panel gives you
-
-- **Dashboard** — live server status, CPU/RAM, top processes, recent log output, terminal
-- **Config Editor** — view, edit and save any `.toml`, `.sh`, `.json`, `.h`, `.cpp` file in your installation
-- **Log Viewer** — tail any log file in real time (SDR server, admin panel, RADE, crash, autorun, proxy)
-- **Markers** — view and edit frequency markers
-- **Chat History** — view the WebSDR chat log, clear it entirely, or delete individual messages without restarting the server
-- **Waterfall Message** — broadcast a persistent banner message to all connected users, visible on the waterfall display in real time
-- **Users** — live list of connected listeners with their tuned frequency, mode, duration and a ⚡ Kick button
-- **Chat message deletion** — 🗑 Delete button that removes that single message from the log immediately
-- **Waterfall broadcast messages** —  lets you push a persistent text banner to every connected user's waterfall
-- **Spot Reporting** — start/stop the autorun FT8/FT4/JS8/WSPR decoder, pick bands/modes, and report spots to PSK Reporter / wsprnet (OFF by default), with two counters: per-decoder tiles for the current run and an all-time total beside each band/mode checkbox
-- **Graphs** — CPU frequency, CPU load, CPU temperature and connected users plotted over the last 15 minutes / 1 hour / 4 hours / 12 hours / 24 hours
-- **Thermal Guard** — stops the server if the CPU overheats and restarts it once cool, with thresholds derived from your own CPU; works with any start/stop method, and ships in log-only mode so it does nothing until you enable it
-- **Settings** — change admin password, SDR base directory, process name, public port
+Les deux services lisent leur configuration dans `admin_config.json`, écrit par `setup_admin.sh`. **Ne modifiez pas directement les constantes de port dans les fichiers Python** — tous les ports et l'adresse IP de l'hôte SDR sont stockés dans `admin_config.json`.
 
 ---
 
-## Requirements
+## Ce que vous apporte le panneau d'administration
 
-- PhantomSDR-Plus already installed and running
+- **Tableau de bord** — état du serveur en direct, CPU/RAM, processus principaux, sortie récente des journaux, terminal
+- **Éditeur de configuration** — consultez, modifiez et enregistrez n'importe quel fichier `.toml`, `.sh`, `.json`, `.h`, `.cpp` de votre installation
+- **Visionneuse de journaux** — suivez n'importe quel fichier journal en temps réel (serveur SDR, panneau d'administration, RADE, plantages, autorun, proxy)
+- **Marqueurs** — consultez et modifiez les marqueurs de fréquence
+- **Historique du chat** — consultez le journal du chat WebSDR, effacez-le entièrement ou supprimez des messages individuels sans redémarrer le serveur
+- **Message sur la cascade** — diffusez une bannière persistante à tous les utilisateurs connectés, visible en temps réel sur l'affichage en cascade
+- **Utilisateurs** — liste en direct des auditeurs connectés avec leur fréquence, leur mode, leur durée de connexion et un bouton ⚡ Kick
+- **Suppression de messages du chat** — bouton 🗑 Delete qui retire immédiatement ce seul message du journal
+- **Messages diffusés sur la cascade** — permet de pousser une bannière de texte persistante sur la cascade de chaque utilisateur connecté
+- **Spot Reporting** — démarrez/arrêtez le décodeur autorun FT8/FT4/JS8/WSPR, choisissez les bandes/modes et rapportez les spots à PSK Reporter / wsprnet (désactivé par défaut), avec deux compteurs : des tuiles par décodeur pour l'exécution en cours et un total depuis toujours à côté de chaque case bande/mode
+- **Graphiques** — fréquence du CPU, charge du CPU, température du CPU et utilisateurs connectés, tracés sur les 15 dernières minutes / 1 heure / 4 heures / 12 heures / 24 heures
+- **Protection thermique (Thermal Guard)** — arrête le serveur si le processeur surchauffe et le redémarre une fois refroidi, avec des seuils déduits de votre propre processeur ; fonctionne avec n'importe quelle méthode de démarrage/arrêt et est livrée en mode journalisation seule, elle ne fait donc rien tant que vous ne l'activez pas
+- **Paramètres** — modifiez le mot de passe d'administration, le répertoire de base du SDR, le nom du processus, le port public
+
+---
+
+## Prérequis
+
+- PhantomSDR-Plus déjà installé et en cours d'exécution
 - Python 3.8+
 
 > [!NOTE]
-> **The installer normally does this for you.** `./install.sh` — and each of the four distro installers, both RADE installers and the stats-server installer — sets the admin panel up by default, installing `pip` first with the system's own package manager if it is missing. This page is what happens during that step, and what to do if you skipped it or want to change something afterwards.
+> **En temps normal, l'installateur le fait pour vous.** `./install.sh` — comme chacun des quatre installateurs par distribution, les deux installateurs RADE et celui du serveur de statistiques — met le panneau en place par défaut, en installant d'abord `pip` avec le gestionnaire de paquets du système s'il manque. Cette page décrit ce qui se passe à cette étape, et quoi faire si vous l'avez sautée ou souhaitez changer quelque chose ensuite.
 
-The panel's Python libraries (`flask`, `psutil`, `aiohttp`, `tomli-w`) are installed by `setup_admin.sh`; it prints the exact command to run by hand if that ever fails.
+Les bibliothèques Python du panneau (`flask`, `psutil`, `aiohttp`, `tomli-w`) sont installées par `setup_admin.sh` ; en cas d'échec, il affiche la commande exacte à lancer.
 
 ---
 
-## Step 1 — Files
+## Étape 1 — Fichiers
 
-All four files ship with the repository, so there is nothing to copy:
+Placez ces quatre fichiers dans votre répertoire PhantomSDR-Plus :
 
 ```
 admin_server.py
@@ -58,56 +58,60 @@ setup_admin.sh
 proxy.py
 ```
 
-The installer sets the executable bits itself. On a tree copied by hand, run the script as `bash setup_admin.sh`.
+Rendez les scripts shell exécutables :
+
+```bash
+chmod +x setup_admin.sh manage_admin.sh
+```
 
 ---
 
-## Step 2 — Run the setup script
+## Étape 2 — Lancer le script d'installation
 
 ```bash
 ./setup_admin.sh
 ```
 
-> **Without the admin panel:** `bash setup_admin.sh --proxy-only` installs only `proxy.py` on the public port, with the ports from `station.conf`. It is what the installer does when you decline the panel, because the proxy is what listeners — and `/rade`, `/stats`, `/relay` — reach.
+> **Sans panneau d'administration :** `bash setup_admin.sh --proxy-only` installe seulement `proxy.py` sur le port public, avec les ports de `station.conf`. C'est ce que fait l'installateur quand vous refusez le panneau, car c'est le proxy que joignent les auditeurs — ainsi que `/rade`, `/stats`, `/relay`.
 
-The script will:
+Le script va :
 
-1. Check that Python 3 is installed
-2. Verify `admin_server.py` and `manage_admin.sh` are present
-3. Record `127.0.0.1` as `sdr_host` in config (see [The `sdr_host` setting](#the-sdr_host-setting))
-4. Ask for three port numbers. Each offers a default in brackets that a bare Enter
-accepts, so a normal setup is three keystrokes:
-   - **Spectrumserver port** — the port your SDR server listens on (default `8900`,
-     which is what every `config-*.toml` in the repository ships with)
-   - **Admin panel internal port** — where `admin_server.py` binds locally (default `3000`)
-   - **Proxy public port** — the single external port that combines SDR + admin (default `8902`)
-   On a station set up with the station questions (`configure-station.sh`), the three defaults are that station's own ports from `station.conf` — 9001, 9010 and 9000 — so Enter is right, and the start script is already preselected.
+1. Vérifier que Python 3 est installé
+2. Vérifier la présence de `admin_server.py` et `manage_admin.sh`
+3. Enregistrer `127.0.0.1` comme `sdr_host` dans la configuration (voir [Le réglage `sdr_host`](#le-réglage-sdr_host))
+4. Demander trois numéros de port. Chaque invite propose une valeur par défaut entre crochets
+qu'une simple touche Entrée accepte, si bien qu'une installation normale tient en trois frappes :
+   - **Port de spectrumserver** — le port sur lequel votre serveur SDR écoute (par défaut `8900`,
+     c'est-à-dire celui que livre chaque `config-*.toml` du dépôt)
+   - **Port interne du panneau d'administration** — là où `admin_server.py` se lie localement (par défaut `3000`)
+   - **Port public du proxy** — l'unique port externe combinant SDR + administration (par défaut `8902`)
+   Sur une station configurée avec les questions de la station (`configure-station.sh`), les trois valeurs par défaut sont les ports propres de la station dans `station.conf` — 9001, 9010 et 9000 — ; Entrée convient donc, et le script de démarrage est déjà présélectionné.
 
-Invalid answers are rejected and re-asked, but only five times — after that the default is used. A run whose input is not a terminal (piped, cron, unattended) takes the defaults straight away instead of waiting for input that never comes.
-5. Install `flask`, `psutil`, `aiohttp` and `tomli-w` via pip
-6. Grant `ss` the `cap_net_admin` capability (fallback path of Kick Users, used only when the panel runs without the proxy)
-7. Ask which script starts and which stops the receiver — the panel drives the server through these, and so does the thermal guard
-8. Ask how far the CPU over-temperature guard may act on its own — `log`, `throttle`, `stop` or `stop+restart` — and offer to run `setup-cpufreq-perms.sh` so the throttle stage works without root (see [THERMAL_GUARD.md](THERMAL_GUARD.md))
-9. Write `admin_config.json` with all settings
-10. Offer to install two systemd units (panel + proxy) — auto-start on boot and restart after a crash. **Recommended, and the default** (a bare Enter accepts it): the CPU over-temperature guard only runs while the panel runs, so without the units a reboot leaves the machine unprotected. The step is skipped automatically where systemd is not PID 1 (containers, WSL1, OpenRC), or where you have no sudo.
+Les réponses invalides sont rejetées et redemandées, mais cinq fois seulement — ensuite la valeur par défaut est retenue. Une exécution dont l'entrée n'est pas un terminal (tube, cron, sans surveillance) prend aussitôt les valeurs par défaut au lieu d'attendre une saisie qui ne viendra jamais.
+5. Installer `flask`, `psutil`, `aiohttp` et `tomli-w` via pip
+6. Accorder à `ss` la capacité `cap_net_admin` (voie de repli de l'éjection d'utilisateurs, utile seulement si le panneau tourne sans le proxy)
+7. Demander quel script démarre et quel script arrête le récepteur — c'est par eux que le panneau pilote le serveur, et la protection thermique aussi
+8. Demander jusqu'où la protection thermique du processeur peut aller d'elle-même — `log`, `throttle`, `stop` ou `stop+restart` — et proposer d'exécuter `setup-cpufreq-perms.sh` pour que l'étage throttle fonctionne sans root (voir [THERMAL_GUARD.md](THERMAL_GUARD.md))
+9. Écrire `admin_config.json` avec tous les réglages
+10. Proposer d'installer deux unités systemd (panneau + proxy) — démarrage au boot et redémarrage après un plantage. **Recommandé, et proposé par défaut** (un simple Entrée suffit) : la protection contre la surchauffe ne tourne que tant que le panneau tourne ; sans les unités, un redémarrage laisse la machine sans protection. L'étape est ignorée automatiquement là où systemd n'est pas PID 1 (conteneurs, WSL1, OpenRC) ou si vous n'avez pas sudo.
 
-After setup, open your browser via the proxy:
+Après l'installation, ouvrez votre navigateur via le proxy :
 ```
 http://YOUR_SERVER_IP:<proxy_port>/admin
 ```
-Default password: **`admin`**
+Mot de passe par défaut : **`admin`**
 
-> ⚠️ **Change the password immediately** — go to Settings on first login. A first-run wizard will guide you through setting the SDR directory, process name, public port and a new password.
+> ⚠️ **Changez immédiatement le mot de passe** — allez dans Settings à la première connexion. Un assistant de premier lancement vous guidera pour définir le répertoire SDR, le nom du processus, le port public et un nouveau mot de passe.
 
 ---
 
-## Step 3 — Start / Stop / Restart
+## Étape 3 — Démarrer / arrêter / redémarrer
 
-There are two ways to run the panel and the proxy. **Pick one and stay with it** — the warning at the end of this section explains what happens if you mix them.
+Il y a deux façons de faire tourner le panneau et le proxy. **Choisissez-en une et tenez-vous-y** — l'avertissement en fin de section explique ce qui se passe si vous les mélangez.
 
-> **Method B (systemd) is strongly recommended** wherever systemd is available. The CPU over-temperature guard runs inside the panel, so a panel that dies at 03:00 or a machine that reboots leaves the CPU unprotected until someone starts it again by hand. `setup_admin.sh` now offers the units by default. Use Method A when there is no systemd — containers, WSL1, OpenRC/sysvinit — or when you deliberately want to supervise things yourself.
+> **La méthode B (systemd) est fortement recommandée** partout où systemd est disponible. La protection thermique tourne dans le panneau : un panneau qui meurt à 03:00, ou une machine qui redémarre, laisse le processeur sans protection jusqu'à ce que quelqu'un le relance à la main. `setup_admin.sh` propose désormais les unités par défaut. Utilisez la méthode A lorsqu'il n'y a pas de systemd — conteneurs, WSL1, OpenRC/sysvinit — ou si vous voulez délibérément assurer vous-même la supervision.
 
-### Method A — `manage_admin.sh` (no root, nothing installed)
+### Méthode A — `manage_admin.sh` (sans root, rien à installer)
 
 ```bash
 ./manage_admin.sh start      # start admin panel and proxy
@@ -115,15 +119,15 @@ There are two ways to run the panel and the proxy. **Pick one and stay with it**
 ./manage_admin.sh status     # show running status and PIDs
 ```
 
-There is deliberately **no `restart`**. It used to kill the panel and immediately start its own copy, which collides with systemd on any machine using Method B. To restart under Method A, run `stop` then `start` — see [Restarting the panel](#restarting-the-panel) below.
+Il n'y a délibérément **pas de `restart`**. Il tuait le panneau et démarrait aussitôt sa propre copie, ce qui entre en conflit avec systemd sur toute machine utilisant la méthode B. Pour redémarrer avec la méthode A, lancez `stop` puis `start` — voir [Redémarrer le panneau](#redémarrer-le-panneau) ci-dessous.
 
-One script controls **both** processes. It checks that `aiohttp` is installed before starting the proxy and prints a clear error with the fix command if it is missing.
+Un seul script pilote **les deux** processus. Il vérifie qu'`aiohttp` est installé avant de démarrer le proxy et affiche une erreur claire avec la commande de correction s'il manque.
 
-Nothing starts by itself: after a reboot, or if the panel crashes, you start it again by hand. That is fine for a receiver you watch, but note that the CPU over-temperature guard runs inside the panel — while the panel is down, nothing is protecting the machine (see [THERMAL_GUARD.md](THERMAL_GUARD.md)).
+Rien ne démarre tout seul : après un redémarrage, ou si le panneau plante, vous le relancez à la main. C'est acceptable pour un récepteur que vous surveillez, mais notez que la protection thermique du processeur tourne à l'intérieur du panneau : tant que le panneau est arrêté, rien ne protège la machine (voir [THERMAL_GUARD.md](THERMAL_GUARD.md)).
 
-### Method B — systemd units (starts at boot, restarts after a crash)
+### Méthode B — unités systemd (démarrage au boot, redémarrage après plantage)
 
-The repository ships two ready units, `phantomsdr-admin.service` and `phantomsdr-proxy.service`. Edit `User=` and the paths in both, then:
+Le dépôt fournit deux unités prêtes à l'emploi, `phantomsdr-admin.service` et `phantomsdr-proxy.service`. Adaptez `User=` et les chemins dans les deux, puis :
 
 ```bash
 sudo cp phantomsdr-admin.service phantomsdr-proxy.service /etc/systemd/system/
@@ -133,67 +137,67 @@ sudo systemctl enable --now phantomsdr-admin
 sudo systemctl enable --now phantomsdr-proxy
 ```
 
-Day-to-day commands then become:
+Les commandes quotidiennes deviennent alors :
 
 ```bash
 sudo systemctl start   phantomsdr-admin
 sudo systemctl stop    phantomsdr-admin
 sudo systemctl restart phantomsdr-admin
-systemctl status       phantomsdr-admin   # no sudo needed
-sudo journalctl -u phantomsdr-admin -f    # live logs
+systemctl status       phantomsdr-admin
+sudo journalctl -u phantomsdr-admin -f
 ```
 
-The same four with `phantomsdr-proxy`, or both at once: `sudo systemctl restart phantomsdr-admin phantomsdr-proxy`.
+Les mêmes quatre avec `phantomsdr-proxy`, ou les deux à la fois : `sudo systemctl restart phantomsdr-admin phantomsdr-proxy`.
 
-`admin.log` and `proxy.log` keep working exactly as before — the units append to those same files.
+`admin.log` et `proxy.log` fonctionnent exactement comme avant — les unités écrivent dans ces mêmes fichiers.
 
-One thing to do once: install the tmpfiles rule at `tmpfiles/phantomsdr-logs.conf` (edit its paths and user first). systemd creates those two logs as `root` before it drops to `User=`, and the panel's **Clear Logs** button then fails on them with `Permission denied` — see [“Clear Logs” says Permission denied](#clear-logs-says-permission-denied) below. `setup_admin.sh` installs the rule for you.
+Une chose à faire une fois pour toutes : installer la règle tmpfiles de `tmpfiles/phantomsdr-logs.conf` (modifiez d'abord ses chemins et son utilisateur). systemd crée ces deux journaux en tant que `root` avant de descendre vers `User=`, et le bouton **Clear Logs** du panneau échoue alors avec `Permission denied` — voir plus bas « Clear Logs indique Permission denied ». `setup_admin.sh` installe la règle pour vous.
 
-The admin unit carries `SupplementaryGroups=cpufreq`, which is what lets the thermal guard's throttle stage lower the CPU clock without the panel running as root. Create that group first with `./setup-cpufreq-perms.sh`, or systemd will refuse to start the unit; delete the line if you do not use the throttle stage.
+L'unité du panneau porte `SupplementaryGroups=cpufreq`, ce qui permet à l'étage throttle de la protection thermique d'abaisser la fréquence du processeur sans faire tourner le panneau en root. Créez d'abord ce groupe avec `./setup-cpufreq-perms.sh`, sinon systemd refusera de démarrer l'unité ; supprimez la ligne si vous n'utilisez pas l'étage throttle.
 
-To go back to Method A:
+Pour revenir à la méthode A :
 
 ```bash
 sudo systemctl disable --now phantomsdr-admin
 sudo systemctl disable --now phantomsdr-proxy
 ```
 
-> ⚠️ **Do not mix the two.** With the units enabled, `./manage_admin.sh stop` is undone by systemd five seconds later, and `./manage_admin.sh start` gives you a second, unmanaged copy fighting the systemd one over the same port. (`restart` was removed from the script for exactly this reason; it now prints an error telling you to use `systemctl`.) `./manage_admin.sh status` only reads, so it stays useful either way.
+> ⚠️ **Ne mélangez pas les deux.** Avec les unités activées, `./manage_admin.sh stop` est annulé par systemd cinq secondes plus tard, et `./manage_admin.sh start` vous donne une seconde copie non gérée qui se dispute le même port avec celle de systemd. (`restart` a été retiré du script précisément pour cela ; il affiche désormais une erreur qui renvoie à `systemctl`.) `./manage_admin.sh status` ne fait que lire : il reste utile dans les deux cas.
 
-### Restarting the panel
+### Redémarrer le panneau
 
-The rest of this document says "restart the panel" in a number of places. It means whichever of these matches your method:
+La suite de ce document dit « redémarrez le panneau » à plusieurs endroits. Cela désigne celle de ces commandes qui correspond à votre méthode :
 
 ```bash
-# Method B — systemd units (the normal setup)
+# Méthode B — unités systemd (l'installation normale)
 sudo systemctl restart phantomsdr-admin phantomsdr-proxy
 
-# Method A — no units installed
+# Méthode A — aucune unité installée
 ./manage_admin.sh stop && ./manage_admin.sh start
 ```
 
-The unit ships with `KillMode=process`, and that line is load-bearing. If you start the SDR from the panel, the receiver is a child of the admin unit and inherits its cgroup. Under systemd's default `KillMode=control-group`, restarting the panel would take spectrumserver, its watchdog and the autorun daemon down with it, and stall for the full 90-second stop timeout first. With `KillMode=process` systemd signals only the panel, so `sudo systemctl restart phantomsdr-admin` leaves a busy receiver on air.
+L'unité fournit `KillMode=process`, et cette ligne est déterminante. Si vous démarrez le SDR depuis le panneau, le récepteur est un fils de l'unité d'administration et hérite de son cgroup. Avec la valeur par défaut de systemd, `KillMode=control-group`, redémarrer le panneau emporterait spectrumserver, son chien de garde et le démon autorun — après avoir bloqué les 90 secondes entières du délai d'arrêt. Avec `KillMode=process`, systemd ne signale que le panneau, si bien que `sudo systemctl restart phantomsdr-admin` laisse à l'antenne un récepteur occupé.
 
-**Upgrading a unit installed before v4.1.0.** Older unit files have no such line, and restarting the panel will not add one: `systemctl restart` re-runs the program, it does not change the program's configuration. Edit the *installed* copy — the one in the repository is only a template systemd never reads:
+**Mettre à niveau une unité installée avant la v4.1.0.** Les anciens fichiers d'unité ne comportent pas cette ligne, et redémarrer le panneau ne l'ajoute pas : `systemctl restart` relance le programme, il ne modifie pas sa configuration. Modifiez la copie *installée* — celle du dépôt n'est qu'un modèle que systemd ne lit jamais :
 
 ```bash
 sudo nano /etc/systemd/system/phantomsdr-admin.service
 ```
 
-Add `KillMode=process` in the `[Service]` section, next to `Restart=always`. Then make systemd re-read the file and confirm:
+Ajoutez `KillMode=process` dans la section `[Service]`, à côté de `Restart=always`. Faites ensuite relire le fichier par systemd et vérifiez :
 
 ```bash
 sudo systemctl daemon-reload
 systemctl show phantomsdr-admin -p KillMode
 ```
 
-The second command must print `KillMode=process`. If it still prints `control-group`, systemd is running its cached copy — `systemctl show phantomsdr-admin -p NeedDaemonReload` prints `yes` while a reload is pending. Leading whitespace in unit files is ignored, so indentation does not matter.
+La seconde commande doit afficher `KillMode=process`. Si elle affiche encore `control-group`, systemd utilise sa copie en cache — `systemctl show phantomsdr-admin -p NeedDaemonReload` renvoie `yes` tant qu'un rechargement est en attente. Les espaces en début de ligne sont ignorés dans les fichiers d'unité : l'indentation n'a donc aucune importance.
 
 ---
 
-## Step 4 — Open firewall port
+## Étape 4 — Ouvrir le port du pare-feu
 
-Open only the **proxy public port** in your firewall. There is no need to expose the admin panel internal port externally:
+N'ouvrez que le **port public du proxy** dans votre pare-feu. Il est inutile d'exposer le port interne du panneau d'administration :
 
 ```bash
 sudo ufw allow <proxy_port>
@@ -201,13 +205,13 @@ sudo ufw allow <proxy_port>
 
 ---
 
-## Step 5 — Kick Users feature
+## Étape 5 — Fonction d'éjection d'utilisateurs
 
-The Users page shows every currently connected listener. Each row displays the user's IP, tuned frequency, mode and how long they have been connected. To disconnect one user, click the **⚡ Kick** button on their row — only that TCP connection is dropped. All other listeners stay connected and hear nothing.
+La page Users affiche chaque auditeur actuellement connecté. Chaque ligne indique l'IP de l'utilisateur, sa fréquence, son mode et depuis combien de temps il est connecté. Pour déconnecter un utilisateur, cliquez sur le bouton **⚡ Kick** de sa ligne — seule cette connexion TCP est coupée. Tous les autres auditeurs restent connectés et n'entendent rien.
 
-The kick is instant and surgical: the server does not restart, no audio is interrupted for anyone else, and the kicked user can reconnect immediately (the feature is for removing misbehaving or stuck connections, not for banning).
+L'éjection est instantanée et chirurgicale : le serveur ne redémarre pas, l'audio n'est interrompu pour personne d'autre, et l'utilisateur éjecté peut se reconnecter immédiatement (la fonction sert à supprimer des connexions problématiques ou bloquées, pas à bannir).
 
-Under the hood the kick uses `ss -K dst <IP> dport <port>` to tear down the specific TCP socket. This requires a Linux capability that the setup script grants automatically. If you skipped setup or the button reports an error, apply it manually:
+En interne, l'éjection utilise `ss -K dst <IP> dport <port>` pour fermer le socket TCP concerné. Cela nécessite une capacité Linux que le script d'installation accorde automatiquement. Si vous avez sauté cette étape ou si le bouton signale une erreur, appliquez-la manuellement :
 
 ```bash
 sudo setcap cap_net_admin+ep $(which ss)
@@ -219,78 +223,78 @@ getcap $(which ss)    # should show: cap_net_admin=ep
 
 ## Configuration — admin_config.json
 
-All runtime configuration lives in `admin_config.json` in your PhantomSDR-Plus directory. `setup_admin.sh` writes the initial file; subsequent changes can be made via the Settings page or by editing the file directly.
+Toute la configuration d'exécution se trouve dans `admin_config.json`, dans votre répertoire PhantomSDR-Plus. `setup_admin.sh` écrit le fichier initial ; les modifications ultérieures peuvent se faire via la page Settings ou en éditant directement le fichier.
 
-Key fields written by `setup_admin.sh`:
+Champs clés écrits par `setup_admin.sh` :
 
-| Key | Description |
+| Clé | Description |
 |---|---|
-| `port` | Admin panel internal port (`admin_server.py` binds here) |
-| `public_port` | Spectrumserver port (used by the Users page to query `/users`) |
-| `proxy_port` | Public port the proxy listens on |
-| `sdr_host` | Host the proxy uses to reach spectrumserver — `127.0.0.1` (see below) |
-| `password_hash` | SHA-256 hash of the admin password |
-| `sdr_base_dir` | Path to your PhantomSDR-Plus installation |
-| `sdr_process_name` | Process name to monitor (default: `spectrumserver`) |
-| `start_script` / `stop_script` | Scripts the panel runs to start and stop the SDR server — also what the thermal guard acts through |
+| `port` | Port interne du panneau d'administration (`admin_server.py` s'y lie) |
+| `public_port` | Port de spectrumserver (utilisé par la page Users pour interroger `/users`) |
+| `proxy_port` | Port public sur lequel le proxy écoute |
+| `sdr_host` | Hôte utilisé par le proxy pour atteindre spectrumserver — `127.0.0.1` (voir ci-dessous) |
+| `password_hash` | Empreinte SHA-256 du mot de passe d'administration |
+| `sdr_base_dir` | Chemin de votre installation PhantomSDR-Plus |
+| `sdr_process_name` | Nom du processus à surveiller (par défaut : `spectrumserver`) |
+| `start_script` / `stop_script` | Scripts que le panneau exécute pour démarrer et arrêter le serveur SDR — c'est aussi par eux qu'agit la protection thermique |
 
-> **Several receivers on one computer?** Set `start_script` to `start-all.sh`. The stop script already stops every receiver, and Restart and the thermal guard use the start script, so with `start-all.sh` they bring back every receiver in `receivers.toml` instead of only the main one. The Users page, the user count and the kick then cover every receiver as well. See [Several Receivers](MULTI_RECEIVER.md).
+> **Plusieurs récepteurs sur un ordinateur ?** Mettez `start_script` à `start-all.sh`. Le script d'arrêt arrête déjà tous les récepteurs, et Restart ainsi que la protection thermique utilisent le script de démarrage ; avec `start-all.sh`, ils ramènent tous les récepteurs de `receivers.toml` au lieu du seul principal. La page Users, le nombre d'auditeurs et l'expulsion couvrent alors aussi tous les récepteurs. Voir [Plusieurs récepteurs](MULTI_RECEIVER.md).
 
-Thermal guard keys (all optional — the panel writes them when you save the Thermal Guard settings, and any that are missing fall back to these defaults):
+Clés de la protection thermique (toutes facultatives — le panneau les écrit lorsque vous enregistrez les réglages Thermal Guard, et celles qui manquent prennent ces valeurs par défaut) :
 
-| Key | Default | Description |
+| Clé | Défaut | Description |
 |---|---|---|
-| `thermal_enabled` | `true` | Master switch for the guard |
-| `thermal_mode` | `"log"` | `log` (record only, never act) · `throttle` · `stop` · `stop+restart` |
-| `thermal_warn` | `null` | Warn temperature °C; `null` = derive from your CPU's critical trip point |
-| `thermal_throttle` | `null` | Temperature at which the CPU clock ceiling is lowered; `null` = auto |
-| `thermal_stop` | `null` | Temperature at which the server is stopped; `null` = auto |
-| `thermal_resume` | `null` | Temperature the CPU must fall below to recover; `null` = auto |
-| `thermal_sustain_s` | `60` | Seconds the stop temperature must be held before acting |
-| `thermal_warn_sustain_s` | `30` | Seconds the warn/throttle temperatures must be held |
-| `thermal_resume_s` | `300` | Seconds below the resume temperature before the lockout is released |
-| `thermal_max_stops_hour` | `2` | Thermal stops per hour before the automatic restart is disabled |
-| `thermal_test_temp` | `null` | Inject a fake temperature to test the guard; `null` = use the real sensor |
+| `thermal_enabled` | `true` | Interrupteur général de la protection |
+| `thermal_mode` | `"log"` | `log` (journaliser seulement, n'agit jamais) · `throttle` · `stop` · `stop+restart` |
+| `thermal_warn` | `null` | Température d'avertissement °C ; `null` = déduire du seuil critique de votre processeur |
+| `thermal_throttle` | `null` | Température à laquelle le plafond de fréquence est abaissé ; `null` = automatique |
+| `thermal_stop` | `null` | Température à laquelle le serveur est arrêté ; `null` = automatique |
+| `thermal_resume` | `null` | Température sous laquelle le processeur doit redescendre pour récupérer ; `null` = automatique |
+| `thermal_sustain_s` | `60` | Secondes pendant lesquelles la température d'arrêt doit être tenue |
+| `thermal_warn_sustain_s` | `30` | Secondes pendant lesquelles les températures d'avertissement/throttle doivent être tenues |
+| `thermal_resume_s` | `300` | Secondes sous la température de récupération avant la levée du verrou |
+| `thermal_max_stops_hour` | `2` | Arrêts thermiques par heure avant désactivation du redémarrage automatique |
+| `thermal_test_temp` | `null` | Température fictive pour tester la protection ; `null` = utiliser le vrai capteur |
 
-Changes to these take effect on the next sample — within a couple of seconds, with no restart.
+Ces changements prennent effet à la mesure suivante — en quelques secondes, sans redémarrage.
 
-To change ports after initial setup, edit `admin_config.json` and restart:
+Pour changer de ports après l'installation initiale, modifiez `admin_config.json` et redémarrez :
 
 ```bash
-sudo systemctl restart phantomsdr-admin phantomsdr-proxy   # Method B
-./manage_admin.sh stop && ./manage_admin.sh start        # Method A
+sudo systemctl restart phantomsdr-admin phantomsdr-proxy   # B
+./manage_admin.sh stop && ./manage_admin.sh start        # A
 ```
 
 ---
 
-## The `sdr_host` setting
+## Le réglage `sdr_host`
 
-`proxy.py` connects to `spectrumserver` over loopback — `sdr_host` is `127.0.0.1` in `admin_config.json`, written there by `setup_admin.sh`. You should not need to change it.
+`proxy.py` se connecte à `spectrumserver` par bouclage — `sdr_host` vaut `127.0.0.1` dans `admin_config.json`, écrit là par `setup_admin.sh`. Vous ne devriez pas avoir à le modifier.
 
-Set it to a real address only if `spectrumserver` runs on a **different machine** than the proxy. Then [restart the panel](#restarting-the-panel).
+Ne mettez une adresse réelle que si `spectrumserver` tourne sur une **autre machine** que le proxy. Ensuite, [Redémarrer le panneau](#redémarrer-le-panneau).
 
-> **Changed:** earlier versions required `sdr_host` to be the machine's LAN IP, because `spectrumserver` closed WebSockets arriving from the loopback address. That filter has been removed, so local connections work normally. Two consequences: browsing `http://localhost:<port>` on the server machine itself now shows the full GUI (it used to load the page but stay blank), and the proxy no longer breaks when DHCP reassigns the machine's IP. If you are upgrading and your `admin_config.json` still holds a LAN IP, change it to `127.0.0.1` or re-run `setup_admin.sh`.
+> **Changement :** les versions antérieures exigeaient que `sdr_host` soit l'IP LAN de la machine, car `spectrumserver` fermait les WebSocket arrivant de l'adresse de bouclage. Ce filtre a été supprimé, les connexions locales fonctionnent donc normalement. Deux conséquences : ouvrir `http://localhost:<port>` sur la machine du serveur elle-même affiche désormais l'interface complète (auparavant la page se chargeait mais restait vide), et le proxy ne casse plus quand le DHCP réattribue l'IP de la machine. Si vous mettez à jour et que votre `admin_config.json` contient encore une IP LAN, remplacez-la par `127.0.0.1` ou relancez `setup_admin.sh`.
 
 ---
 
-## proxy.py — what it is and when you need it
+## proxy.py — ce que c'est et quand il est nécessaire
 
-`proxy.py` puts both the SDR server and the admin panel on a **single public port**, routing by path prefix:
+`proxy.py` place à la fois le serveur SDR et le panneau d'administration sur un **seul port public**, en routant par préfixe de chemin :
 
-| Path | Routed to |
+| Chemin | Redirigé vers |
 |---|---|
-| `/admin*` | Admin panel (`localhost:<port>`) |
-| Everything else | Spectrumserver (`<sdr_host>:<public_port>`) |
+| `/admin*` | Panneau d'administration (`localhost:<port>`) |
+| Tout le reste | Spectrumserver (`<sdr_host>:<public_port>`) |
 
-Without the proxy you must expose two ports separately. With the proxy you expose only one.
+Sans le proxy, vous devez exposer deux ports séparément. Avec lui, vous n'en exposez qu'un.
 
-The proxy also removes the 4 MB WebSocket message-size cap (important for large FFT frames from the RX-888 at 60 MSPS), forwards real client IPs via `X-Forwarded-*` headers, and keeps long-lived connections alive through NAT with a 30-second heartbeat.
+Le proxy supprime également la limite de 4 Mo sur la taille des messages WebSocket (important pour les grandes trames FFT du RX-888 à 60 MSPS), transmet les vraies IP des clients via les en-têtes `X-Forwarded-*` et maintient les connexions de longue durée à travers le NAT grâce à un battement de cœur toutes les 30 secondes.
 
 ---
 
-## Changing ports after setup
+## Changer de ports après l'installation
 
-Edit `admin_config.json` directly:
+Modifiez directement `admin_config.json` :
 
 ```json
 {
@@ -301,20 +305,20 @@ Edit `admin_config.json` directly:
 }
 ```
 
-Then restart both services:
+Puis redémarrez les deux services :
 
 ```bash
-sudo systemctl restart phantomsdr-admin phantomsdr-proxy   # Method B
-./manage_admin.sh stop && ./manage_admin.sh start        # Method A
+sudo systemctl restart phantomsdr-admin phantomsdr-proxy   # B
+./manage_admin.sh stop && ./manage_admin.sh start        # A
 ```
 
-If you also need `admin_server.py` to bind on a different port at launch (e.g. the systemd service), you can override with the environment variable:
+Si vous avez également besoin que `admin_server.py` se lie à un autre port au lancement (p. ex. pour le service systemd), vous pouvez le remplacer par la variable d'environnement :
 
 ```bash
 ADMIN_PORT=3000 python3 admin_server.py
 ```
 
-By default `admin_server.py` binds to `127.0.0.1` only. To run it standalone without the proxy (development/testing), bind to all interfaces:
+Par défaut, `admin_server.py` ne se lie qu'à `127.0.0.1`. Pour l'exécuter seul sans le proxy (développement/tests), liez-le à toutes les interfaces :
 
 ```bash
 ADMIN_BIND=0.0.0.0 python3 admin_server.py
@@ -322,7 +326,7 @@ ADMIN_BIND=0.0.0.0 python3 admin_server.py
 
 ---
 
-## Useful manual commands
+## Commandes manuelles utiles
 
 ```bash
 # Start admin panel manually (foreground)
@@ -343,101 +347,101 @@ ss -tlnp | grep 3000
 
 ---
 
-## Log files
+## Fichiers journaux
 
-| File | Contents |
+| Fichier | Contenu |
 |---|---|
-| `admin.log` | Admin panel output |
-| `proxy.log` | Proxy startup banner + one access-log line per proxied request |
-| `logwebsdr.txt` | Launcher and watchdog log — start/stop, receiver driver, websdr.org registration |
-| `spectrumserver.log` | The receiver process's own output — FFT and OpenCL setup, per-client connections, errors. The biggest of these files; it is rotated, so `spectrumserver.log.1` may sit beside it |
-| `rade.log` | RADE/FreeDV sidecar log |
-| `autorun.log` | Decoder daemon log — spots, SNR, drift |
-| `crash.log` | Crash reports and thermal events: `[CRASH]` / `[TERMINATE]` backtraces, `[EXIT]` notes and `[THERMAL]` lines from the guard. **Normally empty** — anything in it is worth reading |
+| `admin.log` | Sortie du panneau d'administration |
+| `proxy.log` | Bannière de démarrage du proxy + une ligne de journal d'accès par requête relayée |
+| `logwebsdr.txt` | Journal du lanceur et du chien de garde — démarrage/arrêt, pilote du récepteur, enregistrement sur websdr.org |
+| `spectrumserver.log` | La sortie du processus récepteur lui-même — mise en place FFT et OpenCL, connexions de chaque client, erreurs. Le plus gros de ces fichiers ; il est tourné, un `spectrumserver.log.1` peut donc se trouver à côté |
+| `rade.log` | Journal du sidecar RADE/FreeDV |
+| `autorun.log` | Journal du démon de décodage — spots, SNR, dérive |
+| `crash.log` | Rapports de plantage et événements thermiques : traces `[CRASH]` / `[TERMINATE]`, notes `[EXIT]` et lignes `[THERMAL]` de la protection. **Normalement vide** — tout ce qu'il contient mérite d'être lu |
 
-All of these are readable from the panel's **Log Viewer** tabs (LOGWEBSDR, SPECTRUMSERVER, ADMIN, RADE, CRASH, AUTORUN, PROXY). The viewer shows the last 150 lines of whichever tab is selected and refreshes every 3 seconds when auto-refresh is on; it reads only the tail, so the size of the file does not matter.
+Tous ces fichiers sont consultables depuis les onglets **Log Viewer** du panneau (LOGWEBSDR, SPECTRUMSERVER, ADMIN, RADE, CRASH, AUTORUN, PROXY). Le visualiseur affiche les 150 dernières lignes de l'onglet choisi et se rafraîchit toutes les 3 secondes quand le rafraîchissement automatique est actif ; il ne lit que la fin du fichier, sa taille est donc sans importance.
 
-### Rotating proxy.log and admin.log
+### Rotation de proxy.log et admin.log
 
-`proxy.log` records every proxied request and `admin.log` every request that reaches the panel itself. Neither is rotated by default. The dashboard's polling used to dominate both — `/admin/api/status` fires every ~3 seconds for as long as a tab is open — but those polls are now filtered out of both files (see below), so rotation is there to bound slow growth rather than a flood.
+`proxy.log` enregistre chaque requête relayée et `admin.log` chaque requête qui atteint le panneau lui-même. Aucun des deux ne fait l'objet d'une rotation par défaut. L'interrogation du tableau de bord dominait autrefois les deux fichiers — `/admin/api/status` est appelée toutes les ~3 secondes tant qu'un onglet reste ouvert — mais ces interrogations sont désormais filtrées des deux journaux (voir plus bas) ; la rotation sert donc à borner une croissance lente, pas un flot.
 
-The repo ships a logrotate config at `logrotate/phantomsdr` (daily, or sooner if a log passes 10 MB; keeps 7 gzipped archives in `logproxy/`, so they do not clutter the project root). **It is site-specific — open it and change the three log paths, the `olddir` path and the `su` user to match your machine before installing**, then:
+Le dépôt fournit une configuration logrotate dans `logrotate/phantomsdr` (quotidienne, ou plus tôt si un journal dépasse 10 Mo ; conserve 7 archives compressées dans `logproxy/`, afin qu'elles n'encombrent pas la racine du projet). **Elle dépend du site — ouvrez-la et changez les trois chemins de journaux, le chemin `olddir` et l'utilisateur `su` pour correspondre à votre machine avant de l'installer**, puis :
 
 ```bash
 sudo cp logrotate/phantomsdr /etc/logrotate.d/phantomsdr
 sudo logrotate -d /etc/logrotate.d/phantomsdr     # dry run, should list all three logs
 ```
 
-`logrotate/phantomsdr` in the repo and `/etc/logrotate.d/phantomsdr` are two **independent copies** — `cp` does not link them. Editing the repo file changes nothing on a running system until you re-run the `sudo cp` above. Only the `/etc` copy is what logrotate actually reads.
+`logrotate/phantomsdr` dans le dépôt et `/etc/logrotate.d/phantomsdr` sont deux copies **indépendantes** — `cp` ne les relie pas. Modifier le fichier du dépôt ne change rien sur un système en fonctionnement tant que vous n'avez pas relancé le `sudo cp` ci-dessus. Seule la copie dans `/etc` est réellement lue par logrotate.
 
-The config uses `copytruncate`, which is required: `manage_admin.sh` starts both processes with `>> <log>` and neither reopens its stdout, so a rename-based rotation would leave them writing into the rotated file while the new log stays empty forever.
+La configuration utilise `copytruncate`, ce qui est indispensable : `manage_admin.sh` démarre les deux processus avec `>> <log>` et aucun ne rouvre sa sortie standard ; une rotation par renommage les laisserait donc écrire dans le fichier pivoté tandis que le nouveau journal resterait éternellement vide.
 
-Archives land in `logproxy/` (created automatically by `createolddir`) and are named `proxy.log.1.gz` … `proxy.log.7.gz`, newest first. Read one with `zcat logproxy/proxy.log.1.gz | less`, or search all of them at once with `zgrep "pattern" logproxy/*.gz`.
+Les archives arrivent dans `logproxy/` (créé automatiquement par `createolddir`) et sont nommées `proxy.log.1.gz` … `proxy.log.7.gz`, la plus récente en premier. Lisez-en une avec `zcat logproxy/proxy.log.1.gz | less`, ou cherchez dans toutes à la fois avec `zgrep "pattern" logproxy/*.gz`.
 
-The panel's **Clear Logs** button truncates **every** file in the table above, `autorun.log` and `proxy.log` included (`CLEAR_EXCLUDE` in `admin_server.py` is empty). Note what that costs on `autorun.log`: its decode history is the only record of what was heard and when, and nothing can reconstruct it — what survives a clear is whatever logrotate has already rotated into `logproxy/`, so a clear discards everything decoded since the last rotation. Clearing it under a running decoder is safe: the daemon holds it open `O_APPEND` and goes on appending to the same inode. The toast names what was cleared, and if a file could not be written — a `proxy.log` owned by a different user, say, on a split-user install — it names that file and the error instead of reporting success, and leaves that log's pane on screen rather than blanking it. The files are truncated in place, never deleted: both `manage_admin.sh` and the systemd units open them `O_APPEND`, so an unlinked file would go on filling an invisible inode until the service restarts.
+Le bouton **Clear Logs** du panneau tronque **tous** les fichiers du tableau ci-dessus, `autorun.log` et `proxy.log` compris (`CLEAR_EXCLUDE` dans `admin_server.py` est vide). Notez ce que cela coûte sur `autorun.log` : son historique de décodage est le seul enregistrement de ce qui a été entendu et quand, et il est impossible à reconstituer ; d'un vidage il ne survit que ce que logrotate a déjà basculé dans `logproxy/`, donc tout ce qui a été décodé depuis la dernière rotation est perdu. Le vider sous un décodeur en marche est sans danger : le démon le garde ouvert en `O_APPEND` et continue d'écrire dans le même inode. La notification indique ce qui a été vidé, et si un fichier n'a pas pu être écrit — un `proxy.log` appartenant à un autre utilisateur, par exemple, sur une installation à comptes séparés — elle nomme ce fichier et l'erreur au lieu d'annoncer une réussite, et laisse le volet de ce journal à l'écran au lieu de le vider. Les fichiers sont tronqués sur place, jamais supprimés : `manage_admin.sh` comme les unités systemd les ouvrent en `O_APPEND`, si bien qu'un fichier supprimé continuerait de remplir un inode invisible jusqu'au redémarrage du service.
 
-Successful polls are filtered out of **both** access logs, by the `QuietPollFilter` in `proxy.py` and the one in `admin_server.py`. The dashboard hits `/admin/api/status` every 3 seconds, and `/admin/api/logs`, `/admin/api/autorun/status`, `/admin/api/users`, `/admin/api/graph-stats` and `/admin/api/chat` every 5 seconds; unfiltered they are ~95% of both files. Only plain `200`s on those paths are dropped — any other status, path or method is logged as before, so a failing poll stays visible and state-changing actions (`kick`, `autorun/start`, …) are separate paths and always recorded. The one deliberate exception is `/admin/api/logs/clear`, filtered in both files: its own access line is written *after* the truncate, so without the filter every successful clear left one fresh line behind in the log it had just emptied, and the button looked broken.
+Les interrogations réussies sont filtrées des **deux** journaux d'accès, par le `QuietPollFilter` de `proxy.py` et par celui d'`admin_server.py`. Le tableau de bord appelle `/admin/api/status` toutes les 3 secondes, et `/admin/api/logs`, `/admin/api/autorun/status`, `/admin/api/users`, `/admin/api/graph-stats` et `/admin/api/chat` toutes les 5 secondes ; sans filtrage elles représenteraient ~95 % des deux fichiers. Seuls les `200` simples sur ces chemins sont écartés — tout autre statut, chemin ou méthode est journalisé comme avant, de sorte qu'une interrogation en échec reste visible et que les actions modifiant l'état (`kick`, `autorun/start`, …) passent par des chemins distincts et sont toujours enregistrées. La seule exception délibérée est `/admin/api/logs/clear`, filtré dans les deux fichiers : sa propre ligne d'accès est écrite *après* la troncature, si bien que sans le filtre chaque effacement réussi laissait une ligne toute fraîche dans le journal qu'il venait de vider, et le bouton paraissait cassé.
 
-Because `proxy.log` is an access log, it contains visitor IP addresses and user-agent strings — keep that in mind before sharing it when asking for help.
+Comme `proxy.log` est un journal d'accès, il contient les adresses IP des visiteurs et les chaînes user-agent — gardez-le à l'esprit avant de le partager pour demander de l'aide.
 
-### "Clear Logs" says Permission denied
+### « Clear Logs » indique Permission denied
 
-On a machine where the systemd units were installed on a clean tree, the button can come back with:
+Sur une machine où les unités systemd ont été installées sur une arborescence vierge, le bouton peut répondre :
 
 ```
 ✗ Could not clear admin.log ([Errno 13] Permission denied: /home/you/PhantomSDR-Plus/admin.log),
   proxy.log ([Errno 13] Permission denied: /home/you/PhantomSDR-Plus/proxy.log)
 ```
 
-It is always those two files and never the other five, because they are the only ones systemd creates itself. `StandardOutput=append:` is opened by PID 1 **before** it drops to `User=`, so a log that does not exist yet is created `root:root 0644`. The panel runs as your user and cannot truncate it. The other five logs are created by the launcher scripts, which already run as your user, so they clear normally. Where the two logs predate the units — `manage_admin.sh` created them with `>>` — they are already owned correctly and the button works, which is why the problem only shows up on a fresh systemd-first install.
+Ce sont toujours ces deux fichiers et jamais les cinq autres, car ce sont les seuls que systemd crée lui-même. `StandardOutput=append:` est ouvert par PID 1 **avant** de descendre vers `User=` ; un journal qui n'existe pas encore est donc créé en `root:root 0644`. Le panneau tourne sous votre utilisateur et ne peut pas le vider. Les cinq autres journaux sont créés par les scripts de lancement, qui tournent déjà sous votre utilisateur : ils se vident normalement. Là où les deux fichiers sont antérieurs aux unités — `manage_admin.sh` les a créés avec `>>` —, ils appartiennent déjà au bon utilisateur et le bouton fonctionne ; c'est pourquoi le problème n'apparaît que sur une installation neuve partie directement de systemd.
 
-Confirm with `ls -l admin.log proxy.log`: the failing ones say `root root`. Repair them:
+Vérifiez avec `ls -l admin.log proxy.log` : ceux qui échouent affichent `root root`. Réparez-les :
 
 ```bash
 sudo chown "$(id -un):$(id -gn)" admin.log proxy.log
 sudo chmod 664 admin.log proxy.log
 ```
 
-No restart is needed — systemd keeps writing through the file descriptor it already holds, and appending does not change ownership. Press **Clear Logs** again and both are emptied.
+Aucun redémarrage n'est nécessaire — systemd continue d'écrire via le descripteur de fichier qu'il détient déjà, et l'ajout ne change pas la propriété. Appuyez de nouveau sur **Clear Logs** et les deux sont vidés.
 
-**Do not delete the files instead.** Both are held open `O_APPEND`; unlinking one leaves systemd filling an invisible inode until the service restarts, and the file that reappears is root-owned again.
+**Ne supprimez pas les fichiers à la place.** Tous deux sont ouverts en `O_APPEND` ; en supprimer un laisse systemd remplir un inœud invisible jusqu'au redémarrage du service, et le fichier qui réapparaît appartient de nouveau à root.
 
-To stop it coming back, install the tmpfiles rule the repo ships at `tmpfiles/phantomsdr-logs.conf`. It re-creates both logs with the right owner at every boot, before the units start, so a removed log — manual cleanup, a reinstall, a moved installation directory — never returns root-owned. **It is site-specific: open it and change the two paths and the user:group to match your machine first**, then:
+Pour que cela ne revienne pas, installez la règle tmpfiles fournie par le dépôt dans `tmpfiles/phantomsdr-logs.conf`. Elle recrée les deux journaux avec le bon propriétaire à chaque démarrage, avant le lancement des unités, de sorte qu'un journal supprimé — nettoyage manuel, réinstallation, répertoire d'installation déplacé — ne revienne jamais appartenant à root. **Elle est spécifique à la machine : ouvrez-la et modifiez d'abord les deux chemins et le user:group pour qu'ils correspondent au vôtre**, puis :
 
 ```bash
 sudo cp tmpfiles/phantomsdr-logs.conf /etc/tmpfiles.d/99-phantomsdr-logs.conf
 sudo systemd-tmpfiles --create /etc/tmpfiles.d/99-phantomsdr-logs.conf
 ```
 
-As with `logrotate/phantomsdr`, the repo file and the `/etc` copy are independent — editing the repo copy changes nothing until you re-run the `cp`. On systemd 254 and newer the rule also repairs the ownership and mode of a log that already exists, so it fixes the current failure as well as future ones; on older versions the `chown` above is what unblocks the button.
+Comme pour `logrotate/phantomsdr`, le fichier du dépôt et la copie dans `/etc` sont indépendants — modifier celui du dépôt ne change rien tant que vous n'avez pas relancé le `cp`. À partir de systemd 254, la règle répare aussi la propriété et le mode d'un journal déjà présent : elle corrige donc l'échec actuel autant que les suivants ; sur les versions plus anciennes, c'est le `chown` ci-dessus qui débloque le bouton.
 
-`setup_admin.sh` does all of this for you when it installs the units, so a setup made with the script never hits this. The steps above are for a hand-installed pair, or for an installation that predates the script's log-ownership step.
+`setup_admin.sh` fait tout cela pour vous lorsqu'il installe les unités : une installation faite avec le script ne rencontre jamais ce problème. Les étapes ci-dessus concernent une paire installée à la main, ou une installation antérieure à l'étape de propriété des journaux du script.
 
-Logrotate does not reintroduce the problem: the shipped config uses `copytruncate`, which keeps the same inode and therefore the same owner.
+Logrotate ne réintroduit pas le problème : la configuration fournie utilise `copytruncate`, qui conserve le même inœud et donc le même propriétaire.
 
 ---
 
-## Access summary
+## Résumé des accès
 
-| Setup | SDR | Admin panel |
+| Configuration | SDR | Panneau d'administration |
 |---|---|---|
-| Without proxy | `http://YOUR_IP:<public_port>` | `http://YOUR_IP:<port>/admin` |
-| With proxy | `http://YOUR_IP:<proxy_port>` | `http://YOUR_IP:<proxy_port>/admin` |
+| Sans proxy | `http://YOUR_IP:<public_port>` | `http://YOUR_IP:<port>/admin` |
+| Avec proxy | `http://YOUR_IP:<proxy_port>` | `http://YOUR_IP:<proxy_port>/admin` |
 
 ---
 
-## Chat message deletion
+## Suppression de messages du chat
 
-The Chat History page lists every message in the current chat log. Each entry has a **🗑 Delete** button that removes that single message from the log immediately — no server restart required.
+La page Chat History liste tous les messages du journal de chat actuel. Chaque entrée dispose d'un bouton **🗑 Delete** qui retire immédiatement ce seul message du journal — sans redémarrer le serveur.
 
-How it works:
+Fonctionnement :
 
-- The admin panel rewrites the chat log file in place, stripping only the selected message line.
-- The change takes effect for any user who reloads the chat; already-loaded chat history in open browser tabs is not retroactively updated.
-- Clearing the entire log (the **Clear All** button) truncates the file, which also takes effect without a restart.
-- A **chat reply** is stored as an ordinary message that begins with a marker naming the message it answers, for example `[RE:2026-09-25 12:00:01|SV1BTL]`, so in this list it shows with that marker in front. Deleting a reply removes only that reply. Deleting the message it answers leaves its replies in place, showing only the name and time they answer.
+- Le panneau d'administration réécrit le fichier de journal du chat sur place, en supprimant uniquement la ligne du message sélectionné.
+- Le changement prend effet pour tout utilisateur qui recharge le chat ; l'historique déjà chargé dans les onglets ouverts n'est pas mis à jour rétroactivement.
+- Effacer tout le journal (bouton **Clear All**) tronque le fichier, ce qui prend également effet sans redémarrage.
+- Une **réponse du chat** est stockée comme un message ordinaire qui commence par un marqueur nommant le message auquel elle répond, par exemple `[RE:2026-09-25 12:00:01|SV1BTL]` ; dans cette liste elle apparaît donc précédée de ce marqueur. Supprimer une réponse ne retire que cette réponse. Supprimer le message auquel elle répond laisse ses réponses en place, n'affichant plus que le nom et l'heure auxquels elles répondent.
 
-The delete button is rendered consistently across all five Svelte App variants. If a deletion appears not to take effect, confirm the admin panel has write permission to the chat log file:
+Le bouton de suppression est affiché de manière cohérente dans les cinq variantes de l'application Svelte. Si une suppression semble sans effet, vérifiez que le panneau d'administration a le droit d'écriture sur le fichier de journal du chat :
 
 ```bash
 ls -l ~/PhantomSDR-Plus/chat.jsonl   # path depends on your config
@@ -445,121 +449,121 @@ ls -l ~/PhantomSDR-Plus/chat.jsonl   # path depends on your config
 
 ---
 
-## Waterfall broadcast messages
+## Messages diffusés sur la cascade
 
-The **Waterfall Message** panel lets you push a persistent text banner to every connected user's waterfall display without touching the server process.
+Le panneau **Waterfall Message** permet de pousser une bannière de texte persistante sur l'affichage en cascade de chaque utilisateur connecté, sans toucher au processus du serveur.
 
-### Sending a message
+### Envoyer un message
 
-1. Open the admin panel and go to **Waterfall Message**.
-2. Type your message text and choose a colour (hex, e.g. `#ffdd00`).
-3. Click **Send** — the message appears on all active waterfall views immediately.
+1. Ouvrez le panneau d'administration et allez dans **Waterfall Message**.
+2. Saisissez le texte de votre message et choisissez une couleur (hexadécimale, p. ex. `#ffdd00`).
+3. Cliquez sur **Send** — le message apparaît immédiatement sur toutes les vues en cascade actives.
 
-### Clearing the message
+### Effacer le message
 
-Click **Clear** to remove the banner from all waterfalls. The message state is held in memory by the admin panel; it is cleared automatically if the admin panel process is restarted.
+Cliquez sur **Clear** pour retirer la bannière de toutes les cascades. L'état du message est conservé en mémoire par le panneau d'administration ; il est effacé automatiquement si le processus du panneau redémarre.
 
-### How it works
+### Fonctionnement
 
-The admin panel exposes two internal endpoints that the proxy forwards:
+Le panneau d'administration expose deux points de terminaison internes que le proxy relaie :
 
-| Endpoint | Method | Purpose |
+| Point de terminaison | Méthode | Objet |
 |---|---|---|
-| `/admin/api/waterfall-message` | `POST` | Set or clear the current banner text and colour |
-| `/admin/api/waterfall-message` | `GET` | Return the current message state as JSON |
+| `/admin/api/waterfall-message` | `POST` | Définir ou effacer le texte et la couleur de la bannière |
+| `/admin/api/waterfall-message` | `GET` | Renvoyer l'état actuel du message au format JSON |
 
-The frontend polls the message state and renders it as an overlay on the waterfall canvas. No WebSocket reconnection or page reload is needed on the client side.
+Le frontend interroge l'état du message et l'affiche en superposition sur le canevas de la cascade. Aucune reconnexion WebSocket ni rechargement de page n'est nécessaire côté client.
 
-### Typical uses
+### Usages typiques
 
-- Announce scheduled maintenance: `"Server restart in 10 minutes"`
-- Flag band conditions: `"Solar flux 180 — 10m wide open"`
-- Welcome message: `"Welcome to SV1BTL WebSDR — Athens, KM17"`
+- Annoncer une maintenance programmée : `"Server restart in 10 minutes"`
+- Signaler les conditions de propagation : `"Solar flux 180 — 10m wide open"`
+- Message de bienvenue : `"Welcome to SV1BTL WebSDR — Athens, KM17"`
 
 ---
 
-## System Graphs
+## Graphiques système
 
-The **Graphs** page plots four measures against one shared time axis:
+La page **Graphiques** trace quatre mesures sur un axe de temps commun :
 
-- **CPU frequency** — average clock across all cores, in GHz
-- **CPU load** — total utilisation, in percent
-- **CPU temperature** — in °C, with dashed guides at 70 °C (warm) and 80 °C (critical)
-- **Users online** — listeners connected to the WebSDR at that moment
+- **Fréquence du CPU** — fréquence moyenne sur tous les cœurs, en GHz
+- **Charge du CPU** — utilisation totale, en pourcentage
+- **Température du CPU** — en °C, avec des repères pointillés à 70 °C (chaud) et 80 °C (critique)
+- **Utilisateurs en ligne** — auditeurs connectés au WebSDR à cet instant
 
-Pick a range with **15 MIN / 1 HOUR / 4 HOURS / 12 HOURS / 24 HOURS**. Hovering the plot draws a crosshair and reads out all four values at that instant. The four cards above the plot always show the newest sample.
+Choisissez la plage avec **15 MIN / 1 HOUR / 4 HOURS / 12 HOURS / 24 HOURS**. Le survol du graphique affiche un réticule et les quatre valeurs de cet instant. Les quatre cartes au-dessus montrent toujours l'échantillon le plus récent.
 
-### How sampling works
+### Comment se fait l'échantillonnage
 
-A background thread in `admin_server.py` takes one sample every **2 seconds**. Samples are held in two tiers: the last **1 hour** at full 2-second resolution (1800 points), and **24 hours** of 30-second averages (2880 points) for the longer ranges. The page picks the tier that covers the range you chose, and says `30s averages` in the header when you are looking at the aggregated one.
+Un thread d'arrière-plan de `admin_server.py` prend un échantillon toutes les **2 secondes**. Les échantillons sont conservés sur deux niveaux : la dernière **heure** en pleine résolution de 2 secondes (1800 points) et **24 heures** de moyennes sur 30 secondes (2880 points) pour les plages longues. La page choisit le niveau qui couvre la plage demandée et affiche `30s averages` dans l'en-tête lorsqu'il s'agit du niveau moyenné.
 
-Storing a full day at 2-second resolution would mean ~43000 points — tens of MB of memory, a multi-megabyte first load, and about 40 points per pixel of canvas, which no screen can render. Averaging to 30 seconds keeps a day in 2880 points.
+Conserver une journée entière en résolution 2 secondes représenterait ~43000 points : des dizaines de Mo en mémoire, un premier transfert de plusieurs Mo et environ 40 points par pixel, ce qu'aucun écran ne peut afficher. La moyenne sur 30 secondes tient une journée en 2880 points.
 
-Sampling starts together with the admin panel, not when you first open the page, so the page opens onto history that already exists.
+L'échantillonnage démarre avec le panneau d'administration, et non à la première ouverture de la page : celle-ci s'ouvre donc sur un historique déjà constitué.
 
-The buffer is **memory-only**: nothing is written to disk, and the history is lost when the admin panel restarts. That is deliberate — it keeps the feature out of log rotation and off your disk.
+Le tampon est **uniquement en mémoire** : rien n'est écrit sur le disque et l'historique est perdu au redémarrage du panneau. C'est voulu — cela garde la fonction hors de la rotation des journaux et hors du disque.
 
-2 seconds gives a near-live view and is short enough not to alias CPU frequency, which on a modern CPU swings between its idle and turbo clock from one sample to the next. A sample costs about a millisecond, so the sampler is negligible next to the SDR server. The page polls at the tier's own cadence — every 2 seconds on the live ranges, every 30 seconds on the aggregated ones, because asking more often than points are produced only returns empty replies.
+2 secondes donnent une vue quasi temps réel et un intervalle assez court pour ne pas fausser la fréquence du CPU, qui sur un processeur moderne passe de son horloge de repos à son turbo d'un échantillon à l'autre. Un échantillon coûte environ une milliseconde : l'échantillonneur est donc négligeable face au serveur SDR. La page interroge au rythme de chaque niveau — toutes les 2 secondes sur les plages en direct, toutes les 30 secondes sur les plages moyennées, car demander plus souvent que les points ne sont produits ne renvoie que des réponses vides.
 
-To change the cadence or the retention, edit these constants near the top of the sampler block in `admin_server.py` and restart:
+Pour changer la cadence ou la rétention, modifiez ces constantes au début du bloc d'échantillonnage dans `admin_server.py`, puis redémarrez :
 
 ```python
-GRAPH_INTERVAL_S   = 2          # seconds between fine samples
-GRAPH_FINE_S       = 3600       # how far back the fine tier reaches (1h)
-GRAPH_COARSE_EVERY = 15         # fine samples per coarse point (15 x 2s = 30s)
-GRAPH_COARSE_S     = 24 * 3600  # how far back the coarse tier reaches (24h)
+GRAPH_INTERVAL_S   = 2          # secondes entre les échantillons fins
+GRAPH_FINE_S       = 3600       # profondeur du niveau fin (1 h)
+GRAPH_COARSE_EVERY = 15         # échantillons fins par point agrégé (15 x 2 s = 30 s)
+GRAPH_COARSE_S     = 24 * 3600  # profondeur du niveau agrégé (24 h)
 ```
 
-### Where the numbers come from
+### D'où viennent les chiffres
 
-| Measure | Source |
+| Mesure | Source |
 |---|---|
-| CPU frequency | `psutil.cpu_freq()`, falling back to `/sys/devices/system/cpu/cpu*/cpufreq/`. This is the same kernel data `cpufreq-info` formats, so **cpufrequtils is not required**. |
-| CPU load | `psutil.cpu_percent()` |
-| CPU temperature | `psutil.sensors_temperatures()`, falling back to `/sys/class/thermal`, then the `sensors` command |
-| Users online | spectrumserver's own `/users` endpoint — the authoritative session list. Counting sockets with `ss` cannot see real client IPs behind proxy.py. |
+| Fréquence du CPU | `psutil.cpu_freq()`, à défaut `/sys/devices/system/cpu/cpu*/cpufreq/`. Ce sont les données noyau que `cpufreq-info` met en forme : **cpufrequtils n'est pas requis**. |
+| Charge du CPU | `psutil.cpu_percent()` |
+| Température du CPU | `psutil.sensors_temperatures()`, à défaut `/sys/class/thermal`, puis la commande `sensors` |
+| Utilisateurs en ligne | Le point d'accès `/users` de spectrumserver lui-même — la liste de sessions faisant foi. Compter les sockets avec `ss` ne voit pas les vraies IP des clients derrière proxy.py. |
 
-If a measure is unavailable on your machine, that panel says so rather than drawing a flat zero line. A reading that fails mid-run breaks the line, so a gap in the data never looks like a measured value.
+Si une mesure n'est pas disponible sur votre machine, le panneau le dit au lieu de tracer une ligne à zéro. Une lecture en échec interrompt la courbe, pour qu'un trou ne ressemble jamais à une valeur mesurée.
 
-### Why four panels and not one graph
+### Pourquoi quatre panneaux et non un seul graphique
 
-GHz, percent, degrees and a head-count share no common scale. Drawing them on one plot needs several y-axes, and the crossings that produces are artefacts of the scaling rather than facts about the server. Four stacked panels on one time axis keep the comparison honest. Every panel is anchored at zero, so curve height stays proportional to the value.
+Des GHz, des pourcentages, des degrés et un nombre de personnes n'ont pas d'échelle commune. Les réunir demanderait plusieurs axes y, et les croisements ainsi produits sont des artefacts de l'échelle, non des faits sur le serveur. Quatre panneaux empilés sur un même axe de temps gardent la comparaison honnête. Chaque panneau part de zéro, de sorte que la hauteur de la courbe reste proportionnelle à la valeur.
 
-Colour is reserved for temperature, where amber and red mark the thresholds above. The other panels share one colour because each holds a single series that its own title already names.
+La couleur est réservée à la température, où l'ambre et le rouge marquent les seuils ci-dessus. Les autres panneaux partagent une seule couleur, car chacun ne contient qu'une série que son titre nomme déjà.
 
-### Endpoint
+### Point d'accès
 
-`GET /admin/api/graph-stats?since=<epoch>` (login required) returns the samples newer than `since`, so the page polls incrementally instead of re-downloading the whole buffer every tick.
+`GET /admin/api/graph-stats?since=<epoch>` (connexion requise) renvoie les échantillons postérieurs à `since`, ce qui permet à la page d'interroger de façon incrémentale au lieu de retélécharger tout le tampon à chaque cycle.
 
 ---
 
 ## Thermal Guard
 
-> 📖 **Full manual: [THERMAL_GUARD.md](THERMAL_GUARD.md)** — the four modes and what a sysop must do for each, running it without the panel, enabling the throttle stage without root, testing and troubleshooting. This section covers the panel side.
+> 📖 **Manuel complet : [THERMAL_GUARD.md](THERMAL_GUARD.md)** — les quatre modes et ce que le sysop doit faire pour chacun, le fonctionnement sans le panneau, l'étage throttle sans root, les tests et le dépannage.
 
-Stops the SDR server when the CPU gets dangerously hot, and starts it again once it has cooled. It is part of the panel — nothing extra to install — and appears as a **THERMAL GUARD** card on the Dashboard with its settings under **Settings**.
+Arrête le serveur SDR lorsque le processeur devient dangereusement chaud et le relance une fois refroidi. Elle fait partie du panneau — rien de plus à installer — et apparaît comme une carte **THERMAL GUARD** sur le Tableau de bord, ses réglages se trouvant dans **Paramètres**.
 
-It ships **inert**: the mode starts at `log`, so out of the box it only records what it *would* have done. Nothing touches your server until you change the mode.
+Elle est livrée **inerte** : le mode démarre sur `log`, elle se contente donc d'enregistrer ce qu'elle *aurait* fait. Rien ne touche à votre serveur tant que vous ne changez pas le mode.
 
-### It works with any start/stop method
+### Elle fonctionne avec n'importe quelle méthode de démarrage/arrêt
 
-The guard never tries to work out what supervises your server. It acts through whatever scripts you set as **Default start script** and **Default stop script** in Settings, and while the CPU is over-temp it re-issues the stop on **every check** (every 2 s). Anything that brings the server back — the watchdog inside `start-*.sh`, a systemd unit, a cron job, a `tmux` session — is undone within a couple of seconds until the machine has cooled. That is the *lockout*.
+La protection ne cherche jamais à savoir ce qui supervise votre serveur. Elle agit via les scripts que vous avez définis comme **Default start script** et **Default stop script** dans Paramètres, et tant que le processeur est en surchauffe elle réémet l'arrêt à **chaque vérification** (toutes les 2 s). Tout ce qui relance le serveur — le watchdog contenu dans `start-*.sh`, une unité systemd, une tâche cron, une session `tmux` — est défait en quelques secondes, jusqu'à ce que la machine ait refroidi. C'est le *verrouillage* (lockout).
 
-If no stop script is configured, it falls back to `SIGTERM` to the process named in `sdr_process_name`, then `SIGKILL` after a 10-second grace period.
+Si aucun script d'arrêt n'est configuré, elle envoie `SIGTERM` au processus nommé dans `sdr_process_name`, puis `SIGKILL` après un délai de grâce de 10 secondes.
 
-### Thresholds come from your own CPU
+### Les seuils viennent de votre propre processeur
 
-Rather than a fixed number that is wrong on most hardware, the guard reads the critical trip point the kernel publishes for your CPU and works backwards from it:
+Plutôt qu'un nombre fixe qui serait faux sur la plupart des machines, la protection lit le seuil critique que le noyau publie pour votre processeur et remonte à partir de là :
 
-| Your CPU reports | warn | throttle | stop | resume |
+| Votre processeur annonce | avertissement | throttle | arrêt | récupération |
 |---|---|---|---|---|
-| Intel, limit 100 °C | 88 | 92 | **95** | 75 |
-| AMD Ryzen, limit 95 °C | 83 | 87 | **90** | 70 |
-| Raspberry Pi, limit 85 °C | 73 | 77 | **80** | 60 |
+| Intel, limite 100 °C | 88 | 92 | **95** | 75 |
+| AMD Ryzen, limite 95 °C | 83 | 87 | **90** | 70 |
+| Raspberry Pi, limite 85 °C | 73 | 77 | **80** | 60 |
 
-This matters: a fixed 95 °C would be near-normal on an Intel, but on a Ryzen — whose Tctl sits at 95 °C by design under boost — it would stop the server on a healthy machine, and on a Pi, which throttles at 80 °C, it would never fire at all. Any threshold can still be set by hand in Settings; leave a field blank for *auto*.
+C'est important : 95 °C fixes sont presque normaux sur un Intel, mais sur un Ryzen — dont la Tctl se tient à 95 °C par conception sous boost — cela arrêterait le serveur sur une machine en parfaite santé, et sur un Pi, qui limite dès 80 °C, cela ne se déclencherait jamais. Chaque seuil peut être fixé à la main dans Paramètres ; laissez le champ vide pour *automatique*.
 
-To see what your machine looks like to the guard:
+Pour voir comment la protection perçoit votre machine :
 
 ```bash
 python3 thermal_guard.py --once
@@ -574,28 +578,28 @@ thresholds : warn 88.0  throttle 92.0  stop 95.0  resume 75.0 (C)
 cpufreq    : not writable — throttle stage disabled
 ```
 
-### The four stages
+### Les quatre étapes
 
-Stopping the server is the last resort, not the only tool:
+Arrêter le serveur est le dernier recours, pas le seul outil :
 
-1. **warn** — logged, nothing else.
-2. **throttle** — lowers the CPU clock ceiling by 20 %. Needs a cpufreq driver *and* write access to `scaling_max_freq`, which normally means running as root; where that is unavailable (the usual case for an unprivileged panel, and on most VPS) the stage **disables itself** and the guard falls back to warn → stop. `./setup-cpufreq-perms.sh` grants that write access to a `cpufreq` group, so the stage works without running the panel as root — see [THERMAL_GUARD.md](THERMAL_GUARD.md#8-enabling-the-throttle-stage-without-root).
-3. **stop** — runs your stop script and holds the server down (see lockout above).
-4. **resume** — after the CPU has stayed below the resume temperature for `thermal_resume_s` (5 minutes by default), the clock ceiling is restored and, in `stop+restart` mode, your start script runs again.
+1. **warn** — journalisé, rien d'autre.
+2. **throttle** — abaisse de 20 % le plafond de fréquence du processeur. Nécessite un pilote cpufreq *et* le droit d'écriture sur `scaling_max_freq`, donc normalement root ; là où cela manque (le cas courant d'un panneau sans privilèges, et sur la plupart des VPS) l'étape **se désactive d'elle-même** et la protection passe de warn directement à stop. `./setup-cpufreq-perms.sh` accorde ce droit d'écriture à un groupe `cpufreq`, si bien que l'étape fonctionne sans root — voir [THERMAL_GUARD.md](THERMAL_GUARD.md#8-activer-létage-throttle-sans-root).
+3. **stop** — exécute votre script d'arrêt et maintient le serveur à terre (voir le verrouillage).
+4. **resume** — une fois le processeur resté sous la température de récupération pendant `thermal_resume_s` (5 minutes par défaut), le plafond de fréquence est rétabli et, en mode `stop+restart`, votre script de démarrage est relancé.
 
-Each stage must be **held** for its sustain time — 30 s for warn and throttle, 60 s for stop — so a brief spike during a compile never trips it.
+Chaque étape doit être **tenue** pendant sa durée — 30 s pour warn et throttle, 60 s pour stop — de sorte qu'un pic bref pendant une compilation ne la déclenche jamais.
 
-Repeated trips are capped by `thermal_max_stops_hour` (2 by default). Once that is reached the *automatic restart* is disabled while the protection keeps working, so an overheating machine cannot flap between running and stopped.
+Les déclenchements répétés sont plafonnés par `thermal_max_stops_hour` (2 par défaut). Une fois ce plafond atteint, le *redémarrage automatique* est désactivé tandis que la protection continue de fonctionner, afin qu'une machine en surchauffe n'oscille pas entre marche et arrêt.
 
-### Which sensors are used
+### Quels capteurs sont utilisés
 
-Only real CPU-die sensors: `coretemp` (Intel), `k10temp` / `zenpower` (AMD), `cpu_thermal` / `soc_thermal` (ARM, Raspberry Pi). The hottest reading on the chip is used, not the average.
+Uniquement de vrais capteurs sur la puce : `coretemp` (Intel), `k10temp` / `zenpower` (AMD), `cpu_thermal` / `soc_thermal` (ARM, Raspberry Pi). C'est la lecture la plus élevée de la puce qui est retenue, pas la moyenne.
 
-`acpitz` and unlabelled thermal zones are **deliberately ignored** — they often report a case or board temperature tens of degrees below the actual CPU, so a guard trusting them would never fire when it mattered. If your machine has no usable sensor (common on a VPS or inside a container) the card says `no trusted CPU sensor` and the guard stays inactive rather than pretending to protect you.
+`acpitz` et les zones thermiques non étiquetées sont **délibérément ignorés** : ils rapportent souvent une température de boîtier ou de carte inférieure de plusieurs dizaines de degrés au processeur réel, si bien qu'une protection qui leur ferait confiance ne se déclencherait jamais au moment voulu. Si votre machine n'a aucun capteur exploitable (fréquent sur un VPS ou dans un conteneur), la carte le dit clairement (`no trusted CPU sensor`) et la protection reste inactive plutôt que de faire semblant de vous protéger.
 
-### What it writes
+### Ce qu'elle écrit
 
-Everything goes to `crash.log`, i.e. the **CRASH** tab of the Log Viewer, one event per line:
+Tout va dans `crash.log`, c'est-à-dire l'onglet **CRASH** du Log Viewer, un événement par ligne :
 
 ```
 [THERMAL] warn: 89.0C (warn=88.0 crit=100.0) sustained 31s
@@ -606,148 +610,149 @@ Everything goes to `crash.log`, i.e. the **CRASH** tab of the Log Viewer, one ev
 [THERMAL] auto-restart: Started start-rx888mk2.sh
 ```
 
-The lockout line is rate-limited to one per minute, so a supervisor that keeps fighting the guard cannot flood the log.
+La ligne de verrouillage est limitée à une par minute, pour qu'un superviseur qui résiste sans cesse n'inonde pas le journal.
 
-### Testing it before you trust it
+### Testez-la avant de lui faire confiance
 
-Set **TEST TEMPERATURE** in Settings to a value above your stop threshold. The guard treats it as a real reading, so the whole path — warn, throttle, stop, lockout, recover, restart — runs on demand. Clear the field to return to the real sensor.
+Réglez **TEST TEMPERATURE** dans Paramètres sur une valeur supérieure à votre seuil d'arrêt. La protection la traite comme une vraie mesure, si bien que tout le parcours — warn, throttle, stop, verrouillage, récupération, redémarrage — se déroule à la demande. Videz le champ pour revenir au capteur réel.
 
-> Running this test with the mode set to `stop` really does stop the server and disconnect your listeners. Do it when nobody is on, or leave the mode at `log`, where the test shows what *would* have happened without touching anything.
+> Si vous faites ce test avec le mode sur `stop`, le serveur s'arrête réellement et vos auditeurs sont déconnectés. Faites-le quand personne n'écoute, ou laissez le mode sur `log`, où le test montre ce qui *serait* arrivé sans rien toucher.
 
-### Suggested way to adopt it
+### Manière recommandée de l'adopter
 
-1. Leave the mode at **`log`** for a week and carry on as normal.
-2. Read the CRASH tab after your heavy moments — a full rebuild, a hot afternoon. If nothing appears, your machine never came close.
-3. If the logged temperatures look right, set the mode to **`stop`** (or **`stop+restart`** to have it come back by itself).
-4. Prove it once with the test-temperature field, then leave it alone.
+1. Laissez le mode sur **`log`** pendant une semaine et continuez normalement.
+2. Lisez l'onglet CRASH après vos moments chargés — une recompilation complète, un après-midi de canicule. Si rien n'y figure, votre machine n'a jamais approché.
+3. Si les températures relevées vous paraissent justes, passez le mode à **`stop`** (ou **`stop+restart`** pour qu'il revienne tout seul).
+4. Vérifiez-le une fois avec le champ de température de test, puis laissez-le faire.
 
-### Recovering from a lockout
+### Sortir d'un verrouillage
 
-**CLEAR LOCKOUT** on the Dashboard card clears the lockout and the rate limit. It does not disarm the guard: if the CPU is still too hot, the next check simply stops the server again. Use it after you have fixed the cooling.
+**CLEAR LOCKOUT** sur la carte du Tableau de bord efface le verrouillage et le plafond de déclenchements. Cela ne désarme pas la protection : si le processeur est encore trop chaud, la vérification suivante arrêtera simplement le serveur à nouveau. À utiliser après avoir corrigé le refroidissement.
 
 ### Endpoint
 
-`GET /admin/api/thermal` (login required) returns the guard's full state — sensor, thresholds, stage, lockout, last event. `POST` with `{"action":"reset"}` does the same as the CLEAR LOCKOUT button.
+`GET /admin/api/thermal` (connexion requise) renvoie l'état complet de la protection — capteur, seuils, étape, verrouillage, dernier événement. Un `POST` avec `{"action":"reset"}` fait la même chose que le bouton CLEAR LOCKOUT.
 
-### Without the admin panel
+### Sans le panneau d'administration
 
-`thermal_guard.py` is stdlib-only and runs on its own, reading the same `admin_config.json`:
+`thermal_guard.py` n'utilise que la bibliothèque standard et fonctionne seul, en lisant le même `admin_config.json` :
 
 ```bash
-python3 thermal_guard.py --once              # print sensor, trip point and thresholds
-python3 thermal_guard.py                     # run as a service (log-only until armed)
-python3 thermal_guard.py --mode stop+restart # arm it without writing any config file
+python3 thermal_guard.py --once              # afficher capteur, seuil critique et seuils
+python3 thermal_guard.py                     # exécuter comme service (journalisation seule tant qu'il n'est pas armé)
+python3 thermal_guard.py --mode stop+restart # l'armer sans écrire le moindre fichier de configuration
 python3 thermal_guard.py --config /path/to/other.json
 python3 thermal_guard.py --help
 ```
 
-`--mode` overrides `thermal_mode` from the config file, so a machine with no panel can be armed straight from its systemd unit with no JSON at all.
+`--mode` l'emporte sur `thermal_mode` du fichier de configuration : une machine sans panneau peut donc être armée directement depuis son unité systemd, sans aucun JSON.
 
 ---
 
-## Spot Reporting (Autorun FT8/FT4/JS8/WSPR)
+## Spot Reporting (autorun FT8/FT4/JS8/WSPR)
 
-The **Spot Reporting** tab controls the autorun daemon (`autorun/index.js`) — a Node.js process that decodes FT8/FT4/JS8/WSPR server-side straight off the receiver and uploads spots to the reporting networks:
+L'onglet **Spot Reporting** contrôle le démon autorun (`autorun/index.js`) — un processus Node.js qui décode FT8/FT4/JS8/WSPR côté serveur, directement depuis le récepteur, et téléverse les spots vers les réseaux de report :
 
 - **FT8 / FT4 / JS8 → PSK Reporter** (IPFIX/UDP)
 - **WSPR → wsprnet.org** (HTTP)
 
-> **JS8 is spotted at Normal speed only** — the 15 s calling cycle, where heartbeats and CQs are. Spots come from heartbeats, compound frames and directed messages; group destinations such as `@ALLCALL` and callsigns the decoder could not resolve (`<....>`) are never reported. JS8 shares the PSK Reporter queue with FT8 and FT4 and is counted separately, exactly as they are.
+> **JS8 n'est spotté qu'à la vitesse Normal** — le cycle d'appel de 15 s, où se trouvent les heartbeats et les CQ. Les spots proviennent des heartbeats, des trames compound et des messages dirigés ; les destinations de groupe comme `@ALLCALL` et les indicatifs que le décodeur n'a pas pu résoudre (`<....>`) ne sont jamais rapportés. JS8 partage la file PSK Reporter avec FT8 et FT4 et est compté séparément, exactement comme eux.
 
 
-**Reporting is OFF by default.** Nothing is uploaded until you enable a destination and press **Start**. Decoding and uploading are independent: the daemon can decode and log with reporting off, so you can verify activity before anything goes public.
+**Le report est DÉSACTIVÉ par défaut.** Rien n'est téléversé tant que vous n'avez pas activé une destination et appuyé sur **Start**. Décodage et téléversement sont indépendants : le démon peut décoder et journaliser avec le report désactivé, ce qui vous permet de vérifier l'activité avant que quoi que ce soit ne devienne public.
 
-> ⚠️ Spots are uploaded to public networks under **your callsign**. Only enable bands/modes your receiver genuinely hears, and set the correct grid square.
+> ⚠️ Les spots sont téléversés vers des réseaux publics sous **votre indicatif**. N'activez que les bandes/modes que votre récepteur entend véritablement, et indiquez le bon locator.
 
-### Prerequisites
+### Prérequis
 
-The autorun daemon needs Node.js 22+, the `ws` + `cbor-x` npm packages (resolved via the `autorun/node_modules` symlink → `frontend/node_modules`), and `util-linux` (`taskset`). The installers set all of this up automatically — see the [Autorun Spot Reporter section of INSTALLATION.md](INSTALLATION.md#autorun-spot-reporter-ft8ft4wspr). If **Start** fails, that symlink or `taskset` is the usual cause (see Troubleshooting below).
+Le démon autorun nécessite Node.js 22+, les paquets npm `ws` + `cbor-x` (résolus via le lien symbolique `autorun/node_modules` → `frontend/node_modules`) et `util-linux` (`taskset`). Les installateurs mettent tout cela en place automatiquement — voir la [section Rapporteur de spots autorun d'INSTALLATION.md](INSTALLATION.md#rapporteur-de-spots-autorun-ft8ft4wspr). Si **Start** échoue, ce lien symbolique ou `taskset` en est la cause habituelle (voir Dépannage ci-dessous).
 
-### Using the tab
+### Utiliser l'onglet
 
-1. **Identity** — callsign and grid. Pre-filled from `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, truncated to 6 chars); override here if needed. The reporters take a 4- or 6-character locator only (KM17 or KM17VX): a longer one is cut to its 6-character square, and anything that is not a locator is refused when you save.
-2. **Band × mode matrix** — tick the combinations to decode. Rows are bands, columns are FT8 / FT4 / JS8 / WSPR; unsupported cells are disabled. WSPR additionally covers the LF/MF bands (2200m, 630m) and an extra 80m EU channel.
-3. **Destinations** — enable **PSK Reporter** and/or **wsprnet** (both off by default).
-4. **Max slots** — a safety cap on how many band/mode slots can run at once.
-5. **Start / Stop** — spawns/kills the daemon (pinned to the top CPU cores with `taskset`, chosen automatically for the machine — see *Resource requirements & limitations* below). **Save** / **Reload** persist and re-read the config; **Free All** clears every slot.
+1. **Identité** — indicatif et locator. Pré-remplis depuis `frontend/site_information.json` (`siteSysop` / `siteGridSquare`, tronqué à 6 caractères) ; remplacez-les ici si nécessaire. Les reporters n'acceptent qu'un locator de 4 ou 6 caractères (KM17 ou KM17VX) : un locator plus long est coupé à son carré de 6 caractères, et ce qui n'est pas un locator est refusé à l'enregistrement.
+2. **Matrice bande × mode** — cochez les combinaisons à décoder. Les lignes sont les bandes, les colonnes FT8 / FT4 / JS8 / WSPR ; les cases non prises en charge sont désactivées. WSPR couvre en outre les bandes LF/MF (2200 m, 630 m) et un canal 80 m EU supplémentaire.
+3. **Destinations** — activez **PSK Reporter** et/ou **wsprnet** (désactivés par défaut).
+4. **Max slots** — limite de sécurité sur le nombre de créneaux bande/mode simultanés.
+5. **Start / Stop** — lance/arrête le démon (épinglé sur les cœurs CPU les plus élevés avec `taskset`, choisis automatiquement selon la machine — voir *Ressources requises et limitations* ci-dessous). **Save** / **Reload** enregistrent et relisent la configuration ; **Free All** libère tous les créneaux.
 
-The status card polls every 5 s and shows running state, decode/upload counts and the last upload time. A **📶 REPORTING** badge appears on the main waterfall while reporting is active.
+La carte d'état s'actualise toutes les 5 s et indique l'état d'exécution, les compteurs de décodage/téléversement et l'heure du dernier envoi. Un badge **📶 REPORTING** apparaît sur la cascade principale tant que le report est actif.
 
-> **"0 sent" for the first few minutes is normal.** PSK Reporter uploads batch every **5 minutes** and wsprnet every **2 minutes** — spots queue until the next flush. The status card shows the pending count and cadence.
+> **« 0 sent » pendant les premières minutes est normal.** PSK Reporter téléverse par lots toutes les **5 minutes** et wsprnet toutes les **2 minutes** — les spots patientent jusqu'au prochain envoi. La carte d'état affiche le nombre en attente et la cadence.
 
-### Changing bands or modes while it is running
+### Changer de bandes ou de modes en cours de fonctionnement
 
-**Changes do not take effect until the daemon is restarted.** `autorun/index.js` reads `autorun.json` once, at startup. There is no file watcher and no reload signal — the only signals it handles are SIGINT and SIGTERM, both meaning shut down. A running daemon therefore keeps decoding the slots it was launched with, whatever you save afterwards.
+**Les changements ne prennent effet qu'après un redémarrage du démon.**
+`autorun/index.js` lit `autorun.json` une seule fois, au démarrage. Il n'y a ni surveillance de fichier ni signal de rechargement : les seuls signaux traités sont SIGINT et SIGTERM, qui signifient tous deux l'arrêt. Un démon en cours continue donc à décoder les créneaux avec lesquels il a été lancé, quoi que vous enregistriez ensuite.
 
-To apply a change:
+Pour appliquer un changement :
 
-1. Tick / untick the bands and modes you want
+1. Cochez / décochez les bandes et modes
 2. **SAVE CONFIG**
 3. **STOP**
 4. **START**
 
-Or simply **STOP** → change the boxes → **START**, since START saves the config before launching.
+Ou simplement **STOP** → modifier les cases → **START**, puisque START enregistre la configuration avant de lancer.
 
-> ⚠️ **Pressing START without stopping first does not apply the change.** START saves the config, then the start request answers `already running` and nothing relaunches. You get a "saved" toast beside an "already running" error while the daemon carries on with the **old** bands — easy to read as success. Always STOP first.
+> ⚠️ **Appuyer sur START sans arrêter d'abord n'applique pas le changement.** START enregistre la configuration, puis la requête de démarrage répond `already running` et rien n'est relancé. Vous voyez un message « enregistré » à côté d'une erreur « already running » alors que le démon poursuit avec les **anciennes** bandes — cela ressemble facilement à une réussite. Arrêtez toujours d'abord.
 
-What a restart does to the counters:
+Ce qu'un redémarrage fait aux compteurs :
 
-- **The all-time counts beside each checkbox survive** — they live in `autorun-totals.json`, which is not deleted on shutdown.
-- **The per-decoder tiles reset to zero**, being per-run by design.
-- **Nothing queued is lost**: shutdown flushes pending spots before exiting.
-- A **newly enabled** band starts at `0`; a band you had used **before** resumes its previous total.
-- A band you **deselect keeps its number** next to the now-unchecked box; the history is not deleted.
+- **Les totaux à côté de chaque case sont conservés** : ils sont dans `autorun-totals.json`, qui n'est pas supprimé à l'arrêt.
+- **Les tuiles par décodeur repartent de zéro**, elles valent par exécution.
+- **Rien n'est perdu de la file** : l'arrêt envoie les spots en attente.
+- Une bande **nouvellement activée** part de `0` ; une bande **déjà utilisée** reprend son total précédent.
+- Une bande que vous **décochez garde son nombre** à côté de la case désormais vide ; l'historique n'est pas effacé.
 
-Decoding stops only for the few seconds between STOP and START.
+Le décodage ne s'interrompt que les quelques secondes entre STOP et START.
 
-### Spot counters
+### Compteurs de spots
 
-Two different counts are shown, and they answer different questions.
+Deux comptages différents sont affichés ; ils répondent à des questions différentes.
 
-**SPOTS UPLOADED PER DECODER** — a tile per decoder (FT8 / FT4 / JS8 / WSPR) with the spots uploaded **since the daemon last started**, under it the decode count and how many are still queued. Stop/Start resets these to zero. A decoder whose destination is switched off shows its decodes and `reporting off` rather than a bare `0`, because zero uploads is a setting there, not a fault.
+**SPOTS UPLOADED PER DECODER** — une tuile par décodeur (FT8 / FT4 / JS8 / WSPR) avec les spots envoyés **depuis le dernier démarrage du démon**, et en dessous le nombre de décodages et ceux encore en file. Stop/Start les remet à zéro. Un décodeur dont la destination est désactivée affiche ses décodages et `reporting off` plutôt qu'un simple `0` : ici, zéro envoi est un réglage, pas une panne.
 
-**The number beside each checkbox** in BANDS & MODES is that band+mode's **all-time** uploaded spots. These are kept in `autorun-totals.json` and survive restarts. **Amber with a dot in front** (`·123`) means that slot has decoded but not uploaded yet. That is normal between flushes — PSK Reporter uploads every 5 minutes and wsprnet every 2 — so FT8/FT4 counts sit amber for the first few minutes after a start. It also stays amber if that decoder's destination is switched off. A plain `0` with no dot means that slot is enabled but has decoded nothing yet — WSPR sits at zero for several minutes after a start, because it runs on a 2-minute cycle while FT8 is already counting in the hundreds. A slot the daemon has never run shows nothing at all. Hover any number for the uploads, the decodes and the time of the last upload.
+**Le nombre à côté de chaque case** dans BANDS & MODES correspond aux spots envoyés **depuis toujours** pour cette bande et ce mode. Ils sont conservés dans `autorun-totals.json` et survivent aux redémarrages. **En ambre avec un point devant** (`·123`), cela signifie que ce créneau a décodé sans encore rien envoyer. C'est normal entre deux envois — PSK Reporter émet toutes les 5 minutes et wsprnet toutes les 2 — de sorte que les compteurs FT8/FT4 restent ambre les premières minutes après un démarrage. Ils restent également ambre si la destination de ce décodeur est désactivée. Un `0` simple, sans point, signifie que ce créneau est activé mais n'a encore rien décodé : WSPR reste à zéro plusieurs minutes après un démarrage, car il fonctionne sur un cycle de 2 minutes alors que FT8 compte déjà par centaines. Un créneau que le démon n'a jamais exécuté n'affiche rien. Le survol affiche les envois, les décodages et l'heure du dernier envoi.
 
-FT8 and FT4 share one PSK Reporter upload queue, so the daemon counts each spot against its own mode and band as it goes out; the split is not estimated from the totals afterwards.
+FT8 et FT4 partagent une seule file d'envoi vers PSK Reporter : le démon impute donc chaque spot à son propre mode et à sa bande au moment de l'envoi ; la répartition n'est pas estimée après coup à partir des totaux.
 
-**Clearing the counters.** **FREE ALL SLOTS** unticks every band/mode, turns both destinations off, stops the daemon and **erases the all-time counters** — after it, no number is shown beside any checkbox. This is the only way to reset them, and it cannot be undone. The button stops the daemon and waits for it to exit before deleting `autorun-totals.json`, because the daemon rewrites that file on shutdown; deleting it under a live daemon would simply bring the numbers back.
+**Remettre les compteurs à zéro.** **FREE ALL SLOTS** décoche toutes les bandes et tous les modes, désactive les deux destinations, arrête le démon et **efface les compteurs cumulés** : ensuite, plus aucun nombre n'apparaît à côté d'une case. C'est le seul moyen de les remettre à zéro, et l'opération est irréversible. Le bouton arrête le démon et attend sa sortie avant de supprimer `autorun-totals.json`, car le démon réécrit ce fichier à l'arrêt ; le supprimer sous un démon actif ne ferait que ramener les nombres.
 
-### Resource requirements & limitations
+### Ressources requises et limitations
 
-The daemon is deliberately lightweight and runs on low-resource hardware (a 4-core i5 is fine), but there are real limits to be aware of.
+Le démon est volontairement léger et fonctionne sur du matériel modeste (un i5 4 cœurs convient), mais il existe de vraies limites à connaître.
 
-**Autorun CPU pinning is config-aware and automatic.** The **autorun daemon** is always launched by the admin panel (`admin_server.py`), so its pin is set on every install without any configuration: it derives a `taskset` core range from the CPU count, reserving a few of the top cores for decoding, or runs unpinned on ≤ 4 cores.
+**L'épinglage CPU d'autorun tient compte de la configuration et est automatique.** Le **démon autorun** est toujours lancé par le panneau d'administration (`admin_server.py`), son épinglage est donc défini à chaque installation sans configuration : il déduit une plage de cœurs `taskset` du nombre de processeurs, en réservant quelques-uns des cœurs les plus élevés pour le décodage, ou tourne sans épinglage sur ≤ 4 cœurs.
 
-**spectrumserver pinning is up to your own start method.** How you launch spectrumserver varies between installs (SDR type, tooling, personal scripts), so this document does not assume any particular launcher. The admin panel does not start or pin spectrumserver — that is entirely down to whatever command or service you use to run it. If you want spectrumserver kept off the cores the autorun daemon uses, pin it yourself with `taskset` in your own launch command (see the override section below). If you don't, it simply runs unpinned and the OS scheduler balances it — correct and safe, you just lose the deliberate core separation.
+**L'épinglage de spectrumserver dépend de votre méthode de démarrage.** La façon dont vous lancez spectrumserver varie d'une installation à l'autre (type de SDR, outillage, scripts personnels) ; ce document ne présuppose donc aucun lanceur particulier. Le panneau d'administration ne démarre ni n'épingle spectrumserver — cela dépend entièrement de la commande ou du service que vous utilisez. Si vous voulez tenir spectrumserver à l'écart des cœurs utilisés par le démon autorun, épinglez-le vous-même avec `taskset` dans votre propre commande de lancement (voir la section de remplacement ci-dessous). Sinon, il tourne sans épinglage et l'ordonnanceur du système l'équilibre — correct et sans risque, vous perdez simplement la séparation délibérée des cœurs.
 
-For reference, the autorun daemon reserves these top cores (so if you pin spectrumserver, keep it to the lower cores to avoid overlap):
+À titre de référence, le démon autorun réserve ces cœurs élevés (si vous épinglez spectrumserver, restez donc sur les cœurs bas pour éviter le chevauchement) :
 
-| Logical CPUs | autorun daemon uses | leave for spectrumserver |
+| CPU logiques | Utilisés par le démon autorun | À laisser à spectrumserver |
 |---|---|---|
-| ≤ 4 | *unpinned* | *unpinned* |
+| ≤ 4 | *non épinglé* | *non épinglé* |
 | 6 | `5` | `0-4` |
 | 8 | `6-7` | `0-5` |
-| 12 (e.g. 8P+4E hybrid) | `8-11` | `0-7` |
+| 12 (p. ex. hybride 8P+4E) | `8-11` | `0-7` |
 | 16 | `12-15` | `0-11` |
 
-On a **4-core (or fewer)** machine there is nothing to segregate, so the autorun daemon also runs *unpinned* and shares all cores — correct and safe, but the SDR FFT and the decode bursts compete for the same cores.
+Sur une machine à **4 cœurs (ou moins)**, il n'y a rien à séparer : le démon autorun tourne donc lui aussi *sans épinglage* et partage tous les cœurs — correct et sans risque, mais la FFT du SDR et les rafales de décodage se disputent les mêmes cœurs.
 
-**Known limitations:**
+**Limitations connues :**
 
-1. **The real bottleneck is spectrumserver + SDR bandwidth, not the daemon.** An RX888 @ 30 MHz needs OpenCL/GPU; a low-core CPU without a capable GPU cannot sustain that FFT. Pair low-resource hardware with a narrower SDR (RSP1A ≈ 10 MHz, RTL-SDR ≈ 2.4 MHz).
-2. **WSPR is the CPU long pole.** Its Fano decoder is a JS port (~30 s per band, single-threaded). The 4-worker pool runs 4 decodes in parallel; enabling **more than ~4 WSPR bands** at once can queue past the 120 s slot, especially while the SDR is competing for cores. FT8/FT4 decodes are cheap by comparison.
-3. **Slot-count scaling.** The ~2–2.5 cores / 600–700 MB figure is for the full ~28 slots on an 8-core box. On 4 shared cores, keep it to a handful of bands (guideline: ≤ 6 FT8/FT4 + ≤ 3 WSPR) and watch the pool's `queued` stat.
-4. **Pinning assumes Intel hybrid topology** (lower cores = faster P-cores). On AMD or CPUs with interleaved SMT numbering the auto split is still valid (no overlap, no crash) but "lower cores are faster" may not literally hold, and on a hyperthreaded 4C/8T part the top cores are SMT siblings — confined, not fully isolated. Where the auto range isn't ideal, use the **manual override** below.
-5. **Band coverage is limited by the receiver.** The RX888 config (`sps=60000000` → 30 MHz Nyquist) cannot reach 6 m and above; the band table is 160 m–10 m. Other SDRs cover whatever their tuned window allows.
-6. **Reporting cadence.** PSK Reporter flushes every 5 min, wsprnet every 2 min — "0 sent" in the first few minutes is normal, not a fault.
+1. **Le vrai goulot d'étranglement est spectrumserver + la largeur de bande du SDR, pas le démon.** Un RX888 à 30 MHz nécessite OpenCL/GPU ; un CPU à peu de cœurs sans GPU capable ne peut pas soutenir cette FFT. Associez le matériel modeste à un SDR plus étroit (RSP1A ≈ 10 MHz, RTL-SDR ≈ 2.4 MHz).
+2. **WSPR est le poste le plus coûteux en CPU.** Son décodeur de Fano est un portage JS (~30 s par bande, mono-thread). Le pool de 4 workers exécute 4 décodages en parallèle ; activer **plus de ~4 bandes WSPR** à la fois peut faire déborder la file au-delà du créneau de 120 s, surtout pendant que le SDR se dispute les cœurs. Les décodages FT8/FT4 sont peu coûteux en comparaison.
+3. **Mise à l'échelle du nombre de créneaux.** Les chiffres de ~2 à 2,5 cœurs / 600 à 700 Mo correspondent aux ~28 créneaux complets sur une machine à 8 cœurs. Sur 4 cœurs partagés, limitez-vous à quelques bandes (règle : ≤ 6 FT8/FT4 + ≤ 3 WSPR) et surveillez la statistique `queued` du pool.
+4. **L'épinglage suppose une topologie hybride Intel** (cœurs bas = P-cores plus rapides). Sur AMD ou sur des CPU à numérotation SMT entrelacée, la répartition automatique reste valable (pas de chevauchement, pas de plantage) mais « les cœurs bas sont plus rapides » peut ne pas être littéralement vrai ; sur une puce 4C/8T avec hyperthreading, les cœurs hauts sont des jumeaux SMT — confinés, pas totalement isolés. Là où la plage automatique n'est pas idéale, utilisez le **remplacement manuel** ci-dessous.
+5. **La couverture des bandes est limitée par le récepteur.** La configuration RX888 (`sps=60000000` → Nyquist à 30 MHz) ne peut pas atteindre le 6 m et au-delà ; la table des bandes va de 160 m à 10 m. Les autres SDR couvrent ce que permet leur fenêtre d'accord.
+6. **Cadence de report.** PSK Reporter envoie toutes les 5 min, wsprnet toutes les 2 min — « 0 sent » les premières minutes est normal, pas un défaut.
 
-### Manual CPU-pin override (advanced)
+### Remplacement manuel de l'épinglage CPU (avancé)
 
-The auto-derived core split is right for most machines, but you can force a specific pinning where it isn't (AMD CCX/CCD, ARM big.LITTLE, interleaved SMT). Two independent overrides, each accepting a `taskset -c` core list (`2-3`, `0,2,4`, `0-2,5`) or `none`/`off`/`unpinned` to disable pinning. An invalid value is ignored and the auto-derive runs — a typo can never stop a launch.
+La répartition automatique des cœurs convient à la plupart des machines, mais vous pouvez forcer un épinglage précis là où ce n'est pas le cas (CCX/CCD AMD, ARM big.LITTLE, SMT entrelacé). Deux remplacements indépendants, chacun acceptant une liste de cœurs au format `taskset -c` (`2-3`, `0,2,4`, `0-2,5`) ou `none`/`off`/`unpinned` pour désactiver l'épinglage. Une valeur invalide est ignorée et la déduction automatique s'applique — une faute de frappe ne peut jamais empêcher un lancement.
 
-**Autorun daemon** — `AUTORUN_CORES` env var, or a `"cores"` field in `autorun.json` (env wins). The `"cores"` field is preserved across admin-panel **Save**, so a hand-edit sticks. Two ways to set it:
+**Démon autorun** — variable d'environnement `AUTORUN_CORES`, ou champ `"cores"` dans `autorun.json` (l'environnement l'emporte). Le champ `"cores"` est conservé lors du **Save** du panneau d'administration : une modification manuelle persiste donc. Deux façons de le définir :
 
-*Option A — `autorun.json` (persistent, recommended).* Add a `"cores"` line to the config at the repo root, then **Stop → Start** the daemon on the Spot Reporting tab:
+*Option A — `autorun.json` (persistant, recommandé).* Ajoutez une ligne `"cores"` à la configuration à la racine du dépôt, puis faites **Stop → Start** sur l'onglet Spot Reporting :
 
 ```jsonc
 // autorun.json
@@ -757,19 +762,19 @@ The auto-derived core split is right for most machines, but you can force a spec
   "cores": "2-3" }          // or "none" to run unpinned
 ```
 
-*Option B — environment variable (one-off).* The daemon is spawned by the admin panel, so the var must be in the **admin panel's** environment — set it and restart the panel (env wins over the `autorun.json` value):
+*Option B — variable d'environnement (ponctuel).* Le démon est lancé par le panneau d'administration : la variable doit donc figurer dans l'environnement **du panneau** — définissez-la et redémarrez le panneau (l'environnement l'emporte sur la valeur d'`autorun.json`) :
 
 ```bash
-# Method A — the var must be set on the process that starts:
+# Méthode A — la variable doit être posée sur le processus qui démarre :
 ./manage_admin.sh stop && AUTORUN_CORES=2-3 ./manage_admin.sh start
 
-# Method B — systemd ignores a var set on the systemctl command line,
-# so put it in the unit instead:
+# Méthode B — systemd ignore une variable posée sur la ligne de commande
+# systemctl ; placez-la donc dans l'unité :
 sudo systemctl set-environment AUTORUN_CORES=2-3
 sudo systemctl restart phantomsdr-admin
 ```
 
-**spectrumserver** — pin it yourself by prepending `taskset -c <cores>` to whatever command you use to start the server. This works with any start method (a direct launch, an SDR pipeline, a service unit, etc.):
+**spectrumserver** — épinglez-le vous-même en préfixant `taskset -c <cœurs>` à la commande que vous utilisez pour démarrer le serveur. Cela fonctionne avec n'importe quelle méthode de démarrage (lancement direct, chaîne SDR, unité de service, etc.) :
 
 ```bash
 # pin the server to cores 0-3, direct launch:
@@ -778,55 +783,55 @@ taskset -c 0-3 ./build/spectrumserver --config <your-config>.toml < <your-input>
 <your-sdr-source> | taskset -c 0-3 ./build/spectrumserver --config <your-config>.toml
 ```
 
-> ⚠️ **Make it survive restarts.** An inline `taskset` only applies to that one launch. If something auto-restarts the server (a watchdog, a systemd service, a cron/`@reboot` entry, …), add the `taskset` prefix inside the script or unit that actually starts it — otherwise the restart drops the pin.
+> ⚠️ **Faites en sorte que cela survive aux redémarrages.** Un `taskset` en ligne ne s'applique qu'à ce lancement précis. Si quelque chose redémarre automatiquement le serveur (chien de garde, service systemd, entrée cron/`@reboot`, …), ajoutez le préfixe `taskset` à l'intérieur du script ou de l'unité qui le lance réellement — sinon le redémarrage perd l'épinglage.
 
-**Verify the pin took** — print the running processes' actual CPU affinity:
+**Vérifier que l'épinglage a pris** — affichez l'affinité CPU réelle des processus en cours :
 
 ```bash
 taskset -cp "$(pgrep -f 'autorun/index.js')"   # autorun daemon
 taskset -cp "$(pgrep -x spectrumserver)"       # spectrumserver
 ```
 
-**Accepted values (both overrides):** a `taskset -c` list (`2-3`, `0,2,4`, `0-2,5`), or `none`/`off`/`unpinned` for no pinning. Anything malformed is ignored and the auto-derive runs, so a typo can never block startup.
+**Valeurs acceptées (pour les deux remplacements) :** une liste `taskset -c` (`2-3`, `0,2,4`, `0-2,5`), ou `none`/`off`/`unpinned` pour aucun épinglage. Tout ce qui est mal formé est ignoré et la déduction automatique s'applique : une faute de frappe ne peut donc jamais bloquer le démarrage.
 
-> On a Raspberry Pi / any ≤4-core box you normally need neither — the auto path already runs both processes unpinned, which is the correct choice on a small, homogeneous CPU. The override is for larger non-Intel-hybrid machines.
+> Sur un Raspberry Pi / toute machine à ≤ 4 cœurs, vous n'avez normalement besoin d'aucun des deux — le chemin automatique exécute déjà les deux processus sans épinglage, ce qui est le bon choix sur un CPU petit et homogène. Le remplacement s'adresse aux machines plus grandes qui ne sont pas des hybrides Intel.
 
-### Files and endpoints
+### Fichiers et points de terminaison
 
-| Item | Purpose |
+| Élément | Objet |
 |---|---|
-| `autorun.json` | Saved config (identity, slots, destinations, max slots, optional `cores` pin override). Written by the tab; git-ignored. |
-| `autorun-status.json` | Live status the status card reads (pid, counts, last upload). Written every 15 s; removed on stop. |
-| `frontend/dist/autorun-active.json` | Public badge data served at `/autorun-active.json`. Empty when reporting is off. |
-| `autorun.log` | Daemon stdout/stderr. |
-| `GET/POST /admin/api/autorun/config` | Read / write `autorun.json` (validates callsign, grid, band/mode combos, slot cap). |
-| `GET /admin/api/autorun/status` | Running state (`pgrep`) + `autorun-status.json`. |
-| `POST /admin/api/autorun/start` / `stop` | Spawn (`taskset -c <auto> node autorun/index.js`) / `SIGTERM`. The core range is derived from the CPU (see below). |
+| `autorun.json` | Configuration enregistrée (identité, créneaux, destinations, nombre max de créneaux, remplacement facultatif `cores`). Écrite par l'onglet ; ignorée par git. |
+| `autorun-status.json` | État en direct lu par la carte d'état (pid, compteurs, dernier envoi). Écrit toutes les 15 s ; supprimé à l'arrêt. |
+| `frontend/dist/autorun-active.json` | Données publiques du badge, servies à `/autorun-active.json`. Vide quand le report est désactivé. |
+| `autorun.log` | Sortie standard/erreur du démon. |
+| `GET/POST /admin/api/autorun/config` | Lire / écrire `autorun.json` (valide l'indicatif, le locator, les combinaisons bande/mode, la limite de créneaux). |
+| `GET /admin/api/autorun/status` | État d'exécution (`pgrep`) + `autorun-status.json`. |
+| `POST /admin/api/autorun/start` / `stop` | Lance (`taskset -c <auto> node autorun/index.js`) / envoie `SIGTERM`. La plage de cœurs est déduite du CPU (voir ci-dessus). |
 
-> **Note:** after upgrading `admin_server.py` you must [restart the panel](#restarting-the-panel) to load new autorun routes or an updated band/mode matrix. The daemon runs as a separate process, so it survives admin-panel restarts.
+> **Remarque :** après une mise à jour de `admin_server.py`, vous devez [Redémarrer le panneau](#redémarrer-le-panneau) pour charger les nouvelles routes autorun ou une matrice bande/mode actualisée. Le démon s'exécute comme un processus distinct : il survit donc aux redémarrages du panneau d'administration.
 
 ---
 
-## Troubleshooting
+## Dépannage
 
-| Problem | Fix |
+| Problème | Correctif |
 |---|---|
-| Admin panel not starting | Check `admin.log` — usually a missing Python package |
-| Proxy not starting | Run `python3 -c "import aiohttp"` — if it fails: `pip3 install aiohttp --break-system-packages` |
-| `proxy.log` is empty | First check the proxy is actually running (`./manage_admin.sh status`). If it is, you are on an old version: the launcher must use `python3 -u` (unbuffered — otherwise the startup banner never leaves the 8 KB buffer), and `proxy.py`'s `main()` must call `logging.basicConfig()` (otherwise aiohttp's access logger has no handler and every request line is discarded, because `web.AppRunner` — unlike `web.run_app` — does not configure logging). |
-| Proxy starts but waterfall is blank | Check `sdr_host` in `admin_config.json` — normally `127.0.0.1`. If it holds an old LAN IP from a previous version, change it and [restart the panel](#restarting-the-panel) |
-| Kick button says "no connections" | Run `getcap $(which ss)` — if no `cap_net_admin`, run `sudo setcap cap_net_admin+ep $(which ss)` |
-| Status always shows OFFLINE | Go to Settings → SDR Process Name — set it to the exact name shown by `ps -eo comm,args \| grep -v grep` |
-| Users page shows no data | Verify the endpoint works: `curl http://127.0.0.1:<public_port>/users` |
-| External browser gets NetworkError | Check proxy is running: `./manage_admin.sh status` |
-| Proxy broke after a network change | Only relevant if `sdr_host` still holds a LAN IP — set it to `127.0.0.1` and [restart the panel](#restarting-the-panel) |
-| Chat delete button has no effect | Check write permission on the chat log file: `ls -l ~/PhantomSDR-Plus/chat.jsonl` |
-| Waterfall message not appearing | Confirm the proxy is running (`./manage_admin.sh status`) and the frontend is on a recent build that includes the overlay renderer |
-| Waterfall message lost after restart | Expected — message state is in-memory only; re-send it after restarting the admin panel |
-| Spot Reporting "Start" fails / daemon exits immediately | Check `autorun.log`. Usually the missing `autorun/node_modules` symlink (`ln -sfn ../frontend/node_modules autorun/node_modules`) or `taskset` not installed (`sudo apt install -y util-linux`). |
-| Spot Reporting: daemon runs but `decodes` stays 0 and `autorun.log` shows `504` / `tap closed 1006` | The audio tap can't reach spectrumserver. The daemon auto-detects the port from the **running** server's config; the `[autorun] tap backend: HOST:PORT` log line must match your `[server] port`. If it's wrong (or the server wasn't running at start), pin it in `autorun.json`: `"server": { "host": "127.0.0.1", "port": 9002 }`, then Stop→Start. |
-| Spot Reporting shows "0 sent" | Normal for the first few minutes — PSK Reporter flushes every 5 min, wsprnet every 2 min. Confirm a destination is enabled and the daemon is running. |
-| New bands/modes not showing in the matrix | [Restart the panel](#restarting-the-panel) — the matrix is loaded at admin start. |
-| `autorun.log` shows `MODULE_TYPELESS_PACKAGE_JSON` / "Reparsing as ES module … performance overhead" | Cosmetic warning (decoding still works). `frontend/src/modules/package.json` is missing `"type": "module"`; add that line near the top, then Stop→Start. No frontend rebuild needed — the daemon imports the source file directly. |
-| Spot Reporting "Start" fails with `taskset: … Invalid argument` on an old/small PC | Should not happen with the config-aware launcher — the core range is derived from the CPU count and goes unpinned on ≤ 4 cores. If seen, `admin_server.py` predates that change; update it (`_autorun_taskset_prefix`) and [restart the panel](#restarting-the-panel). |
-| REPORTING badge not on the waterfall | Reporting must be ON with at least one slot; the badge reads `/autorun-active.json`. Rebuild the frontend if `dist/index.html` predates the badge. |
+| Le panneau d'administration ne démarre pas | Consultez `admin.log` — généralement un paquet Python manquant |
+| Le proxy ne démarre pas | Exécutez `python3 -c "import aiohttp"` — en cas d'échec : `pip3 install aiohttp --break-system-packages` |
+| `proxy.log` est vide | Vérifiez d'abord que le proxy tourne réellement (`./manage_admin.sh status`). Si oui, vous êtes sur une ancienne version : le lanceur doit utiliser `python3 -u` (non tamponné — sinon la bannière de démarrage ne sort jamais du tampon de 8 Ko), et le `main()` de `proxy.py` doit appeler `logging.basicConfig()` (sinon le journaliseur d'accès d'aiohttp n'a pas de gestionnaire et chaque ligne de requête est perdue, car `web.AppRunner` — contrairement à `web.run_app` — ne configure pas la journalisation). |
+| Le proxy démarre mais la cascade est vide | Vérifiez `sdr_host` dans `admin_config.json` — normalement `127.0.0.1`. S'il contient encore une ancienne IP LAN d'une version précédente, corrigez-la et [Redémarrer le panneau](#redémarrer-le-panneau) |
+| Le bouton Kick indique « no connections » | Exécutez `getcap $(which ss)` — sans `cap_net_admin`, lancez `sudo setcap cap_net_admin+ep $(which ss)` |
+| L'état affiche toujours OFFLINE | Allez dans Settings → SDR Process Name — indiquez le nom exact affiché par `ps -eo comm,args \| grep -v grep` |
+| La page Users n'affiche aucune donnée | Vérifiez que le point de terminaison fonctionne : `curl http://127.0.0.1:<public_port>/users` |
+| Un navigateur externe obtient NetworkError | Vérifiez que le proxy tourne : `./manage_admin.sh status` |
+| Le proxy est cassé après un changement réseau | Concerne uniquement le cas où `sdr_host` contient encore une IP LAN — mettez-le à `127.0.0.1` et [Redémarrer le panneau](#redémarrer-le-panneau) |
+| Le bouton de suppression du chat n'a aucun effet | Vérifiez les droits d'écriture sur le fichier de journal du chat : `ls -l ~/PhantomSDR-Plus/chat.jsonl` |
+| Le message sur la cascade n'apparaît pas | Vérifiez que le proxy tourne (`./manage_admin.sh status`) et que le frontend est sur une version récente incluant le rendu de la superposition |
+| Message sur la cascade perdu après un redémarrage | Comportement attendu — l'état du message n'est qu'en mémoire ; renvoyez-le après le redémarrage du panneau |
+| Le « Start » de Spot Reporting échoue / le démon se termine aussitôt | Consultez `autorun.log`. C'est généralement le lien symbolique `autorun/node_modules` manquant (`ln -sfn ../frontend/node_modules autorun/node_modules`) ou `taskset` non installé (`sudo apt install -y util-linux`). |
+| Spot Reporting : le démon tourne mais `decodes` reste à 0 et `autorun.log` montre `504` / `tap closed 1006` | La prise audio n'atteint pas spectrumserver. Le démon détecte automatiquement le port depuis la configuration du serveur **en cours d'exécution** ; la ligne de journal `[autorun] tap backend: HOST:PORT` doit correspondre à votre `[server] port`. Si elle est fausse (ou si le serveur n'était pas lancé au démarrage), fixez-le dans `autorun.json` : `"server": { "host": "127.0.0.1", "port": 9002 }`, puis Stop→Start. |
+| Spot Reporting affiche « 0 sent » | Normal pendant les premières minutes — PSK Reporter envoie toutes les 5 min, wsprnet toutes les 2 min. Vérifiez qu'une destination est activée et que le démon tourne. |
+| Les nouvelles bandes/modes n'apparaissent pas dans la matrice | [Redémarrer le panneau](#redémarrer-le-panneau) — la matrice est chargée au démarrage. |
+| `autorun.log` affiche `MODULE_TYPELESS_PACKAGE_JSON` / « Reparsing as ES module … performance overhead » | Avertissement cosmétique (le décodage fonctionne toujours). Il manque `"type": "module"` à `frontend/src/modules/package.json` ; ajoutez cette ligne près du début, puis Stop→Start. Aucune recompilation du frontend n'est nécessaire — le démon importe directement le fichier source. |
+| Le « Start » de Spot Reporting échoue avec `taskset: … Invalid argument` sur un PC ancien/modeste | Ne devrait pas se produire avec le lanceur tenant compte de la configuration — la plage de cœurs est déduite du nombre de CPU et passe sans épinglage sur ≤ 4 cœurs. Si cela arrive, votre `admin_server.py` est antérieur à ce changement ; mettez-le à jour (`_autorun_taskset_prefix`) et [Redémarrer le panneau](#redémarrer-le-panneau). |
+| Le badge REPORTING n'apparaît pas sur la cascade | Le report doit être activé avec au moins un créneau ; le badge lit `/autorun-active.json`. Recompilez le frontend si `dist/index.html` est antérieur au badge. |

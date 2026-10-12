@@ -1,144 +1,144 @@
-# Several Receivers — Sysop Manual
+# Plusieurs récepteurs — Manuel du sysop
 
-> **Port numbers.** The examples below use the ports of a station set up before the station questions (8900, 8901, …). On a station set up with `configure-station.sh`, `proxy.py` already owns the public port 9000 and the main receiver is on 9001, so give further receivers 9002, 9003 and so on. The station questions keep `receivers.toml` in step: when a port or the address changes, `configure-station.sh` moves the main receiver to its new port and writes every link as `<address>/?rx=<id>` — a link without `?rx=` would keep a visitor on the receiver the `rx` cookie remembers. Never give a receiver the public port itself: the proxy would forward to itself, so it now refuses that.
+> **Numéros de port.** Les exemples ci-dessous utilisent les ports d'une station configurée avant les questions de la station (8900, 8901, …). Sur une station configurée avec `configure-station.sh`, `proxy.py` occupe déjà le port public 9000 et le récepteur principal est sur 9001 ; donnez donc aux récepteurs suivants 9002, 9003, etc. Les questions de la station tiennent `receivers.toml` à jour : quand un port ou l'adresse change, `configure-station.sh` déplace le récepteur principal sur son nouveau port et écrit chaque lien sous la forme `<adresse>/?rx=<id>` — un lien sans `?rx=` garderait le visiteur sur le récepteur que retient le cookie `rx`. Ne donnez jamais à un récepteur le port public lui-même : le proxy se renverrait vers lui-même, il le refuse donc désormais.
 
-**Running two or more receivers on one computer, with a receiver picker on the page.**
+**Deux récepteurs ou plus sur un même ordinateur, avec un sélecteur de récepteur sur la page.**
 
-Since v5.0.0 one PhantomSDR-Plus computer can run several receivers at the same time — for example an RX-888 for HF and an RTL-SDR for 2 m — and listeners switch between them with buttons in the page header, the way OpenWebRX offers its profiles. Every receiver keeps its own waterfall, chat, markers, listener list and station details; nobody on one receiver is ever disturbed by someone on another.
+Depuis la v5.0.0, un ordinateur PhantomSDR-Plus peut faire tourner plusieurs récepteurs en même temps — par exemple un RX-888 pour les ondes courtes et un RTL-SDR pour le 2 m — et les auditeurs passent de l'un à l'autre par des boutons dans l'en-tête de la page, comme OpenWebRX propose ses profils. Chaque récepteur garde sa propre cascade, son chat, ses repères, sa liste d'auditeurs et ses informations de station ; personne sur un récepteur n'est jamais gêné par quelqu'un sur un autre.
 
-> **In a hurry?** A station with one receiver needs none of this and sees no change. For a second receiver: create `instances/<name>/` with its own `config.toml`, start it with `INSTANCE=<name> ./start-<radio>.sh`, list both receivers in `receivers.toml`, and restart the proxy. The worked example in [section 3](#3-adding-a-second-receiver) goes through it line by line.
+> **Pressé ?** Une station à un seul récepteur n'a besoin de rien de tout cela et ne voit aucun changement. Pour un second récepteur : créez `instances/<nom>/` avec son propre `config.toml`, démarrez-le avec `INSTANCE=<nom> ./start-<radio>.sh`, inscrivez les deux récepteurs dans `receivers.toml` et redémarrez le proxy. L'exemple de la [section 3](#3-ajouter-un-second-récepteur) le détaille ligne par ligne.
 
-> **The easiest way:** run `./add-receiver.sh` (the installers offer it at the end). It asks which receiver and what it should cover, installs its driver, writes everything described in [section 3](#3-adding-a-second-receiver) and [section 4](#4-receiverstoml), and offers to start the receiver and restart the proxy. The rest of this manual explains what it does, for when you want to change something by hand.
+> **Le plus simple :** lancez `./add-receiver.sh` (les installeurs le proposent à la fin). Il demande quel récepteur et ce qu'il doit couvrir, installe son pilote, écrit tout ce que décrivent la [section 3](#3-ajouter-un-second-récepteur) et la [section 4](#4-receiverstoml), et propose de démarrer le récepteur et de redémarrer le proxy. Le reste de ce manuel explique ce qu'il fait, pour le jour où vous voulez modifier quelque chose à la main.
 
 ---
 
-## Contents
+## Sommaire
 
-1. [How it works](#1-how-it-works)
-2. [Two ways to publish the receivers](#2-two-ways-to-publish-the-receivers)
-3. [Adding a second receiver](#3-adding-a-second-receiver)
+1. [Comment cela fonctionne](#1-comment-cela-fonctionne)
+2. [Deux façons de publier les récepteurs](#2-deux-façons-de-publier-les-récepteurs)
+3. [Ajouter un second récepteur](#3-ajouter-un-second-récepteur)
 4. [receivers.toml](#4-receiverstoml)
-5. [Starting and stopping](#5-starting-and-stopping)
-6. [What listeners see](#6-what-listeners-see)
-7. [The S-meter above 30 MHz](#7-the-s-meter-above-30-mhz)
-8. [Security](#8-security)
-9. [How many receivers fit](#9-how-many-receivers-fit)
-10. [Traps worth knowing about](#10-traps-worth-knowing-about)
+5. [Démarrer et arrêter](#5-démarrer-et-arrêter)
+6. [Ce que voient les auditeurs](#6-ce-que-voient-les-auditeurs)
+7. [Le S-mètre au-dessus de 30 MHz](#7-le-s-mètre-au-dessus-de-30-mhz)
+8. [Sécurité](#8-sécurité)
+9. [Combien de récepteurs tiennent](#9-combien-de-récepteurs-tiennent)
+10. [Pièges à connaître](#10-pièges-à-connaître)
 
 ---
 
-## 1. How it works
+## 1. Comment cela fonctionne
 
-Each receiver is a complete spectrumserver of its own, with its own SDR front end, its own configuration and its own internal port. They never share samples, settings or listeners. What ties them together is `proxy.py`, the reverse proxy that already serves the admin panel: it reads `receivers.toml` and sends every request to one receiver.
+Chaque récepteur est un spectrumserver complet et indépendant, avec son propre SDR, sa propre configuration et son propre port interne. Ils ne partagent jamais d'échantillons, de réglages ni d'auditeurs. Ce qui les relie, c'est `proxy.py`, le proxy inverse qui sert déjà le panneau d'administration : il lit `receivers.toml` et envoie chaque requête à un récepteur.
 
 ```
-                     ┌──► :8900  spectrumserver  RX-888   (HF, the main receiver)
-listeners ──► proxy.py ┤
-                     └──► 127.0.0.1:9002  spectrumserver  RTL-SDR  (2 m, instance "vhf")
+                         ┌──► :8900  spectrumserver  RX-888   (HF, le récepteur principal)
+auditeurs ──► proxy.py ──┤
+                         └──► 127.0.0.1:9002  spectrumserver  RTL-SDR  (2 m, instance "vhf")
 ```
 
-The proxy decides by these, in order:
+Le proxy décide d'après ces éléments, dans cet ordre :
 
-1. `?rx=<id>` in the address — `http://your.host:8899/?rx=vhf`. The page adds it to every socket, poll and link it opens, so a tab stays on its receiver.
-2. The `rx` cookie, which the proxy sets whenever a request carries a valid `?rx=`.
-3. The Host header, if a receiver lists that name under `hostnames`.
-4. Otherwise the default receiver.
+1. `?rx=<id>` dans l'adresse — `http://votre.hote:8899/?rx=vhf`. La page l'ajoute à chaque socket, requête et lien qu'elle ouvre, si bien qu'un onglet reste sur son récepteur.
+2. Le cookie `rx`, que le proxy pose chaque fois qu'une requête porte un `?rx=` valide.
+3. L'en-tête Host, si un récepteur cite ce nom dans `hostnames`.
+4. Sinon le récepteur par défaut.
 
-The **main receiver** is the one started the usual way (`./start-rx888mk2.sh`). Every other receiver is a **named instance**: started with `INSTANCE=<name>`, configured in `instances/<name>/`, and given its own log (`logwebsdr-<name>.txt`), server log, watchdog lock and FIFO. Processes are told apart by a `PHANTOMSDR_INSTANCE` tag in their environment, not by their name, so two receivers may run the very same program — two `rtl_sdr`, or `rx_sdr` for both an RSP1A and an Airspy — and a restart of one never touches the other.
+Le **récepteur principal** est celui que l'on démarre comme d'habitude (`./start-rx888mk2.sh`). Tout autre récepteur est une **instance nommée** : démarrée avec `INSTANCE=<nom>`, configurée dans `instances/<nom>/`, avec son propre journal (`logwebsdr-<nom>.txt`), journal du serveur, verrou du watchdog et FIFO. Les processus se distinguent par une étiquette `PHANTOMSDR_INSTANCE` dans leur environnement, pas par leur nom ; deux récepteurs peuvent donc exécuter exactement le même programme — deux `rtl_sdr`, ou `rx_sdr` pour un RSP1A et un Airspy — et le redémarrage de l'un ne touche jamais l'autre.
 
 ---
 
-## 2. Two ways to publish the receivers
+## 2. Deux façons de publier les récepteurs
 
-**A — the main receiver keeps its own port.** The main receiver stays exactly where it was (say `:8900`), listeners there notice nothing, and the other receivers are reached through the proxy's port (`proxy_port` in `admin_config.json`, say `:8899`) with `?rx=`. Nothing has to be moved and nothing goes off the air; it does mean two public ports.
-
-```
-HF:  http://your.host:8900/
-2 m: http://your.host:8899/?rx=vhf
-```
-
-**B — one public port for everything.** The proxy takes over the public port and the main receiver moves to an internal one. Set `[front] port` in `receivers.toml`, move the main receiver's `[server] port` and set `host = "127.0.0.1"` on it, set `public_port` in `admin_config.json` to the new internal port, and add `public_port = <the public port>` under `[websdr]` so the directory listing keeps announcing the right one. Everything then lives behind one port; the cost is a short outage while you move it.
+**A — le récepteur principal garde son propre port.** Le récepteur principal reste exactement où il était (par exemple `:8900`), ses auditeurs ne remarquent rien, et l'on atteint les autres récepteurs par le port du proxy (`proxy_port` dans `admin_config.json`, par exemple `:8899`) avec `?rx=`. Rien ne bouge et rien ne quitte l'antenne ; en contrepartie il y a deux ports publics.
 
 ```
-HF:  http://your.host:8900/
-2 m: http://your.host:8900/?rx=vhf
+HF :  http://votre.hote:8900/
+2 m : http://votre.hote:8899/?rx=vhf
 ```
 
-Either way the receiver picker works the same. Layout A is the safer start; B can follow later without changing anything for the second receiver.
+**B — un seul port public pour tout.** Le proxy prend le port public et le récepteur principal passe sur un port interne. Définissez `[front] port` dans `receivers.toml`, déplacez le `[server] port` du récepteur principal et mettez-y `host = "127.0.0.1"`, mettez le nouveau port interne dans `public_port` de `admin_config.json` et ajoutez `public_port = <le port public>` sous `[websdr]`, pour que l'annuaire continue d'annoncer le bon. Tout se trouve alors derrière un seul port ; le prix est une courte coupure pendant le déplacement.
+
+```
+HF :  http://votre.hote:8900/
+2 m : http://votre.hote:8900/?rx=vhf
+```
+
+Le sélecteur de récepteur fonctionne de la même façon dans les deux cas. La disposition A est le début le plus sûr ; B peut suivre plus tard sans rien changer au second récepteur.
 
 ---
 
-## 3. Adding a second receiver
+## 3. Ajouter un second récepteur
 
-**`add-receiver.sh` does all of the steps below** — run it and answer its questions; it also installs the driver (`setup-rtlsdr.sh` for an RTL-SDR, the matching `setup-*.sh` for the others), picks a free internal port and names the receiver after what it covers. The steps are written out here so that you can check its work or change it later.
+**`add-receiver.sh` effectue toutes les étapes ci-dessous** — lancez-le et répondez à ses questions ; il installe aussi le pilote (`setup-rtlsdr.sh` pour un RTL-SDR, le `setup-*.sh` correspondant pour les autres), choisit un port interne libre et nomme le récepteur d'après ce qu'il couvre. Les étapes sont détaillées ici pour que vous puissiez vérifier son travail ou le modifier plus tard.
 
-The example adds an RTL-SDR Blog V4 for 2 m as instance `vhf`, next to an RX-888 that keeps port 8900 (layout A).
+L'exemple ajoute un RTL-SDR Blog V4 pour le 2 m comme instance `vhf`, à côté d'un RX-888 qui garde le port 8900 (disposition A).
 
-**1. The driver.** The RTL-SDR Blog V4 needs the RTL-SDR Blog driver rather than the distribution's `rtl-sdr` package, and the kernel's DVB-T driver must let go of the stick. `install.sh` (receiver option 2, "RTL-SDR Blog V4: yes") does both. Check with `rtl_test -t`, which must say `RTL-SDR Blog V4 Detected`.
+**1. Le pilote.** Le RTL-SDR Blog V4 a besoin du pilote de RTL-SDR Blog plutôt que du paquet `rtl-sdr` de la distribution, et le pilote DVB-T du noyau doit libérer la clé. `install.sh` (option de récepteur 2, « RTL-SDR Blog V4 : oui ») fait les deux. Vérifiez avec `rtl_test -t`, qui doit afficher `RTL-SDR Blog V4 Detected`.
 
-**2. The instance folder.** Everything that belongs to the receiver lives in `instances/vhf/`, which is never committed and never overwritten by an update:
+**2. Le dossier de l'instance.** Tout ce qui appartient au récepteur se trouve dans `instances/vhf/`, jamais versionné et jamais écrasé par une mise à jour :
 
 ```
 instances/vhf/
-├── config.toml          its spectrumserver configuration (required)
-├── instance.env         optional: receiver arguments and CPU pinning
-├── markers.json         its own markers
-└── www/                 its own copies of the page's per-station files
+├── config.toml          la configuration de son spectrumserver (obligatoire)
+├── instance.env         facultatif : paramètres du récepteur et cœurs de CPU
+├── markers.json         ses propres repères
+└── www/                 ses propres copies des fichiers de station de la page
     ├── site_information.json
     └── wf-message.json
 ```
 
-spectrumserver runs with `instances/vhf/` as its working directory, so its chat history, markers, FFTW wisdom and `logs/` are its own as well.
+spectrumserver tourne avec `instances/vhf/` comme répertoire de travail ; l'historique du chat, les repères, le FFTW wisdom et `logs/` sont donc aussi les siens.
 
-**3. `config.toml`.** Start from `config-rtl.toml` and change:
+**3. `config.toml`.** Partez de `config-rtl.toml` et modifiez :
 
 ```toml
 [server]
-port=9002                              # its own internal port
-host="127.0.0.1"                       # reachable only through the proxy
-html_root="www/"                       # its own few files...
-html_fallback_root="../../frontend/dist/"   # ...and the shared page for the rest
+port=9002                              # son propre port interne
+host="127.0.0.1"                       # joignable uniquement par le proxy
+html_root="www/"                       # ses quelques fichiers propres...
+html_fallback_root="../../frontend/dist/"   # ...et la page commune pour le reste
 
 [input]
-sps=2400000                            # must match -s in instance.env
-frequency=145000000                    # must match -f in instance.env
+sps=2400000                            # identique à -s dans instance.env
+frequency=145000000                    # identique à -f dans instance.env
 
 [input.defaults]
 frequency=145500000
 modulation="FM"
 
 [kiwi_emulation]
-enabled = false                        # see the traps below
+enabled = false                        # voir les pièges plus bas
 ```
 
-`html_fallback_root` lets the instance keep only its own `site_information.json` and `wf-message.json` while everything else — the built page itself — comes from `frontend/dist`, so one frontend build reaches every receiver. A symlinked copy of `frontend/dist` does not work: the server refuses files that resolve outside its own folder.
+`html_fallback_root` permet à l'instance de ne garder que ses propres `site_information.json` et `wf-message.json`, tandis que tout le reste — la page compilée elle-même — vient de `frontend/dist` ; une seule compilation du frontend atteint ainsi chaque récepteur. Une copie de `frontend/dist` faite de liens symboliques ne fonctionne pas : le serveur refuse les fichiers qui aboutissent hors de son propre dossier.
 
-**4. `instance.env`.** Read by the launcher after its own settings:
+**4. `instance.env`.** Lu par le script de démarrage après ses propres réglages :
 
 ```bash
-RX_ARGS="-f 145000000 -s 2400000 -g 29.7 -"   # -f and -s match config.toml
-SPECTRUM_CORES=8-11                           # keep it off the main receiver's cores
+RX_ARGS="-f 145000000 -s 2400000 -g 29.7 -"   # -f et -s identiques à config.toml
+SPECTRUM_CORES=8-11                           # hors des cœurs du récepteur principal
 ```
 
-**5. Its page details.** Copy `frontend/site_information.json` to `instances/vhf/www/` and edit it: `siteReceiver`, `siteAntenna`, `siteSDRBaseFrequency` and `siteSDRBandwidth` (these choose which band buttons appear), and the keys described in [section 6](#6-what-listeners-see).
+**5. Les informations de sa page.** Copiez `frontend/site_information.json` dans `instances/vhf/www/` et modifiez : `siteReceiver`, `siteAntenna`, `siteSDRBaseFrequency` et `siteSDRBandwidth` (ils décident quels boutons de bande apparaissent), ainsi que les clés décrites à la [section 6](#6-ce-que-voient-les-auditeurs).
 
-**6. Start it.**
+**6. Démarrez-le.**
 
 ```bash
 INSTANCE=vhf ./start-rtl.sh
 ```
 
-**7. List it in `receivers.toml`** and restart the proxy (`sudo systemctl restart phantomsdr-proxy`). The second receiver is now at `http://your.host:8899/?rx=vhf`, and both pages show the picker.
+**7. Inscrivez-le dans `receivers.toml`** et redémarrez le proxy (`sudo systemctl restart phantomsdr-proxy`). Le second récepteur est maintenant à `http://votre.hote:8899/?rx=vhf`, et les deux pages affichent le sélecteur.
 
 ---
 
 ## 4. receivers.toml
 
-Copy `receivers.toml.example` to `receivers.toml`. Without that file the proxy serves a single receiver exactly as it always has.
+Copiez `receivers.toml.example` en `receivers.toml`. Sans ce fichier, le proxy sert un seul récepteur, comme toujours.
 
 ```toml
 # [front]
-# port = 8900        # layout B only: the proxy also listens on this public port
+# port = 8900        # disposition B seulement : le proxy écoute aussi sur ce port public
 
 [[receiver]]
 id       = "hf"
@@ -146,7 +146,7 @@ name     = "HF 0-30 MHz (RX-888 MkII)"
 port     = 8900
 default  = true
 launcher = "start-rx888mk2.sh"
-url      = "http://your.host:8900/"
+url      = "http://votre.hote:8900/"
 
 [[receiver]]
 id       = "vhf"
@@ -154,100 +154,100 @@ name     = "2 m (RTL-SDR Blog V4)"
 port     = 9002
 launcher = "start-rtl.sh"
 instance = "vhf"
-url      = "http://your.host:8899/?rx=vhf"
+url      = "http://votre.hote:8899/?rx=vhf"
 ```
 
-| Key | Meaning |
+| Clé | Signification |
 |---|---|
-| `id` | Short name used in `?rx=`; letters, digits, `-` and `_` |
-| `name` | The text on the receiver's button |
-| `port` | Its spectrumserver's `[server] port` |
-| `host` | Optional; where that spectrumserver runs (default `127.0.0.1`) |
-| `default` | The receiver for requests that name none; at most one |
-| `launcher` | Its `start-*.sh`, for `start-all.sh`; leave it out for a receiver this computer does not start |
-| `instance` | Its instance name; leave it out for the main receiver |
-| `url` | Where its button sends a listener; without it, `/?rx=<id>` on the proxy |
-| `hostnames` | Optional DNS names routed straight to this receiver |
+| `id` | Nom court utilisé dans `?rx=` ; lettres, chiffres, `-` et `_` |
+| `name` | Le texte du bouton du récepteur |
+| `port` | Le `[server] port` de son spectrumserver |
+| `host` | Facultatif ; où tourne ce spectrumserver (par défaut `127.0.0.1`) |
+| `default` | Le récepteur des requêtes qui n'en nomment aucun ; un seul au plus |
+| `launcher` | Son `start-*.sh`, pour `start-all.sh` ; à omettre pour un récepteur que cet ordinateur ne démarre pas |
+| `instance` | Le nom de son instance ; à omettre pour le récepteur principal |
+| `url` | Où son bouton envoie l'auditeur ; sans elle, `/?rx=<id>` sur le proxy |
+| `hostnames` | Noms DNS facultatifs qui mènent directement à ce récepteur |
 
-The proxy also serves the list as `/receivers.json` (ids, names and links — never the internal ports), which is what the picker reads.
+Le proxy sert aussi la liste sous `/receivers.json` (identifiants, noms et liens — jamais les ports internes) ; c'est ce que lit le sélecteur.
 
 ---
 
-## 5. Starting and stopping
+## 5. Démarrer et arrêter
 
-| Command | Does |
+| Commande | Effet |
 |---|---|
-| `./start-rx888mk2.sh` | Starts or restarts the main receiver |
-| `INSTANCE=vhf ./start-rtl.sh` | Starts or restarts the `vhf` receiver |
-| `./start-all.sh` | Starts every receiver in `receivers.toml` that has a `launcher` |
-| `./stop-websdr.sh vhf` | Stops only `vhf` |
-| `./stop-websdr.sh main` | Stops only the main receiver |
-| `./stop-websdr.sh` | Stops every receiver, as it always did |
+| `./start-rx888mk2.sh` | Démarre ou redémarre le récepteur principal |
+| `INSTANCE=vhf ./start-rtl.sh` | Démarre ou redémarre le récepteur `vhf` |
+| `./start-all.sh` | Démarre chaque récepteur de `receivers.toml` qui a un `launcher` |
+| `./stop-websdr.sh vhf` | Arrête seulement `vhf` |
+| `./stop-websdr.sh main` | Arrête seulement le récepteur principal |
+| `./stop-websdr.sh` | Arrête tous les récepteurs, comme toujours |
 
-**While a receiver is stopped**, its button disappears from the picker — the proxy lists only the receivers that answer, and open pages re-read the list once a minute — and comes back when the receiver starts again; with only one receiver left running, the *Receivers:* line disappears altogether. A stopped receiver does come back by itself whenever every receiver is started: `./start-all.sh`, the admin panel's **Restart** and a thermal-guard restart all start everything listed in `receivers.toml`. To keep one off for good, remove (or comment out) its `[[receiver]]` block and restart the proxy.
+**Tant qu'un récepteur est arrêté**, son bouton disparaît du sélecteur — le proxy ne recense que les récepteurs qui répondent, et les pages ouvertes relisent la liste une fois par minute — et il revient quand le récepteur redémarre ; s'il ne reste qu'un récepteur en marche, la ligne *Receivers:* disparaît entièrement. Un récepteur arrêté revient toutefois de lui-même chaque fois que tous les récepteurs sont démarrés : `./start-all.sh`, le **Restart** du panneau d'administration et un redémarrage par la protection thermique démarrent tout ce que liste `receivers.toml`. Pour en garder un éteint durablement, supprimez (ou commentez) son bloc `[[receiver]]` et redémarrez le proxy.
 
-Set the admin panel's **Default start script** to `start-all.sh`. Its Stop already stops every receiver, and its Restart and the thermal guard use the start script, so with `start-all.sh` they bring back every receiver instead of only the main one.
+Réglez le **Default start script** du panneau d'administration sur `start-all.sh`. Son Stop arrête déjà tous les récepteurs, et son Restart ainsi que la protection thermique utilisent le script de démarrage ; avec `start-all.sh`, ils ramènent tous les récepteurs au lieu du seul principal.
 
-The RADE sidecar belongs to the main receiver only. A named instance never starts or stops it.
+L'auxiliaire RADE n'appartient qu'au récepteur principal. Une instance nommée ne le démarre ni ne l'arrête jamais.
 
 ---
 
-## 6. What listeners see
+## 6. Ce que voient les auditeurs
 
-**The receiver picker.** On a station with more than one receiver the page header gets a line of its own, *Receivers:*, with one button per receiver; the current one is shown in yellow. The /mobile page has the same buttons as a second row in its top bar, and they open the other receiver's /mobile page.
+**Le sélecteur de récepteur.** Sur une station à plusieurs récepteurs, l'en-tête de la page reçoit une ligne à lui, *Receivers:*, avec un bouton par récepteur ; le récepteur actuel apparaît en jaune. La page /mobile a les mêmes boutons en deuxième rangée de sa barre supérieure, et ils ouvrent la page /mobile de l'autre récepteur.
 
-**Each receiver's own details.** A page opened on a second receiver loads that receiver's `site_information.json` before it starts, so the band buttons, the starting frequency, the users list, the station details and the Receiver and Antenna links are all its own. A plain visit to the main receiver makes no extra request.
+**Les informations propres à chaque récepteur.** Une page ouverte sur un second récepteur charge le `site_information.json` de ce récepteur avant de démarrer ; les boutons de bande, la fréquence de départ, la liste des auditeurs, les informations de station et les liens Receiver et Antenna sont donc tous les siens. Une visite ordinaire du récepteur principal ne fait aucune requête supplémentaire.
 
-Keys in `site_information.json` for this:
+Les clés de `site_information.json` concernées :
 
-| Key | Meaning |
+| Clé | Signification |
 |---|---|
-| `siteReceiverId` | The receiver this page belongs to (its `id`); leave it out on the main receiver |
-| `siteReceiversList` | Where the picker reads the list, e.g. `http://your.host:8899/receivers.json`; needed on a receiver whose page is not served through the proxy |
-| `siteReceiverURL` | Where the *Receiver* name in *Open Additional Info* links to |
-| `siteAntennaURL` | Where the *Antenna* name links to; `""` shows the name without a link |
+| `siteReceiverId` | Le récepteur auquel appartient cette page (son `id`) ; à omettre sur le récepteur principal |
+| `siteReceiversList` | Où le sélecteur lit la liste, p. ex. `http://votre.hote:8899/receivers.json` ; nécessaire sur un récepteur dont la page n'est pas servie par le proxy |
+| `siteReceiverURL` | Vers où pointe le nom de *Receiver* dans *Open Additional Info* |
+| `siteAntennaURL` | Vers où pointe le nom de *Antenna* ; `""` affiche le nom sans lien |
 
-**When the picker stays hidden.** The picker only shows a list that names the host the page was opened on. Opened by LAN address (`http://192.168.1.10:8900/`) it stays hidden; opened as `http://your.host:8900/` it appears. That is deliberate: a station that copied someone else's `site_information.json` without editing it never shows that station's receivers as its own.
-
----
-
-## 7. The S-meter above 30 MHz
-
-The IARU Region 1 standard puts S9 at −73 dBm below 30 MHz and at **−93 dBm above**, six dB per S-unit on both. The S-meters (the analog needle, the digital bar and the /mobile bar) follow the tuned frequency: above 30 MHz they read VHF S-units, below it they read as before. The dBm and dBµV figures are never changed. If you prefer the meters to rest at 0 on an empty channel, like a VHF/UHF transceiver's, add `"siteSMeterGateDb": 6` to the receiver's `site_information.json` (no rebuild needed): above **60 MHz** the needle and the bar then come up only when a signal stands that many dB above the noise in its own neighbourhood (the passband's strongest point against the spectrum ±100 kHz around it). It is **off by default** — a calibrated meter showing the real band noise is the more honest reading. The /mobile page, which has no waterfall, estimates the noise from the received level itself.
-
-Calibrate a VHF receiver's dBm with `analog_smeter_offset` (needle and figures) and `smeter_offset` (digital bar) under `[input]` in its `config.toml`, then restart that receiver. Set the receiver's gain first: an RTL-SDR reports levels relative to its own full scale, so every gain change moves the readings. Without a signal generator, a 50 Ω terminator in place of the antenna, USB with a 2.7 kHz filter, should read about −136 dBm (thermal noise in 2.7 kHz is −139.7 dBm, plus the stick's noise figure).
-
-For an RTL-SDR, `add-receiver.sh` writes a starting calibration: a fixed gain of `-g 29.7` in `instance.env` (the tuner's automatic gain cannot be calibrated) and `analog_smeter_offset=-55`, `smeter_offset=-38`, measured on an RTL-SDR Blog V4 at that gain with a −71 dBm (63 µV) signal. Another stick of the same model reads within a few dB of that; check it with a known signal, and recalibrate if you change the gain.
+**Quand le sélecteur reste caché.** Le sélecteur n'affiche qu'une liste qui cite l'hôte sous lequel la page a été ouverte. Ouverte par l'adresse du réseau local (`http://192.168.1.10:8900/`), il reste caché ; ouverte en `http://votre.hote:8900/`, il apparaît. C'est voulu : une station qui a copié le `site_information.json` d'une autre sans le modifier n'affiche jamais les récepteurs de celle-ci comme les siens.
 
 ---
 
-## 8. Security
+## 7. Le S-mètre au-dessus de 30 MHz
 
-Putting the proxy in front of listeners closed two holes, both fixed in v5.0.0:
+La norme de l'IARU Région 1 place S9 à −73 dBm sous 30 MHz et à **−93 dBm au-dessus**, avec six dB par point S dans les deux cas. Les S-mètres (l'aiguille analogique, la barre numérique et la barre de /mobile) suivent la fréquence accordée : au-dessus de 30 MHz ils indiquent des points S VHF, en dessous comme avant. Les valeurs en dBm et dBµV ne changent jamais. Si vous préférez que les instruments restent à 0 sur un canal vide, comme ceux d'un transceiver VHF/UHF, ajoutez `"siteSMeterGateDb": 6` au `site_information.json` du récepteur (sans recompilation) : au-dessus de **60 MHz**, l'aiguille et la barre ne montent alors que lorsqu'un signal dépasse de ce nombre de dB le bruit de son propre voisinage (le point le plus fort de la bande passante face au spectre ±100 kHz autour). C'est **désactivé par défaut** — un instrument étalonné qui montre le vrai bruit de bande est la lecture la plus honnête. La page /mobile, qui n'a pas de cascade, estime le bruit à partir du niveau reçu lui-même.
 
-- **The sysop kick through the proxy.** spectrumserver allows `/~~kick` only from its own computer, and to it every request relayed by the proxy comes from its own computer. Anyone who could reach the proxy port could therefore disconnect and ban any listener. The proxy now answers `/~~kick` only for clients on the same computer.
-- **Faked client addresses.** spectrumserver believed an `X-Forwarded-For` header from anyone, so a visitor could claim to be `127.0.0.1` and walk past the per-IP limits. The header is now believed only from a local proxy, and the proxy drops any copy a client sends before adding its own.
+Étalonnez les dBm d'un récepteur VHF avec `analog_smeter_offset` (aiguille et valeurs) et `smeter_offset` (barre numérique) sous `[input]` dans son `config.toml`, puis redémarrez ce récepteur. Fixez d'abord le gain : un RTL-SDR donne ses niveaux par rapport à sa propre pleine échelle, donc chaque changement de gain déplace les lectures. Sans générateur, une charge de 50 Ω à la place de l'antenne, en USB avec un filtre de 2,7 kHz, doit indiquer environ −136 dBm (le bruit thermique dans 2,7 kHz vaut −139,7 dBm, plus le facteur de bruit de la clé).
 
-Bind every receiver that is reached through the proxy to `127.0.0.1` (`[server] host`), so its port cannot be used around the proxy. The per-IP limits in [Connection Limits](CONNECTION_LIMITS.md) apply per receiver.
-
----
-
-## 9. How many receivers fit
-
-The software sets no limit; the hardware does. Narrowband receivers are cheap: an RTL-SDR at 2.4 Msps uses about 5–10 % of one core, a few dozen MB of memory, and about 38 Mbit/s of USB.
-
-- **USB 2.0 is the usual ceiling.** Every USB 2 device shares one 480 Mbit/s bus, even in a blue USB 3 socket. Three to four RTL-SDRs per bus is a safe figure; add them one at a time and watch every waterfall for gaps.
-- **Power:** use a powered hub beyond two sticks.
-- **A second wideband receiver** (another RX-888, or a HackRF at 20 Msps) is a different matter: it competes with the first for USB 3, CPU and GPU.
-- **Listeners cost more than receivers.** Each listener costs CPU on the receiver they are on and upload bandwidth, so the total number of listeners matters more than the number of receivers.
+Pour un RTL-SDR, `add-receiver.sh` écrit un étalonnage de départ : un gain fixe `-g 29.7` dans `instance.env` (le gain automatique du tuner ne s'étalonne pas) ainsi que `analog_smeter_offset=-55` et `smeter_offset=-38`, mesurés sur un RTL-SDR Blog V4 à ce gain avec un signal de −71 dBm (63 µV). Une autre clé du même modèle s'en écarte en général de quelques dB seulement ; vérifiez-la avec un signal connu et réétalonnez si vous changez le gain.
 
 ---
 
-## 10. Traps worth knowing about
+## 8. Sécurité
 
-- **Two sticks of the same model have the same serial.** Every RTL-SDR Blog V4 reports `00000001`. Give each its own with `rtl_eeprom -s <serial>` (one stick plugged in at a time) and name it in `instance.env` (`RX_ARGS="-d <serial> …"`), or after a reboot the sticks may swap receivers.
-- **Kiwi clients cannot choose a receiver.** A KiwiSDR client dials a bare address and port; through the proxy it always lands on the default receiver. Keep `[kiwi_emulation]` off on the others.
-- **Cookies are per host, not per port.** A visitor who used the second receiver on `:8899` carries `rx=vhf` to `:8900` too. That is why a page decides which receiver it is from `siteReceiverId`, never from the cookie.
-- **Directory listings.** Give each receiver its own name in `[websdr]`, and on a receiver behind the proxy set `[websdr] public_port` to the port listeners use, or the listing advertises the internal one.
-- **A frontend rebuild briefly shows "Not Found".** `frontend/dist` is rebuilt in place, so for a few seconds during a build the page is missing for every receiver.
-- **Nothing starts the receivers at boot** unless you arrange it. After a reboot, `./start-all.sh` brings them all back.
+Placer le proxy devant les auditeurs a fermé deux failles, toutes deux corrigées dans la v5.0.0 :
+
+- **L'expulsion du sysop à travers le proxy.** spectrumserver n'accepte `/~~kick` que depuis son propre ordinateur, et pour lui chaque requête relayée par le proxy vient de son propre ordinateur. Quiconque atteignait le port du proxy pouvait donc déconnecter et bannir n'importe quel auditeur. Le proxy ne répond désormais à `/~~kick` que pour les clients du même ordinateur.
+- **Adresses de client falsifiées.** spectrumserver croyait l'en-tête `X-Forwarded-For` de n'importe qui ; un visiteur pouvait donc se dire `127.0.0.1` et passer outre les limites par adresse. L'en-tête n'est désormais cru que s'il vient d'un proxy local, et le proxy supprime toute copie envoyée par un client avant d'ajouter la sienne.
+
+Liez chaque récepteur joint par le proxy à `127.0.0.1` (`[server] host`), afin que son port ne puisse pas servir à contourner le proxy. Les limites par adresse de [Limites de connexion](CONNECTION_LIMITS.md) s'appliquent par récepteur.
+
+---
+
+## 9. Combien de récepteurs tiennent
+
+Le logiciel ne fixe aucune limite ; le matériel, si. Les récepteurs à bande étroite coûtent peu : un RTL-SDR à 2,4 Msps utilise environ 5 à 10 % d'un cœur, quelques dizaines de Mo de mémoire et environ 38 Mbit/s d'USB.
+
+- **L'USB 2.0 est le plafond habituel.** Tous les périphériques USB 2 partagent un bus de 480 Mbit/s, même dans une prise USB 3 bleue. Trois à quatre RTL-SDR par bus est un chiffre sûr ; ajoutez-les un par un et surveillez chaque cascade pour repérer des trous.
+- **Alimentation :** au-delà de deux clés, utilisez un hub alimenté.
+- **Un second récepteur large bande** (un autre RX-888, ou un HackRF à 20 Msps) est une autre affaire : il dispute au premier l'USB 3, le CPU et le GPU.
+- **Les auditeurs coûtent plus que les récepteurs.** Chaque auditeur coûte du CPU sur son récepteur et de la bande passante montante ; le nombre total d'auditeurs compte donc plus que le nombre de récepteurs.
+
+---
+
+## 10. Pièges à connaître
+
+- **Deux clés du même modèle ont le même numéro de série.** Chaque RTL-SDR Blog V4 indique `00000001`. Donnez à chacune le sien avec `rtl_eeprom -s <série>` (une seule clé branchée à la fois) et nommez-le dans `instance.env` (`RX_ARGS="-d <série> …"`), sinon après un redémarrage les clés peuvent échanger leurs récepteurs.
+- **Les clients Kiwi ne peuvent pas choisir de récepteur.** Un client KiwiSDR appelle une simple adresse et un port ; à travers le proxy il aboutit toujours au récepteur par défaut. Laissez `[kiwi_emulation]` désactivé sur les autres.
+- **Les cookies valent par hôte, pas par port.** Un visiteur qui a utilisé le second récepteur sur `:8899` emporte aussi `rx=vhf` vers `:8900`. C'est pourquoi une page décide quel récepteur elle est d'après `siteReceiverId`, jamais d'après le cookie.
+- **Les entrées d'annuaire.** Donnez à chaque récepteur son propre nom dans `[websdr]`, et sur un récepteur derrière le proxy mettez `[websdr] public_port` au port qu'utilisent les auditeurs, sinon l'entrée annonce le port interne.
+- **Une compilation du frontend affiche brièvement « Not Found ».** `frontend/dist` est recompilé sur place ; pendant quelques secondes de compilation, la page manque sur chaque récepteur.
+- **Rien ne démarre les récepteurs au démarrage de l'ordinateur**, à moins que vous ne le prévoyiez. Après un redémarrage, `./start-all.sh` les ramène tous.

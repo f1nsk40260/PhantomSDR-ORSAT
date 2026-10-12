@@ -1,42 +1,42 @@
-# PhantomSDR-Plus — Decoder User Manual
+# PhantomSDR-Plus — Manuel d'utilisation des décodeurs
 
-This guide covers every built-in decoder available in PhantomSDR-Plus. All decoders share the same activation workflow, described below, followed by per-decoder setup instructions.
+Ce guide couvre tous les décodeurs intégrés à PhantomSDR-Plus. Tous les décodeurs partagent la même procédure d'activation, décrite ci-dessous, suivie des instructions de configuration propres à chacun.
 
 ---
 
-## Table of Contents
+## Table des matières
 
-1. [How to Start a Decoder](#1-how-to-start-a-decoder)
+1. [Comment démarrer un décodeur](#1-comment-démarrer-un-décodeur)
 2. [FT8](#2-ft8)
 3. [FT4-FT2](#3-ft4-ft2)
 4. [JS8](#4-js8)
-5. [CW — Morse Code](#5-cw--morse-code)
+5. [CW — code Morse](#5-cw--code-morse)
 6. [QRSS Grabber](#6-qrss-grabber)
 7. [WSPR](#7-wspr)
-8. [HF FAX / WEFAX](#8-hf-fax--wefax)
+8. [FAX HF / WEFAX](#8-fax-hf--wefax)
 9. [NAVTEX](#9-navtex)
-10. [FLDIGI — RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet and APRS](#10-fldigi--rtty-psk31-olivia-mfsk-dominoex-thor-throb-hellschreiber-mt63-packet-and-aprs)
+10. [FLDIGI — RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet et APRS](#10-fldigi--rtty-psk31-olivia-mfsk-dominoex-thor-throb-hellschreiber-mt63-packet-et-aprs)
 11. [SSTV](#11-sstv)
-12. [General Tips](#12-general-tips)
+12. [Conseils généraux](#12-conseils-généraux)
 
 ---
 
-## 1. How to Start a Decoder
+## 1. Comment démarrer un décodeur
 
-All decoders are accessed from the **Decoder Options** section, located below the Audio Spectrogram controls on the main panel.
+Tous les décodeurs se trouvent dans la section **Decoder Options**, située sous les commandes du spectrogramme audio, sur le panneau principal.
 
-**Steps:**
+**Étapes :**
 
-1. Click the **Decoder: OFF** button to switch it to **Decoder: ON** (it turns blue when active).
-2. Open the dropdown menu that appears to the right of the button and select the decoder you want.
-3. The chosen decoder's panel will appear below the controls — follow the decoder-specific instructions in the relevant section of this guide.
-4. To stop decoding, select **— Select decoder —** from the dropdown, or click the **Decoder: ON** button to turn it back OFF.
+1. Cliquez sur le bouton **Decoder: OFF** pour le faire passer à **Decoder: ON** (il devient bleu lorsqu'il est actif).
+2. Ouvrez le menu déroulant qui apparaît à droite du bouton et sélectionnez le décodeur souhaité.
+3. Le panneau du décodeur choisi apparaît sous les commandes — suivez les instructions propres à ce décodeur dans la section correspondante de ce guide.
+4. Pour arrêter le décodage, sélectionnez **— Select decoder —** dans le menu déroulant, ou cliquez sur le bouton **Decoder: ON** pour le remettre sur OFF.
 
-### One-touch decoder buttons
+### Boutons de décodeur en une pression
 
-The dropdown is not the only way in. The main panel carries a **Decoders** button row — directly below **Wheel Tuning Steps** — with one button per decoder:
+Le menu déroulant n'est pas la seule voie. Le panneau principal comporte une rangée de boutons **Decoders** — juste sous **Wheel Tuning Steps** — avec un bouton par décodeur :
 
-| Button | Decoder | Button | Decoder |
+| Bouton | Décodeur | Bouton | Décodeur |
 |---|---|---|---|
 | **FT8** | FT8 | **SSTV** | SSTV |
 | **FT4** | FT4 | **NAVTEX** | NAVTEX |
@@ -44,157 +44,157 @@ The dropdown is not the only way in. The main panel carries a **Decoders** butto
 | **CW** | CW | | |
 | **WSPR** | WSPR | **FAX** | HF FAX / WEFAX |
 
-Pressing a button does the whole sequence in one go: it selects the decoder, switches the decoder ON, and scrolls its panel into view. The button turns blue while its decoder is running. **Press the same button again to switch the decoder off** — its window closes with it.
+Une pression effectue toute la séquence d'un coup : elle sélectionne le décodeur, met le décodeur sur ON et amène sa fenêtre à l'écran. Le bouton devient bleu tant que son décodeur tourne. **Appuyez de nouveau sur le même bouton pour arrêter le décodeur** — sa fenêtre se ferme avec lui.
 
-**RADEL** and **RADEU** are deliberately *not* in this row. They are digital-voice modes rather than text decoders, so they have their own pair of buttons next to the **Modes selector** heading, and inside the **Modes** and **Bands** popup windows. Those behave in exactly the same way — press to start, press again to stop. See the [RADE manual](RADE_README.md).
+**RADEL** et **RADEU** sont volontairement absents de cette rangée. Ce sont des modes de voix numérique et non des décodeurs de texte : ils disposent de leur propre paire de boutons à côté du titre **Modes selector**, ainsi que dans les fenêtres **Modes** et **Bands**. Leur fonctionnement est identique — une pression pour démarrer, une seconde pour arrêter. Voir le [manuel RADE](RADE_README.md).
 
-The buttons, the dropdown and the ON/OFF button all drive the same state, so whichever you use, the others follow.
+Les boutons, le menu déroulant et le bouton ON/OFF pilotent le même état : quel que soit celui que vous utilisez, les autres suivent.
 
-### Starting a decoder from a frequency marker
+### Démarrer un décodeur depuis un marqueur de fréquence
 
-A frequency marker (the yellow labels above the waterfall, from `markers.json`) normally tunes the receiver and sets the mode written in it. When that mode is the name of a digital mode, clicking the marker starts its decoder instead, exactly as if you had pressed the decoder's button:
+Un marqueur de fréquence (les étiquettes jaunes au-dessus de la cascade, issues de `markers.json`) accorde normalement le récepteur et règle le mode qui y est inscrit. Lorsque ce mode est le nom d'un mode numérique, un clic sur le marqueur démarre à la place son décodeur, exactement comme si vous aviez appuyé sur son bouton :
 
-| Marker mode | Starts | The marker's frequency is |
+| Mode du marqueur | Démarre | La fréquence du marqueur est |
 |---|---|---|
-| `FT8`, `FT4`, `FT2`, `JS8`, `WSPR`, `SSTV` | that decoder | the dial frequency |
-| `NAVTEX` | NAVTEX | the signal frequency (the dial goes 500 Hz below) |
-| `FAX`, `WEFAX` | HF FAX | the published centre (the dial goes 1900 Hz below) |
-| `RTTY`, `RTTY-WX`, `SITOR` | FLDIGI as Amateur, Weather or Maritime | the signal frequency (the dial goes the panel's audio centre below) |
-| `PSK31`, `OLIVIA`, `MFSK`, `DOMINOEX`, `THOR`, `THROB`, `HELL`, `MT63` | FLDIGI in that variant | as above |
-| `MFSK16`, `MFSK32`, `MFSK64`, `FELDHELL` | FLDIGI in that variant and sub-mode | as above |
-| `PACKET`, `APRS` | FLDIGI in that variant | the channel; 300 Bd (USB) below 30 MHz, 1200 Bd (FM) above |
+| `FT8`, `FT4`, `FT2`, `JS8`, `WSPR`, `SSTV` | ce décodeur | la fréquence affichée |
+| `NAVTEX` | NAVTEX | la fréquence du signal (l'affichage descend de 500 Hz) |
+| `FAX`, `WEFAX` | HF FAX | le centre publié (l'affichage descend de 1900 Hz) |
+| `RTTY`, `RTTY-WX`, `SITOR` | FLDIGI en amateur, météo ou maritime | la fréquence du signal (l'affichage descend du centre audio du panneau) |
+| `PSK31`, `OLIVIA`, `MFSK`, `DOMINOEX`, `THOR`, `THROB`, `HELL`, `MT63` | FLDIGI dans cette variante | comme ci-dessus |
+| `MFSK16`, `MFSK32`, `MFSK64`, `FELDHELL` | FLDIGI dans cette variante et ce sous-mode | comme ci-dessus |
+| `PACKET`, `APRS` | FLDIGI dans cette variante | le canal ; 300 Bd (USB) sous 30 MHz, 1200 Bd (FM) au-dessus |
 
-A decoder that is already running stays on. `CW` remains an ordinary receiver mode, because beacons and stations use it — it does not start the CW decoder. Markers are shown only while the waterfall spans 3.5 MHz or less.
+Un décodeur déjà en marche reste actif. `CW` reste un mode ordinaire du récepteur, car balises et stations l'utilisent — il ne démarre pas le décodeur CW. Les marqueurs ne s'affichent que lorsque la cascade couvre 3,5 MHz ou moins.
 
-> Only one decoder can be active at a time. Switching to a different decoder automatically stops the previous one.
+> Un seul décodeur peut être actif à la fois. Passer à un autre décodeur arrête automatiquement le précédent.
 >
-> The **QRSS grabber** is not part of this dropdown — it has its own **QRSS** section and can run at the same time as a decoder.
+> Le **grabber QRSS** ne fait pas partie de ce menu déroulant : il possède sa propre section **QRSS** et peut fonctionner en même temps qu'un décodeur.
 
-**Decoding runs in the background.** SSTV, HF FAX, NAVTEX, FLDIGI and CW each run in a separate Web Worker thread, so the decoding work never competes with audio playback or the waterfall. Starting or stopping a decoder does not interrupt the audio, and the interface stays responsive while a picture or a page is being received. All decoders are fed raw audio taken *before* noise reduction and mute — so muting the receiver, or changing those settings to suit your ears, does not affect decoding. The AGC is different: the receiver applies it before the audio reaches your browser, so the decoders share it with you. While any decoder is open it is therefore held on **Slow**, whichever AGC button is selected, and a small *Slow (decoder)* note next to the AGC heading says so; your own choice returns when the last decoder closes.
+**Le décodage s'exécute en arrière-plan.** SSTV, FAX HF, NAVTEX, FLDIGI et CW s'exécutent chacun dans un Web Worker distinct : le travail de décodage n'entre jamais en concurrence avec la lecture audio ou la cascade. Démarrer ou arrêter un décodeur n'interrompt pas l'audio, et l'interface reste réactive pendant la réception d'une image ou d'une page. Tous les décodeurs reçoivent l'audio brut prélevé *avant* la réduction de bruit et la coupure du son — couper le son du récepteur, ou modifier ces réglages selon votre confort d'écoute, n'affecte donc pas le décodage. L'AGC est un cas à part : le récepteur l'applique avant que l'audio n'atteigne votre navigateur, si bien que les décodeurs la partagent avec vous. Tant qu'un décodeur quelconque est ouvert, elle est donc maintenue sur **Slow**, quel que soit le bouton d'AGC choisi, et une petite mention *Slow (decoder)* à côté du titre AGC le signale ; votre propre choix revient à la fermeture du dernier décodeur.
 
-**A running decoder owns the mode and the passband.** Normally the mode follows the band plan in `bands-config.js`: move the dial into a segment marked LSB or AM and the receiver switches to it. While a decoder is running that no longer happens. The decoder holds the mode it needs (USB for most, its own for RADE) and the passband it needs — PSK31 about ±100 Hz, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber and MT63 their full bandwidth, RTTY its shift — and both survive retuning, including a jump to another band. Without this, tuning FT8 on 40 m would flip the receiver to LSB the moment the dial moved, and the narrow decoder passbands would widen back to the full SSB filter.
+**Un décodeur en marche impose le mode et la bande passante.** Normalement le mode suit le plan de bande de `bands-config.js` : amenez l'accord dans un segment marqué LSB ou AM et le récepteur bascule dessus. Tant qu'un décodeur tourne, cela n'a plus lieu. Le décodeur conserve le mode qu'il lui faut (USB pour la plupart, le sien pour RADE) et la bande passante qu'il lui faut — PSK31 environ ±100 Hz, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber et MT63 toute leur largeur, RTTY son shift — et les deux survivent à un changement de fréquence, y compris un saut vers une autre bande. Sans cela, FT8 sur 40 m ferait passer le récepteur en LSB dès que l'accord bouge, et les bandes passantes étroites des décodeurs se rouvriraient au filtre SSB complet.
 
-The band's own mode returns the moment you switch the decoder off. You can still override the mode by hand at any time: the mode buttons are a deliberate choice and always win. The CW decoder is the exception to all of this — it decodes in whatever mode you are listening in and never takes the receiver over.
+Le mode propre à la bande revient dès que vous arrêtez le décodeur. Vous pouvez toujours forcer le mode à la main : les boutons de mode sont un choix délibéré et l'emportent toujours. Le décodeur CW fait exception à tout ceci — il décode dans le mode où vous écoutez et ne prend jamais la main sur le récepteur.
 
 
-### Decoder ID — recognising the mode automatically
+### Decoder ID — reconnaître le mode automatiquement
 
-Above the decoder buttons sits a **Decoder ID** frame. It answers the question *"what am I listening to?"* when you come across a digital signal you cannot place, and then offers the matching decoder in one click.
+Au-dessus des boutons de décodeur se trouve le cadre **Decoder ID**. Il répond à la question *« qu'est-ce que j'écoute ? »* lorsque vous tombez sur un signal numérique que vous n'arrivez pas à identifier, puis vous propose le décodeur correspondant en un clic.
 
-It is **off by default** and costs nothing while it is off. Press **On** and leave the signal tuned in. For about half a minute it shows *Listening…* with a progress bar — the timing measurements have to see two complete FT8 cycles before they mean anything — and then it names the mode:
+Il est **désactivé par défaut** et ne coûte rien tant qu'il est éteint. Appuyez sur **On** et laissez le signal accordé. Pendant environ une demi-minute il affiche *Listening…* avec une barre de progression — les mesures de temporisation doivent voir deux cycles FT8 complets avant d'avoir un sens — puis il nomme le mode :
 
 ```
 Decoder ID [On]   NAVTEX / SITOR-B  99% 📻   170 Hz shift · 100.00 Bd · 43 dB S/N   [ Use NAVTEX ]
 ```
 
-* The **mode** and a **confidence** figure. Green above 75%, amber above 50%, orange below — treat an orange answer as a hint, not a verdict.
-* **What was actually measured**: occupied bandwidth, tone spacing, symbol rate, burst length, the UTC grid it fits, signal-to-noise. This is the evidence behind the verdict, so you can judge it for yourself.
-* **Use <mode>** starts the right decoder, exactly as if you had pressed its button — and sets the receiver up to work that mode. For the modes that live in the FSK panel it also selects the correct variant — RTTY, Weather RTTY, PSK31 or Olivia.
-* Runners-up are listed after **or**. Click one to try it instead, so a wrong first answer costs you nothing.
-* **📻** means the frequency you are tuned to is a known calling frequency for that mode, and that this counted towards the ranking.
+* Le **mode** et un indice de **confiance**. Vert au-dessus de 75 %, jaune au-dessus de 50 %, orange en dessous — une réponse orange est une piste, pas un verdict.
+* **Ce qui a réellement été mesuré** : largeur de bande occupée, écart entre tons, rapidité de modulation, durée de la salve, la grille UTC à laquelle il correspond, rapport signal/bruit. Ce sont les éléments de preuve derrière le verdict, afin que vous puissiez juger par vous-même.
+* **Use <mode>** démarre le bon décodeur, exactement comme si vous aviez appuyé sur son bouton — et règle le récepteur pour travailler ce mode. Pour les modes qui vivent dans le panneau FSK, il sélectionne en plus la bonne variante — RTTY, Weather RTTY, PSK31 ou Olivia.
+* Les candidats suivants figurent après **or**. Cliquez sur l'un d'eux pour l'essayer : une première réponse erronée ne vous coûte donc rien.
+* **📻** signifie que la fréquence sur laquelle vous êtes accordé est une fréquence d'appel connue pour ce mode, et que cela a compté dans le classement.
 
-It never switches your decoder by itself. It only ever suggests. And once you start a decoder — from the button row, from the dropdown, or from Decoder ID's own **Use** button — Decoder ID switches itself off: its job was to choose one, and the decoder now wants the same audio.
+Il ne change jamais votre décodeur de lui-même. Il ne fait que suggérer. Et dès que vous démarrez un décodeur — depuis la rangée de boutons, depuis la liste déroulante ou depuis le bouton **Use** de Decoder ID lui-même — Decoder ID s'éteint tout seul : son rôle était d'en choisir un, et le décodeur veut maintenant le même signal audio.
 
-**It sets the receiver up for the mode.** Choosing a mode is a decision to work it, so the receiver follows: the tuned frequency moves to the middle of the waterfall and the view becomes about 100 kHz wide around it, the sideband becomes the one that mode is worked on, and the passband narrows to the window that mode lives in — the whole 3 kHz sub-band for FT8, FT4, FT2 and JS8, 1350–1650 Hz for WSPR, 250–750 Hz for NAVTEX, 800–2700 Hz for HF FAX, 900–2600 Hz for SSTV, and ±250 Hz either side of the dial for CW, which also switches the receiver to CW. A narrow passband keeps the neighbouring signals out of the decoder, which is what you would have done by hand. Two exceptions: SSTV keeps the sideband it chose for itself — LSB on 80 and 40 m by convention, where forcing USB would invert its tone mapping — and the FSK modes keep the window their own panel derives from the variant's shift or bandwidth, which is tighter than any fixed figure. Pressing **Use** for the decoder that is already running still switches it off, and then the receiver is left exactly as it was.
+**Il règle le récepteur pour le mode.** Choisir un mode, c'est décider de le travailler : le récepteur suit donc. La fréquence accordée passe au milieu de la cascade et la vue s'établit sur environ 100 kHz autour d'elle, la bande latérale devient celle sur laquelle ce mode se travaille et la bande passante se resserre sur la fenêtre où vit ce mode — toute la sous-bande de 3 kHz pour FT8, FT4, FT2 et JS8, 1350–1650 Hz pour WSPR, 250–750 Hz pour NAVTEX, 800–2700 Hz pour HF FAX, 900–2600 Hz pour SSTV et ±250 Hz de part et d'autre de l'accord pour la CW, qui bascule en outre le récepteur en CW. Une bande passante étroite tient les signaux voisins à l'écart du décodeur — exactement ce que vous auriez fait à la main. Deux exceptions : la SSTV conserve la bande latérale qu'elle a choisie elle-même — LSB sur 80 et 40 m par convention, où imposer l'USB inverserait sa correspondance de tons — et les modes FSK conservent la fenêtre que leur propre panneau déduit du shift ou de la largeur de bande de la variante, plus étroite que n'importe quelle valeur fixe. Appuyer sur **Use** pour le décodeur déjà en marche l'arrête toujours, et le récepteur reste alors exactement tel qu'il était.
 
-**The slow modes take longer.** WSPR sits on a two-minute grid and SSTV pictures run for a minute or two, so those two are named later than the rest — give them three or four minutes on frequency. HF FAX and SSTV are also recognised only when they are tuned the usual way — the picture band sitting between about 1500 and 2300 Hz in the audio, which is where their decoders expect it too. Retuning starts the measurement again from scratch, because everything gathered so far describes the frequency you have just left.
+**Les modes lents demandent plus de temps.** WSPR suit une grille de deux minutes et les images SSTV durent une à deux minutes, donc ces deux-là sont nommés plus tard que les autres — laissez-leur trois ou quatre minutes sur la fréquence. HF FAX et SSTV ne sont par ailleurs reconnus que s'ils sont accordés de la manière habituelle — la bande image entre environ 1500 et 2300 Hz en audio, là où leurs décodeurs l'attendent également. Changer de fréquence relance la mesure à zéro, car tout ce qui a été recueilli décrit la fréquence que vous venez de quitter.
 
-**What it recognises:** FT8, FT4, JS8, WSPR, CW, NAVTEX/SITOR-B, RTTY at 45.45 Bd, Weather RTTY (DWD), PSK31, Olivia, HF FAX, SSTV and DSC. There is no DSC decoder in this build, so DSC is named and marked *no decoder*.
+**Ce qu'il reconnaît :** FT8, FT4, JS8, WSPR, CW, NAVTEX/SITOR-B, RTTY à 45,45 Bd, Weather RTTY (DWD), PSK31, Olivia, HF FAX, SSTV et DSC. Cette version ne comporte pas de décodeur DSC, donc DSC est nommé et marqué *no decoder*.
 
-**Recentre & retry.** Where the signal sits in the audio passband makes no difference between about 400 Hz and 2700 Hz. Outside that range the measurement degrades, and an amber **Recentre & retry** button appears. Pressing it moves the dial so that the signal lands in the middle of the passband, and starts a fresh measurement. It is a single calculated move, not a search.
+**Recentre & retry.** La position du signal dans la bande passante audio n'a aucune importance entre environ 400 Hz et 2700 Hz. En dehors de cette plage la mesure se dégrade, et un bouton jaune **Recentre & retry** apparaît. Une pression déplace l'accord pour que le signal se retrouve au milieu de la bande passante et lance une nouvelle mesure. C'est un unique déplacement calculé, pas une recherche.
 
-**Three honest limits:**
+**Trois limites assumées :**
 
-* **FT8, JS8 and FT2 are the same signal.** The same 8-FSK modulation, the same tone spacing, and JS8 at Normal speed uses FT8's 15-second cadence. Nothing in the signal itself separates them. Frequency does: on an FT8 calling frequency it reports FT8, on a JS8 one it reports JS8, and anywhere else it honestly reports the family — *FT8 / JS8 / FT2*. Start either decoder and see which one produces text.
-* **It goes quiet rather than guessing.** Below roughly 10 dB signal-to-noise it reports *Nothing above the noise* or *Not recognised* instead of naming a mode it cannot really see. This is deliberate: a confident wrong answer is worse than no answer at all.
-* **A fading signal is read a different way.** WSPR transmits for 110 seconds without a break, which is longer than an ordinary QSB fade, so a deep fade cuts the transmission into pieces and its two-minute rhythm can no longer be read from them. It is then recovered by another route — matching the whole listening history against the two-minute grid instead of against single transmissions — and the evidence line says *120 s grid (through fading)*. That is weaker evidence than a transmission heard whole, so the confidence shown is deliberately lower. A fade deep enough to bury the signal in the noise cannot be recovered at all, and Olivia is stricter than the rest: it will not be named until its symbol rate has been measured, so it falls silent earlier than the other modes.
+* **FT8, JS8 et FT2 sont le même signal.** Même modulation 8-FSK, même écart entre tons, et JS8 en vitesse Normal utilise la cadence de 15 secondes de FT8. Rien dans le signal lui-même ne les sépare. La fréquence, si : sur une fréquence d'appel FT8 il annonce FT8, sur une fréquence JS8 il annonce JS8, et partout ailleurs il annonce honnêtement la famille — *FT8 / JS8 / FT2*. Démarrez l'un ou l'autre décodeur et voyez lequel produit du texte.
+* **Il se tait plutôt que de deviner.** En dessous d'environ 10 dB de rapport signal/bruit, il indique *Nothing above the noise* ou *Not recognised* au lieu de nommer un mode qu'il ne voit pas réellement. C'est délibéré : une réponse fausse et assurée est pire que pas de réponse du tout.
+* **Un signal soumis au fading se lit autrement.** WSPR émet 110 secondes sans interruption, soit plus longtemps que ne dure un évanouissement QSB ordinaire : un fading profond découpe donc l'émission en morceaux et son rythme de deux minutes n'y est plus lisible. Il est alors retrouvé par une autre voie — tout l'historique d'écoute est comparé à la grille de deux minutes plutôt qu'aux émissions prises une à une — et la ligne de mesures affiche *120 s grid (through fading)*. C'est une preuve plus faible qu'une émission entendue en entier, aussi la confiance affichée est-elle volontairement plus basse. Un fading assez profond pour noyer le signal dans le bruit ne se rattrape pas du tout. Olivia est plus exigeante que les autres : elle n'est nommée qu'une fois sa rapidité de modulation mesurée, et se tait donc plus tôt.
 
 ---
 
 ## 2. FT8
 
-**What it is:** FT8 is a popular weak-signal digital mode used by amateur radio operators worldwide. Transmissions last exactly 15 seconds, and the protocol can copy signals up to 20–25 dB below the noise floor. It is the most commonly used mode for long-distance (DX) contacts.
+**De quoi s'agit-il :** FT8 est un mode numérique à signaux faibles très répandu chez les radioamateurs du monde entier. Les transmissions durent exactement 15 secondes et le protocole peut copier des signaux jusqu'à 20-25 dB sous le plancher de bruit. C'est le mode le plus utilisé pour les contacts à longue distance (DX).
 
-### Recommended frequencies (USB)
+### Fréquences recommandées (USB)
 
-| Band | Frequency |
-|------|-----------|
-| 160m | 1.840 MHz |
-| 80m  | 3.573 MHz |
-| 40m  | 7.074 MHz |
-| 30m  | 10.136 MHz |
-| 20m  | 14.074 MHz |
-| 17m  | 18.100 MHz |
-| 15m  | 21.074 MHz |
-| 12m  | 24.915 MHz |
-| 10m  | 28.074 MHz |
+| Bande | Fréquence |
+|-------|-----------|
+| 160 m | 1.840 MHz |
+| 80 m  | 3.573 MHz |
+| 40 m  | 7.074 MHz |
+| 30 m  | 10.136 MHz |
+| 20 m  | 14.074 MHz |
+| 17 m  | 18.100 MHz |
+| 15 m  | 21.074 MHz |
+| 12 m  | 24.915 MHz |
+| 10 m  | 28.074 MHz |
 
-### Setup
+### Configuration
 
-1. Tune to an FT8 frequency listed above and set mode to **USB**.
-2. Enable the decoder and select **FT8** from the dropdown. Or simply press the **FT8** button.
-3. The **FT8 Messages** panel appears automatically below.
+1. Accordez-vous sur une fréquence FT8 listée ci-dessus et réglez le mode sur **USB**.
+2. Activez le décodeur et sélectionnez **FT8** dans le menu déroulant. Ou appuyez simplement sur le bouton **FT8**.
+3. Le panneau **FT8 Messages** apparaît automatiquement en dessous.
 
-### Reading the output
+### Lecture des résultats
 
-The message list shows decoded transmissions as they arrive. Each 15-second cycle produces a new batch of messages. The **Farthest** field (top-right of the panel) shows the greatest distance decoded in the current session in kilometres.
+La liste des messages affiche les transmissions décodées à mesure qu'elles arrivent. Chaque cycle de 15 secondes produit un nouveau lot de messages. Le champ **Farthest** (en haut à droite du panneau) indique la plus grande distance décodée durant la session en cours, en kilomètres.
 
-Typical message format: `CQ DX AA1BB FN31` — a CQ call from callsign AA1BB located in grid square FN31.
+Format de message typique : `CQ DX AA1BB FN31` — un appel CQ de l'indicatif AA1BB situé dans le carré locator FN31.
 
-The **SNR** shown with each decode is a real signal-to-noise ratio, measured on the decoded signal against the noise around it and referred to a 2500 Hz bandwidth, the way WSJT-X reports it. Weak stations read negative, down to about −20 dB, and strong ones positive; on the same recordings the two programs agree on average, typically within about 3 dB for a single decode. FT4 and FT2 use the same method.
+Le **SNR** affiché avec chaque décodage est un vrai rapport signal/bruit, mesuré sur le signal décodé par rapport au bruit qui l'entoure et ramené à une bande de 2500 Hz, comme le fait WSJT-X. Les stations faibles affichent des valeurs négatives, jusqu'à environ −20 dB, et les fortes des valeurs positives ; sur les mêmes enregistrements les deux programmes concordent en moyenne, en général à environ 3 dB près pour un décodage isolé. FT4 et FT2 utilisent la même méthode.
 
-> **After an update:** the FT8/FT4/FT2 decoder is a separate file that browsers keep for a long time. If every SNR still sits between about 0 and +5 dB, reload the page with a hard refresh (**Ctrl+Shift+R**, or **Cmd+Shift+R** on a Mac).
+> **Après une mise à jour :** le décodeur FT8/FT4/FT2 est un fichier à part que les navigateurs gardent longtemps en cache. Si tous les SNR restent entre environ 0 et +5 dB, rechargez la page à fond (**Ctrl+Maj+R**, ou **Cmd+Maj+R** sur Mac).
 
-> **Tip:** FT8 is tightly time-synchronised. Your browser uses your computer clock; if your system clock drifts by more than a couple of seconds, decoding will fail. Keep your system time synchronised to NTP.
+> **Astuce :** FT8 est étroitement synchronisé dans le temps. Votre navigateur utilise l'horloge de votre ordinateur ; si celle-ci dérive de plus de quelques secondes, le décodage échouera. Gardez l'heure système synchronisée sur NTP.
 
 ---
 
 ## 3. FT4-FT2
 
-**What it is:** FT4 is a faster variant of FT8 designed for contest-style operation. Each transmission cycle is 7.5 seconds (half of FT8), making it twice as fast but requiring a slightly stronger signal. FT2 is an even faster variant of FT8. It is an ultra-fast 77-bit mode with TR periods of 3.75 seconds (= 1/2 of FT4) — still experimental.
+**De quoi s'agit-il :** FT4 est une variante plus rapide de FT8, conçue pour l'exploitation en concours. Chaque cycle de transmission dure 7,5 secondes (la moitié de FT8), ce qui le rend deux fois plus rapide mais exige un signal légèrement plus fort. FT2 est une variante encore plus rapide de FT8. C'est un mode ultrarapide à 77 bits avec des périodes T/R de 3,75 secondes (= la moitié de FT4) — encore expérimental.
 
-### Recommended frequencies (USB)
+### Fréquences recommandées (USB)
 
-| Band | Frequency FT4|
-|------|-----------|
-| 80m  | 3.575 MHz |
-| 40m  | 7.047 MHz |
-| 30m  | 10.140 MHz |
-| 20m  | 14.080 MHz |
-| 15m  | 21.140 MHz |
-| 10m  | 28.180 MHz |
+| Bande | Fréquence FT4|
+|-------|-----------|
+| 80 m  | 3.575 MHz |
+| 40 m  | 7.047 MHz |
+| 30 m  | 10.140 MHz |
+| 20 m  | 14.080 MHz |
+| 15 m  | 21.140 MHz |
+| 10 m  | 28.180 MHz |
 
-| Band | Frequency FT2|
-|------|-----------|
-|160m | 1.843 to 1.846 |
-|80m   | 3.578  to  3.581 |
-|60m   | 5.360 (Check local regional regulations) |
-|40m   | 7.052  to 7.062 |
-|30m   | 10.144 |
-|20m   | 14.084 |
-|17m   | 18.108 |
-|15m   | 21.144 |
-|12m   | 24.923 |
-|10m   | 28.184 |
+| Bande | Fréquence FT2|
+|-------|-----------|
+|160 m | 1.843 à 1.846 |
+|80 m   | 3.578 à 3.581 |
+|60 m   | 5.360 (vérifiez la réglementation régionale locale) |
+|40 m   | 7.052 à 7.062 |
+|30 m   | 10.144 |
+|20 m   | 14.084 |
+|17 m   | 18.108 |
+|15 m   | 21.144 |
+|12 m   | 24.923 |
+|10 m   | 28.184 |
 
-### Setup
+### Configuration
 
-1. Tune to an FT4 frequency and set mode to **USB**.
-2. Enable the decoder and select **FT4** or **FT2** from the dropdown. Or simply press the **FT4** / **FT2** button.
-3. The **FT4 Messages** or  **FT2 Messages** panel appears below, identical in layout to the FT8 panel.
+1. Accordez-vous sur une fréquence FT4 et réglez le mode sur **USB**.
+2. Activez le décodeur et sélectionnez **FT4** ou **FT2** dans le menu déroulant. Ou appuyez simplement sur le bouton **FT4** / **FT2**.
+3. Le panneau **FT4 Messages** ou **FT2 Messages** apparaît en dessous, avec la même disposition que le panneau FT8.
 
-> **Note:** FT4 and FT8 use different spectral formats and are not interchangeable. Make sure you are on an FT4 frequency when using this decoder.
+> **Remarque :** FT4 et FT8 utilisent des formats spectraux différents et ne sont pas interchangeables. Assurez-vous d'être sur une fréquence FT4 lorsque vous utilisez ce décodeur.
 
 ---
 
 ## 4. JS8
 
-**What it is:** JS8 (the mode used by JS8Call) takes FT8's weak-signal engine and turns it into a keyboard-to-keyboard conversation mode. Where FT8 sends fixed 13-character exchanges, JS8 sends free text a few characters at a time and stitches consecutive transmissions back into whole sentences — so anything longer than about twelve characters arrives over several 15-second cycles. It decodes about as deep as FT8, which makes it usable when voice and CW are not.
+**De quoi il s'agit :** JS8 (le mode utilisé par JS8Call) reprend le moteur signal faible de FT8 et en fait un mode de conversation au clavier. Là où FT8 envoie des échanges figés de 13 caractères, JS8 transmet du texte libre par petits morceaux et recolle les émissions successives en phrases complètes — tout ce qui dépasse une douzaine de caractères arrive donc sur plusieurs cycles de 15 secondes. Sa sensibilité est proche de celle de FT8, ce qui le rend utilisable là où la phonie et la CW ne passent plus.
 
-### Recommended frequencies (USB)
+### Fréquences recommandées (USB)
 
-| Band | Frequency |
-|------|-----------|
+| Bande | Fréquence |
+|-------|-----------|
 | 160m | 1.842 MHz |
 | 80m  | 3.578 MHz |
 | 40m  | 7.078 MHz |
@@ -205,325 +205,325 @@ The **SNR** shown with each decode is a real signal-to-noise ratio, measured on 
 | 12m  | 24.922 MHz |
 | 10m  | 28.078 MHz |
 
-### Speeds
+### Vitesses
 
-JS8 has five speeds. Every station in a conversation must use the same one. **Normal** is the calling speed and is where almost all activity is — start there.
+JS8 propose cinq vitesses. Toutes les stations d'une conversation doivent utiliser la même. **Normal** est la vitesse d'appel et concentre la quasi-totalité du trafic — commencez par elle.
 
-| Speed | Cycle | Bandwidth | When it is used |
-|--------|-------|-----------|-----------------|
-| Slow   | 30 s  | 25 Hz  | Very weak paths; the most sensitive |
-| Normal | 15 s  | 50 Hz  | The standard calling speed |
-| Fast   | 10 s  | 80 Hz  | Quicker exchanges, needs a stronger signal |
-| Turbo  | 6 s   | 160 Hz | Strong local signals |
-| Ultra  | 4 s   | 250 Hz | Experimental, rarely seen on the air |
+| Vitesse | Cycle | Largeur | Usage |
+|---------|-------|---------|-------|
+| Slow   | 30 s | 25 Hz  | Trajets très faibles ; la plus sensible |
+| Normal | 15 s | 50 Hz  | La vitesse d'appel habituelle |
+| Fast   | 10 s | 80 Hz  | Échanges plus rapides, demande plus de signal |
+| Turbo  | 6 s  | 160 Hz | Signaux locaux forts |
+| Ultra  | 4 s  | 250 Hz | Expérimentale, rarement rencontrée |
 
-### Setup
+### Mise en route
 
-1. Tune to a JS8 frequency and set mode to **USB**.
-2. Enable the decoder and select **JS8** from the dropdown, or simply press the **JS8** button.
-3. The **JS8 Decoder** panel appears below. Leave **Speed** on *Normal* unless you know the station you are after is using another.
+1. Accordez-vous sur une fréquence JS8 et passez en **USB**.
+2. Activez le décodeur et choisissez **JS8** dans la liste, ou appuyez simplement sur le bouton **JS8**.
+3. Le panneau **JS8 Decoder** apparaît en dessous. Laissez **Speed** sur *Normal*, sauf si vous savez que la station visée en utilise une autre.
 
-### Reading the output
+### Lire le résultat
 
-The panel has two lists.
+Le panneau comporte deux listes.
 
-**Messages still arriving** appear at the top in green, with a blinking cursor. A JS8 message can take four cycles — a full minute on Normal — so this is where you watch a sentence build up. Nothing has gone wrong if it sits there for a while.
+**Les messages en cours d'arrivée** s'affichent en haut, en vert, avec un curseur clignotant. Un message JS8 peut demander quatre cycles — une minute entière en Normal — c'est donc là que l'on voit la phrase se construire. Rien d'anormal s'il y reste un moment.
 
-**Completed messages** fill the main list, one row each:
+**Les messages terminés** remplissent la liste principale, une ligne chacun :
 
-| Column | Meaning |
-|--------|---------|
-| Mode | Always `JS8` |
-| Hz | Audio frequency of the signal inside the passband |
-| dB | Signal-to-noise ratio in a 2500 Hz reference bandwidth |
-| Message | The decoded text; **callsigns are shown in green** |
+| Colonne | Signification |
+|---------|---------------|
+| Mode | Toujours `JS8` |
+| Hz | Fréquence audio du signal dans la bande passante |
+| dB | Rapport signal/bruit dans une largeur de référence de 2500 Hz |
+| Message | Le texte décodé ; **les indicatifs sont affichés en vert** |
 
-Typical messages:
+Messages typiques :
 
-* `SV1BTL KM17: HB` — a heartbeat: the station is announcing it is on the air, with its grid square.
-* `KN4CRD: K0OG SNR -05` — a directed message: KN4CRD tells K0OG it is hearing them at −5 dB.
-* `MP 100W 8M/BALUN JN58KH AUGSBURG, MARTIN` — free text, in this case a station description that arrived over four cycles.
+* `SV1BTL KM17: HB` — un heartbeat : la station signale qu'elle est à l'écoute, avec son locator.
+* `KN4CRD: K0OG SNR -05` — un message dirigé : KN4CRD indique à K0OG qu'il le reçoit à −5 dB.
+* `MP 100W 8M/BALUN JN58KH AUGSBURG, MARTIN` — texte libre, ici une description de station arrivée en quatre cycles.
 
-A message shown **dimmed and in italics** timed out before its last frame arrived. The text is real, but it may be cut short.
+Une ligne **grisée et en italique** a expiré avant l'arrivée de sa dernière trame. Le texte est authentique, mais peut être tronqué.
 
 ### Sync offset
 
-The **Sync offset** slider sets how long after the UTC cycle boundary the receiver starts capturing, which compensates for delay through the audio pipeline. Leave **Auto** ticked: the decoder measures the timing of the signals it hears and adjusts on its own. Only touch the slider if you have a reason to.
+Le curseur **Sync offset** règle le délai après la limite du cycle UTC avant le début de la capture, ce qui compense le retard de la chaîne audio. Laissez **Auto** coché : le décodeur mesure la synchronisation des signaux reçus et s'ajuste tout seul.
 
-### Spectrum marks
+### Repères de spectre
 
-The small spectrum strip in the panel draws a yellow vertical line at the frequency of every signal decoded in the last cycle, so the Hz column can be read straight off the display.
+La petite bande de spectre du panneau trace un trait vertical jaune à la fréquence de chaque signal décodé au cycle précédent, ce qui permet de lire la colonne Hz directement sur l'affichage.
 
-### Seeing your own spots
+### Voir ses propres spots
 
-If the receiver is uploading JS8 spots to PSK Reporter (see the admin panel's Spot Reporting tab), the **📡 JS8 map** button in the **Note:** panel opens PSK Reporter's map filtered to this receiver's callsign and mode JS8 — the same thing the **📡 FT8 map** and **📡 FT4 map** buttons do for those modes.
+Si le récepteur envoie des spots JS8 à PSK Reporter (voir l'onglet Spot Reporting du panneau d'administration), le bouton **📡 JS8 map** du cadre **Note:** ouvre la carte de PSK Reporter filtrée sur l'indicatif de ce récepteur et le mode JS8 — exactement ce que font **📡 FT8 map** et **📡 FT4 map** pour ces modes.
 
-> **Tip:** JS8 is much quieter than FT8. On a mid-band afternoon you may see one transmission every couple of minutes, and long stretches of nothing at all are normal. Give it five or ten minutes before concluding something is wrong. 20m (14.078) and 40m (7.078) are the usual places to look.
+> **Astuce :** JS8 est bien plus calme que FT8. Un après-midi, une émission toutes les quelques minutes est normale, tout comme de longues périodes sans rien. Laissez-lui cinq à dix minutes avant de conclure à un problème. 20m (14.078) et 40m (7.078) sont les endroits habituels.
 
-> **Tip:** Like FT8, JS8 is tightly time-synchronised and uses your computer's clock. If your system time drifts by more than a second or two, nothing will decode. Keep it synchronised to NTP.
+> **Astuce :** Comme FT8, JS8 exige une synchronisation stricte et utilise l'horloge de votre ordinateur. Si l'heure système dérive de plus d'une ou deux secondes, rien ne sera décodé. Gardez-la synchronisée par NTP.
 
 ---
 
-## 5. CW — Morse Code
+## 5. CW — code Morse
 
-**What it is:** The CW decoder listens for Morse code (continuous wave) signals and converts them to text in real time. It automatically tracks the signal frequency and adapts to the operator's sending speed.
+**De quoi s'agit-il :** le décodeur CW écoute les signaux en code Morse (onde entretenue) et les convertit en texte en temps réel. Il suit automatiquement la fréquence du signal et s'adapte à la vitesse de manipulation de l'opérateur.
 
-### Recommended frequencies
+### Fréquences recommandées
 
-CW is active across amateur bands, typically at the lower portion of each band. Common spots:
+La CW est active sur toutes les bandes amateurs, généralement dans la partie basse de chaque bande. Endroits courants :
 
-| Band | Segment |
-|------|---------|
-| 40m  | 7.000–7.040 MHz |
-| 20m  | 14.000–14.070 MHz |
-| 15m  | 21.000–21.080 MHz |
+| Bande | Segment |
+|-------|---------|
+| 40 m  | 7.000–7.040 MHz |
+| 20 m  | 14.000–14.070 MHz |
+| 15 m  | 21.000–21.080 MHz |
 
-### Setup
+### Configuration
 
-1. Tune to a CW signal using **CW** or **CW-L** demodulation mode as appropriate.
-2. Enable the decoder and select **CW** from the dropdown. Or simply press the **CW** button.
-3. The **CW Decoder** panel appears below.
+1. Accordez-vous sur un signal CW en utilisant le mode de démodulation **CW** ou **CW-L** selon le cas.
+2. Activez le décodeur et sélectionnez **CW** dans le menu déroulant. Ou appuyez simplement sur le bouton **CW**.
+3. Le panneau **CW Decoder** apparaît en dessous.
 
-### Reading the output
+### Lecture des résultats
 
-- The panel header shows the detected signal frequency in Hz (e.g. `≈ 700 Hz`) and the estimated sending speed in words per minute (e.g. `· 22 WPM`).
-- If no signal is detected the header shows **scanning…**
-- On an empty channel nothing prints, and the speed and tone are not shown. The decoder only starts printing when there is a clear difference between key-down and key-up, which plain noise does not produce, while a signal still readable at about −10 dB has plenty.
-- Decoded text scrolls in amber monospaced text. The blinking cursor (▋) marks where text is currently being written.
-- Click **Clear** to erase the output buffer.
+- L'en-tête du panneau indique la fréquence détectée du signal en Hz (p. ex. `≈ 700 Hz`) et la vitesse de manipulation estimée en mots par minute (p. ex. `· 22 WPM`).
+- Si aucun signal n'est détecté, l'en-tête affiche **scanning…**
+- Sur un canal vide rien ne s'affiche, et ni la vitesse ni la tonalité ne sont indiquées. Le décodeur ne commence à écrire que lorsqu'il existe une nette différence entre manipulateur appuyé et relâché, ce que le bruit seul ne produit pas, alors qu'un signal encore lisible vers −10 dB en a largement.
+- Le texte décodé défile en caractères ambrés à chasse fixe. Le curseur clignotant (▋) marque l'endroit où le texte s'écrit actuellement.
+- Cliquez sur **Clear** pour effacer la mémoire tampon de sortie.
 
-> **Tips:**
-> - Centre your passband on the CW tone. The decoder works best when the CW signal sits between roughly 400–900 Hz in the audio spectrum.
-> - Speeds from about 8 to 40 WPM are copied, including Farnsworth sending (characters sent fast with longer gaps between them): the speed lock holds and letters are not split into separate words. Heavily hand-keyed (irregular) Morse may still reduce accuracy.
-> - The decoder performs best on a single clean signal. Strong QRM from nearby signals on the same band may confuse it.
+> **Astuces :**
+> - Centrez votre bande passante sur la tonalité CW. Le décodeur fonctionne au mieux lorsque le signal CW se situe entre environ 400 et 900 Hz dans le spectre audio.
+> - Les vitesses d'environ 8 à 40 mots/min sont lues, y compris la manipulation Farnsworth (caractères envoyés vite avec des pauses plus longues entre eux) : le verrouillage de vitesse tient et les lettres ne sont pas coupées en mots séparés. Un Morse très manuel (irrégulier) peut encore réduire la précision.
+> - Le décodeur donne ses meilleurs résultats sur un signal unique et propre. Un QRM fort provenant de signaux voisins sur la même bande peut le perturber.
 
 ---
 
 ## 6. QRSS Grabber
 
-**What it is:** QRSS is CW sent so slowly that a single dot lasts seconds instead of milliseconds. At that speed the signal occupies only a fraction of a hertz, so an analysis narrow enough to match it can pull the trace out from 20–30 dB *below* the noise floor. There is nothing to read by ear — QRSS is **looked at**, not listened to. The grabber runs its own very long FFT over the receiver audio and paints the classic grabber display: frequency on the vertical axis, time scrolling from left to right, the newest column always at the right-hand edge.
+**De quoi il s'agit :** le QRSS est de la CW émise si lentement qu'un point dure des secondes au lieu de millisecondes. À cette vitesse le signal n'occupe qu'une fraction de hertz, si bien qu'une analyse suffisamment étroite fait ressortir la trace depuis 20 à 30 dB *sous* le plancher de bruit. Il n'y a rien à lire à l'oreille : le QRSS **se regarde**, il ne s'écoute pas. Le grabber calcule sa propre FFT très longue sur l'audio du récepteur et trace l'affichage classique des grabbers : fréquence sur l'axe vertical, temps défilant de gauche à droite, la colonne la plus récente toujours au bord droit.
 
-Most of what you will see comes from MEPT beacons (Manned Experimental Propagation Transmitter) — low-power transmitters, often a few hundred milliwatts into a wire, identifying continuously in very slow Morse or in patterned FSK.
+L'essentiel de ce que vous verrez provient de balises MEPT (Manned Experimental Propagation Transmitter) — des émetteurs de très faible puissance, souvent quelques centaines de milliwatts dans un fil, qui s'identifient en permanence en morse très lent ou par motifs FSK.
 
-### Where to look
+### Où chercher
 
-QRSS beacons live in narrow 100–200 Hz windows near the bottom of each band. You do not have to remember them: the grabber has a **Band** list of the windows below, and picking one tunes there and sets the receiver up for it (see *Opening the grabber*).
+Les balises QRSS occupent des fenêtres étroites de 100 à 200 Hz près du bas de chaque bande. Inutile de les retenir : le grabber propose une liste **Band** des fenêtres ci-dessous, et en choisir une accorde le récepteur dessus et le prépare pour ce mode (voir *Ouvrir le grabber*).
 
-| Band | Window centre | Note |
+| Bande | Centre de la fenêtre | Remarque |
 |------|---------------|------|
-| 30m  | 10,140.00 kHz | The main QRSS window — busiest by far, day and night |
-| 40m  | 7,039.90 kHz | |
-| 40m  | 7,000.85 kHz | Knights window, 7,000.8–7,000.9 kHz |
-| 20m  | 14,096.90 kHz | |
-| 80m  | 3,569.90 kHz | |
-| 80m  | 3,568.60 kHz | Older window |
-| 80m  | 3,500.85 kHz | Knights window, 3,500.8–3,500.9 kHz |
-| 160m | 1,837.90 kHz | |
-| 160m | 1,843.30 kHz | Older window |
-| 630m | 476.10 kHz | |
-| 2200m | 137.70 kHz | LF QRSS / DFCW |
-| 60m  | 5,288.55 kHz | |
-| 17m  | 18,105.90 kHz | |
-| 15m  | 21,095.90 kHz | |
-| 12m  | 24,925.90 kHz | |
-| 10m  | 28,125.70 kHz | |
-| 10m  | 28,000.85 kHz | Older window |
-| 10m  | 28,322.00 kHz | Alternative |
-| 6m   | 50,294.30 kHz | |
+| 30m | 10 140,00 kHz | La fenêtre QRSS principale — de loin la plus fréquentée, de jour comme de nuit |
+| 40m | 7 039,90 kHz |  |
+| 40m | 7 000,85 kHz | Fenêtre Knights, 7 000,8–7 000,9 kHz |
+| 20m | 14 096,90 kHz |  |
+| 80m | 3 569,90 kHz |  |
+| 80m | 3 568,60 kHz | Ancienne fenêtre |
+| 80m | 3 500,85 kHz | Fenêtre Knights, 3 500,8–3 500,9 kHz |
+| 160m | 1 837,90 kHz |  |
+| 160m | 1 843,30 kHz | Ancienne fenêtre |
+| 630m | 476,10 kHz |  |
+| 2200m | 137,70 kHz | QRSS / DFCW en LF |
+| 60m | 5 288,55 kHz |  |
+| 17m | 18 105,90 kHz |  |
+| 15m | 21 095,90 kHz |  |
+| 12m | 24 925,90 kHz |  |
+| 10m | 28 125,70 kHz |  |
+| 10m | 28 000,85 kHz | Ancienne fenêtre |
+| 10m | 28 322,00 kHz | Variante |
+| 6m | 50 294,30 kHz |  |
 
-Several bands appear twice because two conventions are genuinely in use. The modern windows sit 200 Hz below that band's WSPR frequency; the older *Knights* windows are somewhere else entirely, and on 40 and 80 m much lower down. If a band is quiet on one, try the other.
+Plusieurs bandes figurent deux fois parce que deux conventions coexistent réellement. Les fenêtres modernes se placent 200 Hz sous la fréquence WSPR de la bande ; les anciennes fenêtres *Knights* sont ailleurs, et bien plus bas sur 40 et 80 m. Si une bande est calme sur l'une, essayez l'autre.
 
-These are conventions, not regulations, and some are regional — the 10 m figures in particular vary. Treat the list as a starting point and follow local practice.
+Ce sont des conventions, non des règlements, et certaines sont régionales — les valeurs du 10 m varient particulièrement. Prenez la liste comme point de départ et suivez l'usage local.
 
-### Opening the grabber
+### Ouvrir le grabber
 
-The QRSS grabber is **not** in the Decoder dropdown. It has its own **QRSS** section, alongside the Spectrogram and Decoder controls.
+Le grabber QRSS ne figure **pas** dans le menu des décodeurs. Il dispose de sa propre section **QRSS**, à côté des commandes du spectrogramme et des décodeurs.
 
-1. Click **🐌 Show**. The grabber canvas appears and its controls unfold next to the button.
-2. Pick a window from the **Band** list and press **Tune**. This does everything the mode needs in one step: it tunes to the window, switches the receiver to **CW**, and sets a passband just wide enough for the slice you are watching. The dial then reads the true QRSS frequency, and the traces land on the centre line of the display.
-3. Set **Speed** to match the beacon's dot length.
-4. **Centre** and **Span** work as before; changing either re-shapes the passband to match, so the display and the receiver stay in step.
-5. Click **🐌 Hide** to stop. The band's normal mode comes back.
+1. Cliquez sur **🐌 Show**. Le canevas du grabber apparaît et ses commandes se déploient à côté du bouton.
+2. Choisissez une fenêtre dans la liste **Band** et appuyez sur **Tune**. Cela fait d'un coup tout ce que le mode réclame : accord sur la fenêtre, passage du récepteur en **CW** et bande passante juste assez large pour la tranche observée. L'affichage indique alors la véritable fréquence QRSS, et les traces tombent sur la ligne centrale de l'écran.
+3. Réglez **Speed** sur la durée du point de la balise.
+4. **Centre** et **Span** agissent comme avant ; modifier l'un ou l'autre remodèle la bande passante, si bien que l'affichage et le récepteur restent accordés entre eux.
+5. Cliquez sur **🐌 Hide** pour arrêter. Le mode normal de la bande revient.
 
-You can still do it by hand instead — tune in **USB** about 1 kHz below the window so the traces land near 800 Hz of audio. The **Band** list only saves you the arithmetic.
+Vous pouvez toujours procéder à la main : accordez en **USB** environ 1 kHz sous la fenêtre pour que les traces tombent vers 800 Hz d'audio. La liste **Band** ne fait que vous épargner le calcul.
 
-While a window from the list is tuned, the grabber holds the receiver the way a decoder does: CW and its passband survive retuning, and the window follows the dial, so the trace stays on the centre line as you hunt along the band. It hands the receiver back when you hide the grabber, click a mode button, or start a decoder.
+Tant qu'une fenêtre de la liste est accordée, le grabber tient le récepteur comme le fait un décodeur : la CW et sa bande passante survivent aux changements de fréquence, et la fenêtre suit l'accord, de sorte que la trace reste sur la ligne centrale pendant que vous parcourez la bande. Il rend le récepteur lorsque vous masquez le grabber, cliquez sur un bouton de mode ou démarrez un décodeur.
 
-### Speeds
+### Vitesses
 
-| Setting | Dot length | Resolution | Analysis window | New column every |
-|---------|-----------|------------|-----------------|------------------|
-| QRSS 3  | 3 s  | 0.73 Hz | 1.4 s  | 0.7 s  |
-| QRSS 6  | 6 s  | 0.37 Hz | 2.7 s  | 1.4 s  |
-| QRSS 10 | 10 s | 0.18 Hz | 5.5 s  | 2.7 s  |
-| QRSS 30 | 30 s | 0.09 Hz | 10.9 s | 5.5 s  |
-| QRSS 60 | 60 s | 0.05 Hz | 21.8 s | 10.9 s |
+| Réglage | Durée du point | Résolution | Fenêtre d'analyse | Nouvelle colonne toutes les |
+|---------|----------------|------------|-------------------|------------------------------|
+| QRSS 3  | 3 s  | 0,73 Hz | 1,4 s  | 0,7 s  |
+| QRSS 6  | 6 s  | 0,37 Hz | 2,7 s  | 1,4 s  |
+| QRSS 10 | 10 s | 0,18 Hz | 5,5 s  | 2,7 s  |
+| QRSS 30 | 30 s | 0,09 Hz | 10,9 s | 5,5 s  |
+| QRSS 60 | 60 s | 0,05 Hz | 21,8 s | 10,9 s |
 
-A setting faster than the beacon wastes sensitivity — the trace comes out thin and noisy. A setting slower than the beacon smears consecutive dots and dashes into one bar. The panel opens at **QRSS 6**, which is a reasonable place to start on an unknown signal: it is more sensitive than QRSS 3, and quicker to update and more forgiving of drift than QRSS 10. Once you can see the shape of the keying, move to the speed the beacon is actually sending — every step up in speed setting costs 3 dB of sensitivity.
+Un réglage plus rapide que la balise gaspille de la sensibilité : la trace ressort fine et bruitée. Un réglage plus lent que la balise fond points et traits successifs en une seule barre. Le panneau démarre sur **QRSS 6**, un point de départ raisonnable devant un signal inconnu : plus sensible que QRSS 3, tout en se rafraîchissant plus vite et en tolérant mieux la dérive que QRSS 10. Dès que la forme de la manipulation devient lisible, passez à la vitesse réellement émise par la balise — chaque cran vers un réglage plus rapide coûte 3 dB de sensibilité.
 
-### Controls
+### Commandes
 
-| Control | What it does |
-|---------|--------------|
-| **Band** | The QRSS windows listed above. **Tune** goes to the selected one in CW with a matching passband. |
-| **Speed** | Sets the transform length — the trade between frequency resolution and time resolution (table above). |
-| **Centre** | Audio frequency at the middle of the display, 100–3000 Hz. |
-| **Span** | Height of the displayed slice: 20, 50, 100 or 200 Hz, opening at 100 Hz — the width of a QRSS sub-band. A narrower span spreads each trace over more pixels. Wider spans fit more bins into the panel than it has pixel rows; each row then shows the strongest bin it covers, so nothing can hide between rows. |
-| **Gain** | −10 to +40 dB. Shifts the colour map relative to the measured noise floor; raise it to brighten faint traces. |
-| **Color** | Rainbow, Green or Grayscale. |
-| **Clear** | Wipes the canvas and resets the noise reference. |
+| Commande | Effet |
+|----------|-------|
+| **Band** | Les fenêtres QRSS du tableau ci-dessus. **Tune** accorde sur celle choisie, en CW avec une bande passante adaptée. |
+| **Speed** | Fixe la longueur de la transformée, c'est-à-dire le compromis entre résolution en fréquence et en temps (tableau ci-dessus). |
+| **Centre** | Fréquence audio au milieu de l'affichage, 100–3000 Hz. |
+| **Span** | Hauteur de la tranche affichée : 20, 50, 100 ou 200 Hz, 100 Hz au démarrage — la largeur d'une sous-bande QRSS. Une tranche plus étroite étale chaque trace sur davantage de pixels. Les tranches larges font entrer dans le panneau plus de bins qu'il n'a de lignes de pixels ; chaque ligne affiche alors le bin le plus fort qu'elle couvre, si bien que rien ne peut se cacher entre les lignes. |
+| **Gain** | De −10 à +40 dB. Décale la palette par rapport au plancher de bruit mesuré ; augmentez-le pour éclaircir les traces faibles. |
+| **Color** | Rainbow, Green ou Grayscale. |
+| **Clear** | Efface le canevas et réinitialise la référence de bruit. |
 
-### Reading the display
+### Lire l'affichage
 
-Frequency ticks run down the left edge, highest frequency at the top. Under the canvas a status line shows the selected speed, the resolution actually in use (e.g. `0.183 Hz/bin · 5.5 s window`) and the column rate (e.g. `2.7 s/column`).
+Les graduations de fréquence courent le long du bord gauche, la fréquence la plus haute en haut. Sous le canevas, une ligne d'état indique la vitesse choisie, la résolution réellement utilisée (par ex. `0.183 Hz/bin · 5.5 s window`) et la cadence de colonnes (par ex. `2.7 s/column`).
 
-The colour map is referenced to the **current** noise, measured continuously from the empty parts of each column, not to an absolute level. Volume, AGC, antenna and band changes therefore do not require re-adjusting Gain — the display keeps a constant contrast against whatever the band noise happens to be. As with the decoders, the audio is taken before noise reduction and mute, so you can mute the receiver and keep watching.
+La palette est référencée au bruit **courant**, mesuré en continu sur les parties vides de chaque colonne, et non à un niveau absolu. Changer de volume, d'AGC, d'antenne ou de bande n'oblige donc pas à retoucher le Gain : l'affichage conserve un contraste constant par rapport au bruit de bande du moment. Comme pour les décodeurs, l'audio est prélevé avant la réduction de bruit et le mute ; vous pouvez donc couper le son du récepteur et continuer à regarder.
 
-What the shapes mean:
+Ce que signifient les formes :
 
-- A **steady carrier** draws a straight horizontal line.
-- **Slow Morse** draws that line as a chain of short and long segments — dots and dashes read left to right.
-- **Curved or drifting traces** are an unstabilised beacon oscillator warming up or cooling down. This is normal, and the drift signature is often how a regular grabber-watcher recognises a station.
-- **Vertical streaks** across the whole slice are static crashes or local noise bursts, not signal.
+- Une **porteuse stable** trace une ligne horizontale droite.
+- Le **morse lent** trace cette ligne comme une suite de segments courts et longs — points et traits qui se lisent de gauche à droite.
+- Les **traces courbes ou dérivantes** viennent d'un oscillateur de balise non stabilisé qui chauffe ou refroidit. C'est normal, et c'est souvent cette signature de dérive qui permet à un observateur régulier de reconnaître une station.
+- Les **stries verticales** traversant toute la tranche sont des parasites atmosphériques ou du bruit local, pas du signal.
 
-> **Tips:**
-> - Be patient. At QRSS 30 a single column takes 5.5 seconds, so a complete callsign can take ten minutes or more to cross the screen. Leave it running.
-> - Tuning from the **Band** list already narrows the passband around the window. If you tuned by hand, do it yourself: it does not change what the transform resolves, but it keeps strong neighbours from working the receiver's AGC.
-> - The grabber is independent of the decoders — you can leave it running while a decoder works on something else.
-> - A wide span at a slow speed is the heaviest combination; the whole transform runs in the browser, so on a modest machine prefer a 50 Hz span.
+> **Conseils :**
+> - Soyez patient. En QRSS 30 une seule colonne prend 5,5 secondes : un indicatif complet peut demander dix minutes ou plus pour traverser l'écran. Laissez tourner.
+> - Accorder depuis la liste **Band** resserre déjà la bande passante autour de la fenêtre. Si vous avez accordé à la main, faites-le vous-même : cela ne change rien à ce que la transformée résout, mais empêche des voisins puissants d'agir sur l'AGC du récepteur.
+> - Le grabber est indépendant des décodeurs : vous pouvez le laisser tourner pendant qu'un décodeur travaille sur autre chose.
+> - Un span large à vitesse lente est la combinaison la plus lourde ; toute la transformée s'exécute dans le navigateur, alors préférez un span de 50 Hz sur une machine modeste.
 
 ---
 
 ## 7. WSPR
 
-**What it is:** WSPR (Weak Signal Propagation Reporter, pronounced "whisper") is an ultra-weak-signal beacon mode that maps HF propagation paths worldwide. Each transmission takes approximately 110 seconds and fits inside a 200 Hz-wide slot. The decoder waits for a complete 2-minute UTC-aligned slot before decoding.
+**De quoi s'agit-il :** WSPR (Weak Signal Propagation Reporter, prononcé « whisper ») est un mode balise à signaux ultra-faibles qui cartographie les chemins de propagation HF dans le monde entier. Chaque transmission dure environ 110 secondes et tient dans un créneau de 200 Hz de large. Le décodeur attend un créneau complet de 2 minutes aligné sur l'UTC avant de décoder.
 
-### Recommended frequencies (USB, dial)
+### Fréquences recommandées (USB, affichée)
 
-| Band | Dial frequency |
-|------|---------------|
-| 160m | 1.836.600 MHz |
-| 80m  | 3.568.600 MHz |
-| 40m  | 7.038.600 MHz |
-| 30m  | 10.138.700 MHz |
-| 20m  | 14.095.600 MHz |
-| 17m  | 18.104.600 MHz |
-| 15m  | 21.094.600 MHz |
+| Bande | Fréquence affichée |
+|-------|---------------|
+| 160 m | 1.836.600 MHz |
+| 80 m  | 3.568.600 MHz |
+| 40 m  | 7.038.600 MHz |
+| 30 m  | 10.138.700 MHz |
+| 20 m  | 14.095.600 MHz |
+| 17 m  | 18.104.600 MHz |
+| 15 m  | 21.094.600 MHz |
 
-### Setup
+### Configuration
 
-1. Tune to a WSPR dial frequency above and set mode to **USB**.
-2. The WSPR signal occupies the 1400–1600 Hz audio range. Selecting **WSPR** does the rest for you: the receiver switches to USB and the passband narrows to 1350–1650 Hz, which covers the whole range the decoder searches. You do not need to adjust it further.
-3. Enable the decoder and select **WSPR** from the dropdown. Or simply press the **WSPR** button.
-4. The **WSPR-2 Decoder** panel appears below.
+1. Accordez-vous sur une fréquence affichée WSPR ci-dessus et réglez le mode sur **USB**.
+2. Le signal WSPR occupe la plage audio 1400-1600 Hz. Sélectionner **WSPR** fait le reste pour vous : le récepteur bascule en USB et la bande passante se resserre sur 1350-1650 Hz, ce qui couvre toute la plage explorée par le décodeur. Aucun autre ajustement n'est nécessaire.
+3. Activez le décodeur et sélectionnez **WSPR** dans le menu déroulant. Ou appuyez simplement sur le bouton **WSPR**.
+4. Le panneau **WSPR-2 Decoder** apparaît en dessous.
 
-### Reading the output
+### Lecture des résultats
 
-The panel shows a progress bar for the current 2-minute slot:
+Le panneau affiche une barre de progression pour le créneau de 2 minutes en cours :
 
-- **Cyan bar filling** — collecting signal data (0–116 s into the slot).
-- **Amber bar pulsing** — decoding in progress (last ~4 s of the slot).
-- **Empty bar** — waiting for the next even UTC minute.
+- **Barre cyan qui se remplit** — collecte des données du signal (de 0 à 116 s dans le créneau).
+- **Barre ambrée qui pulse** — décodage en cours (les ~4 dernières secondes du créneau).
+- **Barre vide** — attente de la prochaine minute UTC paire.
 
-Each successfully decoded spot is shown in a table with the following columns:
+Chaque spot décodé avec succès est affiché dans un tableau avec les colonnes suivantes :
 
-| Column | Meaning |
-|--------|---------|
-| UTC | Time of the spot (even minute) |
-| Callsign | The station that transmitted |
-| Grid | Maidenhead locator of the transmitter |
-| Power | Transmitted power in dBm |
-| Freq | Exact audio frequency (Hz) within the WSPR passband |
-| SNR | Signal-to-noise ratio in dB |
+| Colonne | Signification |
+|---------|---------------|
+| UTC | Heure du spot (minute paire) |
+| Callsign | La station qui a émis |
+| Grid | Locator Maidenhead de l'émetteur |
+| Power | Puissance émise en dBm |
+| Freq | Fréquence audio exacte (Hz) dans la bande passante WSPR |
+| SNR | Rapport signal/bruit en dB |
 
-Click **Clear** to erase the spot list.
+Cliquez sur **Clear** pour effacer la liste des spots.
 
-> **Tip:** WSPR decoding requires very accurate system time (within ±1 second of UTC). The first slot after enabling the decoder will begin at the next even UTC minute — a short wait is normal.
+> **Astuce :** le décodage WSPR exige une heure système très précise (à ±1 seconde de l'UTC). Le premier créneau après l'activation du décodeur commencera à la prochaine minute UTC paire — une courte attente est normale.
 
 ---
 
-## 8. HF FAX / WEFAX
+## 8. FAX HF / WEFAX
 
-**What it is:** HF Radiofax (also known as WEFAX) is used by coast guard and meteorological services worldwide to broadcast weather maps, sea-state charts, and surface analyses over shortwave. The decoder reconstructs the image line by line as it is received.
+**De quoi s'agit-il :** le radiofax HF (également appelé WEFAX) est utilisé par les garde-côtes et les services météorologiques du monde entier pour diffuser des cartes météo, des cartes d'état de la mer et des analyses de surface en ondes courtes. Le décodeur reconstitue l'image ligne par ligne au fur et à mesure de sa réception.
 
-### Setup
+### Configuration
 
-1. Enable the decoder and select **HF FAX / WEFAX** from the dropdown. Or simply press the **FAX** button.
-2. The **HF FAX / WEFAX Receiver** panel appears below.
-3. **Select a station** from the Station dropdown. Over 20 stations are available covering Europe, Asia, Oceania, and the Americas (e.g. DDH3/DDK3 Germany, SVJ4/GR Greece, JMH Japan, NMG USA New Orleans, CBM Punta Arenas Chile). The timetables follow the NOAA worldwide radiofax schedule (edition of 7 March 2025); Charleville (VMC, Australia) includes its extra broadcasts on 11030 kHz only.
-4. If the station broadcasts on more than one frequency, select the desired frequency from the **Frequency** sub-dropdown.
-5. Click **▶ Tune** to automatically tune the waterfall to that station.
-6. The mode is forced to **USB** automatically.
+1. Activez le décodeur et sélectionnez **HF FAX / WEFAX** dans le menu déroulant. Ou appuyez simplement sur le bouton **FAX**.
+2. Le panneau **HF FAX / WEFAX Receiver** apparaît en dessous.
+3. **Sélectionnez une station** dans la liste déroulante Station. Plus de 20 stations sont disponibles, couvrant l'Europe, l'Asie, l'Océanie et les Amériques (p. ex. DDH3/DDK3 Allemagne, SVJ4/GR Grèce, JMH Japon, NMG États-Unis La Nouvelle-Orléans). CBM Punta Arenas (Chili) en fait aussi partie. Les horaires suivent le programme mondial de radiofax de la NOAA (édition du 7 mars 2025) ; Charleville (VMC, Australie) inclut ses émissions supplémentaires sur 11030 kHz uniquement.
+4. Si la station émet sur plusieurs fréquences, sélectionnez la fréquence souhaitée dans le sous-menu **Frequency**.
+5. Cliquez sur **▶ Tune** pour accorder automatiquement la cascade sur cette station.
+6. Le mode est automatiquement forcé sur **USB**.
 
-### Broadcast schedule
+### Horaires de diffusion
 
-When a station is selected, a **Next Transmissions** countdown table appears showing the next 4 scheduled broadcasts in UTC, with a live countdown:
+Lorsqu'une station est sélectionnée, un tableau de compte à rebours **Next Transmissions** apparaît, indiquant les 4 prochaines diffusions programmées en UTC, avec un décompte en direct :
 
-- Normal (grey/green) — transmission is coming up.
-- **Amber ⚡** — transmission starts within 3 minutes; arm the decoder now.
-- **Red ●** — transmission starts within 30 seconds; reception is imminent.
+- Normal (gris/vert) — la transmission est à venir.
+- **Ambre ⚡** — la transmission commence dans moins de 3 minutes ; armez le décodeur maintenant.
+- **Rouge ●** — la transmission commence dans moins de 30 secondes ; la réception est imminente.
 
-### Parameters
+### Paramètres
 
-Most stations use the standard defaults (marked ★). Change only if you know the station uses non-standard settings.
+La plupart des stations utilisent les valeurs par défaut standard (marquées ★). Ne les modifiez que si vous savez que la station emploie des réglages non standard.
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| LPM | 120 ★ | Lines per minute — the drum rotation speed |
-| IOC | 576 ★ | Index of cooperation — determines pixels per line |
-| Shift | 800 Hz ★ | Frequency shift between black and white tones |
+| Paramètre | Défaut | Description |
+|-----------|--------|-------------|
+| LPM | 120 ★ | Lignes par minute — la vitesse de rotation du tambour |
+| IOC | 576 ★ | Indice de coopération — détermine le nombre de pixels par ligne |
+| Shift | 800 Hz ★ | Écart de fréquence entre les tonalités noir et blanc |
 
-### Controls
+### Commandes
 
-- **⇔ Auto-align** — enabled by default. Automatically synchronises to the phasing signal at the start of each image. Disable only if you are experiencing alignment problems on a known-good signal.
-- **⇅ Invert** — swaps black and white. Use if the image appears as a negative (white areas where black should be).
-- **↺ Refresh** — clears the canvas and resets the decoder. Use this between transmissions or if the image tears or drifts.
-- **⤓ Save PNG** — saves the current canvas as a PNG file to your computer.
+- **⇔ Auto-align** — activé par défaut. Se synchronise automatiquement sur le signal de phasage au début de chaque image. Ne le désactivez que si vous rencontrez des problèmes d'alignement sur un signal connu comme bon.
+- **⇅ Invert** — inverse le noir et le blanc. À utiliser si l'image apparaît en négatif (zones blanches là où le noir devrait être).
+- **↺ Refresh** — efface le canevas et réinitialise le décodeur. À utiliser entre deux transmissions ou si l'image se déchire ou dérive.
+- **⤓ Save PNG** — enregistre le canevas actuel sous forme de fichier PNG sur votre ordinateur.
 
-### Status indicators
+### Indicateurs d'état
 
-At the bottom of the image, two tone indicators show:
+En bas de l'image, deux indicateurs de tonalité montrent :
 
-- **300 Hz phasing** — lights cyan when the start-of-image phasing tone is detected.
-- **450 Hz stop** — lights red when the end-of-image stop tone is detected.
+- **300 Hz phasing** — s'allume en cyan lorsque la tonalité de phasage de début d'image est détectée.
+- **450 Hz stop** — s'allume en rouge lorsque la tonalité d'arrêt de fin d'image est détectée.
 
-Both signals are recognised by their rhythm across the whole width of a line, which the real start and stop signals always fill and chart content practically never does, so hatched areas in a chart are not taken for a start signal. They are recognised down to about 0 dB SNR, and on very weak signals the image is lined up from the average of several phasing lines, so the chart still starts at the left edge.
+Les deux signaux sont reconnus à leur rythme sur toute la largeur d'une ligne, que les vrais signaux de début et de fin remplissent toujours et que le contenu d'une carte ne remplit pratiquement jamais, si bien que les zones hachurées d'une carte ne sont pas prises pour un signal de début. Ils sont reconnus jusqu'à environ 0 dB de SNR, et sur des signaux très faibles l'image est calée sur la moyenne de plusieurs lignes de phasage, de sorte que la carte commence quand même au bord gauche.
 
-> **Note:** The image scrolls upward — the newest received line always appears at the bottom of the canvas. If you see **[PHASING]** in the header, the decoder has locked onto a new image start.
+> **Remarque :** l'image défile vers le haut — la ligne reçue la plus récente apparaît toujours en bas du canevas. Si vous voyez **[PHASING]** dans l'en-tête, le décodeur s'est verrouillé sur un nouveau début d'image.
 
 ---
 
 ## 9. NAVTEX
 
-**What it is:** NAVTEX is the international maritime broadcast system for coastal safety information — navigational warnings, weather forecasts, and search-and-rescue notices. It uses 100-baud FSK (SITOR-B with FEC) and is received on dedicated channels worldwide.
+**De quoi s'agit-il :** NAVTEX est le système international de diffusion maritime des informations de sécurité côtière — avertissements de navigation, prévisions météorologiques et avis de recherche et de sauvetage. Il utilise le FSK à 100 bauds (SITOR-B avec FEC) et est reçu sur des canaux dédiés dans le monde entier.
 
-### Available channels
+### Canaux disponibles
 
-| Channel | Frequency | Usage |
-|---------|-----------|-------|
-| International | 518 kHz | English-language, international |
-| Domestic | 490 kHz | National language broadcasts |
-| HF (×5) | 4209.5 / 6314 / 8416.5 / 12579 / 16806.5 kHz | Long-range HF NAVTEX |
+| Canal | Fréquence | Usage |
+|-------|-----------|-------|
+| International | 518 kHz | En anglais, international |
+| National | 490 kHz | Diffusions en langue nationale |
+| HF (×5) | 4209.5 / 6314 / 8416.5 / 12579 / 16806.5 kHz | NAVTEX HF longue portée |
 
-### Setup
+### Configuration
 
-1. Enable the decoder and select **NAVTEX** from the dropdown. Or simply press the **NAVTEX** button. The receiver switches to **USB** automatically.
-2. The **NAVTEX Receiver** panel appears.
-3. Select the desired channel from the **Station** dropdown (e.g. `International — 518 kHz`).
-4. Click **⇒ Tune & Set IF** to automatically tune the waterfall and narrow the passband to the correct audio window. Mode is set to **USB** automatically. The dial is placed 500 Hz below the channel centre, so the NAVTEX signal appears at 500 Hz audio.
+1. Activez le décodeur et sélectionnez **NAVTEX** dans le menu déroulant. Ou appuyez simplement sur le bouton **NAVTEX**. Le récepteur passe automatiquement en **USB**.
+2. Le panneau **NAVTEX Receiver** apparaît.
+3. Sélectionnez le canal souhaité dans la liste **Station** (p. ex. `International — 518 kHz`).
+4. Cliquez sur **⇒ Tune & Set IF** pour accorder automatiquement la cascade et resserrer la bande passante sur la bonne fenêtre audio. Le mode est réglé automatiquement sur **USB**. La fréquence affichée est placée 500 Hz sous le centre du canal, de sorte que le signal NAVTEX apparaît à 500 Hz en audio.
 
-### Broadcast schedule
+### Horaires de diffusion
 
-The schedule table lists all known stations on the selected channel with:
+Le tableau des horaires liste toutes les stations connues sur le canal sélectionné avec :
 
-- Their ITU identifier letter and country flag
-- Next broadcast time in UTC
-- Live countdown to the next transmission
-- **Amber ⚡** within 2 minutes / **Red ●** within 30 seconds — arm the decoder now
+- leur lettre d'identification UIT et le drapeau du pays
+- l'heure de la prochaine diffusion en UTC
+- un décompte en direct jusqu'à la prochaine transmission
+- **Ambre ⚡** à moins de 2 minutes / **Rouge ●** à moins de 30 secondes — armez le décodeur maintenant
 
-### Reading the output
+### Lecture des résultats
 
-Decoded text appears in teal monospace. Message boundaries are clearly marked:
+Le texte décodé apparaît en caractères sarcelle à chasse fixe. Les limites des messages sont clairement marquées :
 
 ```
 ━━ ZCZC MA12 ━━
@@ -531,309 +531,309 @@ Decoded text appears in teal monospace. Message boundaries are clearly marked:
 ━━ NNNN ━━
 ```
 
-`ZCZC` marks the start of a message. The four characters after it identify the station (`M`), subject (`A` = navigational warnings), and sequential number (`12`). The banner waits for the whole header, so it reads `ZCZC MA12`, not `ZCZC ????`. `NNNN` marks the end.
+`ZCZC` marque le début d'un message. Les quatre caractères qui suivent identifient la station (`M`), le sujet (`A` = avertissements de navigation) et le numéro d'ordre (`12`). La bannière attend l'en-tête complet, elle affiche donc `ZCZC MA12` et non `ZCZC ????`. `NNNN` marque la fin.
 
-If you tune in after a message has started, or its header is lost to noise, the text still appears, under a **━━ (header missed) ━━** banner. That banner only opens once several characters in a row arrive with both of their NAVTEX transmissions agreeing, which noise practically never produces. It closes at `NNNN` as usual, with **━━ (signal lost) ━━** if the signal disappears first, or when a new message begins.
+Si vous vous calez après le début d'un message, ou si son en-tête se perd dans le bruit, le texte s'affiche quand même, sous une bannière **━━ (header missed) ━━**. Elle ne s'ouvre que lorsque plusieurs caractères consécutifs arrivent avec accord des deux émissions NAVTEX, ce que le bruit ne produit pratiquement jamais. Elle se ferme à `NNNN` comme d'habitude, avec **━━ (signal lost) ━━** si le signal disparaît avant, ou quand un nouveau message commence.
 
-Click **Clear** to erase the message buffer.
+Cliquez sur **Clear** pour effacer la mémoire tampon des messages.
 
-> **Note:** NAVTEX operates on MF and LF frequencies (518/490 kHz). Reception range is typically 200–400 nautical miles from the transmitter. The HF channels (4–17 MHz) provide much greater range.
+> **Remarque :** NAVTEX fonctionne sur des fréquences MF et LF (518/490 kHz). La portée de réception est généralement de 200 à 400 milles marins depuis l'émetteur. Les canaux HF (4-17 MHz) offrent une portée bien supérieure.
 
 ---
 
-## 10. FLDIGI — RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet and APRS
+## 10. FLDIGI — RTTY, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet et APRS
 
-**What it is:** One window for the narrow-band keyboard modes that the program fldigi made popular, with thirteen variants selected from one dropdown. Three are true FSK (Frequency-Shift Keying): Maritime FSK (SITOR), Weather RTTY and Amateur RTTY. The others share the same window: **PSK31**, which is phase-shift keying; **Olivia** and **MFSK16/32/64**, multi-tone modes with forward error correction; **DominoEX** and **THOR**, incremental frequency keying (THOR with error correction); **THROB**, two tones at once, one character per pulse; **Hellschreiber**, which paints text as a picture instead of decoding it; **MT63**, 64 carriers at once; and **Packet (AX.25)** and **APRS**, which decode AFSK packet radio — the 1200 baud packet of VHF/UHF and the 300 baud packet of HF. Each variant comes with a preset tuned to its standard parameters. The button and the dropdown entry are both called **FLDIGI**; the decoding is done here, in the browser, and fldigi itself is not needed.
+**De quoi s'agit-il :** une fenêtre pour les modes clavier à bande étroite que le logiciel fldigi a popularisés, avec treize variantes accessibles depuis un seul menu. Trois d'entre elles sont du véritable FSK (Frequency-Shift Keying) : FSK maritime (SITOR), RTTY météo et RTTY amateur. Les autres partagent la même fenêtre : **PSK31**, une modulation par déplacement de phase ; **Olivia** et **MFSK16/32/64**, des modes multitons avec correction d'erreurs ; **DominoEX** et **THOR**, à sauts de fréquence incrémentaux (THOR avec correction d'erreurs) ; **THROB**, deux tonalités à la fois, un caractère par impulsion ; **Hellschreiber**, qui peint le texte comme une image au lieu de le décoder ; **MT63**, 64 porteuses à la fois ; ainsi que **Packet (AX.25)** et **APRS**, qui décodent le packet radio en AFSK — le packet à 1200 bauds des VHF/UHF et le packet à 300 bauds des HF. Chaque variante est fournie avec un préréglage adapté à ses paramètres standard. Le bouton et l'entrée du menu s'appellent tous deux **FLDIGI** ; le décodage se fait ici, dans le navigateur, et fldigi lui-même n'est pas nécessaire.
 
-### Variants and presets
+### Variantes et préréglages
 
-| Variant | Center | Shift | Baud | Framing | Encoding |
-|---------|--------|-------|------|---------|----------|
-| Maritime FSK / SITOR | 500 Hz | 170 Hz | 100 | 7N1 | CCIR-476 |
-| Weather RTTY | 1000 Hz | 450 Hz | 50 | 5N1.5 | ITA2 |
-| Amateur RTTY | 1000 Hz | 170 Hz | 45.45 | 5N1.5 | ITA2 |
+| Variante | Centre | Shift | Bauds | Trame | Codage |
+|----------|--------|-------|-------|-------|--------|
+| FSK maritime / SITOR | 500 Hz | 170 Hz | 100 | 7N1 | CCIR-476 |
+| RTTY météo | 1000 Hz | 450 Hz | 50 | 5N1.5 | ITA2 |
+| RTTY amateur | 1000 Hz | 170 Hz | 45.45 | 5N1.5 | ITA2 |
 | PSK31 (BPSK) | 1000 Hz | — | 31.25 | — | Varicode |
-| Olivia | 1000 Hz | — | see mode | — | 7-bit + FEC |
-| MFSK16·32·64 | 1500 Hz | — | see mode | — | Varicode + FEC |
-| DominoEX | 1500 Hz | — | see mode | — | nibble Varicode |
-| THOR | 1500 Hz | — | see mode | — | Varicode + FEC |
-| THROB / THROBX | 1500 Hz | — | 1, 2 or 4 | — | tone pairs |
-| Hellschreiber | 1500 Hz | — | see mode | — | picture |
-| MT63 | 1000 Hz (lowest carrier at 500 Hz) | — | 5, 10 or 20 | — | Walsh + interleave |
-| Packet (AX.25) | 1200 / 2200 Hz tones, or 1700 Hz at 300 Bd | 1000 Hz, or 200 Hz at 300 Bd | 1200 or 300 | HDLC | AX.25 |
-| APRS | as Packet | as Packet | 1200 or 300 | HDLC | AX.25 + APRS |
+| Olivia | 1000 Hz | — | voir Mode | — | 7 bits + FEC |
+| MFSK16·32·64 | 1500 Hz | — | voir Mode | — | Varicode + FEC |
+| DominoEX | 1500 Hz | — | voir Mode | — | Varicode par quartets |
+| THOR | 1500 Hz | — | voir Mode | — | Varicode + FEC |
+| THROB / THROBX | 1500 Hz | — | 1, 2 ou 4 | — | paires de tonalités |
+| Hellschreiber | 1500 Hz | — | voir Mode | — | image |
+| MT63 | 1000 Hz (porteuse la plus basse à 500 Hz) | — | 5, 10 ou 20 | — | Walsh + entrelacement |
+| Packet (AX.25) | tonalités 1200 / 2200 Hz, ou 1700 Hz à 300 Bd | 1000 Hz, ou 200 Hz à 300 Bd | 1200 ou 300 | HDLC | AX.25 |
+| APRS | comme Packet | comme Packet | 1200 ou 300 | HDLC | AX.25 + APRS |
 
-The panel adapts to the variant you choose. **Shift**, **Baud**, **Framing**, **Encoding**, **Invert mark / space** and **Auto shift detect** are hidden for every variant except the three FSK ones, because none of the other modes has a mark/space tone pair or UART-style framing. In their place, **Center audio** becomes a free-entry number field (the signal can sit anywhere in the passband), and Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber and MT63 each gain a **Mode** selector and — all except Hellschreiber — a **Squelch** slider with its own scale. Packet and APRS hide the same FSK controls and show a **Speed** selector instead; APRS also has a **Show raw packet** checkbox. The **Known frequency** list appears only for the variants that have one.
+Le panneau s'adapte à la variante choisie. **Shift**, **Baud**, **Framing**, **Encoding**, **Invert mark / space** et **Auto shift detect** sont masqués pour toutes les variantes sauf les trois FSK, car aucun des autres modes ne possède de paire de tonalités mark/space ni de trame de type UART. À leur place, **Center audio** devient un champ numérique libre (le signal peut se trouver n'importe où dans la bande passante), et Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber et MT63 ajoutent chacun un sélecteur **Mode** et — tous sauf Hellschreiber — un curseur **Squelch** avec sa propre échelle. Packet et APRS masquent les mêmes commandes FSK et affichent à la place un sélecteur **Speed** ; APRS a en plus la case **Show raw packet**. La liste **Known frequency** n'apparaît que pour les variantes qui en ont une.
 
-### Setup
+### Réglage
 
-1. Enable the decoder and select **FLDIGI** from the dropdown. Or simply press the **FLDIGI** button.
-2. The decoder panel appears. Its title follows the variant — *FSK / RTTY Decoder*, *PSK31 Decoder*, *Olivia Decoder*, *MFSK Decoder*, *DominoEX Decoder*, *THOR Decoder*, *THROB Decoder*, *Hellschreiber Decoder*, *MT63 Decoder*, *Packet (AX.25) Decoder* or *APRS Decoder*.
-3. Select the **Variant**. The parameters update automatically.
-4. For Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber and MT63, set **Mode** to match the transmission — see each mode's notes below. For Packet and APRS, set **Speed** — see the Packet and APRS notes below.
-5. Where the variant has one, use the **Known frequency** dropdown to select a common frequency, then click **Tune** to jump to it. The other modes have no fixed calling frequencies: find the signal on the waterfall and use **⟳ Auto-tune Center**.
-6. Fine-tune frequency until decoded text becomes stable and readable.
+1. Activez le décodeur et sélectionnez **FLDIGI** dans le menu. Ou appuyez simplement sur le bouton **FLDIGI**.
+2. Le panneau du décodeur apparaît. Son titre suit la variante — *FSK / RTTY Decoder*, *PSK31 Decoder*, *Olivia Decoder*, *MFSK Decoder*, *DominoEX Decoder*, *THOR Decoder*, *THROB Decoder*, *Hellschreiber Decoder*, *MT63 Decoder*, *Packet (AX.25) Decoder* ou *APRS Decoder*.
+3. Sélectionnez la **Variant**. Les paramètres se mettent à jour automatiquement.
+4. Pour Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber et MT63, réglez **Mode** pour qu'il corresponde à l'émission — voir les notes de chaque mode ci-dessous. Pour Packet et APRS, réglez **Speed** — voir les notes sur Packet et APRS ci-dessous.
+5. Lorsque la variante en a une, utilisez la liste **Known frequency** pour choisir une fréquence courante, puis cliquez sur **Tune** pour y aller. Les autres modes n'ont pas de fréquences d'appel fixes : cherchez le signal dans la cascade et utilisez **⟳ Auto-tune Center**.
+6. Affinez l'accord jusqu'à ce que le texte décodé devienne stable et lisible.
 
-### Known frequencies by variant
+### Fréquences connues par variante
 
-**Maritime FSK / SITOR**
-- 518.0 kHz — International NAVTEX
-- 490.0 kHz — National NAVTEX
-- 4209.5 / 6314.0 / 8416.5 / 12579.0 / 16806.5 / 22376.0 kHz — HF SITOR
+**FSK maritime / SITOR**
+- 518,0 kHz — NAVTEX international
+- 490,0 kHz — NAVTEX national
+- 4209,5 / 6314,0 / 8416,5 / 12579,0 / 16806,5 / 22376,0 kHz — SITOR HF
 
-**Weather RTTY**
-- 4583.0 / 7646.0 / 10100.8 / 11039.0 / 14467.3 kHz — DWD (German Weather Service)
+**RTTY météo**
+- 4583,0 / 7646,0 / 10100,8 / 11039,0 / 14467,3 kHz — DWD (service météorologique allemand)
 
-**Amateur RTTY**
-- 3590 kHz (80m), 7043 kHz (40m), 10143 kHz (30m), 14083 kHz (20m), 21083 kHz (15m), 28083 kHz (10m)
+**RTTY amateur**
+- 3590 kHz (80 m), 7043 kHz (40 m), 10143 kHz (30 m), 14083 kHz (20 m), 21083 kHz (15 m), 28083 kHz (10 m)
 
 **PSK31**
-- 3580.15 kHz (80m), 7040.15 kHz (40m), 10142.15 kHz (30m), 14070.15 kHz (20m), 18100.15 kHz (17m), 21080.15 kHz (15m), 24920.15 kHz (12m), 28120.15 kHz (10m)
+- 3580,15 kHz (80 m), 7040,15 kHz (40 m), 10142,15 kHz (30 m), 14070,15 kHz (20 m), 18100,15 kHz (17 m), 21080,15 kHz (15 m), 24920,15 kHz (12 m), 28120,15 kHz (10 m)
 
 **Olivia**
-- 3577.75 kHz (80m), 7073.75 kHz (40m), 10142.25 kHz (30m), 14075.5 kHz (20m), 18103.75 kHz (17m), 21075.75 kHz (15m), 24921.75 kHz (12m), 28123.75 kHz (10m)
+- 3577,75 kHz (80 m), 7073,75 kHz (40 m), 10142,25 kHz (30 m), 14075,5 kHz (20 m), 18103,75 kHz (17 m), 21075,75 kHz (15 m), 24921,75 kHz (12 m), 28123,75 kHz (10 m)
 
 **MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63**
-- No fixed calling frequencies; the list is not shown. Find the signal on the waterfall.
+- Pas de fréquences d'appel fixes ; la liste n'est pas affichée. Cherchez le signal dans la cascade.
 
-**Packet and APRS** (the same list for both; each entry also sets the right speed)
-- 144.800 MHz — APRS in Europe (IARU Region 1)
-- 144.390 MHz — APRS in North America
-- 145.175 MHz — APRS in Australia
-- 144.640 MHz — APRS in China
-- 144.660 MHz — APRS in Japan
-- 145.825 MHz — the ISS packet digipeater
-- 10147.6 kHz — HF APRS on 30 m, USB dial (300 Bd)
+**Packet et APRS** (la même liste pour les deux ; chaque entrée règle aussi la bonne vitesse)
+- 144,800 MHz — APRS en Europe (Région 1 de l'IARU)
+- 144,390 MHz — APRS en Amérique du Nord
+- 145,175 MHz — APRS en Australie
+- 144,640 MHz — APRS en Chine
+- 144,660 MHz — APRS au Japon
+- 145,825 MHz — le digipeater packet de l'ISS
+- 10147,6 kHz — APRS HF sur 30 m, fréquence affichée en USB (300 Bd)
 
-### Parameters
+### Paramètres
 
-| Parameter | Applies to | Description |
-|-----------|------------|-------------|
-| Center audio (Hz) | all | The audio frequency of the mark/space midpoint; for PSK31 the carrier, for the multi-tone modes the centre of the tone block or carrier group. A dropdown for the FSK variants, a free-entry field for all the others. For Packet and APRS a free-entry field at 300 Bd only; at 1200 Bd the tones are fixed at 1200 / 2200 Hz and the field just shows them |
-| Shift (Hz) | FSK only | Frequency difference between mark and space tones |
-| Baud | FSK only | Symbol rate |
-| Framing | FSK only | Data bits, parity, stop bits (e.g. 7N1 = 7 data, no parity, 1 stop) |
-| Encoding | FSK only | Character set (CCIR-476, ITA2/Baudot, or ASCII) |
-| Invert mark / space | FSK only | Swaps mark and space tones |
-| Auto shift detect | FSK only | Attempts automatic shift measurement from the incoming signal |
-| Mode (tones / Hz) | Olivia only | Number of tones and bandwidth — must match the transmission exactly |
-| Squelch (FEC S/N) | Olivia only | How strong the error-correction match must be before text is printed |
-| Mode | MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63 | The sub-mode (speed, bandwidth, interleave) — must match the transmission |
-| Squelch (FEC metric) | MFSK | The 0–100 decoding quality the signal must reach before text is printed; default 22 |
-| Squelch (tone / noise) | DominoEX, THOR | 0–100: the current tone against the floor of the other tone bins; default 25 |
-| Squelch (S/N) | THROB | In dB; default 4 |
-| Squelch (FEC S/N) | MT63 | The Walsh-code match quality; default 4 |
-| Reverse | FSK Hell 245 / 105, Hell 80 | Paints the other tone as ink |
-| Speed | Packet and APRS | **1200 Bd · VHF/UHF (FM)** or **300 Bd · HF (USB)**. It also chooses the receiver mode |
-| Show raw packet | APRS only | Also prints the packet as received (TNC2 format) above each decoded line |
-| Squelch (SNR) | Amateur and Weather RTTY | Stops noise printing as random letters. Starts at −5 dB for Amateur RTTY and −8 dB for Weather RTTY; the far left (**off**) disables it. The SNR figure turns grey while the squelch is closed |
+| Paramètre | S'applique à | Description |
+|-----------|--------------|-------------|
+| Center audio (Hz) | toutes | La fréquence audio du milieu entre mark et space ; pour PSK31 la porteuse, pour les modes multitons le centre du bloc de tonalités ou du groupe de porteuses. Un menu déroulant pour les variantes FSK, un champ libre pour toutes les autres. Pour Packet et APRS un champ libre à 300 Bd seulement ; à 1200 Bd les tonalités sont fixes, 1200 / 2200 Hz, et le champ ne fait que les afficher |
+| Shift (Hz) | FSK seulement | Écart de fréquence entre les tonalités mark et space |
+| Baud | FSK seulement | Débit de symboles |
+| Framing | FSK seulement | Bits de données, parité, bits d'arrêt (par ex. 7N1 = 7 données, sans parité, 1 arrêt) |
+| Encoding | FSK seulement | Jeu de caractères (CCIR-476, ITA2/Baudot ou ASCII) |
+| Invert mark / space | FSK seulement | Permute les tonalités mark et space |
+| Auto shift detect | FSK seulement | Tente de mesurer automatiquement le shift à partir du signal reçu |
+| Mode (tonalités / Hz) | Olivia seulement | Nombre de tonalités et largeur de bande — doit correspondre exactement à l'émission |
+| Squelch (FEC S/N) | Olivia seulement | Force que doit atteindre la correction d'erreurs avant que du texte soit affiché |
+| Mode | MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63 | Le sous-mode (vitesse, largeur, entrelacement) — doit correspondre à l'émission |
+| Squelch (FEC metric) | MFSK | La qualité de décodage (0–100) que le signal doit atteindre avant que le texte ne s'affiche ; 22 par défaut |
+| Squelch (tone / noise) | DominoEX, THOR | 0–100 : la tonalité actuelle face au plancher des autres cases de tonalité ; 25 par défaut |
+| Squelch (S/N) | THROB | En dB ; 4 par défaut |
+| Squelch (FEC S/N) | MT63 | La correspondance du code de Walsh ; 4 par défaut |
+| Reverse | FSK Hell 245 / 105, Hell 80 | Peint l'autre tonalité comme encre |
+| Speed | Packet et APRS | **1200 Bd · VHF/UHF (FM)** ou **300 Bd · HF (USB)**. Choisit aussi le mode du récepteur |
+| Show raw packet | APRS seulement | Affiche en plus le paquet tel qu'il a été reçu (format TNC2) au-dessus de chaque ligne décodée |
+| Squelch (SNR) | RTTY amateur et météo | Empêche le bruit de s'afficher en lettres aléatoires. Démarre à −5 dB pour le RTTY amateur et à −8 dB pour le RTTY météo ; tout à gauche (**off**) il est désactivé. Le chiffre de SNR passe au gris tant que le squelch est fermé |
 
-### Signal metrics
+### Mesures du signal
 
-The status bar shows live measurements, and the fields change with the variant:
+La barre d'état affiche des mesures en direct, et les champs changent selon la variante :
 
-| Variant | Fields shown |
-|---------|--------------|
-| FSK variants | **Mark / Space** (measured tone frequencies), **SNR**, **Lock**, **Timing** |
-| PSK31 | **Carrier** (Hz, after automatic frequency correction), **IMD** (dB), **SNR**, **Lock**, **Timing** |
+| Variante | Champs affichés |
+|----------|-----------------|
+| Variantes FSK | **Mark / Space** (fréquences de tonalité mesurées), **SNR**, **Lock**, **Timing** |
+| PSK31 | **Carrier** (Hz, après correction automatique de fréquence), **IMD** (dB), **SNR**, **Lock**, **Timing** |
 | Olivia | **Centre** (Hz), **Mode**, **S/N**, **FEC** (%), **Sync** |
-| MFSK16 / 32 / 64 | **Centre** (Hz, after automatic frequency correction), **Mode**, **S/N**, **FEC** (%), **Sync** |
-| DominoEX, THOR, THROB, MT63 | **Centre** (Hz; THROB and MT63 after automatic frequency correction), **Mode**, **S/N**, **Quality** (%), **Sync** |
-| Hellschreiber | **Centre**, **Mode**, **Audio** (input level, dBFS) |
-| Packet and APRS | **Tones** (Hz), **DCD** (lit while a packet is on the air), **Frames** (packets decoded), **Stations** (different callsigns heard), **Audio** (input level, dBFS) |
+| MFSK16 / 32 / 64 | **Centre** (Hz, après correction automatique de fréquence), **Mode**, **S/N**, **FEC** (%), **Sync** |
+| DominoEX, THOR, THROB, MT63 | **Centre** (Hz ; pour THROB et MT63 après correction automatique de fréquence), **Mode**, **S/N**, **Quality** (%), **Sync** |
+| Hellschreiber | **Centre**, **Mode**, **Audio** (niveau d'entrée, dBFS) |
+| Packet et APRS | **Tones** (Hz), **DCD** (allumé tant qu'un paquet est en l'air), **Frames** (paquets décodés), **Stations** (indicatifs différents entendus), **Audio** (niveau d'entrée, dBFS) |
 
-`Timing`/`Sync` reads `LOCKED`/`SYNCED` once the decoder is tracking, and `SEARCH` while it is still hunting.
+`Timing`/`Sync` affiche `LOCKED`/`SYNCED` dès que le décodeur suit le signal, et `SEARCH` tant qu'il le cherche encore.
 
-**SNR** for the FSK variants and PSK31 is measured on the signal itself and given in a 3 kHz bandwidth, so the two read on the same scale: within about 1 dB of the true value from +20 dB down to −5 dB. An empty frequency reads about −12 to −15 dB, and for PSK31 0 dB is already a strong signal. Olivia's **S/N** is different: it is the error-correction quality figure. For MFSK, **S/N** is fldigi's tone-to-noise figure and **FEC** its 0–100 decoding quality. For DominoEX and THOR, **S/N** is the received tone against the other tone bins and **Quality** the squelch scale (THOR: its error-correction confidence); for THROB the two-tone S/N; for MT63 the error-correction match. None of these is a 3 kHz SNR: they are the figures the squelch acts on.
+Le **SNR** des variantes FSK et de PSK31 est mesuré sur le signal lui-même et donné dans une bande de 3 kHz, si bien que les deux se lisent sur la même échelle : à environ 1 dB près de +20 dB à −5 dB. Une fréquence vide affiche environ −12 à −15 dB, et en PSK31 0 dB est déjà un signal fort. Le **S/N** d'Olivia est autre chose : l'indice de qualité de la correction d'erreurs. Pour MFSK, **S/N** est le rapport ton/bruit de fldigi et **FEC** sa qualité de décodage de 0 à 100. Pour DominoEX et THOR, **S/N** est la tonalité reçue face aux autres cases de tonalité et **Quality** l'échelle du squelch (pour THOR, la confiance de la correction d'erreurs) ; pour THROB le S/N des deux tonalités ; pour MT63 la correspondance de la correction d'erreurs. Aucun de ces chiffres n'est un SNR dans 3 kHz : ce sont les grandeurs sur lesquelles agit le squelch.
 
-Amateur RTTY (45.45 baud, 170 Hz) copies without errors down to about 0 dB, with about 1.5% of characters wrong at −3 dB and 20% at −6 dB.
+Le RTTY amateur (45,45 bauds, 170 Hz) est lu sans erreur jusqu'à environ 0 dB, avec environ 1,5 % de caractères faux à −3 dB et 20 % à −6 dB.
 
-### Additional controls
+### Commandes supplémentaires
 
-- **⇒ Set IF Band-Pass** — narrows the receiver passband to tightly bracket the signal. The width follows the variant: 300 Hz for Amateur RTTY (narrow enough to remove a stronger station 250 Hz away, while still copying a signal tuned 40 Hz off), 594 Hz for Weather RTTY, mark/space plus margin for Maritime FSK, about ±100 Hz for PSK31, the full tone-block width plus margin for Olivia, about ±400 Hz for 300 Bd packet, and the ordinary FM channel for 1200 Bd packet. The passband follows the decoder when **Auto-tune** or **Auto shift detect** moves the tones, and when you change the **Baud** setting. MFSK, DominoEX, THOR, THROB, Hellschreiber and MT63 get their full width plus a margin (at least 60 Hz either side, 15 % of the width for the wide modes).
-- **⟳ Auto-tune Center** — automatic search for the signal. For the FSK variants it looks for a balanced pair of tones; for PSK31 it finds the carrier; for Olivia it finds the strongest block of the selected bandwidth; for 300 Bd packet it finds the strongest pair of tones 200 Hz apart. The button is hidden for 1200 Bd packet, where the tones are fixed. **Auto shift detect** only changes the shift when a real two-tone signal is present, so it no longer jumps on noise. MFSK, DominoEX, THOR, THROB, Hellschreiber and MT63 are searched the same way as Olivia, over their own width.
+- **⇒ Set IF Band-Pass** — resserre la bande passante du récepteur autour du signal. La largeur suit la variante : 300 Hz pour le RTTY amateur (assez étroit pour éliminer une station plus forte à 250 Hz tout en lisant un signal décalé de 40 Hz), 594 Hz pour le RTTY météo, mark/space plus une marge pour le FSK maritime, environ ±100 Hz pour PSK31 et toute la largeur du bloc de tonalités plus une marge pour Olivia. La bande passante suit le décodeur quand **Auto-tune** ou **Auto shift detect** déplace les tonalités, et quand vous changez le réglage **Baud**. Pour le packet à 300 Bd, environ ±400 Hz ; pour le packet à 1200 Bd, le canal FM normal. MFSK, DominoEX, THOR, THROB, Hellschreiber et MT63 reçoivent toute leur largeur plus une marge (au moins 60 Hz de chaque côté, 15 % de la largeur pour les modes larges).
+- **⟳ Auto-tune Center** — recherche automatique du signal. Pour les variantes FSK elle cherche une paire équilibrée de tonalités, pour PSK31 elle trouve la porteuse, et pour Olivia le bloc le plus fort de la largeur de bande sélectionnée. **Auto shift detect** ne change le shift que lorsqu'un vrai signal à deux tonalités est présent, il ne saute donc plus sur le bruit. Pour le packet à 300 Bd, elle trouve la paire de tonalités la plus forte espacées de 200 Hz. Pour le packet à 1200 Bd le bouton est masqué, car les tonalités y sont fixes. MFSK, DominoEX, THOR, THROB, Hellschreiber et MT63 sont cherchés comme Olivia, sur leur propre largeur.
 
-### PSK31 notes
+### Notes sur PSK31
 
-PSK31 is the most common keyboard-to-keyboard mode on HF. It is only 62 Hz wide, so several QSOs sit side by side within a few hundred hertz of the watering-hole frequency, and tuning is a matter of picking one trace out of the group on the waterfall.
+PSK31 est le mode clavier à clavier le plus répandu en HF. Il ne fait que 62 Hz de large, si bien que plusieurs QSO cohabitent côte à côte dans les quelques centaines de hertz autour de la fréquence de rassemblement ; l'accord consiste à choisir une trace dans le groupe visible sur la cascade.
 
-- The decoder corrects its own tuning error automatically over roughly **±25 Hz**, so you only need to get close. **Carrier** in the metrics row shows where it actually settled.
-- **IMD** measures transmitter quality, not reception: a clean signal reads about −20 dB or better. A poor reading means the other station is overdriving, not that you are mistuned.
-- Text appears character by character with no error correction, so a weak signal degrades into occasional wrong letters rather than stopping.
+- Le décodeur corrige lui-même son erreur d'accord sur environ **±25 Hz**, il suffit donc de s'approcher. **Carrier**, dans la ligne de mesures, indique où il s'est réellement stabilisé.
+- **IMD** mesure la qualité de l'émetteur, pas la réception : un signal propre affiche environ −20 dB ou mieux. Une mauvaise valeur signifie que la station d'en face surmodule, non que vous êtes mal accordé.
+- Le texte apparaît caractère par caractère sans correction d'erreurs ; un signal faible se dégrade donc en lettres fausses occasionnelles plutôt que de s'interrompre.
 
-### Olivia notes
+### Notes sur Olivia
 
-Olivia trades speed for robustness. It is far slower than PSK31 but decodes signals that are inaudible by ear, which makes it popular for weak-signal and long-distance contacts.
+Olivia échange la vitesse contre la robustesse. Il est bien plus lent que PSK31 mais décode des signaux inaudibles à l'oreille, ce qui le rend populaire pour les signaux faibles et les liaisons à grande distance.
 
-- **The Mode setting must match the transmission exactly.** A wrong tones/bandwidth combination decodes nothing at all — not garbled text, but silence. The panel opens on **8 / 250**, the narrow configuration left running on the calling frequencies; **16 / 500** and **32 / 1000** are the other two in common use, and **16 / 1000** is also offered.
-- Olivia sends no preamble, so the decoder has to search for synchronisation. **Allow a few seconds** after tuning before text appears. The **Sync** field shows `SEARCH` until it locks.
-- The error correction works on blocks, so text arrives in **bursts rather than a steady stream**, and there is a delay of several blocks between transmission and display.
-- **Squelch (FEC S/N)** sets how confident the error correction must be before printing. The default of 4.0 keeps noise out; 3.0 is the floor, below which random noise starts printing occasional characters. A good signal reads 8–9 on the **FEC** meter, so there is plenty of room to raise the squelch on a busy band.
+- **Le réglage Mode doit correspondre exactement à l'émission.** Une combinaison tonalités/largeur de bande erronée ne décode absolument rien — pas du texte brouillé, mais le silence. Le panneau s'ouvre sur **8 / 250**, la configuration étroite laissée en veille sur les fréquences d'appel ; **16 / 500** et **32 / 1000** sont les deux autres d'usage courant, et **16 / 1000** est également proposé.
+- Olivia n'envoie pas de préambule, le décodeur doit donc chercher la synchronisation. **Comptez quelques secondes** après l'accord avant que du texte apparaisse. Le champ **Sync** affiche `SEARCH` jusqu'au verrouillage.
+- La correction d'erreurs travaille par blocs : le texte arrive **par rafales plutôt qu'en flux continu**, avec un retard de plusieurs blocs entre l'émission et l'affichage.
+- **Squelch (FEC S/N)** définit le degré de confiance que doit atteindre la correction d'erreurs avant d'afficher. La valeur par défaut de 4,0 tient le bruit à l'écart ; 3,0 est le plancher, en dessous duquel le bruit aléatoire commence à imprimer des caractères isolés. Un bon signal affiche 8–9 sur l'indicateur **FEC**, il reste donc une large marge pour relever le squelch sur une bande encombrée.
 
-### MFSK16 / MFSK32 / MFSK64 notes
+### Notes sur MFSK16 / MFSK32 / MFSK64
 
-MFSK16, MFSK32 and MFSK64 are the IZ8BLY modes as sent by fldigi: 16 tones, one at a time, spaced one baud apart, protected by convolutional error correction and interleaving. They are faster than Olivia and a little less robust. MFSK16 (15.625 baud, 234 Hz wide) prints cleanly down to about −12 dB SNR in 2.5 kHz, MFSK32 (31.25 baud, 469 Hz) to about −10 dB, and MFSK64 (62.5 baud, 938 Hz) to about −7 dB.
+MFSK16, MFSK32 et MFSK64 sont les modes IZ8BLY tels qu'émis par fldigi : 16 tons, un seul à la fois, espacés d'un baud, protégés par une correction d'erreurs convolutive et un entrelacement. Ils sont plus rapides qu'Olivia et un peu moins robustes. MFSK16 (15,625 bauds, 234 Hz de large) donne un texte propre jusqu'à environ −12 dB de SNR dans 2,5 kHz, MFSK32 (31,25 bauds, 469 Hz) jusqu'à environ −10 dB et MFSK64 (62,5 bauds, 938 Hz) jusqu'à environ −7 dB.
 
-- **Pick the MFSK16·32·64 variant**, then the speed in its **Mode** list. The three modes differ only in speed, and the setting must match: the wrong one prints nothing readable.
-- **Tuning:** put the tone block on the **Center audio** frequency, or press **⟳ Auto-tune Center**. The decoder corrects the last quarter of a tone by itself — about ±4 Hz for MFSK16, ±8 Hz for MFSK32 and ±16 Hz for MFSK64 — and **Centre** shows where it settled.
-- Text lags the signal by a couple of seconds, the time the interleaver and the error correction need. One or two stray characters at the very start of a transmission are normal; fldigi shows them too.
-- **Squelch (FEC metric)** holds printing back until the decoding quality reaches the setting. The default of 22 keeps noise out (noise alone reaches about 20); a good signal reads 90 % or more on the **FEC** meter, and 0 turns the squelch off. When a transmission ends with fldigi's end-of-transmission mark, printing stops at once instead of letting a few seconds of noise through.
-- MFSK picture transfers are not decoded.
+- **Choisissez la variante MFSK16·32·64**, puis la vitesse dans sa liste **Mode**. Les trois modes ne diffèrent que par la vitesse, et le réglage doit correspondre : le mauvais n'affiche rien de lisible.
+- **Accord :** placez le bloc de tons sur la fréquence **Center audio**, ou appuyez sur **⟳ Auto-tune Center**. Le décodeur corrige seul le dernier quart de ton — environ ±4 Hz en MFSK16, ±8 Hz en MFSK32 et ±16 Hz en MFSK64 — et **Centre** indique où il s'est calé.
+- Le texte suit le signal avec quelques secondes de retard, le temps nécessaire à l'entrelacement et à la correction d'erreurs. Un ou deux caractères parasites tout au début d'une émission sont normaux ; fldigi les affiche aussi.
+- **Squelch (FEC metric)** retient l'affichage jusqu'à ce que la qualité de décodage atteigne le réglage. La valeur par défaut de 22 écarte le bruit (le bruit seul atteint environ 20) ; un bon signal affiche 90 % ou plus sur l'indicateur **FEC**, et 0 désactive le squelch. Lorsqu'une émission se termine par la marque de fin d'émission de fldigi, l'affichage s'arrête aussitôt au lieu de laisser passer quelques secondes de bruit.
+- Les transmissions d'images MFSK ne sont pas décodées.
 
-### DominoEX and THOR notes
+### Notes sur DominoEX et THOR
 
-DominoEX and THOR send 18 tones, one at a time, but a character is not a tone: it is the *step* from the previous tone (incremental frequency keying). The same tone never repeats, and a slow drift of the whole signal cancels out, so both modes forgive a few hertz of mistuning and a drifting transmitter. **DominoEX** sends its characters straight, without error correction: a bad tone costs one character. **THOR** adds the same convolutional error correction and interleaving as MFSK, so it copies through static crashes and fading at the cost of a couple of seconds' delay.
+DominoEX et THOR émettent 18 tonalités, une à la fois, mais un caractère n'est pas une tonalité : c'est le *saut* depuis la tonalité précédente (modulation à sauts de fréquence incrémentaux). La même tonalité ne se répète jamais, et une dérive lente de tout le signal s'annule : les deux modes pardonnent donc quelques hertz de désaccord et un émetteur qui dérive. **DominoEX** envoie ses caractères tels quels, sans correction d'erreurs : une mauvaise tonalité coûte un caractère. **THOR** ajoute la même correction d'erreurs convolutive et le même entrelacement que MFSK, et passe ainsi les craquements de statique et le fading, au prix de quelques secondes de retard.
 
-- **Mode** must match the speed being sent. DominoEX offers Micro, 4, 5, 8, 11, 16, 22, 44 and 88; THOR offers Micro, 4, 5, 8, 11, 16, 22 and the fast 25 x4, 50 x1, 50 x2 and 100 (these four use a stronger code and a one-second interleaver). DominoEX 11 and THOR 16 are the most heard.
-- **Tuning:** put the tone block on **Center audio**, or press **⟳ Auto-tune Center**. A tuning error of a quarter of the signal's width still copies.
-- **Squelch (tone / noise)** compares the received tone with the floor of all the other tone bins, on a 0–100 scale. Noise alone stays at or under 20; readable copy reads 35 and up; the default is 25. This is not fldigi's own figure: fldigi's reads 26 on some perfectly clean signals, which would have made any useful default cut them off.
-- The receiver follows fldigi's default settings: three sub-bin paths, hard decisions for DominoEX, soft decisions and preamble detection for THOR. DominoEX's optional MultiPSK error correction (off by default in fldigi) is not decoded, nor is the secondary text channel (the station's idle beacon text) or THOR's picture mode.
+- **Mode** doit correspondre à la vitesse émise. DominoEX propose Micro, 4, 5, 8, 11, 16, 22, 44 et 88 ; THOR propose Micro, 4, 5, 8, 11, 16, 22 et les rapides 25 x4, 50 x1, 50 x2 et 100 (ces quatre-là utilisent un code plus fort et un entrelaceur d'une seconde). DominoEX 11 et THOR 16 sont les plus entendus.
+- **Accord :** placez le bloc de tonalités sur **Center audio**, ou appuyez sur **⟳ Auto-tune Center**. Un désaccord d'un quart de la largeur du signal se lit encore.
+- **Squelch (tone / noise)** compare la tonalité reçue au plancher de toutes les autres cases de tonalité, sur une échelle de 0 à 100. Le bruit seul reste à 20 ou moins ; une réception lisible affiche 35 et plus ; la valeur par défaut est 25. Ce n'est pas le chiffre de fldigi lui-même : celui-ci affiche 26 sur certains signaux parfaitement propres, si bien que toute valeur par défaut utile les aurait coupés.
+- Le récepteur suit les réglages par défaut de fldigi : trois chemins espacés d'un tiers de case FFT, décisions dures pour DominoEX, décisions souples et détection du préambule pour THOR. La correction d'erreurs MultiPSK facultative de DominoEX (désactivée par défaut dans fldigi) n'est pas décodée, pas plus que le canal de texte secondaire (le texte balise de la station pendant les pauses) ni le mode image de THOR.
 
-### THROB notes
+### Notes sur THROB
 
-THROB sends each character as one pulse of two tones at once (or one tone for a few characters), from 9 tones (THROB) or 11 (THROBX), at 1, 2 or 4 pulses a second. It is slow but very robust in fading. THROB has only capitals, figures and a few marks; THROBX has a larger set.
+THROB envoie chaque caractère comme une impulsion de deux tonalités simultanées (ou d'une seule pour quelques caractères), parmi 9 tonalités (THROB) ou 11 (THROBX), à 1, 2 ou 4 impulsions par seconde. Il est lent mais très robuste face au fading. THROB ne connaît que les majuscules, les chiffres et quelques signes ; THROBX a un jeu plus large.
 
-- **Tuning is critical.** The tones of THROB 1 and 2 are only 8 Hz apart, so the decoder captures ±3 Hz of mistuning (±6 Hz for THROB 4) and corrects the rest with its own frequency tracking. Press **⟳ Auto-tune Center** first: it finds the signal to within a hertz or two.
-- **Mode** must match, THROB or THROBX and the speed.
-- **Squelch (S/N)** — noise alone stays under 1 dB, a copyable signal reads 10 dB and up; the default is 4 dB.
+- **L'accord est critique.** Les tonalités de THROB 1 et 2 ne sont espacées que de 8 Hz : le décodeur capture ±3 Hz de désaccord (±6 Hz pour THROB 4) et corrige le reste par son propre suivi de fréquence. Appuyez d'abord sur **⟳ Auto-tune Center** : il trouve le signal à un ou deux hertz près.
+- **Mode** doit correspondre, THROB ou THROBX et la vitesse.
+- **Squelch (S/N)** — le bruit seul reste sous 1 dB, un signal lisible affiche 10 dB et plus ; la valeur par défaut est 4 dB.
 
-### Hellschreiber notes
+### Notes sur Hellschreiber
 
-Hellschreiber is not decoded at all: the transmitter scans each character of a 7 × 14 font column by column, and the receiver *paints* what it hears. The panel therefore shows a picture instead of text, and your eye reads the letters. That is why Hell stays readable when no text mode is: a damaged letter is a smudged letter, not a wrong one.
+Hellschreiber n'est pas décodé du tout : l'émetteur balaie chaque caractère d'une police 7 × 14 colonne par colonne, et le récepteur *peint* ce qu'il entend. Le panneau affiche donc une image au lieu de texte, et c'est votre œil qui lit les lettres. C'est aussi pourquoi le Hell reste lisible quand aucun mode texte ne l'est : une lettre abîmée est une lettre barbouillée, pas une mauvaise lettre.
 
-- **Mode:** Feld Hell (the common one, 245 Hz wide), Slow Hell, Hell X5 and X9 (faster and wider), and the two-tone modes FSK Hell 245, FSK Hell 105 and Hell 80. The speed must match, or the letters come out stretched or squashed.
-- **Each line of text is painted twice**, one copy above the other, as fldigi paints it: a small speed difference between the stations slants the text, and one of the two copies is always whole.
-- There is no squelch: noise shows as speckle, which the eye ignores. For the two-tone modes, **Reverse** swaps which tone is ink, for a station with the tone order the other way round.
-- **Save Picture** saves the picture as a PNG; **Clear** starts a clean page.
+- **Mode :** Feld Hell (le courant, 245 Hz de large), Slow Hell, Hell X5 et X9 (plus rapides et plus larges), et les modes à deux tonalités FSK Hell 245, FSK Hell 105 et Hell 80. La vitesse doit correspondre, sinon les lettres sortent étirées ou écrasées.
+- **Chaque ligne de texte est peinte deux fois**, une copie au-dessus de l'autre, comme le fait fldigi : une petite différence de vitesse entre les stations penche le texte, et l'une des deux copies est toujours entière.
+- Il n'y a pas de squelch : le bruit apparaît comme un moucheté que l'œil ignore. Pour les modes à deux tonalités, **Reverse** inverse la tonalité qui fait l'encre, pour une station dont l'ordre des tonalités est inversé.
+- **Save Picture** enregistre l'image en PNG ; **Clear** commence une page vierge.
 
-### MT63 notes
+### Notes sur MT63
 
-MT63 sends 64 carriers at once, each carrying one bit per symbol, and spreads every character over all of them and over 32 (short) or 64 (long) symbols in time. A character therefore survives the loss of a good part of its carriers and a burst of noise, which is why MT63 is used for emergency traffic: it copies through interference that wipes out narrower modes.
+MT63 émet 64 porteuses à la fois, chacune portant un bit par symbole, et répartit chaque caractère sur toutes et, dans le temps, sur 32 (short) ou 64 (long) symboles. Un caractère survit donc à la perte d'une bonne partie de ses porteuses et à une rafale de bruit ; c'est pourquoi MT63 sert au trafic d'urgence : il passe à travers des brouillages qui effacent les modes plus étroits.
 
-- **Mode:** MT63-500, -1000 or -2000 (the bandwidth), each with **short** or **long** interleave. Both must match. MT63-1000 long is the most used.
-- **Tuning:** fldigi sends the lowest carrier at 500 Hz, so the centre is 500 Hz plus half the bandwidth: 750, 1000 or 1500 Hz, set automatically when you pick the mode. The decoder finds the last 8 carriers of error by itself (±125 Hz for MT63-1000).
-- **Text lags the signal** by the interleaver: from about 1.6 s (MT63-2000 short) to 12.8 s (MT63-500 long). The last characters of a transmission arrive after the signal has stopped.
-- **Squelch (FEC S/N)** — noise alone reads about 3, a locked signal 4.5 and up; the default is 4. The squelch hides the moment the synchroniser needs to lock at the start.
+- **Mode :** MT63-500, -1000 ou -2000 (la largeur), chacun avec entrelacement **short** ou **long**. Les deux doivent correspondre. Le plus utilisé est MT63-1000 long.
+- **Accord :** fldigi émet la porteuse la plus basse à 500 Hz ; le centre est donc 500 Hz plus la moitié de la largeur : 750, 1000 ou 1500 Hz, réglé automatiquement quand vous choisissez le Mode. Le décodeur retrouve seul jusqu'à 8 porteuses d'écart (±125 Hz pour MT63-1000).
+- **Le texte arrive en retard** sur le signal à cause de l'entrelaceur : d'environ 1,6 s (MT63-2000 short) à 12,8 s (MT63-500 long). Les derniers caractères d'une émission arrivent après l'arrêt du signal.
+- **Squelch (FEC S/N)** — le bruit seul affiche environ 3, un signal accroché 4,5 et plus ; la valeur par défaut est 4. Le squelch masque le moment dont le synchroniseur a besoin pour s'accrocher au début.
 
-### Packet and APRS notes
+### Notes sur Packet et APRS
 
-Packet radio sends data in short bursts called frames. Each frame carries the sender's callsign, the destination, the digipeaters it went through, and a checksum. **APRS** (Automatic Packet Reporting System) uses these frames to report positions, weather, messages and status, mostly on one shared frequency per region.
+Le packet radio transmet des données par courtes salves appelées trames (frames). Chaque trame contient l'indicatif de l'expéditeur, la destination, les digipeaters par lesquels elle est passée et une somme de contrôle. **APRS** (Automatic Packet Reporting System) utilise ces trames pour diffuser positions, données météo, messages et états, le plus souvent sur une fréquence commune par région.
 
-- **Packet** prints every frame, the way a TNC monitor does: time (UTC), `SOURCE>DESTINATION,PATH`, the frame type in angle brackets, then the text. Connected-mode traffic (SABM, UA, I-frames, RR, DISC) shows up as well as broadcasts.
-- **APRS** prints only the broadcast frames APRS uses, and turns each into plain text: position with a Maidenhead locator, symbol (car, house, weather station, …), speed and course, altitude, comment, weather readings in metric units, messages and acknowledgements, objects, items, status and telemetry. Compressed and Mic-E positions are decoded too. With **Show raw packet** on, the received packet is printed above its decoded line.
-- **APRS map.** Under the decoded text, the APRS variant shows a map of every station heard with a position, the same width and height as the text pane: a labelled marker per station (objects and items under their own name), a track line for moving stations, and an amber marker for this receiver, placed from its grid square. Click a station for its decoded line, when it was last heard, and its distance and bearing from the receiver; click a decoded line in the pane to zoom the map to that station. **Auto fit** (on by default) re-frames the map as stations arrive and move; panning or zooming by hand turns it off, and ticking it turns it back on. **Fit all** frames everything once, **Clear** empties the map, and **–** minimises it to its title bar (**□** brings it back) — stations keep collecting meanwhile. The map images come from OpenStreetMap, so the listener's browser needs internet access to draw them; the decoding itself stays local.
-- **Speed 1200 Bd** is the VHF/UHF standard (Bell 202 tones, 1200 / 2200 Hz). The decoder switches the receiver to **FM** and tunes it on the channel itself: pick **144.800 MHz** in Europe, or tune any packet channel and press **⇒ Set IF Band-Pass**. The 12.5 kHz **Wheel Tuning Step** moves along the VHF channel grid.
-- **Speed 300 Bd** is HF packet, two tones 200 Hz apart. The receiver goes to **USB** and the dial is the published frequency; the tones sit at 1600 / 1800 Hz. Use **⟳ Auto-tune Center** if the signal is a little off.
-- **Only frames with a correct checksum are printed**, so noise never prints as garbage — a quiet pane means a quiet channel. If **DCD** lights but **Frames** does not count up, the signals are there but too weak or distorted to pass the checksum.
-- The decoder works with FM receivers that use de-emphasis and those that do not, and with transmitters that boost one tone more than the other.
+- **Packet** affiche toutes les trames, comme le fait un moniteur de TNC : heure (UTC), `SOURCE>DESTINATION,CHEMIN`, le type de trame entre chevrons, puis le texte. Le trafic en mode connecté (SABM, UA, trames I, RR, DISC) apparaît aussi, pas seulement les diffusions.
+- **APRS** n'affiche que les trames de diffusion utilisées par APRS et les transforme en texte clair : position avec locator Maidenhead, symbole (voiture, maison, station météo, …), vitesse et cap, altitude, commentaire, relevés météo en unités métriques, messages et accusés de réception, objets, items, état et télémesure. Les positions compressées et Mic-E sont aussi décodées. Avec **Show raw packet**, le paquet reçu est affiché au-dessus de sa ligne décodée.
+- **Carte APRS.** Sous le texte décodé, la variante APRS affiche une carte de toutes les stations entendues avec une position, de la même largeur et hauteur que le panneau de texte : un marqueur avec l'indicatif par station (objets et items sous leur propre nom), une trace pour les stations en mouvement, et un marqueur ambre pour ce récepteur, placé d'après son locator. Cliquez sur une station pour voir sa ligne décodée, quand elle a été entendue pour la dernière fois, ainsi que sa distance et son azimut depuis le récepteur ; cliquez sur une ligne décodée du panneau pour centrer la carte sur cette station. **Auto fit** (activé par défaut) recadre la carte à mesure que des stations arrivent et se déplacent ; un déplacement ou un zoom à la main le désactive, et le cocher le réactive. **Fit all** cadre tout une fois, **Clear** vide la carte, et **–** la réduit à sa barre de titre (**□** la rétablit) — les stations continuent d'être collectées entre-temps. Les images de la carte viennent d'OpenStreetMap ; le navigateur de l'auditeur a donc besoin d'un accès à Internet pour les afficher ; le décodage lui-même reste local.
+- **Speed 1200 Bd** est le standard des VHF/UHF (tonalités Bell 202, 1200 / 2200 Hz). Le décodeur passe le récepteur en **FM** et l'accorde sur le canal lui-même : choisissez **144,800 MHz** en Europe, ou accordez-vous sur n'importe quel canal packet et appuyez sur **⇒ Set IF Band-Pass**. Le **Wheel Tuning Step** de 12,5 kHz suit la grille des canaux VHF.
+- **Speed 300 Bd** est le packet HF, deux tonalités espacées de 200 Hz. Le récepteur passe en **USB** et la fréquence affichée est la fréquence publiée ; les tonalités sont à 1600 / 1800 Hz. Si le signal est un peu décalé, utilisez **⟳ Auto-tune Center**.
+- **Seules les trames dont la somme de contrôle est correcte sont affichées**, le bruit n'apparaît donc jamais comme du charabia — un panneau vide signifie un canal calme. Si **DCD** s'allume sans que **Frames** n'augmente, les signaux sont là mais trop faibles ou trop déformés pour passer le contrôle.
+- Le décodeur fonctionne avec les récepteurs FM avec ou sans désaccentuation, et avec les émetteurs qui renforcent une tonalité plus que l'autre.
 
-> **Mode note:** The decoder takes control of the demodulation mode and IF passband while active. Both are restored automatically when you disable the decoder. All variants use **USB**, except Packet and APRS at 1200 Bd, which use **FM**.
+> **Note sur le mode :** le décodeur prend le contrôle du mode de démodulation et de la bande passante FI tant qu'il est actif. Les deux sont rétablis automatiquement à sa désactivation. Toutes les variantes utilisent l'**USB**, sauf Packet et APRS à 1200 Bd, qui utilisent la **FM**.
 >
-> **Polarity note (FSK variants only):** For Weather RTTY you usually need to check **Invert mark / space**. For Maritime FSK (SITOR/NAVTEX-style) and Amateur RTTY, leave it unchecked — amateur RTTY sends mark as the higher radio frequency, and USB keeps it as the higher audio tone, which is the unchecked case. If decoded text is garbled, toggling this checkbox is the first thing to try. The checkbox is hidden for every variant except the three FSK ones: the others have no mark/space pair, and packet decoding does not depend on which tone is which.
+> **Note sur la polarité (variantes FSK uniquement) :** pour le RTTY météo, il faut généralement cocher **Invert mark / space**. Pour le FSK maritime (type SITOR/NAVTEX) et le RTTY amateur, laissez la case décochée — le RTTY amateur émet le mark sur la radiofréquence la plus haute, et l'USB le conserve comme la tonalité audio la plus haute, ce qui correspond précisément au cas décoché. Si le texte décodé est brouillé, la première chose à essayer est de basculer cette case. Elle est masquée pour toutes les variantes sauf les trois FSK : les autres n'ont pas de paire mark/space, et le décodage packet ne dépend pas de quelle tonalité est laquelle.
 >
-> **Letters/figures note (FSK variants only):** Baudot carries letters and figures in two separate states, and noise can flip the decoder into the wrong one — which garbles every following character, not just the damaged one. The decoder therefore returns to letters on every space, standard practice that repairs a corrupted shift within a word or two instead of a whole line. The cost is that groups of digits separated by spaces need the sender to repeat the figures shift after each space, as transmitters normally do.
+> **Note sur lettres/chiffres (variantes FSK uniquement) :** le code Baudot gère les lettres et les chiffres dans deux états distincts, et le bruit peut faire basculer le décodeur dans le mauvais — ce qui brouille tous les caractères suivants, pas seulement celui qui a été altéré. Le décodeur revient donc aux lettres à chaque espace ; c'est la pratique courante et cela répare un basculement corrompu en un ou deux mots au lieu d'une ligne entière. En contrepartie, les groupes de chiffres séparés par des espaces exigent que l'émetteur répète le passage aux chiffres après chaque espace, ce que font normalement les émetteurs.
 
 ---
 
 ## 11. SSTV
 
-**What it is:** Slow-Scan Television transmits still pictures over a normal SSB voice channel, one line at a time, as a frequency-modulated tone between 1500 Hz (black) and 2300 Hz (white). A full picture takes between 36 seconds and 4½ minutes depending on the mode.
+**De quoi s'agit-il :** la télévision à balayage lent transmet des images fixes sur un canal phonie SSB ordinaire, une ligne à la fois, sous forme d'une tonalité modulée en fréquence entre 1500 Hz (noir) et 2300 Hz (blanc). Une image complète prend entre 36 secondes et 4 minutes 30 selon le mode.
 
-### Recommended frequencies (USB)
+### Fréquences recommandées (USB)
 
-| Band | Frequency | Mode | Notes |
-|------|-----------|------|-------|
-| 20m | 14.230 MHz | USB | The main international SSTV calling frequency — by far the most active |
-| 20m | 14.233 MHz | USB | Secondary, used when 14.230 is busy |
-| 15m | 21.340 MHz | USB | |
-| 10m | 28.680 MHz | USB | Active during band openings |
-| 40m | 7.171 MHz | LSB | |
-| 80m | 3.845 MHz | LSB | Regional, evenings |
+| Bande | Fréquence | Mode | Remarques |
+|-------|-----------|------|-----------|
+| 20 m | 14.230 MHz | USB | La principale fréquence d'appel SSTV internationale — de loin la plus active |
+| 20 m | 14.233 MHz | USB | Secondaire, utilisée quand 14.230 est occupée |
+| 15 m | 21.340 MHz | USB | |
+| 10 m | 28.680 MHz | USB | Active pendant les ouvertures de bande |
+| 40 m | 7.171 MHz | LSB | |
+| 80 m | 3.845 MHz | LSB | Régionale, en soirée |
 
-**Sideband is chosen for you.** Starting the decoder selects **LSB below 10 MHz** and **USB above it**, following normal amateur practice. On the wrong sideband the tone mapping is inverted and the picture will not decode. If you meet a station that ignores the convention, simply change the sideband by hand — the decoder stays running, clears the frame and starts fresh on the new setting.
+**La bande latérale est choisie pour vous.** Le démarrage du décodeur sélectionne la **LSB en dessous de 10 MHz** et l'**USB au-dessus**, selon l'usage amateur habituel. Sur la mauvaise bande latérale, la correspondance des tonalités est inversée et l'image ne sera pas décodée. Si vous rencontrez une station qui ignore la convention, changez simplement la bande latérale à la main — le décodeur reste actif, efface l'image et repart à zéro avec le nouveau réglage.
 
-### Setup
+### Configuration
 
-1. Enable the decoder and select **SSTV** from the dropdown. Or simply press the **SSTV** button. The receiver switches sideband automatically — USB above 10 MHz, LSB below.
-2. Tune so the picture tones fall in the middle of the passband. A correctly tuned signal has its sync pulses at 1200 Hz and the picture content between 1500 and 2300 Hz.
-3. Leave **Mode** on **Auto** unless you already know what is being sent. The image builds line by line as it is received.
+1. Activez le décodeur et sélectionnez **SSTV** dans le menu déroulant. Ou appuyez simplement sur le bouton **SSTV**. Le récepteur change automatiquement de bande latérale — USB au-dessus de 10 MHz, LSB en dessous.
+2. Accordez-vous de sorte que les tonalités de l'image tombent au milieu de la bande passante. Un signal correctement accordé a ses impulsions de synchronisation à 1200 Hz et le contenu de l'image entre 1500 et 2300 Hz.
+3. Laissez **Mode** sur **Auto**, sauf si vous savez déjà ce qui est transmis. L'image se construit ligne par ligne au fur et à mesure de la réception.
 
 ### Modes
 
-| Setting | Picture | Duration |
-|---------|---------|----------|
-| **Auto** | Detected automatically | — |
-| Martin M1 / M2 | 320×256 colour | 114 s / 58 s |
-| Scottie S1 / S2 | 320×256 colour | 110 s / 71 s |
-| Scottie DX | 320×256 colour | 269 s |
-| Robot 36 / 72 | 320×240 colour | 36 s / 72 s |
+| Réglage | Image | Durée |
+|---------|-------|-------|
+| **Auto** | Détecté automatiquement | — |
+| Martin M1 / M2 | 320×256 couleur | 114 s / 58 s |
+| Scottie S1 / S2 | 320×256 couleur | 110 s / 71 s |
+| Scottie DX | 320×256 couleur | 269 s |
+| Robot 36 / 72 | 320×240 couleur | 36 s / 72 s |
 
-**Auto** works two ways: it reads the **VIS header** — the digital mode code sent in the first 300 ms of a transmission — and, if the header was missed (you tuned in late, or it was lost in QSB), it identifies the mode from the sync-pulse timing instead. Selecting a specific mode forces that mode, but the decoder still verifies the sync before it draws anything, so a wrong choice produces no picture rather than noise.
+**Auto** fonctionne de deux façons : il lit l'**en-tête VIS** — le code numérique du mode envoyé dans les 300 premières millisecondes d'une transmission — et, si l'en-tête a été manqué (vous vous êtes accordé trop tard, ou il a été perdu dans le QSB), il identifie le mode d'après la synchronisation des impulsions. Sélectionner un mode précis force ce mode, mais le décodeur vérifie tout de même la synchronisation avant de dessiner quoi que ce soit : un mauvais choix ne produit donc aucune image plutôt que du bruit.
 
-### Reading the output
+### Lecture des résultats
 
-The status line under the controls reports what the decoder is doing:
+La ligne d'état sous les commandes indique ce que fait le décodeur :
 
-| Status | Meaning |
-|--------|---------|
-| `Waiting for VIS / AUTO lock` | Listening; nothing identified yet |
-| `Martin M1? verifying sync…` | A candidate was found and is being confirmed against the next lines |
-| `Martin M1 lock (VIS)` | Locked from the VIS header |
-| `Martin M1 lock (AUTO)` | Locked from sync-pulse timing |
-| `Martin M1 lock (MANUAL)` | Started by the **⏺ Force** button |
-| `Candidate rejected (no sync)` | The candidate failed confirmation — normal on noise |
-| `— sync lost, resetting` | The signal disappeared mid-picture |
-| `Frame complete` | The full picture was received |
+| État | Signification |
+|------|---------------|
+| `Waiting for VIS / AUTO lock` | À l'écoute ; rien d'identifié pour l'instant |
+| `Martin M1? verifying sync…` | Un candidat a été trouvé et est confirmé sur les lignes suivantes |
+| `Martin M1 lock (VIS)` | Verrouillé d'après l'en-tête VIS |
+| `Martin M1 lock (AUTO)` | Verrouillé d'après la synchronisation |
+| `Martin M1 lock (MANUAL)` | Démarré par le bouton **⏺ Force** |
+| `Candidate rejected (no sync)` | Le candidat n'a pas été confirmé — normal sur du bruit |
+| `— sync lost, resetting` | Le signal a disparu en cours d'image |
+| `Frame complete` | L'image complète a été reçue |
 
-The detected mode also appears in green next to the **SSTV** title, and the line counter shows progress.
+Le mode détecté apparaît aussi en vert à côté du titre **SSTV**, et le compteur de lignes indique la progression.
 
-### Controls
+### Commandes
 
-| Button | Action |
+| Bouton | Action |
 |--------|--------|
-| **▶ Start** | Arms the decoder. It does not draw a picture by itself — a lock still has to come from the VIS header or from sync detection. |
-| **■ Stop** | Stops decoding. |
-| **↺ Reset** | Clears the canvas and re-arms in place. Use it between pictures, or after retuning. |
-| **⏺ Force** | Starts drawing **immediately** in the mode selected in the dropdown, skipping VIS and sync detection entirely. Only available when Mode is not **Auto**. |
-| **💾 Save** | Saves the current image as a PNG. |
+| **▶ Start** | Arme le décodeur. Il ne dessine pas d'image de lui-même — un verrouillage doit encore provenir de l'en-tête VIS ou de la détection de synchronisation. |
+| **■ Stop** | Arrête le décodage. |
+| **↺ Reset** | Efface le canevas et réarme sur place. À utiliser entre deux images ou après un réaccord. |
+| **⏺ Force** | Commence à dessiner **immédiatement** dans le mode sélectionné dans la liste, en sautant entièrement le VIS et la détection de synchronisation. Disponible uniquement quand Mode n'est pas sur **Auto**. |
+| **💾 Save** | Enregistre l'image actuelle au format PNG. |
 
-**When to use Force.** If you can see a picture in the waterfall but the decoder will not lock onto it — an unusual mode, a signal too weak or too distorted for the detectors, or a header you missed — select the mode by hand and press **⏺ Force**. The frame is anchored at the moment you click, and the mode badge shows `MANUAL` so you can tell it from a VIS or AUTO lock. The decoder still snaps to a real sync pulse if it finds one, so a click that is slightly early or late is corrected.
+**Quand utiliser Force.** Si vous voyez une image dans la cascade mais que le décodeur ne parvient pas à s'y verrouiller — mode inhabituel, signal trop faible ou trop déformé pour les détecteurs, ou en-tête manqué — sélectionnez le mode à la main et appuyez sur **⏺ Force**. L'image est calée au moment du clic, et le badge de mode affiche `MANUAL` pour que vous puissiez la distinguer d'un verrouillage VIS ou AUTO. Le décodeur se recale tout de même sur une véritable impulsion de synchronisation s'il en trouve une : un clic légèrement en avance ou en retard est donc corrigé.
 
-Because Force skips every safety check, it will happily paint noise if you press it on an empty channel, and it will not stop on its own — press **■ Stop** or **↺ Reset**.
+Comme Force contourne toutes les vérifications de sécurité, il peindra volontiers du bruit si vous l'actionnez sur un canal vide, et il ne s'arrêtera pas tout seul — appuyez sur **■ Stop** ou **↺ Reset**.
 
-### Notes
+### Remarques
 
-- **Noise will not start the decoder.** Static crashes, sparks and mains hash used to be enough to trigger a decode. Every detection stage now tests that the tone is a genuine tone and confirms the candidate against the following lines before a single pixel is drawn. Expect the decoder to sit quietly on an empty band.
-- **The picture drifts diagonally if you are off frequency.** SSTV is unforgiving of tuning error. If lines slant, adjust the dial in small steps and let the next picture start.
-- Colour balance and sharpness are fixed; there are no adjustments to make.
-
----
-
-## 12. General Tips
-
-**Decoder: ON must be engaged first.** The dropdown is disabled (greyed out) until you click the Decoder button to turn it on.
-
-**One decoder at a time.** Selecting a new decoder from the dropdown automatically stops the previously active one and resets any mode or passband changes it made.
-
-**Mode is managed for you.** HF FAX and NAVTEX switch the receiver to USB as soon as you select them, and SSTV picks the sideband from the band (LSB below 10 MHz, USB above), and FAX, NAVTEX and FLDIGI also adjust the passband when you click their Tune button. FT8, FT4, FT2, JS8 and WSPR do the same as soon as you select them — from the button row or the dropdown — switching the receiver to USB and setting their own passband: the whole 3 kHz sub-band for the FT8 family, 1350–1650 Hz for WSPR. When you stop the decoder, the band's default mode is restored.
-
-**Switching a decoder on no longer interrupts the audio.** The decoders run on their own threads, so there is no gap, click or dropout when one starts, stops, or is swapped for another.
-
-**System clock accuracy matters.** FT8, FT4, and WSPR are time-critical. They decode in fixed UTC-aligned windows. If your computer clock is off by more than 1–2 seconds, decode rates will drop significantly. Use an NTP client to keep your clock accurate.
-
-**The noise filters do not reach the decoders.** NR, NB, NS and AN are listening
-aids for your ears only. Every decoder — FT8, FT4/FT2, CW, WSPR, FAX, NAVTEX, every FLDIGI mode, SSTV and the QRSS grabber — taps the audio *before* those filters, so set them however sounds best without worrying about decode quality. For the same reason the decoders keep running while the receiver is muted or squelched: you can silence the speaker and leave a decoder or an overnight QRSS grab collecting. The one thing that does follow what you hear is the Audio Spectrogram, which is meant to show the filtered audio.
-
-**Signal quality beats signal strength.** Most of these decoders are designed for weak signals. A quieter band with lower noise is often more productive than a loud, interference-filled signal. Use the waterfall and passband controls to identify and avoid QRM before enabling a decoder.
-
-**Use the Refresh or Clear buttons liberally.** FAX images drift if the dial frequency is slightly off, and text decoders accumulate noise characters. A fresh start after tuning adjustments often produces much cleaner output.
-
-### Automatic spot reporting and server graphs
-
-FT8, FT4 and WSPR decodes can also be uploaded automatically by the server itself — FT8/FT4 to PSK Reporter, WSPR to WSPRnet — by an autorun daemon the sysop starts from the admin panel. It is independent of the decoders in your browser: it keeps running whether or not anyone is listening, and nothing you decode in the browser is reported.
-
-The sysop follows it with two counters, which are easy to mistake for each other: the per-decoder tiles count the spots uploaded since the daemon last started, while the number beside each band/mode checkbox is that slot's all-time total and survives restarts. The same panel has a **Graphs** page plotting CPU frequency, CPU load, CPU temperature and users online over the last 15 minutes to 24 hours. Both are described in the [Admin Panel guide](ADMIN_PANEL_SETUP.md).
+- **Le bruit ne déclenche pas le décodeur.** Les parasites atmosphériques, les étincelles et le bruit du secteur suffisaient autrefois à déclencher un décodage. Chaque étape de détection vérifie désormais que la tonalité est bien une tonalité, et confirme le candidat sur les lignes suivantes avant de dessiner le moindre pixel. Attendez-vous à ce que le décodeur reste silencieux sur une bande vide.
+- **L'image dérive en diagonale si vous êtes décalé en fréquence.** La SSTV ne pardonne pas les erreurs d'accord. Si les lignes penchent, ajustez la fréquence par petits pas et laissez l'image suivante démarrer.
+- L'équilibre des couleurs et la netteté sont fixes ; il n'y a aucun réglage à faire.
 
 ---
 
-*PhantomSDR-Plus — sv1btl fork — [phantomsdr.no-ip.org](http://phantomsdr.no-ip.org:8900)*
+## 12. Conseils généraux
+
+**Decoder: ON doit être activé en premier.** Le menu déroulant est désactivé (grisé) tant que vous n'avez pas cliqué sur le bouton Decoder pour l'activer.
+
+**Un décodeur à la fois.** Sélectionner un nouveau décodeur dans le menu arrête automatiquement celui qui était actif et annule les changements de mode ou de bande passante qu'il avait effectués.
+
+**Le mode est géré pour vous.** Le FAX HF et NAVTEX basculent le récepteur en USB dès que vous les sélectionnez, la SSTV choisit la bande latérale d'après la bande (LSB sous 10 MHz, USB au-dessus), et FAX, NAVTEX et FLDIGI ajustent aussi la bande passante lorsque vous cliquez sur leur bouton Tune. FT8, FT4, FT2, JS8 et WSPR font de même dès que vous les sélectionnez — depuis la rangée de boutons ou la liste déroulante : le récepteur bascule en USB et prend leur propre bande passante — toute la sous-bande de 3 kHz pour la famille FT8, 1350-1650 Hz pour WSPR. Lorsque vous arrêtez le décodeur, le mode par défaut de la bande est restauré.
+
+**Activer un décodeur n'interrompt plus l'audio.** Les décodeurs s'exécutent sur leurs propres threads : il n'y a donc ni blanc, ni clic, ni coupure lorsque l'un démarre, s'arrête ou est remplacé par un autre.
+
+**La précision de l'horloge système compte.** FT8, FT4 et WSPR sont critiques en temps. Ils décodent dans des fenêtres fixes alignées sur l'UTC. Si l'horloge de votre ordinateur est décalée de plus de 1 à 2 secondes, les taux de décodage chuteront nettement. Utilisez un client NTP pour garder votre horloge précise.
+
+**Les filtres de bruit n'atteignent pas les décodeurs.** NR, NB, NS et AN sont
+des aides à l'écoute, pour vos oreilles seulement. Tous les décodeurs — FT8, FT4/FT2, CW, WSPR, FAX, NAVTEX, tous les modes FLDIGI, SSTV et le grabber QRSS — prennent l'audio *avant* ces filtres : réglez-les donc comme cela sonne le mieux, sans vous soucier de la qualité de décodage. Pour la même raison, les décodeurs continuent de tourner pendant que le récepteur est coupé ou silencé : vous pouvez éteindre le haut-parleur et laisser un décodeur, ou une capture QRSS nocturne, poursuivre. La seule chose qui suive réellement ce que vous entendez est le spectrogramme audio, qui est fait pour montrer l'audio filtré.
+
+**La qualité du signal prime sur sa force.** La plupart de ces décodeurs sont conçus pour les signaux faibles. Une bande plus calme avec moins de bruit est souvent plus productive qu'un signal fort noyé dans les interférences. Utilisez la cascade et les commandes de bande passante pour repérer et éviter le QRM avant d'activer un décodeur.
+
+**Utilisez les boutons Refresh ou Clear sans hésiter.** Les images FAX dérivent si la fréquence affichée est légèrement décalée, et les décodeurs de texte accumulent des caractères parasites. Un nouveau départ après des ajustements d'accord produit souvent un résultat beaucoup plus propre.
+
+### Report automatique des spots et graphiques du serveur
+
+Les décodages FT8, FT4 et WSPR peuvent aussi être téléversés par le serveur lui-même — FT8/FT4 vers PSK Reporter, WSPR vers WSPRnet — par un démon autorun que le sysop démarre depuis le panneau d'administration. Il est indépendant des décodeurs de votre navigateur : il continue de tourner qu'il y ait des auditeurs ou non, et rien de ce que vous décodez dans le navigateur n'est rapporté.
+
+Le sysop le suit à l'aide de deux compteurs, faciles à confondre : les tuiles par décodeur comptent les spots téléversés depuis le dernier démarrage du démon, tandis que le nombre à côté de chaque case bande/mode est le total depuis toujours de cet emplacement et survit aux redémarrages. Le même panneau propose une page **Graphiques** traçant la fréquence du processeur, la charge, la température et les utilisateurs connectés sur les 15 dernières minutes à 24 heures. Les deux sont décrits dans le [guide du panneau d'administration](ADMIN_PANEL_SETUP.md).
+
+---
+
+*PhantomSDR-Plus — fork sv1btl — [phantomsdr.no-ip.org](http://phantomsdr.no-ip.org:8900)*

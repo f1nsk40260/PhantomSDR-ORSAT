@@ -1,69 +1,69 @@
-# RADE v1 Digital Voice for PhantomSDR-Plus
+# Voix numérique RADE v1 pour PhantomSDR-Plus
 
-> **On a station set up with the station questions (`configure-station.sh`)** the sidecar listens only inside the computer, on `PORT_RADE` (9012), and the page reaches it as `/rade` on the public port through `proxy.py` — port 8074 below is then neither used nor forwarded. On a station set up before the wizard, everything below applies as written.
+> **Sur une station configurée avec les questions de la station (`configure-station.sh`)**, le sidecar n'écoute qu'à l'intérieur de l'ordinateur, sur `PORT_RADE` (9012), et la page le joint sous `/rade` sur le port public via `proxy.py` ; le port 8074 ci-dessous n'est alors ni utilisé ni redirigé. Sur une station configurée avant l'assistant, tout ce qui suit s'applique tel quel.
 
-**RADE** (Radio AutoencoDEr) is FreeDV's flagship HF digital voice mode. It uses a Machine Learning / DSP hybrid (the FARGAN neural vocoder) to deliver high-quality speech over HF radio at SNRs as low as −2 dB, in just 1500 Hz of RF bandwidth — narrower than an SSB signal.
+**RADE** (Radio AutoencoDEr) est le mode phare de voix numérique HF de FreeDV. Il utilise un hybride apprentissage automatique / DSP (le vocodeur neuronal FARGAN) pour offrir une parole de haute qualité en HF avec des SNR descendant jusqu'à −2 dB, dans seulement 1500 Hz de largeur de bande RF — plus étroit qu'un signal BLU.
 
-This document covers the complete integration of RADE v1 receive support into PhantomSDR-Plus, implemented as a Python sidecar (`rade_helper.py`) that bridges the browser to the `radae_rxe.py` + `lpcnet_demo` decode pipeline.
+Ce document couvre l'intégration complète de la réception RADE v1 dans PhantomSDR-Plus, mise en œuvre sous la forme d'un sidecar Python (`rade_helper.py`) qui relie le navigateur à la chaîne de décodage `radae_rxe.py` + `lpcnet_demo`.
 
-## Installing it — the short way
+## L'installation — la voie courte
 
 ```bash
 cd ~/PhantomSDR-Plus
 ./install_rade.sh
 ```
 
-That is the whole installation. The script installs the system packages through whichever package manager the machine has (apt, pacman, dnf or zypper), falls back to pip for anything a distribution does not ship, upgrades `websockets` if the distro version is older than the 11.0 the sidecar needs, clones and builds radae, checks the model weights, rebuilds the frontend and starts the sidecar. On Ubuntu 22.04 it hands over to `install_rade_ubuntu22.sh` for you. `./install.sh` offers to run it as part of the normal PhantomSDR-Plus installation, so on a fresh machine RADE is already there.
+C'est toute l'installation. Le script installe les paquets système avec le gestionnaire de paquets présent sur la machine (apt, pacman, dnf ou zypper), se rabat sur pip pour ce qu'une distribution ne fournit pas, met à jour `websockets` si la version de la distribution est antérieure à la 11.0 exigée par le sidecar, clone et compile radae, vérifie les poids du modèle, reconstruit le frontend et démarre le sidecar. Sous Ubuntu 22.04, il passe la main à `install_rade_ubuntu22.sh`. `./install.sh` propose de l'exécuter dans le cadre de l'installation normale : sur une machine neuve, RADE est donc déjà là.
 
-**This document explains how RADE works and how to run it — it is not the install procedure.** If you need to do the installation by hand, on a system the script does not cover or to repair one step, follow the manual guide linked below; it is the single place the steps are written down. Everything here — the architecture, the patched files, the port, using RADE in the browser, the environment variables, troubleshooting and concurrency measurement — applies to every installation however it was made.
+**Ce document explique comment RADE fonctionne et comment le faire tourner — ce n'est pas la procédure d'installation.** Si vous devez installer à la main, sur un système que le script ne couvre pas ou pour réparer une étape, suivez le guide lié ci-dessous : les étapes y sont écrites, et nulle part ailleurs. Tout ce qui suit ici — l'architecture, les fichiers corrigés, le port, l'usage de RADE dans le navigateur, les variables d'environnement, le dépannage et la mesure de la simultanéité — vaut pour toute installation, quelle qu'en soit la manière.
 
-- **[Manual installation on Linux](RADE_General_INSTALL_MANUAL_LINUX.md)** - the by-hand route, step by step, covering Ubuntu, Debian, Fedora, Arch and Raspberry Pi OS
-
----
-
-## Table of Contents
-
-1. [Installing it — the short way](#installing-it--the-short-way)
-2. [How It Works](#how-it-works)
-3. [Architecture Overview](#architecture-overview)
-4. [RADEL vs RADEU](#radel-vs-radeu)
-5. [Prerequisites](#prerequisites)
-6. [Installing by hand](#installing-by-hand)
-7. [The Patched Files](#the-patched-files)
-8. [Sidecar control](#sidecar-control)
-9. [Port 8074](#port-8074)
-10. [Using RADE in the Browser](#using-rade-in-the-browser)
-11. [Verification and Debugging](#verification-and-debugging)
-12. [Environment Variables](#environment-variables)
-13. [Files Changed](#files-changed)
-14. [Signal Flow Summary](#signal-flow-summary)
-15. [Troubleshooting](#troubleshooting)
-16. [Measuring Concurrency on Your Own Hardware](#measuring-concurrency-on-your-own-hardware)
-17. [Updating RADE v1](#updating-rade-v1)
+- **[Installation manuelle sous Linux](RADE_General_INSTALL_MANUAL_LINUX.md)** - la voie manuelle, étape par étape, pour Ubuntu, Debian, Fedora, Arch et Raspberry Pi OS
 
 ---
 
-## How It Works
+## Table des matières
 
-RADE v1 cannot run in the browser — it requires PyTorch and the FARGAN neural vocoder, which are too large for WASM. The solution is a Python sidecar process (`rade_helper.py`) that runs on the same server as PhantomSDR-Plus.
-
-> **Important:** `freedv_rx` from the codec2 repository does **not** support RADEV1. The RADE decode pipeline lives entirely in the separate `radae` repository by David Rowe (VK5DGR). Do not attempt to use codec2's `freedv_rx` for RADE.
-
-When you select RADE in the browser:
-
-1. The frontend sets the underlying demodulation to USB or LSB — the C++ server demodulates the SSB signal as normal.
-2. The raw demodulated PCM is tapped in `audio.js` **before** any mute or squelch gating — `radae_rxe.py` needs continuous input to maintain frame sync.
-3. Each PCM chunk is zero-padded from real f32 to complex f32 (real + 0.0 imaginary) — this is what `radae_rxe.py` expects on stdin.
-4. The sidecar pipes those samples into `radae_rxe.py`, which outputs vocoder features.
-5. `lpcnet_demo -fargan-synthesis` converts the features into s16 speech at 16000 Hz.
-6. The sidecar converts s16 → f32 and sends it back to the browser as binary WebSocket frames.
-7. The browser plays the decoded speech via the Web Audio API at 16000 Hz.
-
-The C++ server (`spectrumserver.cpp`) is not modified at all.
+1. [L'installation — la voie courte](#linstallation--la-voie-courte)
+2. [Fonctionnement](#fonctionnement)
+3. [Vue d'ensemble de l'architecture](#vue-densemble-de-larchitecture)
+4. [RADEL contre RADEU](#radel-contre-radeu)
+5. [Prérequis](#prérequis)
+6. [Installation à la main](#installation-à-la-main)
+7. [Déployer les fichiers corrigés](#déployer-les-fichiers-corrigés)
+8. [Contrôle du sidecar](#contrôle-du-sidecar)
+9. [Le port 8074](#le-port-8074)
+10. [Utiliser RADE dans le navigateur](#utiliser-rade-dans-le-navigateur)
+11. [Vérification et débogage](#vérification-et-débogage)
+12. [Variables d'environnement](#variables-denvironnement)
+13. [Fichiers modifiés](#fichiers-modifiés)
+14. [Résumé du flux du signal](#résumé-du-flux-du-signal)
+15. [Dépannage](#dépannage)
+16. [Mesurer la simultanéité sur votre propre matériel](#mesurer-la-simultanéité-sur-votre-propre-matériel)
+17. [Mettre RADE v1 à jour](#mettre-rade-v1-à-jour)
 
 ---
 
-## Architecture Overview
+## Fonctionnement
+
+RADE v1 ne peut pas s'exécuter dans le navigateur — il exige PyTorch et le vocodeur neuronal FARGAN, trop volumineux pour WASM. La solution est un processus sidecar Python (`rade_helper.py`) qui s'exécute sur le même serveur que PhantomSDR-Plus.
+
+> **Important :** `freedv_rx` du dépôt codec2 ne prend **pas** en charge RADEV1. La chaîne de décodage RADE réside entièrement dans le dépôt distinct `radae` de David Rowe (VK5DGR). N'essayez pas d'utiliser `freedv_rx` de codec2 pour RADE.
+
+Lorsque vous sélectionnez RADE dans le navigateur :
+
+1. Le frontend règle la démodulation sous-jacente sur USB ou LSB — le serveur C++ démodule le signal BLU normalement.
+2. Le PCM démodulé brut est prélevé dans `audio.js` **avant** toute coupure ou porte de squelch — `radae_rxe.py` a besoin d'une entrée continue pour maintenir la synchronisation de trame.
+3. Chaque bloc PCM est complété par des zéros pour passer de f32 réel à f32 complexe (réel + 0.0 imaginaire) — c'est ce que `radae_rxe.py` attend sur son entrée standard.
+4. Le sidecar transmet ces échantillons à `radae_rxe.py`, qui produit des paramètres de vocodeur.
+5. `lpcnet_demo -fargan-synthesis` convertit ces paramètres en parole s16 à 16000 Hz.
+6. Le sidecar convertit s16 → f32 et renvoie le résultat au navigateur sous forme de trames WebSocket binaires.
+7. Le navigateur restitue la parole décodée via l'API Web Audio à 16000 Hz.
+
+Le serveur C++ (`spectrumserver.cpp`) n'est absolument pas modifié.
+
+---
+
+## Vue d'ensemble de l'architecture
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -102,100 +102,100 @@ The C++ server (`spectrumserver.cpp`) is not modified at all.
 
 ---
 
-## RADEL vs RADEU
+## RADEL contre RADEU
 
-RADE v1 is always transmitted over SSB. By convention:
+RADE v1 est toujours transmis en BLU. Par convention :
 
-| Mode  | Sideband | Use on bands                             |
-|-------|----------|------------------------------------------|
-| RADEL | LSB      | 160 m, 80 m, 40 m  (≤ 10 MHz)           |
-| RADEU | USB      | 20 m, 17 m, 15 m, 12 m, 10 m (> 10 MHz) |
+| Mode  | Bande latérale | À utiliser sur les bandes                |
+|-------|----------------|------------------------------------------|
+| RADEL | LSB            | 160 m, 80 m, 40 m  (≤ 10 MHz)           |
+| RADEU | USB            | 20 m, 17 m, 15 m, 12 m, 10 m (> 10 MHz) |
 
 ---
 
-## Prerequisites
+## Prérequis
 
-| Requirement | Version | Notes |
+| Élément requis | Version | Remarques |
 |---|---|---|
-| PhantomSDR-Plus | any | with Vite/Svelte frontend |
-| Linux | Ubuntu 24.04+ / Debian Bookworm+ | tested |
-| Python | 3.8+ | for `rade_helper.py` and `radae_rxe.py` |
-| radae repo | latest master | provides `radae_rxe.py` and `lpcnet_demo` |
-| cmake | 3.10+ | to build `lpcnet_demo` from radae |
-| PyTorch | 2.0+ | required by `radae_rxe.py` |
-| Node.js | 16+ | for `npm run build` |
-| websockets (Python) | 10–16+ | `pip3 install websockets` — all versions supported |
-| matplotlib | any | required by `radae_rxe.py` at import time |
-| numpy | 1.23+ | required; also enables resampling |
-| scipy | any | optional, enables accurate resampling |
+| PhantomSDR-Plus | quelconque | avec le frontend Vite/Svelte |
+| Linux | Ubuntu 24.04+ / Debian Bookworm+ | testé |
+| Python | 3.8+ | pour `rade_helper.py` et `radae_rxe.py` |
+| dépôt radae | dernier master | fournit `radae_rxe.py` et `lpcnet_demo` |
+| cmake | 3.10+ | pour compiler `lpcnet_demo` depuis radae |
+| PyTorch | 2.0+ | requis par `radae_rxe.py` |
+| Node.js | 16+ | pour `npm run build` |
+| websockets (Python) | 10–16+ | `pip3 install websockets` — toutes versions prises en charge |
+| matplotlib | quelconque | requis par `radae_rxe.py` à l'importation |
+| numpy | 1.23+ | requis ; permet aussi le rééchantillonnage |
+| scipy | quelconque | facultatif, permet un rééchantillonnage précis |
 
 ---
 
-## Installing by hand
+## Installation à la main
 
-`./install_rade.sh` does the whole installation. When you want to do it yourself — a system the script does not cover, or one step to repair — the procedure lives in **[RADE v1 — Manual Installation Guide](RADE_General_INSTALL_MANUAL_LINUX.md)**, and only there. It covers Ubuntu, Debian, Fedora, Arch and Raspberry Pi OS in one pass:
+`./install_rade.sh` réalise toute l'installation. Si vous voulez la faire vous-même — sur un système que le script ne couvre pas, ou pour réparer une étape — la procédure se trouve dans le **[Guide d'installation manuelle de RADE v1](RADE_General_INSTALL_MANUAL_LINUX.md)**, et là uniquement. Il couvre Ubuntu, Debian, Fedora, Arch et Raspberry Pi OS en une seule passe :
 
 | | |
 |---|---|
-| Step 1 | System packages, and the Node.js 22+ check |
-| Step 2 | Python packages, including the PEP 668 flag and the CPU-only torch wheel |
-| Step 3 | Clone and build the radae repository, verify `lpcnet_demo` and the model weights |
-| Step 4 | Verify the decode pipeline offline, before wiring it to the browser |
-| Step 5 | Build the PhantomSDR-Plus frontend |
-| Step 6 | Sidecar control |
-| Step 7 | Open port 8074 |
-| Steps 8–10 | Start the server, verify RADE, use it in the browser |
+| Étape 1 | Paquets système, et la vérification de Node.js 22+ |
+| Étape 2 | Paquets Python, avec l'option PEP 668 et la roue torch CPU seule |
+| Étape 3 | Cloner et compiler le dépôt radae, vérifier `lpcnet_demo` et les poids du modèle |
+| Étape 4 | Vérifier la chaîne de décodage hors ligne, avant de la relier au navigateur |
+| Étape 5 | Compiler le frontend de PhantomSDR-Plus |
+| Étape 6 | Contrôle du sidecar |
+| Étape 7 | Ouvrir le port 8074 |
+| Étapes 8 à 10 | Démarrer le serveur, vérifier RADE, l'utiliser dans le navigateur |
 
-The rest of this document assumes that is done.
+La suite de ce document suppose cela fait.
 
 ---
 
-## The Patched Files
+## Déployer les fichiers corrigés
 
-Copy the following files from the patch set into your PhantomSDR-Plus repository.
+Copiez les fichiers suivants du jeu de correctifs dans votre dépôt PhantomSDR-Plus.
 
-### New file — place in the repository root, alongside the start script you use:
+### Nouveau fichier — à placer à la racine du dépôt, à côté du script de démarrage que vous utilisez :
 
 ```
 rade_helper.py
 ```
 
-### Patched frontend files — place in `frontend/src/`:
+### Fichiers frontend corrigés — à placer dans `frontend/src/` :
 
 ```
 audio.js
 App.svelte
 ```
 
-### What the patches do
+### Ce que font les correctifs
 
-**`audio.js`** — 5 changes:
-- Constructor: 5 new RADE state fields (`decodeRADE`, `_radeSideband`, `_radeSocket`, `_radeCallback`, `_radeReady`, `_radeNextTime`)
-- Pre-boost PCM save: `pcmArrayPreBoost` saved before the FLAC 300× gain boost so RADE receives original amplitude (the boost would saturate `radae_rxe.py`)
-- `playAudio()`: RADE PCM tap using pre-boost audio, before mute/squelch gate
-- `playAudio()`: `if (this.decodeRADE) return` guard — suppresses raw SSB playback while RADE decoded speech plays
-- New methods: `setRADEDecoding()`, `setRADECallback()`, `_radePlayPCM()` with gapless scheduled playback via `_radeNextTime` clock (plays at **16000 Hz** — the output rate of `lpcnet_demo`)
+**`audio.js`** — 5 modifications :
+- Constructeur : 5 nouveaux champs d'état RADE (`decodeRADE`, `_radeSideband`, `_radeSocket`, `_radeCallback`, `_radeReady`, `_radeNextTime`)
+- Sauvegarde du PCM avant amplification : `pcmArrayPreBoost` enregistré avant le gain FLAC de 300×, afin que RADE reçoive l'amplitude d'origine (l'amplification saturerait `radae_rxe.py`)
+- `playAudio()` : prélèvement du PCM pour RADE en utilisant l'audio avant amplification, en amont de la porte de coupure/squelch
+- `playAudio()` : garde `if (this.decodeRADE) return` — supprime la lecture BLU brute pendant que la parole décodée par RADE est jouée
+- Nouvelles méthodes : `setRADEDecoding()`, `setRADECallback()`, `_radePlayPCM()` avec lecture planifiée sans blanc grâce à l'horloge `_radeNextTime` (lecture à **16000 Hz** — le débit de sortie de `lpcnet_demo`)
 
-**Each Svelte variant** — 6 changes:
-- `demodulationDefaults`: RADEL `{type:'LSB', offsets:[2200,-700]}`, RADEU `{type:'USB', offsets:[-700,2200]}` — passband starts 700 Hz from carrier, 1500 Hz wide
-- State variables: `radeEnabled`, `radeConnected`, `radeSynced`, `radeSnr`, `_radeDeactivate()`
-- `_radeDeactivate()`: stops the decoder and **restores the band default mode** from `bands-config.js` — identical behaviour to FAX, NAVTEX, FSK deactivation
-- `_deactivateAll()`: RADE cleanup line
-- `activateSelectedDecoder()`: `radel` and `radeu` branches
-- Decoder dropdown: two new `<option>` entries
-- Status panel: connection dot, sync/SNR status, error banner
+**Chaque variante Svelte** — 6 modifications :
+- `demodulationDefaults` : RADEL `{type:'LSB', offsets:[2200,-700]}`, RADEU `{type:'USB', offsets:[-700,2200]}` — la bande passante commence à 700 Hz de la porteuse, sur 1500 Hz de large
+- Variables d'état : `radeEnabled`, `radeConnected`, `radeSynced`, `radeSnr`, `_radeDeactivate()`
+- `_radeDeactivate()` : arrête le décodeur et **restaure le mode par défaut de la bande** d'après `bands-config.js` — comportement identique à la désactivation de FAX, NAVTEX, FSK
+- `_deactivateAll()` : ligne de nettoyage RADE
+- `activateSelectedDecoder()` : branches `radel` et `radeu`
+- Menu déroulant des décodeurs : deux nouvelles entrées `<option>`
+- Panneau d'état : point de connexion, état de synchronisation/SNR, bannière d'erreur
 
-### Startup scripts
+### Scripts de démarrage
 
-The receiver launchers (`start-rx888mk2.sh`, `start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos-hf.sh`, `start-fobos.sh`, `start-hackrf.sh`) start the sidecar themselves once the server is up, and `stop-websdr.sh` stops it with the server. `rade.sh` remains for running the sidecar standalone — see [Sidecar control](#sidecar-control).
+Les lanceurs du récepteur (`start-rx888mk2.sh`, `start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos-hf.sh`, `start-fobos.sh`, `start-hackrf.sh`) démarrent eux-mêmes le sidecar dès que le serveur tourne, et `stop-websdr.sh` l'arrête avec le serveur. `rade.sh` reste destiné à faire tourner le sidecar de façon autonome — voir [Contrôle du sidecar](#contrôle-du-sidecar).
 
 ---
 
-## Sidecar control
+## Contrôle du sidecar
 
-**You normally do not need a separate RADE control script.** The receiver launchers start the sidecar once the server is confirmed up, restart it if it exits, and report its state in their closing summary — `✔ RADE sidecar running`, or a `·` note explaining why it was not activated (not installed, `RADE_ENABLED=0`, or no `python3`). `./stop-websdr.sh` stops it along with the server. To run the server without RADE, start it with `RADE_ENABLED=0`.
+**Vous n'avez normalement pas besoin d'un script de contrôle distinct pour RADE.** Les lanceurs du récepteur (`start-rx888mk2.sh`, `start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos-hf.sh`, `start-fobos.sh`, `start-hackrf.sh`) démarrent eux-mêmes le sidecar dès que le serveur est confirmé en marche, le relancent s'il s'arrête et signalent son état dans leur résumé de fin — `✔ RADE sidecar running`, ou une note `·` expliquant pourquoi il n'a pas été activé (non installé, `RADE_ENABLED=0`, ou pas de `python3`). `./stop-websdr.sh` l'arrête en même temps que le serveur. Pour faire tourner le serveur sans RADE, démarrez-le avec `RADE_ENABLED=0`.
 
-`rade.sh` ships for standalone use — running the sidecar without the PhantomSDR-Plus launcher, or testing it on its own:
+`rade.sh` reste fourni pour un usage autonome — faire tourner le sidecar sans le lanceur PhantomSDR-Plus, ou le tester seul :
 
 ```bash
 chmod +x ~/PhantomSDR-Plus/rade.sh
@@ -206,90 +206,90 @@ cd ~/PhantomSDR-Plus
 ./rade.sh status     # show running / stopped + process info
 ```
 
-Sidecar activity is logged to `~/PhantomSDR-Plus/rade.log`:
+L'activité du sidecar est journalisée dans `~/PhantomSDR-Plus/rade.log` :
 
 ```bash
 tail -f ~/PhantomSDR-Plus/rade.log
 ```
 
-> **Do not mix the two while the server is running.** If a launcher's watchdog is active it will bring the sidecar back within about five seconds, so `./rade.sh stop` looks like it failed. To stop RADE while the server runs, either start the server with `RADE_ENABLED=0`, or stop everything with `./stop-websdr.sh`.
+> **Ne mélangez pas les deux pendant que le serveur tourne.** Si le chien de garde d'un lanceur est actif, il ramène le sidecar en cinq secondes environ, si bien que `./rade.sh stop` semble avoir échoué. Pour arrêter RADE alors que le serveur tourne, démarrez le serveur avec `RADE_ENABLED=0`, ou arrêtez tout avec `./stop-websdr.sh`.
 
-> If you do run `rade.sh` standalone, **always use `./rade.sh stop`** — `pkill -f rade_helper.py` alone will not beat its own watchdog, which respawns the process within 3 seconds.
+> Si vous lancez `rade.sh` de façon autonome, **utilisez toujours `./rade.sh stop`** — un simple `pkill -f rade_helper.py` ne bat pas son propre chien de garde, qui relance le processus en 3 secondes.
 
 ---
 
-## Port 8074
+## Le port 8074
 
-The sidecar listens on TCP port **8074** and the browser connects to it directly, so the port has to be reachable from outside. Opening it — ufw, firewalld, iptables, the router NAT rule, and the Nginx proxy to use when an ISP blocks the port outright — is [Step 7 of the manual guide](RADE_General_INSTALL_MANUAL_LINUX.md).
+Le sidecar écoute sur le port TCP **8074** et le navigateur s'y connecte directement : le port doit donc être joignable de l'extérieur. Son ouverture — ufw, firewalld, iptables, la règle NAT du routeur, et le proxy Nginx quand un FAI bloque purement et simplement le port — constitue l'[étape 7 du guide manuel](RADE_General_INSTALL_MANUAL_LINUX.md).
 
-Two things worth repeating here, because they cost the most time:
+Deux choses méritent d'être répétées ici, car ce sont elles qui coûtent le plus de temps :
 
 ```bash
 # Is the sidecar listening?
 ss -tlnp | grep 8074
 ```
 
-> **NAT hairpin warning:** testing with `curl` from the server to its own public hostname often returns `Connection refused` even when the port is open — many routers do not loop traffic back. Always test from an outside machine, or use **https://portchecker.co**.
+> **Attention au NAT hairpin :** un test avec `curl` depuis le serveur vers son propre nom public renvoie souvent `Connection refused` alors même que le port est ouvert — beaucoup de routeurs ne renvoient pas le trafic. Testez toujours depuis une machine extérieure, ou utilisez **https://portchecker.co**.
 
 ---
 
-## Using RADE in the Browser
+## Utiliser RADE dans le navigateur
 
-1. Open your PhantomSDR-Plus web interface
-2. Find active stations at **[qso.freedv.org](https://qso.freedv.org)**
-3. Tune to the station's dial frequency
-4. In **Decoder Options**, select:
-   - **RADE v1 — RADEL (LSB)** for 40 m / 80 m / 160 m
-   - **RADE v1 — RADEU (USB)** for 20 m / 17 m / 15 m / 12 m / 10 m
-5. Click **Decoder: ON**
+1. Ouvrez votre interface web PhantomSDR-Plus
+2. Trouvez les stations actives sur **[qso.freedv.org](https://qso.freedv.org)**
+3. Accordez-vous sur la fréquence affichée de la station
+4. Dans **Decoder Options**, sélectionnez :
+   - **RADE v1 — RADEL (LSB)** pour 40 m / 80 m / 160 m
+   - **RADE v1 — RADEU (USB)** pour 20 m / 17 m / 15 m / 12 m / 10 m
+5. Cliquez sur **Decoder: ON**
 
-### The RADEL / RADEU buttons (one-touch)
+### Les boutons RADEL / RADEU (une pression)
 
-Steps 4 and 5 can be replaced by a single press. A pair of **RADEL** / **RADEU** buttons is available in three places:
+Les étapes 4 et 5 peuvent être remplacées par une seule pression. Une paire de boutons **RADEL** / **RADEU** est disponible à trois endroits :
 
-- next to the **Modes selector** heading on the main panel;
-- inside the **Modes** popup window;
-- inside the **Bands** popup window.
+- à côté du titre **Modes selector** du panneau principal ;
+- dans la fenêtre **Modes** ;
+- dans la fenêtre **Bands**.
 
-Pressing one selects the decoder, switches the decoder ON, closes the popup you pressed it in, and scrolls the RADE panel into view. The button turns blue while RADE is running. **Press the same button again to switch RADE off** — the panel closes and mode and passband revert as described below. The buttons, the **Decoder Options** dropdown and the ON/OFF button all share the same state.
+Une pression sélectionne le décodeur, met le décodeur sur ON, ferme la fenêtre depuis laquelle vous avez appuyé et amène le panneau RADE à l'écran. Le bouton devient bleu tant que RADE tourne. **Appuyez de nouveau sur le même bouton pour arrêter RADE** — le panneau se ferme, et le mode ainsi que la bande passante reviennent à leur valeur par défaut comme décrit plus bas. Les boutons, le menu déroulant **Decoder Options** et le bouton ON/OFF partagent le même état.
 
-### Panel indicator states
+### États de l'indicateur du panneau
 
-| Indicator | Meaning |
+| Indicateur | Signification |
 |---|---|
-| 🔴 Red — "Connecting to sidecar…" | Port 8074 unreachable or sidecar not running |
-| 🟡 Yellow — "Searching for signal…" | Sidecar connected, no RADE frame detected yet |
-| 🟢 Green — "Synced · SNR x.x dB" | Decoding — speech is playing |
+| 🔴 Rouge — « Connecting to sidecar… » | Port 8074 injoignable ou sidecar arrêté |
+| 🟡 Jaune — « Searching for signal… » | Sidecar connecté, aucune trame RADE encore détectée |
+| 🟢 Vert — « Synced · SNR x.x dB » | Décodage en cours — la parole est audible |
 
-### When you turn the decoder OFF
+### Quand vous désactivez le décodeur
 
-Mode and passband automatically revert to the correct default for the current frequency as defined in `bands-config.js` — identical to FAX, NAVTEX, FSK.
+Le mode et la bande passante reviennent automatiquement à la valeur par défaut correcte pour la fréquence courante, telle que définie dans `bands-config.js` — comme pour FAX, NAVTEX, FSK.
 
 ---
 
-## Verification and Debugging
+## Vérification et débogage
 
-### Is the sidecar running?
+### Le sidecar tourne-t-il ?
 
 ```bash
 ps aux | grep rade_helper | grep -v grep
 ss -tlnp | grep 8074
 ```
 
-### Watch live activity
+### Suivre l'activité en direct
 
 ```bash
 tail -f ~/PhantomSDR-Plus/rade.log
 ```
 
-When a browser connects:
+Lorsqu'un navigateur se connecte :
 ```
 [RADE] client connected: x.x.x.x:XXXXX
 [RADE] x.x.x.x:XXXXX  sps=12000 sideband=LSB
 [RADE] x.x.x.x:XXXXX spawning pipeline (torch_threads=1)
 ```
 
-### Quick WebSocket smoke test
+### Test rapide du WebSocket
 
 ```bash
 python3 - << 'EOF'
@@ -304,51 +304,51 @@ asyncio.run(test())
 EOF
 ```
 
-### Browser console (F12)
+### Console du navigateur (F12)
 
 ```
 [RADE] ▶ ENABLED LSB @ 12000 Hz → helper ws://localhost:8074
 ```
-Good — WebSocket opened. The Hz value matches your server's `audioOutputSps` (typically 8000–12000 Hz).
+Bon signe — le WebSocket est ouvert. La valeur en Hz correspond à l'`audioOutputSps` de votre serveur (typiquement 8000–12000 Hz).
 
 ```
 [RADE] sidecar socket error
 ```
-Port 8074 is unreachable — check firewall and router NAT rule.
+Le port 8074 est injoignable — vérifiez le pare-feu et la règle NAT du routeur.
 
 ---
 
-## Environment Variables
+## Variables d'environnement
 
-| Variable | Default | Description |
+| Variable | Défaut | Description |
 |---|---|---|
-| `RADE_HELPER_PORT` | `8074` | TCP port the sidecar listens on |
-| `RADE_HELPER_HOST` | `0.0.0.0` | Bind address (`127.0.0.1` if behind a proxy) |
-| `RADAE_DIR` | `~/radae` | Root of the radae repository |
-| `RADE_MODEL` | `RADAE_DIR/model19_check3/checkpoints/checkpoint_epoch_100.pth` | Model weights |
-| `LPCNET_DEMO` | `RADAE_DIR/build/src/lpcnet_demo` | lpcnet_demo binary |
-| `RADE_AUXDATA` | `1` | Set to `0` to pass `--noauxdata` to `radae_rxe.py` |
-| `RADE_TORCH_THREADS` | `1` | PyTorch/OpenBLAS threads per `radae_rxe.py` instance — limits CPU usage |
-| `RADE_PIN_CORES` | `1` | Pin each decode pipeline to its own core set; `0` disables pinning |
-| `RADE_CORES_PER_CLIENT` | `2` | Cores allocated per client when pinning is enabled |
+| `RADE_HELPER_PORT` | `8074` | Port TCP sur lequel le sidecar écoute |
+| `RADE_HELPER_HOST` | `0.0.0.0` | Adresse de liaison (`127.0.0.1` derrière un proxy) |
+| `RADAE_DIR` | `~/radae` | Racine du dépôt radae |
+| `RADE_MODEL` | `RADAE_DIR/model19_check3/checkpoints/checkpoint_epoch_100.pth` | Poids du modèle |
+| `LPCNET_DEMO` | `RADAE_DIR/build/src/lpcnet_demo` | Binaire lpcnet_demo |
+| `RADE_AUXDATA` | `1` | Mettre à `0` pour passer `--noauxdata` à `radae_rxe.py` |
+| `RADE_TORCH_THREADS` | `1` | Threads PyTorch/OpenBLAS par instance de `radae_rxe.py` — limite l'usage CPU |
+| `RADE_PIN_CORES` | `1` | Épingle chaque chaîne de décodage sur son propre jeu de cœurs ; `0` désactive l'épinglage |
+| `RADE_CORES_PER_CLIENT` | `2` | Cœurs alloués par client lorsque l'épinglage est activé |
 
 ---
 
-## Files Changed
+## Fichiers modifiés
 
-| File | Type | Notes |
+| Fichier | Type | Remarques |
 |---|---|---|
-| `rade_helper.py` | **New** | Python sidecar: WebSocket server + two-process decode pipeline |
-| `frontend/src/audio.js` | Modified | 4 patches |
-| `frontend/src/App.svelte` | Modified | 6 patches |
-| `rade.sh` | **New** | RADE sidecar control script for standalone use (start/stop/restart/status) |
-| `start-rx888mk2.sh` | Modified | starts, watchdogs and reports the sidecar; same for `start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos-hf.sh`, `start-fobos.sh`, `start-hackrf.sh` |
-| `stop-websdr.sh` | Modified | stops the sidecar along with the server |
-| `spectrumserver.cpp` | **Unchanged** | No C++ modifications required |
+| `rade_helper.py` | **Nouveau** | Sidecar Python : serveur WebSocket + chaîne de décodage à deux processus |
+| `frontend/src/audio.js` | Modifié | 4 correctifs |
+| `frontend/src/App.svelte` | Modifié | 6 correctifs |
+| `rade.sh` | **Nouveau** | Script de contrôle du sidecar RADE pour un usage autonome (start/stop/restart/status) |
+| `start-rx888mk2.sh` | Modifié | démarre, surveille et signale le sidecar ; idem pour `start-airspyhf.sh`, `start-rtl.sh`, `start-rsp1a.sh`, `start-fobos-hf.sh`, `start-fobos.sh`, `start-hackrf.sh` |
+| `stop-websdr.sh` | Modifié | arrête le sidecar en même temps que le serveur |
+| `spectrumserver.cpp` | **Inchangé** | Aucune modification C++ nécessaire |
 
 ---
 
-## Signal Flow Summary
+## Résumé du flux du signal
 
 ```
 Antenna → RX-888 MK2 → PhantomSDR-Plus C++ server
@@ -389,9 +389,9 @@ Antenna → RX-888 MK2 → PhantomSDR-Plus C++ server
 
 ---
 
-## Troubleshooting
+## Dépannage
 
-### Red banner — "Sidecar not reachable"
+### Bannière rouge — « Sidecar not reachable »
 
 ```bash
 # Is sidecar running?
@@ -406,18 +406,18 @@ python3 ~/PhantomSDR-Plus/rade_helper.py &
 
 ---
 
-### Port 8074 closed on portchecker.co despite iptables rule
+### Port 8074 fermé sur portchecker.co malgré la règle iptables
 
-The ISP may be filtering the port, or the router NAT rule is missing. Options:
+Le FAI filtre peut-être le port, ou la règle NAT du routeur est absente. Options :
 
-1. Try a different port: `RADE_HELPER_PORT=8080 python3 rade_helper.py`
-2. Proxy through your existing public port via Nginx (see [Step 7 of the manual guide](RADE_General_INSTALL_MANUAL_LINUX.md))
+1. Essayer un autre port : `RADE_HELPER_PORT=8080 python3 rade_helper.py`
+2. Passer par votre port public existant via un proxy Nginx (voir l'[étape 7 du guide manuel](RADE_General_INSTALL_MANUAL_LINUX.md))
 
 ---
 
 ### `radae_rxe.py: error: unrecognized arguments: model_path`
 
-The model path must use `--model_name`, not a positional argument:
+Le chemin du modèle doit être passé avec `--model_name`, pas en argument positionnel :
 
 ```bash
 # WRONG — positional argument
@@ -435,7 +435,7 @@ python3 radae_rxe.py --model_name model19_check3/checkpoints/checkpoint_epoch_10
 pip3 install matplotlib
 ```
 
-`radae_rxe.py` imports matplotlib unconditionally at the top of the file.
+`radae_rxe.py` importe matplotlib sans condition en tête de fichier.
 
 ---
 
@@ -449,7 +449,7 @@ pip3 install torch
 
 ### `lpcnet_demo: No such file or directory`
 
-The radae build did not complete. Rebuild:
+La compilation de radae n'a pas abouti. Recompilez :
 
 ```bash
 cd ~/radae/build
@@ -459,9 +459,9 @@ ls src/lpcnet_demo     # should exist now
 
 ---
 
-### `size mismatch` error in `inference.sh`
+### Erreur `size mismatch` dans `inference.sh`
 
-`model19_check3` requires `--auxdata` when encoding with `inference.sh`:
+`model19_check3` exige `--auxdata` lors de l'encodage avec `inference.sh` :
 
 ```bash
 ./inference.sh model19_check3/checkpoints/checkpoint_epoch_100.pth \
@@ -470,163 +470,163 @@ ls src/lpcnet_demo     # should exist now
     --write_rx rx.f32 --auxdata    # ← required for model19_check3
 ```
 
-Note: when **decoding** with `radae_rxe.py`, `--auxdata` is the default — do not pass it.
+À noter : lors du **décodage** avec `radae_rxe.py`, `--auxdata` est la valeur par défaut — ne le passez pas.
 
 ---
 
-### Yellow indicator — "Searching for signal" — never syncs
+### Indicateur jaune — « Searching for signal » — ne se synchronise jamais
 
-- Confirm the correct sideband: RADEL for ≤ 10 MHz, RADEU for > 10 MHz
-- Check [qso.freedv.org](https://qso.freedv.org) to confirm a station is currently transmitting
-- RADE v1 uses 30 carriers in 1500 Hz BW — it appears as a compact cluster on the waterfall
-- Allow up to 1.5 seconds for acquisition
+- Confirmez la bonne bande latérale : RADEL pour ≤ 10 MHz, RADEU pour > 10 MHz
+- Consultez [qso.freedv.org](https://qso.freedv.org) pour vérifier qu'une station émet actuellement
+- RADE v1 utilise 30 porteuses dans 1500 Hz de bande — il apparaît comme un groupe compact dans la cascade
+- Comptez jusqu'à 1,5 seconde pour l'acquisition
 
 ---
 
-### `underrun!!!` from aplay during the offline pipeline test
+### `underrun!!!` d'aplay pendant le test de la chaîne (étape 3)
 
-Expected during offline file testing only. `radae_rxe.py` processes slower than file I/O, causing the audio buffer to starve. This does not occur during live reception because the browser feeds audio at real-time rate.
+Attendu uniquement lors des tests hors ligne sur fichier. `radae_rxe.py` traite plus lentement que les entrées/sorties du fichier, ce qui affame le tampon audio. Cela ne se produit pas en réception en direct, car le navigateur fournit l'audio au rythme temps réel.
 
 ---
 
 ### `ConnectionClosedError: received 1011 (internal error)`
 
-The sidecar accepted the WebSocket connection but crashed internally before responding. This is caused by an incompatible version of `rade_helper.py` — an older version attempted to pass an asyncio `StreamReader` as a subprocess stdin, which fails silently and closes with error 1011.
+Le sidecar a accepté la connexion WebSocket mais a planté en interne avant de répondre. La cause est une version incompatible de `rade_helper.py` — une version plus ancienne tentait de passer un `StreamReader` asyncio comme entrée standard d'un sous-processus, ce qui échoue silencieusement et ferme avec l'erreur 1011.
 
-**Fix:** Replace `rade_helper.py` with the current version from the patch set. The current version uses `os.pipe()` for the inter-process pipe and is compatible with websockets 10.x through 16.x+.
+**Correctif :** remplacez `rade_helper.py` par la version actuelle du jeu de correctifs. La version actuelle utilise `os.pipe()` pour le tube interprocessus et est compatible avec websockets 10.x à 16.x+.
 
 ---
 
-### Multiple simultaneous users
+### Plusieurs utilisateurs simultanés
 
-Each browser connection spawns its own independent `radae_rxe.py` + `lpcnet_demo` pair, so each user can tune to a different frequency freely.
+Chaque connexion de navigateur lance sa propre paire indépendante `radae_rxe.py` + `lpcnet_demo`, de sorte que chaque utilisateur peut s'accorder librement sur une fréquence différente.
 
-By default `radae_rxe.py` uses **all available CPU cores** for PyTorch matrix operations, causing ~900% CPU usage per instance. `rade_helper.py` limits this with two optimisations:
+Par défaut, `radae_rxe.py` utilise **tous les cœurs CPU disponibles** pour les opérations matricielles PyTorch, ce qui provoque une charge d'environ 900 % par instance. `rade_helper.py` limite cela avec deux optimisations :
 
-1. `OMP_NUM_THREADS=1` (and MKL/OpenBLAS equivalents) — limits PyTorch to 1 thread
-2. Numpy-vectorised audio conversion functions — eliminates Python loop overhead
+1. `OMP_NUM_THREADS=1` (et les équivalents MKL/OpenBLAS) — limite PyTorch à 1 thread
+2. Fonctions de conversion audio vectorisées avec numpy — éliminent le coût des boucles Python
 
-Result: each instance uses roughly **~8–10%** of one core, sufficient for real-time RADE decode. If you hear audio dropouts, raise to 2 threads:
+Résultat : chaque instance consomme environ **8 à 10 %** d'un cœur, suffisant pour un décodage RADE en temps réel. Si vous entendez des coupures audio, passez à 2 threads :
 
 ```bash
 RADE_TORCH_THREADS=2 ./start-rx888mk2.sh     # or your receiver's launcher
 # standalone: RADE_TORCH_THREADS=2 ./rade.sh restart
 ```
 
-| Simultaneous RADE users | Approximate CPU |
+| Utilisateurs RADE simultanés | CPU approximatif |
 |---|---|
-| 1 | ~9% |
-| 5 | ~45% |
-| 10 | ~90% |
-| 20 | ~180% |
+| 1 | ~9 % |
+| 5 | ~45 % |
+| 10 | ~90 % |
+| 20 | ~180 % |
 
-On an i5-12450H (12 threads) with spectrumserver using ~42% and rx888_stream ~11%, you have roughly **1000% headroom** — enough for **20+ simultaneous** RADE users before CPU becomes a concern.
+Sur un i5-12450H (12 threads) avec spectrumserver à ~42 % et rx888_stream à ~11 %, vous disposez d'environ **1000 % de marge** — assez pour **20 utilisateurs RADE simultanés ou plus** avant que le CPU ne devienne un souci.
 
-> **The table above assumes CPU cost scales linearly with users. Measurement says it does not.** A `rade_loadtest.py` run on that same i5-12450H showed per-listener CPU well below this table up to ~24 listeners, then rising sharply above it, with the machine stopped by **package temperature at 32 listeners** — not by CPU and not by bandwidth. Treat these figures as a rough guide for small numbers only and measure your own box: see [Measuring Concurrency on Your Own Hardware](#measuring-concurrency-on-your-own-hardware). Note the load test drives the pipeline with noise rather than a real RADE signal, so absolute CPU under genuine traffic may differ; the *shape* of the curve is the reliable part.
+> **Le tableau ci-dessus suppose que le coût CPU croît linéairement avec le nombre d'utilisateurs. La mesure dit le contraire.** Une exécution de `rade_loadtest.py` sur ce même i5-12450H a montré un coût CPU par auditeur bien inférieur à ce tableau jusqu'à ~24 auditeurs, puis une hausse marquée au-delà, la machine étant arrêtée par la **température du package à 32 auditeurs** — ni par le CPU, ni par la bande passante. Considérez ces chiffres comme un repère grossier pour de petits nombres seulement et mesurez votre propre machine : voir [Mesurer la simultanéité sur votre propre matériel](#mesurer-la-simultanéité-sur-votre-propre-matériel). Notez que le test de charge alimente la chaîne avec du bruit plutôt qu'un vrai signal RADE : la charge CPU absolue avec du trafic réel peut donc différer ; c'est la *forme* de la courbe qui est fiable.
 
 ---
 
-## Measuring Concurrency on Your Own Hardware
+## Mesurer la simultanéité sur votre propre matériel
 
-The numbers above are from one specific box. `rade_loadtest.py` (repository root) measures the same thing on **yours** — it ramps synthetic RADE listeners against the sidecar in steps and reports the last listener count your machine sustained before something gave way.
+Les chiffres ci-dessus proviennent d'une machine précise. `rade_loadtest.py` (à la racine du dépôt) mesure la même chose sur **la vôtre** — il monte en charge des auditeurs RADE synthétiques face au sidecar par paliers et indique le dernier nombre d'auditeurs que votre machine a soutenu avant que quelque chose ne cède.
 
-After each step it lets the box settle, then samples package temperature, total CPU, available RAM, swap, and the combined RSS of every `radae_rxe.py` and `lpcnet_demo` process. It stops at the first **knee** — whichever limit is breached first — and prints the last stable count.
+Après chaque palier, il laisse la machine se stabiliser, puis échantillonne la température du package, le CPU total, la RAM disponible, le swap et la RSS combinée de tous les processus `radae_rxe.py` et `lpcnet_demo`. Il s'arrête au premier **coude** — quelle que soit la limite franchie en premier — et affiche le dernier nombre stable.
 
-### Requirements
+### Prérequis
 
 ```bash
 sudo apt install python3-websockets python3-psutil
 ```
 
-Run it **on the SDR host** (it reads local sensors and process memory), with spectrumserver and the RADE sidecar already running:
+Exécutez-le **sur l'hôte SDR** (il lit les capteurs locaux et la mémoire des processus), avec spectrumserver et le sidecar RADE déjà en marche :
 
 ```bash
 cd ~/PhantomSDR-Plus
 python3 rade_loadtest.py
 ```
 
-Ctrl-C tears down all connections cleanly at any point.
+Ctrl-C ferme proprement toutes les connexions à tout moment.
 
-### Before the first run
+### Avant la première exécution
 
-Open the file and check the two blocks at the top:
+Ouvrez le fichier et vérifiez les deux blocs en tête :
 
-- **`CONFIG`** — `WS_URL` defaults to `ws://127.0.0.1:8074`; change it if you moved the sidecar off its default port. `RADE_SPS` (12000) and `RADE_SIDEBAND` (`USB`) should match what your frontend reports.
-- **`handshake_messages()`** — the single `init` frame it sends must match the RADE init in `frontend/src/audio.js`. If that handshake has drifted, every listener fails to connect and the test ends immediately with connect failures.
+- **`CONFIG`** — `WS_URL` vaut par défaut `ws://127.0.0.1:8074` ; changez-le si vous avez déplacé le sidecar de son port par défaut. `RADE_SPS` (12000) et `RADE_SIDEBAND` (`USB`) doivent correspondre à ce que rapporte votre frontend.
+- **`handshake_messages()`** — l'unique trame `init` envoyée doit correspondre à l'init RADE de `frontend/src/audio.js`. Si cette poignée de main a dérivé, chaque auditeur échoue à se connecter et le test se termine immédiatement par des échecs de connexion.
 
-### Knee thresholds
+### Seuils du coude
 
-Tune these in `CONFIG` to taste — they are deliberately conservative:
+Ajustez-les dans `CONFIG` à votre convenance — ils sont volontairement prudents :
 
-| Threshold | Default | Stops when |
+| Seuil | Défaut | Arrête lorsque |
 |---|---|---|
-| `TEMP_KNEE_C` | `85.0` | Package temperature reaches this ceiling |
-| `MIN_AVAIL_MB` | `800` | Available RAM falls below this |
-| `SWAP_GROWTH_MB` | `50` | Swap grows past the baseline taken at startup |
-| `FAIL_LIMIT` | `3` | This many listeners fail to connect in one step |
-| `MAX_LISTENERS` | `60` | Hard stop even if no knee is ever hit |
+| `TEMP_KNEE_C` | `85.0` | La température du package atteint ce plafond |
+| `MIN_AVAIL_MB` | `800` | La RAM disponible tombe en dessous |
+| `SWAP_GROWTH_MB` | `50` | Le swap dépasse la référence prise au démarrage |
+| `FAIL_LIMIT` | `3` | Autant d'auditeurs échouent à se connecter en un palier |
+| `MAX_LISTENERS` | `60` | Arrêt ferme même si aucun coude n'est atteint |
 
-Ramp shape is controlled by `STEP` (listeners added per step, default 2), `SETTLE_S` (25 s of settling before sampling — this is what lets heat build) and `SAMPLE_S` (5 s CPU averaging window). A full run to the default 60-listener ceiling therefore takes roughly 15 minutes.
+La forme de la montée est contrôlée par `STEP` (auditeurs ajoutés par palier, 2 par défaut), `SETTLE_S` (25 s de stabilisation avant échantillonnage — c'est ce qui laisse la chaleur s'accumuler) et `SAMPLE_S` (fenêtre de moyennage CPU de 5 s). Une exécution complète jusqu'au plafond par défaut de 60 auditeurs prend donc environ 15 minutes.
 
-### Reading the results
+### Lire les résultats
 
-Each step prints a line and appends a row to `rade_loadtest.csv`:
+Chaque palier affiche une ligne et ajoute une ligne à `rade_loadtest.csv` :
 
-| Column | Meaning |
+| Colonne | Signification |
 |---|---|
-| `listeners` | Synthetic listeners connected at this step |
-| `connect_fails` | Listeners that failed to establish or hold a connection |
-| `pkg_c` | Package temperature, median of 5 samples (spike-resistant) |
-| `cpu_pct` | **Whole-system** CPU percent, not per-listener |
-| `avail_mb` | Available RAM |
-| `swap_mb` | Swap in use |
-| `dec_rss_mb` | Combined RSS of all decoder processes |
-| `dec_procs` | Decoder process count — expect **2 per listener** (`radae_rxe.py` + `lpcnet_demo`) |
+| `listeners` | Auditeurs synthétiques connectés à ce palier |
+| `connect_fails` | Auditeurs n'ayant pas réussi à établir ou maintenir une connexion |
+| `pkg_c` | Température du package, médiane de 5 échantillons (résistante aux pics) |
+| `cpu_pct` | Pourcentage CPU **de tout le système**, pas par auditeur |
+| `avail_mb` | RAM disponible |
+| `swap_mb` | Swap utilisé |
+| `dec_rss_mb` | RSS combinée de tous les processus de décodage |
+| `dec_procs` | Nombre de processus de décodage — attendez-vous à **2 par auditeur** (`radae_rxe.py` + `lpcnet_demo`) |
 
-#### A measured run
+#### Une exécution mesurée
 
-On the i5-12450H referenced above, a full run ended like this:
+Sur l'i5-12450H mentionné plus haut, une exécution complète s'est terminée ainsi :
 
 ```
 KNEE at n=32: temp 91.0°C ≥ 85.0
 Last stable concurrency: 30 RADE listeners
 ```
 
-**Heat was the binding constraint**, and it was not close. At the knee there was still 7004 MB of RAM available — 6.2 GB clear of the `MIN_AVAIL_MB` cutoff — and zero connect failures on every step.
+**La chaleur était la contrainte déterminante**, et de loin. Au coude, il restait encore 7004 Mo de RAM disponible — 6,2 Go au-dessus du seuil `MIN_AVAIL_MB` — et zéro échec de connexion à chaque palier.
 
-Two columns are worth reading carefully:
+Deux colonnes méritent une lecture attentive :
 
-**`dec_rss_mb` overstates real memory cost.** It grows at a very steady 295 MB per listener (292, 294, 294 … 295 across all 16 steps), but *available RAM* only falls about **202 MB per listener**. The two processes behind each listener share library pages, and RSS counts those pages once per process. Extrapolating the `avail_mb` slope, the memory knee would arrive near **63 listeners** — past the 60-listener hard stop, so on this box it can never trip. Size memory from `avail_mb`, not from `dec_rss_mb`.
+**`dec_rss_mb` surestime le coût mémoire réel.** Elle croît de façon très régulière de 295 Mo par auditeur (292, 294, 294 … 295 sur les 16 paliers), mais la *RAM disponible* ne baisse que d'environ **202 Mo par auditeur**. Les deux processus derrière chaque auditeur partagent des pages de bibliothèques, et la RSS compte ces pages une fois par processus. En extrapolant la pente de `avail_mb`, le coude mémoire arriverait vers **63 auditeurs** — au-delà de l'arrêt ferme à 60 auditeurs, il ne peut donc jamais se déclencher sur cette machine. Dimensionnez la mémoire d'après `avail_mb`, pas d'après `dec_rss_mb`.
 
-**`cpu_pct` is flat and then it is not.** It sits at ~5.3% of the whole machine through 24 listeners, then goes superlinear:
+**`cpu_pct` est plat, puis ne l'est plus.** Il reste à ~5,3 % de la machine entière jusqu'à 24 auditeurs, puis devient superlinéaire :
 
-| Listeners | 24 | 26 | 28 | 30 | 32 |
+| Auditeurs | 24 | 26 | 28 | 30 | 32 |
 |---|---|---|---|---|---|
-| `cpu_pct` | 6.7% | 18.4% | 30.1% | 49.6% | 65.2% |
+| `cpu_pct` | 6,7 % | 18,4 % | 30,1 % | 49,6 % | 65,2 % |
 
-That is a 10× rise in CPU while listener count grows by a third. The inflection reproduces at the same point across runs, so treat it as a property of the box rather than noise — per-listener CPU cost is roughly 3.4% of one core below the inflection and about 20% above it. Do not extrapolate a per-user CPU figure taken at low listener counts.
+Soit une hausse de 10× du CPU alors que le nombre d'auditeurs augmente d'un tiers. L'inflexion se reproduit au même endroit d'une exécution à l'autre : traitez-la comme une propriété de la machine et non comme du bruit — le coût CPU par auditeur avoisine 3,4 % d'un cœur sous l'inflexion et environ 20 % au-dessus. N'extrapolez pas un chiffre de CPU par utilisateur relevé à faible nombre d'auditeurs.
 
-> **The test has no CPU knee.** The four cutoffs are temperature, available RAM, swap growth and connect failures — CPU is recorded but never ends the run. In the run above CPU reached 65% and would have kept climbing had temperature not tripped first. If you care about a CPU ceiling, watch the column yourself or add a threshold.
+> **Le test n'a pas de coude CPU.** Les quatre limites sont la température, la RAM disponible, la croissance du swap et les échecs de connexion — le CPU est enregistré mais ne met jamais fin à l'exécution. Dans l'exécution ci-dessus, le CPU a atteint 65 % et aurait continué de grimper si la température n'avait pas cédé la première. Si un plafond CPU vous importe, surveillez la colonne vous-même ou ajoutez un seuil.
 
-> **What this does and does not prove.** Each synthetic listener streams low-amplitude random noise, not a real RADE signal. That is enough to make the full decode pipeline run and consume resources, so the resource figures are meaningful — but the test says nothing about decode *quality* or audio continuity under load. Confirm those with real listeners on a real signal.
+> **Ce que cela prouve et ne prouve pas.** Chaque auditeur synthétique diffuse du bruit aléatoire de faible amplitude, et non un vrai signal RADE. C'est suffisant pour faire fonctionner toute la chaîne de décodage et consommer des ressources : les chiffres de ressources sont donc significatifs — mais le test ne dit rien de la *qualité* du décodage ni de la continuité audio en charge. Confirmez cela avec de vrais auditeurs sur un vrai signal.
 
-### If cores saturate before the knee
+### Si les cœurs saturent avant le coude
 
-RADE pins one thread hard per instance, so individual cores can reach ~90 °C while total CPU still looks idle. `rade_helper.py` spreads pipelines across cores round-robin to counter this. If a run shows early thermal knees, widen the core allocation per client:
+RADE épingle fortement un thread par instance, si bien que des cœurs individuels peuvent atteindre ~90 °C alors que le CPU total semble au repos. `rade_helper.py` répartit les chaînes sur les cœurs à tour de rôle pour y remédier. Si une exécution montre des coudes thermiques précoces, élargissez l'allocation de cœurs par client :
 
 ```bash
 RADE_CORES_PER_CLIENT=3 ./rade.sh restart
 ```
 
-No file edit is needed — this is an environment variable (see [Environment Variables](#environment-variables)); `RADE_PIN_CORES=0` disables pinning entirely.
+Aucune modification de fichier n'est nécessaire — il s'agit d'une variable d'environnement (voir [Variables d'environnement](#variables-denvironnement)) ; `RADE_PIN_CORES=0` désactive entièrement l'épinglage.
 
 ---
 
-## Updating RADE v1
+## Mettre RADE v1 à jour
 
-The PhantomSDR-Plus integration (`rade_helper.py`, frontend patches) is a bridge only — all RADE decode logic lives in the `radae` repository. Updates are therefore almost always a simple `git pull` + rebuild with no changes to PhantomSDR-Plus itself.
+L'intégration à PhantomSDR-Plus (`rade_helper.py`, correctifs du frontend) n'est qu'un pont — toute la logique de décodage RADE réside dans le dépôt `radae`. Les mises à jour se résument donc presque toujours à un simple `git pull` + recompilation, sans aucune modification de PhantomSDR-Plus lui-même.
 
-### Standard update (new code, same model)
+### Mise à jour standard (nouveau code, même modèle)
 
 ```bash
 # 1. Pull latest radae code
@@ -643,11 +643,11 @@ cd ~/PhantomSDR-Plus
 ./rade.sh restart
 ```
 
-That is all. No frontend rebuild, no server restart, no file edits.
+C'est tout. Pas de recompilation du frontend, pas de redémarrage du serveur, aucune modification de fichier.
 
-### New model weights only
+### Nouveaux poids de modèle uniquement
 
-If a new checkpoint is released (e.g. `model20`) without code changes, point the sidecar at the new weights using the env var — no file editing required:
+Si un nouveau point de contrôle est publié (p. ex. `model20`) sans changement de code, pointez le sidecar vers les nouveaux poids via la variable d'environnement — aucune modification de fichier n'est nécessaire :
 
 ```bash
 # One-off: start with new model
@@ -657,21 +657,21 @@ RADE_MODEL=~/radae/model20/checkpoints/checkpoint_epoch_100.pth ./rade.sh start
 export RADE_MODEL=~/radae/model20/checkpoints/checkpoint_epoch_100.pth
 ```
 
-### What each type of change requires
+### Ce que chaque type de changement exige
 
-| What changed in radae | Action required |
+| Ce qui a changé dans radae | Action requise |
 |---|---|
-| New model weights (new `.pth` file) | Set `RADE_MODEL` env var, `./rade.sh restart` |
-| Code change in `radae_rxe.py` | `git pull`, `./rade.sh restart` |
-| `lpcnet_demo` C code changed | `git pull`, rebuild, `./rade.sh restart` |
-| `radae_rxe.py` renamed or moved | Update `RADAE_RX` path in `rade_helper.py` (one line) |
-| `--model_name` argument renamed | Update `radae_cmd` in `rade_helper.py` (one line) |
-| New output sample rate (≠ 16000 Hz) | Update `SPS_OUT` in `rade_helper.py` + `createBuffer()` in `audio.js` |
-| RADE v2 uses a different binary | Update `RADAE_RX` in `rade_helper.py` (one line) |
+| Nouveaux poids de modèle (nouveau fichier `.pth`) | Définir la variable `RADE_MODEL`, `./rade.sh restart` |
+| Changement de code dans `radae_rxe.py` | `git pull`, `./rade.sh restart` |
+| Code C de `lpcnet_demo` modifié | `git pull`, recompiler, `./rade.sh restart` |
+| `radae_rxe.py` renommé ou déplacé | Mettre à jour le chemin `RADAE_RX` dans `rade_helper.py` (une ligne) |
+| Argument `--model_name` renommé | Mettre à jour `radae_cmd` dans `rade_helper.py` (une ligne) |
+| Nouveau taux d'échantillonnage de sortie (≠ 16000 Hz) | Mettre à jour `SPS_OUT` dans `rade_helper.py` + `createBuffer()` dans `audio.js` |
+| RADE v2 utilise un binaire différent | Mettre à jour `RADAE_RX` dans `rade_helper.py` (une ligne) |
 
-### Verifying the update worked
+### Vérifier que la mise à jour a fonctionné
 
-After restarting, confirm the new code is running:
+Après le redémarrage, confirmez que le nouveau code s'exécute :
 
 ```bash
 # Check sidecar picked up new radae_rxe.py
@@ -681,20 +681,20 @@ After restarting, confirm the new code is running:
 tail -20 ~/PhantomSDR-Plus/rade.log
 ```
 
-The log should show the model path you expect:
+Le journal doit afficher le chemin de modèle attendu :
 ```
 [RADE] model : /home/sv1btl/radae/model19_check3/checkpoints/checkpoint_epoch_100.pth
 ```
 
-### Staying up to date
+### Rester à jour
 
-Subscribe to the radae repository releases page to be notified of new models and code updates:
+Abonnez-vous à la page des versions du dépôt radae pour être averti des nouveaux modèles et mises à jour de code :
 
 ```
 https://github.com/drowe67/radae/releases
 ```
 
-Check the FreeDV blog for announcements about new RADE waveforms and models:
+Consultez le blog FreeDV pour les annonces concernant les nouvelles formes d'onde et modèles RADE :
 
 ```
 https://freedv.org/blog/
@@ -702,20 +702,18 @@ https://freedv.org/blog/
 
 ---
 
-*Developed and tested on PhantomSDR-Plus (sv1btl/PhantomSDR-Plus fork) with RX-888 MK2 on Ubuntu 24.04. The C++ server is not modified.*
+*Développé et testé sur PhantomSDR-Plus (fork sv1btl/PhantomSDR-Plus) avec un RX-888 MK2 sous Ubuntu 24.04. Le serveur C++ n'est pas modifié.*
 
-*RADE is developed by David Rowe VK5DGR and the FreeDV team.* *See [freedv.org/radio-autoencoder](https://freedv.org/radio-autoencoder).*
+*RADE est développé par David Rowe VK5DGR et l'équipe FreeDV.* *Voir [freedv.org/radio-autoencoder](https://freedv.org/radio-autoencoder).*
 
 ---
 
-### Full uninstall and fresh re-install
+### Désinstallation complète et réinstallation propre
 
-Here's the full teardown before re-running install_rade.sh:
-1. Stop the sidecar cd ~/PhantomSDR-Plus && ./rade.sh stop
-2. Remove the radae repo and build rm -rf ~/radae
-3. Remove torch (installed in user local) pip3 uninstall -y torch rm -rf ~/.local/lib/python3.11/site-packages/torch*
-4. Remove apt Python packages (optional — skip if used by other things) sudo apt-get remove -y python3-numpy python3-scipy python3-matplotlib python3-websockets sudo apt-get autoremove -y
-5. Verify everything is gone python3 -c "import torch" 2>&1        # should say ModuleNotFoundError ls ~/radae 2>&1                        # should say No such file or directory
-6. Fresh install chmod +x ~/PhantomSDR-Plus/install_rade.sh ~/PhantomSDR-Plus/install_rade.sh
-
-
+Voici le démontage complet avant de relancer install_rade.sh :
+1. Arrêter le sidecar cd ~/PhantomSDR-Plus && ./rade.sh stop
+2. Supprimer le dépôt radae et sa compilation rm -rf ~/radae
+3. Supprimer torch (installé dans le répertoire local de l'utilisateur) pip3 uninstall -y torch rm -rf ~/.local/lib/python3.11/site-packages/torch*
+4. Supprimer les paquets Python d'apt (facultatif — à ignorer s'ils servent à autre chose) sudo apt-get remove -y python3-numpy python3-scipy python3-matplotlib python3-websockets sudo apt-get autoremove -y
+5. Vérifier que tout a disparu python3 -c "import torch" 2>&1        # should say ModuleNotFoundError ls ~/radae 2>&1                        # should say No such file or directory
+6. Installation propre chmod +x ~/PhantomSDR-Plus/install_rade.sh ~/PhantomSDR-Plus/install_rade.sh

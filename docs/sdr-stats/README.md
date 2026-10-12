@@ -1,39 +1,39 @@
-# System Stats Installation Guide
+# Guide d'installation de System Stats
 
-A comprehensive guide to add real-time server monitoring to your PhantomSDR application using the automated installation script.
+Un guide complet pour ajouter une surveillance de serveur en temps réel à votre application PhantomSDR à l'aide du script d'installation automatisé.
 
-## Overview
+## Aperçu
 
-This feature adds a **📊 Stats** button to your PhantomSDR interface that displays real-time system information:
-- CPU usage, cores, frequency, temperature, and top processes
-- Memory usage (used/total/percentage)
+Cette fonctionnalité ajoute un bouton **📊 Stats** à votre interface PhantomSDR qui affiche des informations système en temps réel :
+- Utilisation du CPU, cœurs, fréquence, température et principaux processus
+- Utilisation de la mémoire (utilisée/totale/pourcentage)
 
-Stats automatically update every 5 seconds while the modal is open.
+Les statistiques se mettent à jour automatiquement toutes les 5 secondes tant que la fenêtre modale est ouverte.
 
-> **Not the same as the admin panel's Graphs page.** This modal is a live snapshot that refreshes while it is open and keeps no history. The admin panel has a separate **Graphs** page that samples CPU frequency, load, temperature and users online every 2 seconds and plots them over the last 15 minutes to 24 hours — see the [Admin Panel guide](../ADMIN_PANEL_SETUP.md).
-
----
-
-## Prerequisites
-
-- **Linux server** (Ubuntu/Debian recommended)
-- **Internet connection** (for downloading Node.js and packages)
-- **Sudo access** (for systemd service setup)
-- **PhantomSDR-Plus** already installed and running
-- **lm-sensors** (recommended for Intel/AMD CPU temperature - automatically installed by script)
+> **À ne pas confondre avec la page « Graphiques » du panneau d'administration.** Cette fenêtre est un instantané qui se rafraîchit tant qu'elle est ouverte et ne conserve aucun historique. Le panneau d'administration dispose d'une page **Graphiques** distincte qui échantillonne la fréquence du processeur, la charge, la température et les utilisateurs connectés toutes les 2 secondes et les trace sur les 15 dernières minutes à 24 heures — voir le [guide du panneau d'administration](../ADMIN_PANEL_SETUP.md).
 
 ---
 
-## Installation Methods
+## Prérequis
+
+- **Serveur Linux** (Ubuntu/Debian recommandé)
+- **Connexion Internet** (pour télécharger Node.js et les paquets)
+- **Accès Sudo** (pour la configuration du service systemd)
+- **PhantomSDR-Plus** déjà installé et en cours d'exécution
+- **lm-sensors** (recommandé pour la température CPU Intel/AMD - installé automatiquement par le script)
+
+---
+
+## Méthodes d'installation
 
 > [!NOTE]
-> **The main installer already offers this.** `./install.sh` — and the four distro installers — run `install-stats-server.sh` by default as part of the normal PhantomSDR-Plus installation, so on a fresh machine the stats server is usually already in place. Use this page to install it separately, or to change its port, address or service afterwards.
+> **L'installateur principal le propose déjà.** `./install.sh` — et les quatre installateurs par distribution — exécutent `install-stats-server.sh` par défaut pendant l'installation normale de PhantomSDR-Plus : sur une machine neuve, le serveur de statistiques est donc généralement déjà en place. Utilisez cette page pour l'installer séparément, ou pour changer ensuite son port, son adresse ou son service.
 
-### Option 1: Automated Installation (Recommended) ⭐
+### Option 1 : Installation automatisée (Recommandée) ⭐
 
-The automated script handles everything for you.
+Le script automatisé s'occupe de tout pour vous.
 
-#### Step 1: Run the script
+#### Étape 1 : Exécuter le script
 
 ```bash
 cd ~/PhantomSDR-Plus
@@ -41,26 +41,26 @@ chmod +x install-stats-server.sh   # only if it is not already executable
 ./install-stats-server.sh
 ```
 
-**IMPORTANT:** Do NOT run as root or with sudo. Run as your regular user.
+**IMPORTANT :** N'exécutez PAS en tant que root ou avec sudo. Exécutez en tant qu'utilisateur normal.
 
-#### Step 2: Follow the interactive prompts
+#### Étape 2 : Suivre les invites interactives
 
-The script will guide you through:
+Le script vous guidera à travers :
 
-##### 1. **Node.js Installation** (if needed)
+##### 1. **Installation de Node.js** (si nécessaire)
 ```
 ⚠ Node.js / npm is not installed
 Would you like to install Node.js 22 via nvm now? (y/n): y
 ```
-The script installs Node.js 22 through nvm, on any Linux distribution — no root and no apt source needed. It asks the same question when Node.js is present but older than 22.
+Le script installe Node.js 22 via nvm, sur toute distribution Linux — sans root et sans source apt. Il pose la même question lorsque Node.js est présent mais antérieur à la version 22.
 
-##### 2. **Installation Directory**
+##### 2. **Répertoire d'installation**
 ```
 Installation directory [/home/user/sdr-stats-server]: 
 ```
-Press Enter for default, or specify a custom path.
+Appuyez sur Entrée pour la valeur par défaut, ou spécifiez un chemin personnalisé.
 
-##### 3. **Port Configuration** (Enhanced!)
+##### 3. **Configuration du port** (Améliorée !)
 ```
 Port Configuration:
   Default port: 3001
@@ -68,29 +68,29 @@ Port Configuration:
 Enter port number [3001]: 
 ```
 
-The script validates your port:
-- ✅ Checks if it's a valid number
-- ✅ Warns if port < 1024 (requires root privileges)
-- ✅ Validates range (1-65535)
-- ✅ Checks if port is already in use
-- ✅ Shows which process is using it if occupied
-- ✅ Allows you to choose a different port
+Le script valide votre port :
+- ✅ Vérifie qu'il s'agit d'un nombre valide
+- ✅ Avertit si le port < 1024 (nécessite des privilèges root)
+- ✅ Valide la plage (1-65535)
+- ✅ Vérifie si le port est déjà utilisé
+- ✅ Indique quel processus l'utilise s'il est occupé
+- ✅ Vous permet de choisir un port différent
 
-**Example scenarios:**
+**Exemples de scénarios :**
 
-**Using default port:**
+**Utilisation du port par défaut :**
 ```
 Enter port number [3001]: ↵
 ✓ Port 3001 selected
 ```
 
-**Choosing custom port:**
+**Choix d'un port personnalisé :**
 ```
 Enter port number [3001]: 8080
 ✓ Port 8080 selected
 ```
 
-**Port already in use:**
+**Port déjà utilisé :**
 ```
 Enter port number [3001]: 3001
 ⚠ Port 3001 is currently in use
@@ -101,7 +101,7 @@ Enter port number [3001]: 3002
 ✓ Port 3002 selected
 ```
 
-**Invalid port:**
+**Port invalide :**
 ```
 Enter port number [3001]: abc
 ✗ Port must be a number
@@ -111,13 +111,13 @@ Enter port number [3001]: 3001
 ✓ Port 3001 selected
 ```
 
-##### 4. **Server Address**
+##### 4. **Adresse du serveur**
 ```
 What is your server's public address?
 Examples: Your_site_IP, 192.168.1.100, localhost
 Server address: Your_site_IP
 ```
-Enter your server's public domain or IP address.
+Entrez le domaine public ou l'adresse IP de votre serveur.
 
 ##### 5. **Confirmation**
 ```
@@ -129,16 +129,16 @@ Please confirm your settings:
 Continue with these settings? (y/n): y
 ```
 
-##### 6. **Systemd Service Setup** (Optional)
+##### 6. **Configuration du service Systemd** (Optionnel)
 ```
 Would you like to set up the server as a system service (auto-start on boot)? (y/n): y
 ```
 
-Recommended: Choose **y** to have the server start automatically on boot.
+Recommandé : Choisissez **y** pour que le serveur démarre automatiquement au démarrage.
 
-#### Step 3: Installation Complete! ✓
+#### Étape 3 : Installation terminée ! ✓
 
-The script will display a summary:
+Le script affichera un résumé :
 ```
 ╔════════════════════════════════════════════════╗
 ║          Installation Complete! ✓              ║
@@ -154,13 +154,13 @@ Configuration Summary:
 
 ---
 
-## Configure Your PhantomSDR Application
+## Configurer votre application PhantomSDR
 
-After the script completes, you need to update your Svelte application.
+Une fois le script terminé, vous devez mettre à jour votre application Svelte.
 
-### Step 1: Update `site_information.json`
+### Étape 1 : Mettre à jour `site_information.json`
 
-Since `site_information.json` was already edited during the initial setup, you only need to add the new `siteStats` line with your port:
+Comme `site_information.json` a déjà été modifié lors de la configuration initiale, il vous suffit d'ajouter la nouvelle ligne `siteStats` avec votre port :
 
 ```json
 {
@@ -175,7 +175,7 @@ Since `site_information.json` was already edited during the initial setup, you o
 	"siteAntenna": "Receiving Antenna.",
 	"siteNote": "This is a bright new open-source WebSDR project, under active development.",
 	"siteIP": "http://Your_site_IP:port",
-  "siteStats": "http://Your_site_IP:3001",  ← ADD THIS LINE (use your port)
+  "siteStats": "http://Your_site_IP:3001",  ← AJOUTEZ CETTE LIGNE (utilisez votre port)
   "siteSDRBaseFrequency": 0,
   "siteSDRBandwidth": 30000000,
   "siteRegion": 1,
@@ -183,13 +183,13 @@ Since `site_information.json` was already edited during the initial setup, you o
 }
 ```
 
-**Note:** Use the port you selected during installation!
+**Note :** Utilisez le port que vous avez sélectionné pendant l'installation !
 
-### Step 2: Update `App.svelte` (the latest GitHub version already includes the updated file)
+### Étape 2 : Mettre à jour `App.svelte` (la dernière version GitHub inclut déjà le fichier mis à jour)
 
-Make these **4 changes** to your App.svelte file:
+Effectuez ces **4 modifications** dans votre fichier App.svelte :
 
-#### Change 1: Ensure that `siteStats` is declared (around line 50)
+#### Modification 1 : S'assurer que `siteStats` est déclaré (vers la ligne 50)
 
 ```javascript
 import {
@@ -204,7 +204,7 @@ import {
   siteAntenna,
   siteNote,
   siteIP,
-  siteStats,  // ← ADD THIS LINE
+  siteStats,  // ← AJOUTEZ CETTE LIGNE
   siteSDRBaseFrequency,
   siteSDRBandwidth,
   siteRegion,
@@ -212,21 +212,21 @@ import {
 } from "../site_information.json";
 ```
 
-#### Change 2: Update systemStats object (around line 530)
+#### Modification 2 : Mettre à jour l'objet systemStats (vers la ligne 530)
 
 ```javascript
 let systemStats = {
-  cpu: { usage: 0, cores: 0, temperature: null, frequency: null, topProcesses: [] },  // ← ADD topProcesses: []
+  cpu: { usage: 0, cores: 0, temperature: null, frequency: null, topProcesses: [] },  // ← AJOUTEZ topProcesses: []
   memory: { used: 0, total: 0, percent: 0 }
 };
 ```
 
-#### Change 3: Update fetch URL (around line 541)
+#### Modification 3 : Mettre à jour l'URL de récupération (vers la ligne 541)
 
 ```javascript
 async function fetchSystemStats() {
   try {
-    const response = await fetch(`${siteStats}/api/system-stats`);  // ← CHANGE THIS LINE
+    const response = await fetch(`${siteStats}/api/system-stats`);  // ← MODIFIEZ CETTE LIGNE
     if (response.ok) {
       systemStats = await response.json();
     } else {
@@ -238,9 +238,9 @@ async function fetchSystemStats() {
 }
 ```
 
-#### Change 4: Add top processes display (in CPU section, around line 3838)
+#### Modification 4 : Ajouter l'affichage des principaux processus (dans la section CPU, vers la ligne 3838)
 
-Add this code after the temperature section:
+Ajoutez ce code après la section température :
 
 ```svelte
 {#if systemStats.cpu.frequency}
@@ -257,7 +257,7 @@ Add this code after the temperature section:
 </div>
 {/if}
 
-<!-- ADD THIS ENTIRE SECTION: -->
+<!-- AJOUTEZ TOUTE CETTE SECTION : -->
 {#if systemStats.cpu.topProcesses && systemStats.cpu.topProcesses.length > 0}
 <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.1);">
   <h4 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: rgba(0, 225, 255, 0.8);">Top Processes:</h4>
@@ -271,7 +271,7 @@ Add this code after the temperature section:
 {/if}
 ```
 
-### Step 3: Rebuild Your Application
+### Étape 3 : Recompiler votre application
 
 ```bash
 cd /path/to/your/phantomsdr-app
@@ -280,15 +280,15 @@ npm ./recompile.sh
 
 ---
 
-## Testing the Installation
+## Tester l'installation
 
-### Test 1: Check API Endpoint
+### Test 1 : Vérifier le point de terminaison de l'API
 
 ```bash
 curl http://localhost:3001/api/system-stats
 ```
 
-Expected output (JSON):
+Sortie attendue (JSON) :
 ```json
 {
   "cpu": {
@@ -314,30 +314,30 @@ Expected output (JSON):
 }
 ```
 
-### Test 2: Check Service Status
+### Test 2 : Vérifier l'état du service
 
-If you installed as a service:
+Si vous l'avez installé en tant que service :
 
 ```bash
 sudo systemctl status sdr-stats.service
 ```
 
-Should show: `Active: active (running)`
+Devrait afficher : `Active: active (running)`
 
-### Test 3: Test in Browser
+### Test 3 : Tester dans le navigateur
 
-1. Open your PhantomSDR web interface
-2. Scroll to **Additional Info** section
-3. Click **Open Additional Info** button
-4. Look for the **📊 Stats** button next to PC info
-5. Click it to open the stats modal
-6. Verify stats are displaying and updating
+1. Ouvrez votre interface web PhantomSDR
+2. Faites défiler jusqu'à la section **Additional Info**
+3. Cliquez sur le bouton **Open Additional Info**
+4. Recherchez le bouton **📊 Stats** à côté des infos PC
+5. Cliquez dessus pour ouvrir la fenêtre modale des statistiques
+6. Vérifiez que les statistiques s'affichent et se mettent à jour
 
 ---
 
-## Service Management
+## Gestion du service
 
-If you installed as a systemd service, use these commands:
+Si vous l'avez installé en tant que service systemd, utilisez ces commandes :
 
 ```bash
 # Start the service
@@ -373,19 +373,20 @@ sudo rm /etc/systemd/system/sdr-stats.service
 
 ---
 
-## Manual Installation (Option 2)
+## Installation manuelle (Option 2)
+
 
 > [!IMPORTANT]
-> **You do not need this section for a normal installation.** `install-stats-server.sh` does all of it for you and is run by the main installer by default. Follow it only for a manual setup or to repair one piece by hand.
+> **Vous n'avez pas besoin de cette section pour une installation normale.** `install-stats-server.sh` fait tout cela pour vous et l'installateur principal le lance par défaut. Ne la suivez que pour une installation manuelle ou pour réparer un élément à la main.
 
-**⚠️ Warning:** Manual installation may use outdated files. The **automated script is strongly recommended** as it:
-- Installs the latest version with improved temperature detection
-- Auto-installs and configures lm-sensors
-- Handles all dependencies automatically
+**⚠️ Avertissement :** L'installation manuelle peut utiliser des fichiers obsolètes. Le **script automatisé est fortement recommandé** car il :
+- Installe la dernière version avec une détection de température améliorée
+- Installe et configure automatiquement lm-sensors
+- Gère automatiquement toutes les dépendances
 
-If you still prefer manual installation:
+Si vous préférez tout de même l'installation manuelle :
 
-### 1. Install Node.js
+### 1. Installer Node.js
 ```bash
 # Any distribution - nvm needs no root and no apt source.
 # NOT NodeSource: deb.nodesource.com now answers HTTP 403 on every path.
@@ -395,24 +396,24 @@ export NVM_DIR="$HOME/.nvm"
 nvm install 22 && nvm use 22 && nvm alias default 22
 ```
 
-### 2. Install lm-sensors (Required for Intel/AMD temperature)
+### 2. Installer lm-sensors (Requis pour la température Intel/AMD)
 ```bash
 sudo apt-get update
 sudo apt-get install -y lm-sensors
 sudo sensors-detect --auto
 ```
 
-### 3. Create Directory
+### 3. Créer le répertoire
 ```bash
 mkdir ~/sdr-stats-server
 cd ~/sdr-stats-server
 ```
 
-### 4. Download Latest Files
+### 4. Télécharger les derniers fichiers
 
-**Important:** the server files are no longer kept as copies in the repository - the installer generates them.
+**Important :** les fichiers du serveur ne sont plus conservés en copie dans le dépôt - c'est le script d'installation qui les génère.
 
-Instead, run the automated script once to generate the latest files, then copy them:
+À la place, exécutez le script automatisé une fois pour générer les derniers fichiers, puis copiez-les :
 ```bash
 # Run the automated script from the repository root
 cd ~/PhantomSDR-Plus
@@ -423,60 +424,60 @@ cp ~/sdr-stats-server/system-stats-server.js ~/your-manual-install-dir/
 cp ~/sdr-stats-server/package.json ~/your-manual-install-dir/
 ```
 
-**OR** manually create the files using the latest code from the installation script.
+**OU** créez manuellement les fichiers en utilisant le code le plus récent du script d'installation.
 
-### 5. Edit Port (if needed)
+### 5. Modifier le port (si nécessaire)
 ```bash
 nano ~/sdr-stats-server/system-stats-server.js
 ```
 
-Change line 6:
+Modifiez la ligne 6 :
 ```javascript
 const PORT = process.env.PORT || 3001;  // Change this number
 ```
 
-### 6. Install Dependencies
+### 6. Installer les dépendances
 ```bash
 npm install
 ```
 
-### 7. Test Run
+### 7. Test d'exécution
 ```bash
 npm start
 ```
 
-### 8. Set Up Service (Optional)
+### 8. Configurer le service (Optionnel)
 
-Follow the systemd service setup from the automated installation section.
+Suivez la configuration du service systemd de la section d'installation automatisée.
 
-## Changing the Port After Installation
+## Changer le port après l'installation
 
-If you need to change the port after installation:
+Si vous devez changer le port après l'installation :
 
-### Step 1: Edit the server file
+### Étape 1 : Modifier le fichier du serveur
 
 ```bash
 nano ~/sdr-stats-server/system-stats-server.js
 ```
 
-Change line 6:
+Modifiez la ligne 6 :
 ```javascript
 const PORT = process.env.PORT || 3001;  // Change this number
 ```
 
-### Step 2: Update site_information.json
+### Étape 2 : Mettre à jour site_information.json
 
 ```json
 "siteStats": "http://Your_site_IP:NEW_PORT"
 ```
 
-### Step 3: Restart the service
+### Étape 3 : Redémarrer le service
 
 ```bash
 sudo systemctl restart sdr-stats.service
 ```
 
-### Step 4: Rebuild your Svelte app
+### Étape 4 : Recompiler votre application Svelte
 
 ```bash
 cd /path/to/phantomsdr-app
@@ -485,147 +486,147 @@ npm run build
 
 ---
 
-## Troubleshooting
+## Dépannage
 
-### Issue: Port already in use
+### Problème : Port déjà utilisé
 
-**Error:**
+**Erreur :**
 ```
 Error: listen EADDRINUSE: address already in use :::3001
 ```
 
-**Solution:**
+**Solution :**
 
-1. Find what's using the port:
+1. Trouvez ce qui utilise le port :
 ```bash
 sudo lsof -i :3001
 ```
 
-2. Stop that process:
+2. Arrêtez ce processus :
 ```bash
 kill <PID>
 # or
 sudo systemctl stop sdr-stats.service
 ```
 
-3. Start the service again:
+3. Redémarrez le service :
 ```bash
 sudo systemctl start sdr-stats.service
 ```
 
-**Alternative:** Run the installation script again and choose a different port when prompted.
+**Alternative :** Exécutez à nouveau le script d'installation et choisissez un port différent lorsque cela vous est demandé.
 
-### Issue: Service won't start
+### Problème : Le service ne démarre pas
 
-**Error:**
+**Erreur :**
 ```
 status=217/USER
 ```
 
-**Solution:**
+**Solution :**
 
-1. Check the service file:
+1. Vérifiez le fichier de service :
 ```bash
 cat /etc/systemd/system/sdr-stats.service
 ```
 
-2. Verify the `User=` line matches your username:
+2. Vérifiez que la ligne `User=` correspond à votre nom d'utilisateur :
 ```bash
 whoami
 ```
 
-3. Edit if needed:
+3. Modifiez si nécessaire :
 ```bash
 sudo nano /etc/systemd/system/sdr-stats.service
 ```
 
-4. Reload and restart:
+4. Rechargez et redémarrez :
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl restart sdr-stats.service
 ```
 
-### Issue: Stats not showing in browser
+### Problème : Les statistiques ne s'affichent pas dans le navigateur
 
-**Symptoms:** Modal opens but no data, or shows 0 values
+**Symptômes :** La fenêtre modale s'ouvre mais pas de données, ou affiche des valeurs à 0
 
-**Solutions:**
+**Solutions :**
 
-1. Check browser console (F12) for errors
-2. Verify API is accessible:
+1. Vérifiez la console du navigateur (F12) pour les erreurs
+2. Vérifiez que l'API est accessible :
 ```bash
 curl http://localhost:3001/api/system-stats
 ```
-3. Check service is running:
+3. Vérifiez que le service est en cours d'exécution :
 ```bash
 sudo systemctl status sdr-stats.service
 ```
-4. Verify `siteStats` in `site_information.json` matches your server address and port
-5. Check CORS errors - ensure server allows your domain
+4. Vérifiez que `siteStats` dans `site_information.json` correspond à l'adresse et au port de votre serveur
+5. Vérifiez les erreurs CORS - assurez-vous que le serveur autorise votre domaine
 
-### Issue: Temperature shows null
+### Problème : La température affiche null
 
-**Cause:** Temperature reading not available on your system
+**Cause :** Lecture de température non disponible sur votre système
 
-**Solutions:**
+**Solutions :**
 
-1. **For most Linux systems:** Check if thermal zone exists:
+1. **Pour la plupart des systèmes Linux :** Vérifiez si la zone thermique existe :
 ```bash
 cat /sys/class/thermal/thermal_zone0/temp
 ```
 
-2. **Install lm-sensors:**
+2. **Installez lm-sensors :**
 ```bash
 sudo apt-get install lm-sensors
 sudo sensors-detect
 sensors
 ```
 
-3. **Note:** Temperature may not be available on:
-- Virtual machines
-- Some VPS providers
+3. **Note :** La température peut ne pas être disponible sur :
+- Les machines virtuelles
+- Certains fournisseurs VPS
 - Windows Subsystem for Linux (WSL)
-- Non-Linux systems
+- Les systèmes non-Linux
 
-This is normal - the rest of the stats will still work!
+C'est normal - le reste des statistiques fonctionnera quand même !
 
-### Issue: Stats values don't match `top`
+### Problème : Les valeurs des statistiques ne correspondent pas à `top`
 
-**Cause:** CPU sampling period was too short in older versions
+**Cause :** La période d'échantillonnage du CPU était trop courte dans les versions antérieures
 
-**Solution:** The current version uses 1-second sampling for accurate readings. If you have an old installation:
+**Solution :** La version actuelle utilise un échantillonnage d'une seconde pour des lectures précises. Si vous avez une ancienne installation :
 
-1. Update the server file:
+1. Mettez à jour le fichier du serveur :
 ```bash
 nano ~/sdr-stats-server/system-stats-server.js
 ```
 
-2. Find line 18 and change:
+2. Trouvez la ligne 18 et modifiez :
 ```javascript
 }, 100);  // Old value
 ```
-to:
+en :
 ```javascript
 }, 1000);  // New value (1 second)
 ```
 
-3. Restart:
+3. Redémarrez :
 ```bash
 sudo systemctl restart sdr-stats.service
 ```
 
-Or simply re-run the installation script to get the latest version.
+Ou réexécutez simplement le script d'installation pour obtenir la dernière version.
 
-### Issue: Node.js not found
+### Problème : Node.js introuvable
 
-**Error:**
+**Erreur :**
 ```
 node: command not found
 ```
 
-**Solution:**
+**Solution :**
 
-1. Install Node.js:
+1. Installez Node.js :
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 export NVM_DIR="$HOME/.nvm"
@@ -633,7 +634,7 @@ export NVM_DIR="$HOME/.nvm"
 nvm install 22 && nvm use 22 && nvm alias default 22
 ```
 
-2. Verify:
+2. Vérifiez :
 ```bash
 node --version
 npm --version
@@ -641,51 +642,51 @@ npm --version
 
 ---
 
-## What You'll See
+## Ce que vous verrez
 
-Once installed and configured, the stats modal displays:
+Une fois installé et configuré, la fenêtre modale des statistiques affiche :
 
-### 🖥️ CPU Section
-- **Usage**: Overall CPU utilization percentage
-- **Cores**: How much of the CPU is actually in use, expressed as whole cores — e.g. `1.3 / 12 in use` means the machine is doing 1.3 cores' worth of work. This is exact and needs no threshold. It is deliberately not a count of busy cores: the scheduler spreads one core's work across many, so any such count would only ever approximate this figure.
-- **Frequency**: Average current CPU clock across all cores in GHz, with the fastest core in parentheses (if available)
-- **Temperature**: CPU temperature in Celsius (if available), colour-coded: 🟢 green up to 69 °C, 🟠 orange 70-79 °C, 🔴 red at 80 °C and above
-- **Top Processes**: Top 5 CPU-consuming processes with color-coded percentages:
-  - 🟢 Green: up to 50% CPU
-  - 🟠 Orange: 51-80% CPU
-  - 🔴 Red: above 80% CPU
+### 🖥️ Section CPU
+- **Utilisation** : Pourcentage d'utilisation global du CPU
+- **Cœurs** : Quelle part du CPU est réellement utilisée, exprimée en cœurs entiers — par exemple `1.3 / 12 in use` signifie que la machine effectue le travail de 1,3 cœur. C'est exact et sans aucun seuil. Ce n'est volontairement pas un décompte de cœurs occupés : l'ordonnanceur répartit le travail d'un cœur sur plusieurs, si bien qu'un tel décompte ne ferait qu'approcher ce chiffre.
+- **Fréquence** : Fréquence actuelle moyenne du CPU sur tous les cœurs en GHz, avec le cœur le plus rapide entre parenthèses (si disponible)
+- **Température** : Température du CPU en Celsius (si disponible), avec code couleur : 🟢 vert jusqu'à 69 °C, 🟠 orange 70-79 °C, 🔴 rouge à partir de 80 °C
+- **Principaux processus** : Les 5 processus les plus gourmands en CPU avec des pourcentages à code couleur :
+  - 🟢 Vert : jusqu'à 50 % CPU
+  - 🟠 Orange : 51-80 % CPU
+  - 🔴 Rouge : au-delà de 80 % CPU
 
-### 💾 Memory Section
-- **Used**: Memory in use (GB)
-- **Total**: Total system memory (GB)
-- **Usage**: Memory usage percentage (color-coded)
+### 💾 Section mémoire
+- **Utilisée** : Mémoire en cours d'utilisation (Go)
+- **Totale** : Mémoire système totale (Go)
+- **Utilisation** : Pourcentage d'utilisation de la mémoire (à code couleur)
 
-### ♻️ Auto-Update
-- Stats refresh every **5 seconds** while modal is open
-- Stops updating when you close the modal (saves resources)
+### ♻️ Mise à jour automatique
+- Les statistiques se rafraîchissent toutes les **5 secondes** tant que la fenêtre modale est ouverte
+- La mise à jour s'arrête lorsque vous fermez la fenêtre modale (économise les ressources)
 
 ---
 
 
-## Temperature Detection
+## Détection de la température
 
-The stats server uses advanced multi-method temperature detection:
+Le serveur de statistiques utilise une détection de température avancée à méthodes multiples :
 
-### ✅ **Supported Systems:**
-- **Intel Processors**: Reads from coretemp sensors via lm-sensors
-- **AMD Processors**: Reads from k10temp sensors (Tdie/Tctl)
-- **ARM Processors**: Reads from thermal zones (Raspberry Pi, etc.)
+### ✅ **Systèmes pris en charge :**
+- **Processeurs Intel** : Lit depuis les capteurs coretemp via lm-sensors
+- **Processeurs AMD** : Lit depuis les capteurs k10temp (Tdie/Tctl)
+- **Processeurs ARM** : Lit depuis les zones thermiques (Raspberry Pi, etc.)
 
-### 📋 **Requirements:**
-- **Intel/AMD**: Requires `lm-sensors` package (auto-installed by script)
-- **ARM/Raspberry Pi**: Works out of the box, no additional packages needed
+### 📋 **Exigences :**
+- **Intel/AMD** : Nécessite le paquet `lm-sensors` (installé automatiquement par le script)
+- **ARM/Raspberry Pi** : Fonctionne d'emblée, aucun paquet supplémentaire nécessaire
 
-### 🔧 **Installation Priority:**
-1. Tries `sensors` command for Package/Core temperature (Intel/AMD)
-2. Falls back to direct coretemp reading (Intel)
-3. Falls back to thermal_zone0 (ARM/Raspberry Pi)
+### 🔧 **Priorité d'installation :**
+1. Essaie la commande `sensors` pour la température Package/Core (Intel/AMD)
+2. Se rabat sur la lecture directe de coretemp (Intel)
+3. Se rabat sur thermal_zone0 (ARM/Raspberry Pi)
 
-If temperature shows `null`, install lm-sensors:
+Si la température affiche `null`, installez lm-sensors :
 ```bash
 sudo apt-get install lm-sensors
 sudo sensors-detect --auto
@@ -694,55 +695,55 @@ sudo systemctl restart sdr-stats.service
 
 ---
 
-## Features Summary
+## Résumé des fonctionnalités
 
-✅ **Real-time Monitoring** - Live system stats from your server
-✅ **CPU Metrics** - Usage, cores, temperature, top processes
-✅ **Memory Tracking** - Used, total, and percentage
-✅ **Auto-Updates** - Refreshes every 5 seconds
-✅ **Color-Coded** - Visual indicators for warnings
-✅ **Lightweight** - Minimal resource usage
-✅ **Easy Installation** - Automated script handles everything
-✅ **Port Validation** - Smart port selection with conflict detection
-✅ **Service Management** - Auto-start on boot
-
----
-
-## Security Notes
-
-- The stats server accepts connections from any origin (CORS: *)
-- For production, consider restricting CORS to your domain only
-- Port selection validates input and checks for conflicts
-- CPU temperature reading is read-only and safe
-- No sensitive system information is exposed
+✅ **Surveillance en temps réel** - Statistiques système en direct depuis votre serveur
+✅ **Métriques CPU** - Utilisation, cœurs, température, principaux processus
+✅ **Suivi de la mémoire** - Utilisée, totale et pourcentage
+✅ **Mises à jour automatiques** - Se rafraîchit toutes les 5 secondes
+✅ **Code couleur** - Indicateurs visuels pour les avertissements
+✅ **Léger** - Utilisation minimale des ressources
+✅ **Installation facile** - Le script automatisé s'occupe de tout
+✅ **Validation du port** - Sélection de port intelligente avec détection des conflits
+✅ **Gestion du service** - Démarrage automatique au démarrage
 
 ---
 
-## Support & Resources
+## Notes de sécurité
 
-### Files Included:
-In this folder (the installer itself lives in the repository root, as `PhantomSDR-Plus/install-stats-server.sh` - there is only ever one copy):
-- `package.json` - Dependencies, identical to what the installer writes
-- This document, also available in de, el, es, fr, hr and ru
+- Le serveur de statistiques accepte les connexions de toute origine (CORS : *)
+- Pour la production, envisagez de restreindre CORS à votre domaine uniquement
+- La sélection du port valide l'entrée et vérifie les conflits
+- La lecture de la température du CPU est en lecture seule et sûre
+- Aucune information système sensible n'est exposée
 
-Created by the installer in `~/sdr-stats-server/`:
-- `system-stats-server.js` - Backend server, generated with the port you chose
-- `package.json` - Dependencies
-- `node_modules/` - Installed by `npm install`
+---
 
-### Getting Help:
-- Check the troubleshooting section above
-- Review service logs: `sudo journalctl -u sdr-stats.service -n 50`
-- Test API manually: `curl http://localhost:3001/api/system-stats`
-- Verify configuration files
+## Support et ressources
 
-### Unistall stats-server:
-- Delete the folder /sdr-stats-server
-- If you've created a service, just delete it using:
+### Fichiers inclus :
+Dans ce dossier (le script d'installation lui-même se trouve à la racine, sous `PhantomSDR-Plus/install-stats-server.sh` - il n'en existe qu'une seule copie) :
+- `package.json` - Dépendances, identiques à ce qu'écrit le script
+- Ce document, également disponible en de, el, es, fr, hr et ru
+
+Créés par le script dans `~/sdr-stats-server/` :
+- `system-stats-server.js` - Serveur backend, généré avec le port choisi
+- `package.json` - Dépendances
+- `node_modules/` - installé par `npm install`
+
+### Obtenir de l'aide :
+- Consultez la section de dépannage ci-dessus
+- Examinez les journaux du service : `sudo journalctl -u sdr-stats.service -n 50`
+- Testez l'API manuellement : `curl http://localhost:3001/api/system-stats`
+- Vérifiez les fichiers de configuration
+
+### Désinstaller le serveur de statistiques :
+- Supprimez le dossier /sdr-stats-server
+- Si vous avez créé un service, supprimez-le simplement en utilisant :
 ```bash
 sudo rm /etc/systemd/system/sdr-stats.service"`
 ```
-- Modify `App.svelte`: Find the part of the code:
+- Modifiez `App.svelte` : Trouvez la partie du code :
 ```
                    <!-- In case you don't want the Stats Button to appear, please comment this button section (12 lines)-->                     
                     <!-- System Stats Button -->
@@ -759,7 +760,7 @@ sudo rm /etc/systemd/system/sdr-stats.service"`
                       📊 Stats
                     </button>
   ```
-  and replace with:
+  et remplacez par :
 ```
                    <!-- In case you don't want the Stats Button to appear, please comment this button section (12 lines)-->                     
                     <!-- System Stats Button -->
@@ -778,22 +779,22 @@ sudo rm /etc/systemd/system/sdr-stats.service"`
                     </button>
                     -->
   ```                    
-- Recompile using the command:
+- Recompilez à l'aide de la commande :
 ```bash
   cd PhantomSDR-Plus
  ./recompile.sh
  ```
-- Restart the PC and start the server
+- Redémarrez le PC et lancez le serveur
 
 ---
 
-**Author:** Created for PhantomSDR-Plus
-**Version:** 1.1 (Improved CPU temperature detection for Intel/AMD) **Updated:** January 2026
-**License:** MIT
+**Auteur :** Créé pour PhantomSDR-Plus
+**Version :** 1.1 (Détection améliorée de la température CPU pour Intel/AMD) **Mis à jour :** Janvier 2026
+**Licence :** MIT
 
 ---
 
-## Quick Command Reference
+## Référence rapide des commandes
 
 ```bash
 # Installation
@@ -818,4 +819,4 @@ whoami                                      # Check username
 node --version                              # Check Node.js
 ```
 
-Happy monitoring! 📊🚀
+Bonne surveillance ! 📊🚀
