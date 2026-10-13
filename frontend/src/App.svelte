@@ -6411,6 +6411,9 @@
 
   function toggleBackendNoiseGate() {
     backendNoiseGateEnabled = !backendNoiseGateEnabled;
+    // Version française : pendant le décodage HFDL, le gate du serveur reste
+    // coupé (il agit avant le décodeur) ; le choix est appliqué à la sortie.
+    if (hfdlEnabled) return;
 
     if (
       audio &&
@@ -13127,7 +13130,7 @@ Cliquez à nouveau pour désactiver"
 
                   <!-- ── HFDL Decoder Panel ───────────────────────────────── -->
                   {#if decoderOn && hfdlEnabled}
-                    <HfdlPanel {audio} dialKhz={hfdlDialKhz} onTune={hfdlTune} />
+                    <HfdlPanel {audio} dialKhz={hfdlDialKhz} onTune={hfdlTune} homeLocator={siteGridSquare} />
                   {/if}
 
                   <!-- ── RADE v1 Digital Voice Panel ──────────────────────── -->
@@ -17815,7 +17818,7 @@ Slider: share of denoised audio, the rest is the original"
 
                   <!-- ── HFDL Decoder Panel ───────────────────────────────── -->
                   {#if decoderOn && hfdlEnabled}
-                    <HfdlPanel {audio} dialKhz={hfdlDialKhz} onTune={hfdlTune} />
+                    <HfdlPanel {audio} dialKhz={hfdlDialKhz} onTune={hfdlTune} homeLocator={siteGridSquare} />
                   {/if}
 
                   <!-- ── RADE v1 Digital Voice Panel ──────────────────────── -->

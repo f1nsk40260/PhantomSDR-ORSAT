@@ -4,12 +4,39 @@
   // activé par App.svelte ; ce panneau reçoit les trames et les met en forme.
   import { onMount, onDestroy, tick } from "svelte";
   import { HFDL_STATIONS } from "./hfdlStations.js";
+  import { AprsMap } from "./aprsMap.js";
 
   export let audio;
   /** Fréquence USB affichée par le récepteur, en kHz. */
   export let dialKhz = 0;
   /** Appelé avec une fréquence HFDL en kHz quand on clique sur Tune. */
   export let onTune = () => {};
+  /** Locator de la station, pour les distances sur la carte. */
+  export let homeLocator = "";
+
+  // Carte des avions : la liste des positions est gardée même carte fermée.
+  const acMap = new AprsMap(homeLocator);
+  let showMap = false;
+  let mapError = "";
+  let planeCount = 0;
+  acMap.onChange = (n) => (planeCount = n);
+
+  function mapMount(node) {
+    mapError = "";
+    acMap.open(node).then(
+      () => acMap.fitAll(),
+      (e) => (mapError = "Carte indisponible : " + (e && e.message ? e.message : e)),
+    );
+    return { destroy: () => acMap.close() };
+  }
+
+  function addPlane(m) {
+    if (!m.pos) return;
+    const call = m.aircraft || m.acName || "Avion";
+    const parts = [m.time + " UTC", m.gsName, m.kind];
+    if (m.msgText) parts.push(m.msgText);
+    acMap.add({ call, lat: m.pos.lat, lon: m.pos.lon, text: parts.filter(Boolean).join(" · "), time: Date.now() });
+  }
 
   const MAX_ROWS = 300;
   const STATIONS = [...HFDL_STATIONS].sort((a, b) => a.name.localeCompare(b.name));
@@ -161,7 +188,9 @@
       freqOffset = ev.freqOffset || 0;
     } else if (ev.type === "msg") {
       status = "ready";
-      messages = [...messages, summarize(ev.msg, ev.text)].slice(-MAX_ROWS);
+      const m = summarize(ev.msg, ev.text);
+      messages = [...messages, m].slice(-MAX_ROWS);
+      addPlane(m);
       if (followTail) {
         await tick();
         if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
@@ -177,6 +206,7 @@
 
   function clear() {
     messages = [];
+    acMap.clear();
   }
 
   function save() {
@@ -232,6 +262,11 @@
     </h4>
     <div class="flex items-center gap-1">
       <button
+        title="Afficher la carte des avions dont une position a été reçue"
+        class="text-green-100 {showMap ? 'bg-green-700' : 'bg-green-900'} hover:bg-green-800 text-xs px-2 py-0.5 rounded border border-green-700 hover:border-green-500 transition-colors"
+        on:click={() => (showMap = !showMap)}>🗺 Carte ({planeCount})</button
+      >
+      <button
         title="Enregistrer les messages HFDL décodés (texte)"
         class="text-green-100 bg-green-900 hover:bg-green-800 text-xs px-2 py-0.5 rounded border border-green-700 hover:border-green-500 transition-colors"
         on:click={save}
@@ -244,6 +279,17 @@
       >
     </div>
   </div>
+
+  {#if showMap}
+    <div class="mb-2">
+      <div use:mapMount class="w-full rounded border border-gray-700" style="height: 320px;"></div>
+      {#if mapError}
+        <div class="text-xs text-red-400 mt-1">{mapError}</div>
+      {:else if planeCount === 0}
+        <div class="text-xs text-gray-500 mt-1 italic">Aucune position reçue pour l'instant : seuls certains messages (rapports de position, données de performance) en contiennent.</div>
+      {/if}
+    </div>
+  {/if}
 
   <!-- Station + frequency + Tune -->
   <div class="flex flex-wrap items-center gap-2 mb-2">
