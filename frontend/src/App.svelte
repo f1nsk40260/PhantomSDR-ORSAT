@@ -8209,7 +8209,10 @@
   });
 
   // Start DX cluster widget after DOM is ready
-  onMount(() => startDXCluster());
+  // Version française : le panneau DX Cluster du menu est remplacé par la
+  // fenêtre « Sync the receiver with the DX cluster » ; plus de rafraîchissement
+  // automatique toutes les 20 s pour un panneau qui n'est plus affiché.
+  // onMount(() => startDXCluster());
 
   // Added to allow the user to adjust the dynamic audio //
   // buffer limits in the playAudio(pcmArray) function inside //
@@ -9630,38 +9633,36 @@
                         alt="Version"
                         class="inline-block align-middle ml-2"
                       />
-                     with <a href="https://catsyncsdr.wordpress.com/" target="new" style="color:rgba(207, 181, 59, 0.993)">CAT sync ®</a> and <a href="https://www.aethersdr.com/" target="new" style="color:rgba(207, 181, 59, 0.993)">AetherSDR ®</a> ready.
+                     with <a href="https://catsyncsdr.wordpress.com/" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)">CAT sync ®</a> and <a href="https://www.aethersdr.com/" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)">AetherSDR ® - TCI</a>
                     <br>
-                    <span style="/*text-decoration: line-through*/">PC: {siteHardware} {siteSoftware}</span>                  
-                    
-                   <!-- In case you don't want the Stats Button to appear, please comment this button section (12 lines)-->                     
-                    <!-- System Stats Button -->
+                    <span style="/*text-decoration: line-through*/">PC: {siteHardware} {siteSoftware}</span>
+                    <br>
+                    <!-- STATISTIQUES SYSTÈME -->
                     <button
                       type="button"
-                      class="glass-button text-white py-1 px-2 ml-2 rounded text-xs"
+                      class="glass-button gold-button gold-button-sm py-1 px-2 ml-2 mt-2 rounded text-xs"
                       on:click={openSystemStats}
                       title="Ressources système du serveur"
                       aria-haspopup="dialog"
                       aria-expanded={showSystemStats}
                       aria-controls="system-stats-dialog"
-                      style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
                     >
                       📊 System Resources
                     </button>
-                    
-                    <!-- Desktop applications: points to the download page on the project website
-                         (the installers themselves are too large for GitHub). -->
+
+                    <!-- Installeurs PhantomSDR+ Desktop : page de téléchargement du projet
+                         (GitHub ne peut pas héberger des fichiers de cette taille). -->
                     <button
                       type="button"
-                      class="glass-button text-white py-1 px-2 ml-2 rounded text-xs"
+                      class="glass-button gold-button gold-button-sm py-1 px-2 ml-2 mt-2 rounded text-xs"
                       on:click={() => window.open("https://phantomsdr.psychomed.gr/desktop.html", "_blank", "noopener,noreferrer")}
                       title="Télécharger PhantomSDR+ Desktop pour Linux et Windows"
-                      style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
                     >
                       💾 Desktop applications
                     </button>
 
-                    <!-- System Stats Modal -->
                     {#if showSystemStats}
                       <div class="modal-backdrop" on:click={closeSystemStats}>
                         <div 
@@ -9684,7 +9685,6 @@
                         
                         <div class="modal-body">
                           <div style="font-size: 0.9rem;">
-                            <!-- CPU Stats -->
                             <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
                               <h3 style="margin: 0 0 0.5rem 0; color: rgba(207, 181, 59, 0.993); font-size: 1rem;">🖥️ CPU</h3>
                               <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
@@ -9721,7 +9721,7 @@
                               
                               {#if systemStats.cpu?.topProcesses?.length > 0}
                               <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                                <h4 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: rgba(0, 225, 255, 0.8);">Top Processes:</h4>
+                                <h4 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: rgba(207, 181, 59, 0.8);">Top Processes:</h4>
                                 {#each systemStats.cpu.topProcesses as process}
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.85rem;">
                                   <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%;">{process.name}</span>
@@ -9732,7 +9732,6 @@
                               {/if}
                             </div>
 
-                            <!-- Memory Stats -->
                             <div style="padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
                               <h3 style="margin: 0 0 0.5rem 0; color: rgba(207, 181, 59, 0.993); font-size: 1rem;">💾 Memory</h3>
                               <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
@@ -9747,12 +9746,11 @@
                           </div>
 
                           <br>
-                          <p class="hint" style="font-size: 0.75rem;">Press <kbd>Esc</kbd> or click <b>×</b> to close.</p>
+                          <p class="hint" style="font-size: 0.8rem;">Press <kbd>Esc</kbd> or click <b>×</b> to close.</p>
                         </div>
                       </div>
                     </div>
                     {/if}
-                    <!-- End System Stats Modal -->
 
                     <!-- MANUEL UTILISATEUR PDF -->
                     {#if showManualPopup}
@@ -9813,93 +9811,61 @@
                     <span style="/*text-decoration: line-through*/">Receiver: <a href={receiverHref} target="new" style="color:rgba(207, 181, 59, 0.993)">{siteReceiver}</a></span>
                     <br>                    
                     <span style="/*text-decoration: line-through*/">Antenna: {#if antennaHref}<a href={antennaHref} target="new" style="color:rgba(207, 181, 59, 0.993)"> {siteAntenna} </a>{:else}<span style="color:rgba(207, 181, 59, 0.993)"> {siteAntenna} </span>{/if}</span> <br>
-                    <span>Github: <a href="https://github.com/sv1btl/PhantomSDR-Plus" target="new" style="color:rgba(207, 181, 59, 0.993)"> {siteInformation} </a></span>
-                    <button
-                      type="button"
-                      class="glass-button text-white py-1 px-2 ml-2 rounded text-xs"
-                      on:click={() => window.open("https://phantomsdr.psychomed.gr/index.html", "_blank", "noopener,noreferrer")}
-                      title="Ouvrir le site du projet PhantomSDR+"
-                      style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
-                    >
-                      🌐 Website
-                    </button>
+                    <span>Github: <a href="https://github.com/sv1btl/PhantomSDR-Plus" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)"> {siteInformation} </a></span>
                     <br><br>
 
                     <b>Note:</b> <br> 
                      <span style="/*text-decoration: line-through*/"><button
                        title="Ouvrir la carte des spots FT8 (PSK Reporter)"
                        type="button"
-                       class="glass-button text-white py-1 px-2 mr-1 rounded text-xs"
+                       class="glass-button gold-button gold-button-sm py-1 px-2 mr-1 rounded text-xs"
                        on:click={() => window.open(`https://pskreporter.info/pskmap.html#preset&callsign=${siteSysop}&txrx=rx&mode=FT8&timerange=3600&mapCenter=22.6243,10.9375,2.59`, 'FT8map', 'width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes')}
-                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
+                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
                      >
                        📡 FT8 map
                      </button>
                      <button
                        title="Ouvrir la carte des spots FT4 (PSK Reporter)"
                        type="button"
-                       class="glass-button text-white py-1 px-2 mr-1 rounded text-xs"
+                       class="glass-button gold-button gold-button-sm py-1 px-2 mr-1 rounded text-xs"
                        on:click={() => window.open(`https://pskreporter.info/pskmap.html#preset&callsign=${siteSysop}&txrx=rx&mode=FT4&timerange=3600&mapCenter=22.6243,10.9375,2.59`, 'FT4map', 'width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes')}
-                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
+                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
                      >
                        📡 FT4 map
                      </button>
                      <button
                        title="Ouvrir la carte des spots JS8 (PSK Reporter)"
                        type="button"
-                       class="glass-button text-white py-1 px-2 mr-1 rounded text-xs"
+                       class="glass-button gold-button gold-button-sm py-1 px-2 mr-1 rounded text-xs"
                        on:click={() => window.open(`https://pskreporter.info/pskmap.html#preset&callsign=${siteSysop}&txrx=rx&mode=JS8&timerange=3600&mapCenter=22.6243,10.9375,2.59`, 'JS8map', 'width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes')}
-                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
+                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
                      >
                        📡 JS8 map
                      </button>
                      <button
                        title="Ouvrir le journal WSPR (WSPRnet)"
                        type="button"
-                       class="glass-button text-white py-1 px-2 mr-1 rounded text-xs"
+                       class="glass-button gold-button gold-button-sm py-1 px-2 mr-1 rounded text-xs"
                        on:click={() => window.open(`https://www.wsprnet.org/olddb?mode=html&band=all&limit=100&findcall=&findreporter=${siteSysop}&sort=date`, 'WSPRlog', 'width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes')}
-                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
+                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
                      >
                        📋 WSPR log
                      </button>
                      <button
                        title="Ouvrir la carte WSPR"
                        type="button"
-                       class="glass-button text-white py-1 px-2 rounded text-xs"
+                       class="glass-button gold-button gold-button-sm py-1 px-2 rounded text-xs"
                        on:click={() => window.open('https://wspr.aprsinfo.com/', 'WSPRmap', 'width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes')}
-                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.75rem;"
+                       style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
                      >
                        🗺️ WSPR map
                      </button> <br><br>
 
-                    <!--
-
-
-                     NOTHING HERE
-
-
-                     NOTHING HERE
-
-
-                     NOTHING HERE
-
-
-                     -->
-
                      <b>Info:</b>
                      {siteNote}
-                     <!-- Any other information here -->
                      
                      <br><br>
                              
-                  <div style="font-weight: bold;">Current band propagation for Europe and statistics:</div>
-                  <div style="display: flex; align-items: center; margin-top: 10px;">
-                     <img src="https://images.lightningmaps.org/blitzortung/europe/index.php?map=5&amp;t=5092072" alt="Lightning Map" style="margin-right: 10px;" />
-                     <a href="https://www.hamqsl.com/solar.html" title="Cliquer pour plus d'informations">
-                     <img alt="Solar propagation" src="https://www.hamqsl.com/solar101vhf.php" /> </a><br>
-                   </div>
-
-                  <br>
                   <div style="font-weight: bold; text-align: center;">MULTI LINGUAL USERS MENU</div>
                   <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 10px;">
 
@@ -9944,175 +9910,6 @@
                    </div>
                 </div>
                    
-                <div class="second-column"> 
-                 <!-- ── Native DX Cluster Widget ─────────────────────────────────────── -->
-                 <!-- Replaces the cross-origin <embed> so frequency clicks can directly  -->
-                 <!-- tune the waterfall via frequencyInputComponent.setFrequency()        -->
-                 <div style="
-                   margin-left:10px;
-                   width:100%;
-                   max-width:660px;
-                   background:#0d1117;
-                   border:1px solid #30363d;
-                   border-radius:6px;
-                   font-family:monospace;
-                   font-size:12px;
-                   color:#c9d1d9;
-                   overflow:hidden;
-                 ">
-                   <!-- Header bar -->
-                   <div style="
-                     background:#161b22;
-                     border-bottom:1px solid #30363d;
-                     padding:6px 10px;
-                     display:flex;
-                     align-items:center;
-                     justify-content:space-between;
-                     gap:6px;
-                     flex-wrap:wrap;
-                   ">
-                     <span style="color:#58a6ff;font-weight:bold;font-size:13px;">📡 DX Cluster</span>
-                     <!-- Band filter buttons -->
-                     <div style="display:flex;flex-wrap:wrap;gap:3px;">
-                       {#each DX_BAND_LIST as band}
-                         <button
-                           on:click={() => dxSelectBand(band)}
-                           style="
-                             padding:2px 6px;
-                             border-radius:4px;
-                             border:1px solid {dxBandFilter===band ? '#58a6ff' : '#30363d'};
-                             background:{dxBandFilter===band ? 'rgba(88,166,255,0.2)' : 'transparent'};
-                             color:{dxBandFilter===band ? '#58a6ff' : '#8b949e'};
-                             cursor:pointer;
-                             font-size:11px;
-                             font-family:monospace;
-                             transition:all 0.15s;
-                           "
-                         >{band==='ALL' ? 'All' : band+'m'}</button>
-                       {/each}
-                     </div>
-                     <!-- Refresh button -->
-                     <button
-                       on:click={fetchDXSpots}
-                       title="Rafraîchir les spots"
-                       style="
-                         padding:2px 8px;
-                         border-radius:4px;
-                         border:1px solid #30363d;
-                         background:transparent;
-                         color:#8b949e;
-                         cursor:pointer;
-                         font-size:11px;
-                         font-family:monospace;
-                       "
-                     >{dxLoading ? '⟳ …' : '⟳ Refresh'}</button>
-                   </div>
-
-                   <!-- Table area -->
-                   <div style="height:430px;overflow-y:auto;overflow-x:auto;">
-                     {#if dxError}
-                       <div style="padding:16px;color:#f85149;text-align:center;line-height:1.6;">
-                         ⚠ Could not load spots<br>
-                         <small style="color:#8b949e;">{dxError}</small><br><br>
-                         <small style="color:#6e7681;">
-                           All three CORS proxies failed.<br>
-                           Possible causes: network/firewall blocks outbound HTTPS,<br>
-                           or all proxy services are temporarily unavailable.<br>
-                           Try clicking Refresh in a moment.
-                         </small>
-                       </div>
-                     {:else if dxLoading && dxSpots.length === 0}
-                       <div style="padding:16px;color:#8b949e;text-align:center;">Loading spots…</div>
-                     {:else if dxSpots.length === 0}
-                       <div style="padding:16px;color:#8b949e;text-align:center;">No spots found.</div>
-                     {:else}
-                       <table style="width:100%;min-width:560px;border-collapse:collapse;">
-                         <thead>
-                           <tr style="background:#161b22;position:sticky;top:0;z-index:1;">
-                             <th style="padding:4px 6px;text-align:left;color:#8b949e;font-weight:normal;border-bottom:1px solid #21262d;white-space:nowrap;">UTC</th>
-                             <th style="padding:4px 6px;text-align:left;color:#8b949e;font-weight:normal;border-bottom:1px solid #21262d;">Spotter</th>
-                             <th style="padding:4px 6px;text-align:left;color:#8b949e;font-weight:normal;border-bottom:1px solid #21262d;">DX Call</th>
-                             <th style="padding:4px 6px;text-align:right;color:#8b949e;font-weight:normal;border-bottom:1px solid #21262d;">Freq (kHz)</th>
-                             <th style="padding:4px 6px;text-align:left;color:#8b949e;font-weight:normal;border-bottom:1px solid #21262d;">Band</th>
-                             <th style="padding:4px 6px;text-align:left;color:#8b949e;font-weight:normal;border-bottom:1px solid #21262d;">Mode</th>
-                             <th style="padding:4px 6px;text-align:left;color:#8b949e;font-weight:normal;border-bottom:1px solid #21262d;">Comment</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           {#each dxSpots as spot, i}
-                             <tr style="background:{i%2===0 ? 'transparent' : 'rgba(255,255,255,0.02)'};">
-                               <td style="padding:3px 6px;color:#8b949e;white-space:nowrap;">{formatDXTime(spot.time, spot.timeUtc)}</td>
-                               <td style="padding:3px 6px;white-space:nowrap;">
-                                 <a
-                                   href="https://www.qrzcq.com/call/{(spot.spotter || '').trim()}"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   title="Rechercher {(spot.spotter || '').trim()} sur QRZCQ"
-                                   style="
-                                     color:#79c0ff;
-                                     font-weight:bold;
-                                     text-decoration:none;
-                                     border-bottom:1px dotted rgba(121,192,255,0.5);
-                                     transition:color 0.15s;
-                                   "
-                                   on:mouseover={e => e.target.style.color='#a5d6ff'}
-                                   on:mouseout={e => e.target.style.color='#79c0ff'}
-                                 >{spot.spotter || ''}</a>
-                               </td>
-                               <td style="padding:3px 6px;white-space:nowrap;">
-                                 <a
-                                   href="https://www.qrzcq.com/call/{(spot.dx || '').trim()}"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   title="Rechercher {(spot.dx || '').trim()} sur QRZCQ"
-                                   style="
-                                     color:#ffa657;
-                                     font-weight:bold;
-                                     text-decoration:none;
-                                     border-bottom:1px dotted rgba(255,166,87,0.5);
-                                     transition:color 0.15s;
-                                   "
-                                   on:mouseover={e => e.target.style.color='#ffcc99'}
-                                   on:mouseout={e => e.target.style.color='#ffa657'}
-                                 >{spot.dx || ''}</a>
-                               </td>
-                               <!-- ★ Clickable frequency – tunes the waterfall -->
-                               <td style="padding:3px 6px;text-align:right;">
-                                 <button
-                                   on:click={() => tuneToDXFrequency(spot.freq)}
-                                   title="Cliquer pour accorder sur {spot.freq} kHz"
-                                   style="
-                                     background:transparent;
-                                     border:none;
-                                     color:#3fb950;
-                                     cursor:pointer;
-                                     font-family:monospace;
-                                     font-size:12px;
-                                     font-weight:bold;
-                                     padding:0;
-                                     text-decoration:underline dotted;
-                                     white-space:nowrap;
-                                   "
-                                 >{spot.freq}</button>
-                               </td>
-                               <td style="padding:3px 6px;color:#8b949e;white-space:nowrap;">{spot.band || ''}</td>
-                               <td style="padding:3px 6px;color:#d2a8ff;white-space:nowrap;">{spot.mode || ''}</td>
-                               <td style="padding:3px 6px;color:#c9d1d9;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title={spot.comment || ''}>{spot.comment || ''}</td>
-                             </tr>
-                           {/each}
-                         </tbody>
-                       </table>
-                     {/if}
-                   </div>
-
-                   <!-- Footer -->
-                   <div style="padding:4px 10px;background:#161b22;border-top:1px solid #30363d;color:#484f58;font-size:10px;display:flex;justify-content:space-between;">
-                     <span>Data: local backend /api/dxspots • auto-refresh 20 s</span>
-                     <span>{dxSpots.length} spot{dxSpots.length===1?'':'s'}</span>
-                   </div>
-                 </div>
-                 <!-- ── End DX Cluster Widget ──────────────────────────────────────────── -->
-              </div>     
             </div>
            </div>
 <!-- @@COLLAPSIBLE_MENU_END@@ -->
@@ -10120,40 +9917,17 @@
         </div>
 
               <style>
-                /* No .hidden here: Tailwind already defines it, and a copy in
-                   this raw (unscoped, late-loading) block overrode every
-                   responsive `hidden sm:inline` / `sm:block` on the page. */
+                .hidden {
+                  display: none;
+                }
 
-                /* Setting the container width to 100% enabling overflow auto to clear the float */
+                /* Colonne d'info unique pleine largeur. */
                 .columns {
                   width: 100%;
-                  overflow: auto; /* To clear the float */
                 }
 
-                /* Styling for the left column */
                 .first-column {
-                  float: left; /* Float left to place it on the left side */
-                  width: 47%; /* Taking 47% of the container width */
-                }
-
-                /* Styling for the right column */
-                .second-column {
-                  float: right; /* Float right to place it on the right side */
-                  width: 53%; /* Taking 53% of the container width */
-                }
-
-                /* Tablets and phones: two floated columns do not fit side by
-                   side, so stack them full width instead of letting the right
-                   one get squeezed to an unreadable sliver. */
-                @media (max-width: 1023px) {
-                  .first-column,
-                  .second-column {
-                    float: none;
-                    width: 100%;
-                  }
-                  .second-column {
-                    margin-top: 12px;
-                  }
+                  width: 100%;
                 }
               </style>
 
