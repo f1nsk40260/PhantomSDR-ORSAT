@@ -35,14 +35,8 @@ AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float look
 
     // Limit how loud AGC can go.
     // Effective max linear gain = max_gain × 0.01f (output scale applied in process()).
-    // Version française : plafond porté de +20 dB (1000) à +80 dB (1e6).
-    // À +20 dB, un récepteur à faible niveau de sortie (Fobos) laissait l'AGC
-    // en butée et l'audio au plancher de la quantification 16 bits : les
-    // signaux faibles n'atteignaient ni l'oreille ni les décodeurs (HFDL).
-    // Avec +80 dB, l'AGC ramène tout signal à son niveau cible, quel que soit
-    // le récepteur. Contrepartie : sur bande vide, le souffle est remonté au
-    // niveau normal, comme sur un transceiver.
-    max_gain = 1000000.0f;
+    // 500 × 0.01 = 10× (+20 dB).
+    max_gain = 1000.0f;
 
     // Dual time constant (fast branch, common to all modes)
     fast_attack_coeff = 1.0f - std::exp(-1.0f / (0.003f * sample_rate)); // ~3 ms
@@ -347,7 +341,7 @@ void AGC::process(float *arr, size_t len) {
     // peak reaches the output, so there is no overshoot or click), holds for
     // the hang time while the signal is still there, then decays
     // exponentially (constant dB per second). Gain = target / envelope, capped
-    // at the same ceiling as the legacy AGC (max_gain, +80 dB), and the output peak target
+    // at the same +20 dB ceiling as the legacy AGC, and the output peak target
     // equals the legacy AGC's (desired_level × 0.01), so switching between
     // Auto and Fast/Medium/Slow keeps the same loudness.
     if (trx_speed != 0) {
@@ -406,7 +400,7 @@ void AGC::process(float *arr, size_t len) {
             }
             total_gain = std::min(total_gain, max_gain);
 
-            // 0.01f output scale: max_gain 1e6 → 10000× (+80 dB) effective ceiling
+            // 0.01f output scale: max_gain 1000 → 10× (+20 dB) effective ceiling
             arr[i] = sample * (total_gain * 0.01f);
         }
         return;
@@ -433,7 +427,7 @@ void AGC::process(float *arr, size_t len) {
             }
             total_gain = std::min(total_gain, max_gain);
 
-            // 0.01f output scale: max_gain 1e6 → 10000× (+80 dB) effective ceiling
+            // 0.01f output scale: max_gain 1000 → 10× (+20 dB) effective ceiling
             arr[i] = current_sample * (total_gain * 0.01f);
         } else {
             // Still filling lookahead buffer – mute until full window available
