@@ -13,6 +13,18 @@ using json = nlohmann::json;
 #include "FLAC++/metadata.h"
 
 
+// Mono audio scale (version française, F1NSK).
+// The mono demodulator path used to quantise its AGC output at about -55 dBFS
+// (peaks near 57 counts out of 32767): a weak signal, or the band noise on a
+// quiet receiver, came out at 0 to 3 counts, and data decoders (HFDL above
+// all) received nothing usable. The int16 conversion now multiplies by this
+// factor (+42 dB, peaks near -13 dBFS) and announces it to the browser as
+// "audio_scale" in the settings block; the browser divides it back out, so
+// what the listener hears is unchanged and only the resolution improves.
+// Independent of the receiver: it acts after the AGC, on every input. The
+// C-QUAM stereo path already uses the full scale and is not affected.
+constexpr float kMonoAudioScale = 128.0f;
+
 // FLAC tuning modes for latency vs bandwidth
 enum class FlacMode {
     UltraLowLatency,  // ~256-512 blocksize

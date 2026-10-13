@@ -324,12 +324,20 @@ class KiwiSndEncoder : public AudioEncoder {
         // emitted only once exactly 512 samples are ready to go -- the format
         // of the frame itself does not change at all.
         // ------------------------------------------------------------------
+        // The mono stream arrives kMonoAudioScale louder (see audio.h); that
+        // factor comes back out here so audio_gain keeps its meaning. The
+        // C-QUAM stereo path is not scaled.
+        const bool stereo = packet.contains("channels") &&
+                            packet["channels"].is_number() &&
+                            packet["channels"].get<int>() == 2;
+        const double gain_lin =
+            stereo ? kiwi_audio_gain_lin : kiwi_audio_gain_lin / kMonoAudioScale;
         for (size_t i = 0; i < size; i++) {
             // Gain first, clamp second: clamping and then amplifying would
             // waste the headroom the clamp just threw away. At unity the
             // multiply is exact for every value an int16 can hold, so a
             // receiver left at 0 dB behaves precisely as it did before.
-            double g = static_cast<double>(data[i]) * kiwi_audio_gain_lin;
+            double g = static_cast<double>(data[i]) * gain_lin;
             // The clamp stays as the last line of defence, but with the limiter
             // ahead of it there should be nothing left for it to cut.
             g = limiter_.process(g);

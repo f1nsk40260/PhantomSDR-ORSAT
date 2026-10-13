@@ -167,6 +167,7 @@ void broadcast_server::send_basic_info(connection_hdl hdl,
           {"r", default_r}}},
         {"waterfall_compression", waterfall_compression_str},
         {"audio_compression", audio_compression_str},
+        {"audio_scale", kMonoAudioScale},   // mono int16 scale, see audio.h
         {"grid_locator", grid_locator},
         {"smeter_offset", offset_smeter_value},
         {"analog_smeter_offset", analog_offset_smeter_value},

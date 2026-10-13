@@ -348,6 +348,17 @@ export class RemoteSource {
     }
     if (!pcm || pcm.length === 0) return
 
+    // A server that announces "audio_scale" sends mono ×audio_scale in int16
+    // (see audio.js, same correction): bring it back to the usual scale.
+    {
+      const sc = Number(this.settings && this.settings.audio_scale) || 1
+      if (sc > 1 && this.channels !== 2 && !pcm.channelData) {
+        const scaled = new Float32Array(pcm.length)
+        for (let i = 0; i < pcm.length; i++) scaled[i] = pcm[i] / sc
+        pcm = scaled
+      }
+    }
+
     // A stereo remote (C-QUAM) is not useful to a mono combiner; fold it
     // down rather than dropping the stream entirely.
     if (pcm.channelData && this.channels === 2) {

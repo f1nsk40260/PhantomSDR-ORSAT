@@ -4018,6 +4018,22 @@ setAGC(newAGCSpeed) {
       if (!this._flacStereoLogged) { console.log('[FLAC Stereo] Interleaved channelData:', len, 'frames'); this._flacStereoLogged = true; }
     }
 
+    // Version française : un serveur qui annonce "audio_scale" envoie l'audio
+    // mono ×audio_scale en 16 bits (meilleure résolution pour les décodeurs,
+    // voir src/audio.h côté serveur). On le ramène ici à l'échelle habituelle,
+    // avant tout le reste : écoute, décodeurs et RADE voient les mêmes niveaux
+    // qu'avant, avec 7 bits de résolution en plus. Un serveur plus ancien
+    // n'envoie pas la clé : rien ne change.
+    {
+      const sc = Number(this.settings && this.settings.audio_scale) || 1
+      if (sc > 1 && this.channels !== 2) {
+        const k = 1 / sc
+        const scaled = new Float32Array(pcmArray.length)
+        for (let i = 0; i < pcmArray.length; i++) scaled[i] = pcmArray[i] * k
+        pcmArray = scaled
+      }
+    }
+
     // Packet geometry, for the ?diag=1 line. On the fallback path every packet
     // becomes its own scheduled AudioBufferSourceNode, so the rate here is the
     // number of separate nodes per second the browser has to join seamlessly —

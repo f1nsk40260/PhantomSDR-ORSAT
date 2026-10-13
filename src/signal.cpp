@@ -1058,8 +1058,9 @@ void AudioClient::send_audio(std::complex<float> *buf, size_t frame_num) {
             // Quantize into 16 bit audio to save bandwidth.
             // Mono boost — mono AM should be louder than stereo (30% boost).
             const float mono_boost = 1.5f;
+            // ×kMonoAudioScale: see audio.h (the browser divides it back out).
             dsp_float_to_int16(audio_real.data(), audio_real_int16.data(),
-                            static_cast<int>(65536 / 2 * mono_boost), audio_fft_size / 2);
+                            65536.0f / 2.0f * mono_boost * kMonoAudioScale, audio_fft_size / 2);
 
 
             // Set audio details with mono channel count
