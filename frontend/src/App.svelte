@@ -103,7 +103,7 @@
   import ModesSelector from "./lib/ModesSelector.svelte";
   import { writable } from "svelte/store";
   // Traduction intégrale FR / EN / ES (voir lib/i18n.js)
-  import { lang, LANGS, LANG_NAMES, setLang, startI18n, tr } from "./lib/i18n.js";
+  import { lang, LANGS, LANG_NAMES, LANG_FLAGS, setLang, startI18n, tr } from "./lib/i18n.js";
   onMount(() => startI18n());
 
   import PassbandTuner from "./lib/PassbandTuner.svelte";
@@ -9264,7 +9264,8 @@
                       class:lang-active={$lang === l}
                       aria-pressed={$lang === l}
                       title={LANG_NAMES[l]}
-                      on:click={() => setLang(l)}>{l.toUpperCase()}</button
+                      on:click={() => setLang(l)}
+                      >{@html LANG_FLAGS[l]}<span>{l.toUpperCase()}</span></button
                     >
                   {/each}
                 </div>
@@ -15030,7 +15031,8 @@ Cliquez à nouveau pour désactiver"
                       class:lang-active={$lang === l}
                       aria-pressed={$lang === l}
                       title={LANG_NAMES[l]}
-                      on:click={() => setLang(l)}>{l.toUpperCase()}</button
+                      on:click={() => setLang(l)}
+                      >{@html LANG_FLAGS[l]}<span>{l.toUpperCase()}</span></button
                     >
                   {/each}
                 </div>
@@ -19491,7 +19493,10 @@ Slider: share of denoised audio, the rest is the original"
     margin-bottom: 6px;
   }
   .lang-btn {
-    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 7px;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -19499,6 +19504,19 @@ Slider: share of denoised audio, the rest is the original"
     background: rgba(207, 181, 59, 0.06);
     border: 1px solid rgba(207, 181, 59, 0.35);
     border-radius: 0.4rem;
+  }
+  .lang-flag {
+    width: 21px;
+    height: 14px;
+    flex-shrink: 0;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+  }
+  .lang-btn:hover .lang-flag,
+  .lang-btn.lang-active .lang-flag {
+    opacity: 1;
   }
   .lang-btn.lang-active {
     background: rgba(207, 181, 59, 0.4);

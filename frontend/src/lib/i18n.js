@@ -25,6 +25,15 @@ import { writable } from "svelte/store";
 export const LANGS = ["fr", "en", "es"];
 export const LANG_NAMES = { fr: "Français", en: "English", es: "Español" };
 const IDX = { fr: 0, en: 1, es: 2 };
+// Drapeaux en SVG intégré : les émojis drapeaux ne s'affichent pas sous
+// Windows ni dans Chrome sous Linux (ils y deviennent les lettres « FR »).
+const FLAG_ATTR = 'class="lang-flag" viewBox="0 0 60 40" preserveAspectRatio="none" aria-hidden="true"';
+export const LANG_FLAGS = {
+  fr: `<svg ${FLAG_ATTR}><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg>`,
+  en: `<svg ${FLAG_ATTR}><clipPath id="lang-uk-clip"><path d="M30,20h30v20zv20h-30zh-30v-20zv-20h30z"/></clipPath><rect width="60" height="40" fill="#012169"/><path d="M0,0L60,40M60,0L0,40" stroke="#fff" stroke-width="8"/><path d="M0,0L60,40M60,0L0,40" clip-path="url(#lang-uk-clip)" stroke="#C8102E" stroke-width="5"/><path d="M30,0v40M0,20h60" stroke="#fff" stroke-width="12"/><path d="M30,0v40M0,20h60" stroke="#C8102E" stroke-width="7"/></svg>`,
+  es: `<svg ${FLAG_ATTR}><rect width="60" height="40" fill="#AA151B"/><rect y="10" width="60" height="20" fill="#F1BF00"/></svg>`,
+};
+
 const STORAGE_KEY = "phantom.lang";
 
 function initialLang() {
