@@ -94,6 +94,7 @@
   // Sub-mode lists and squelch defaults of the fldigi-family modems (MFSK,
   // DominoEX, THOR, THROB, Hell, MT63). fsk.js is in this bundle already.
   import { FLDIGI_MODEMS } from "./fsk.js";
+  import SignalRefPanel from "./lib/SignalRefPanel.svelte";
   import { meterGated } from "./lib/sUnits.js";
   import { loadReceivers } from "./lib/receivers";
   import SMeterAnalog from "./lib/SMeterAnalog.svelte";
@@ -5520,6 +5521,22 @@
    * up for it: the sideband and the passband become the ones that mode is
    * worked with, and the view closes in on the tuned frequency.
    */
+  // Fiche / recherche dans la base de signaux de référence (Artemis).
+  // Largeur proposée : celle mesurée par le Decoder ID si elle existe, sinon
+  // celle du filtre de réception en cours.
+  let signalRef = null;
+  function openSignalRef(id) {
+    const f = modeIdResult && modeIdResult.features;
+    const measured = f && f.bwHz > 0 ? f.bwHz : 0;
+    const passband = Number(bandwidth) > 0 ? Number(bandwidth) * 1000 : 0;
+    signalRef = {
+      id,
+      freqHz: Math.round(Number(frequency) * 1e3) || 0,
+      bwHz: measured || passband,
+      demod: demodulation,
+    };
+  }
+
   function modeIdTune(candidate) {
     if (!candidate || !candidate.key) return;
     if (candidate.key === "fsk" && candidate.variant) {
@@ -12139,6 +12156,8 @@ Cliquez à nouveau pour désactiver"
                             on:toggle={toggleModeId}
                             on:tune={(e) => modeIdTune(e.detail)}
                             on:recentre={modeIdRecentre}
+                            on:info={(e) => openSignalRef(e.detail)}
+                            on:identify={() => openSignalRef(null)}
                           />
                         </div>
                         <!-- One row, always: ten equal cells that shrink
@@ -19474,6 +19493,15 @@ Slider: share of denoised audio, the rest is the original"
   </div>
 {/if}
 
+{#if signalRef}
+  <SignalRefPanel
+    refId={signalRef.id}
+    freqHz={signalRef.freqHz}
+    bwHz={signalRef.bwHz}
+    demod={signalRef.demod}
+    on:close={() => (signalRef = null)}
+  />
+{/if}
 </main>
 
 <svelte:head>

@@ -14,6 +14,7 @@
    * nothing here may grow past that column.
    */
   import { createEventDispatcher } from "svelte";
+  import { refIdForCandidate } from "./signalRefs.js";
   const dispatch = createEventDispatcher();
 
   export let on = false;
@@ -29,6 +30,8 @@
   $: candidates = (ranked && ranked.length ? ranked : (result && result.candidates)) || [];
   $: best = candidates[0] || null;
   $: rest = candidates.slice(1);
+  // Fiche de référence (Artemis) du mode reconnu, s'il en existe une.
+  $: bestRef = refIdForCandidate(best);
   $: features = (result && result.features) || null;
 
   /** What was actually measured — the evidence behind the verdict. */
@@ -82,6 +85,13 @@
     >
       {on ? "On" : "Off"}
     </button>
+    <button
+      class="px-2 py-0.5 rounded bg-gray-700 text-gray-300 hover:bg-gray-600 whitespace-nowrap transition-colors"
+      on:click={() => dispatch("identify")}
+      title="Chercher dans la base de signaux de référence ce qui correspond à la fréquence, à la largeur du filtre et à la démodulation en cours"
+    >
+      🔍 Identifier
+    </button>
 
     {#if on}
       {#if !ready}
@@ -114,6 +124,14 @@
         <span class="{tone(best.score)} font-semibold whitespace-nowrap" title={best.why}>
           {best.label}
         </span>
+        {#if bestRef}
+          <button
+            class="px-1 rounded text-blue-300 hover:bg-gray-700 hover:text-blue-200 transition-colors"
+            on:click={() => dispatch("info", bestRef)}
+            title="Fiche de référence : spectre, son et description du mode"
+            aria-label="Fiche de référence"
+          >ⓘ</button>
+        {/if}
         {#if best.onPlan}
           <span
             class="text-blue-300 whitespace-nowrap"
