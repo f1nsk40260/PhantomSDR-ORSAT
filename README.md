@@ -648,6 +648,11 @@ Il trouve chaque emplacement par motif et non par numéro de ligne, si bien qu'i
 ```
 
 
+## Signaux de référence : Artemis et Signal Identification Wiki
+La version française embarque la base de signaux d'**[Artemis](https://github.com/AresValley/Artemis)** (585 signaux : fiche, spectre et enregistrement de référence), dans `frontend/src/assets/references/`. Elle servira à un menu d'identification des signaux.
+
+Tout le mérite de ce contenu revient aux contributeurs du **[Signal Identification Wiki](https://www.sigidwiki.com)** (SigIDWiki), d'où proviennent les données d'Artemis. Merci à l'équipe d'Artemis, qui a autorisé sa redistribution ici. Chaque fiche renvoie à sa page d'origine sur SigIDWiki. Voir aussi le fichier [NOTICE](NOTICE).
+
 ## Dernières remarques
 Si vous réinstallez ou mettez à niveau, sauvegardez d'abord votre installation précédente, car vous pourriez avoir besoin de certains de ces fichiers : <br />
 - site_information.json (dans frontend),

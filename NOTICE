@@ -1,0 +1,33 @@
+PhantomSDR-Plus — version française (F1NSK)
+https://github.com/f1nsk40260/PhantomSDR-Plus
+
+Version modifiée de PhantomSDR-Plus de SV1BTL :
+https://github.com/sv1btl/PhantomSDR-Plus (GPL-3.0, voir LICENSE et ADDITIONAL_TERMS.md)
+
+Données et composants tiers inclus
+==================================
+
+Base de signaux de référence (frontend/src/assets/references/)
+  Source : base de données d'Artemis (Artemis-DB), https://github.com/AresValley/Artemis
+  Données issues du Signal Identification Wiki (SigIDWiki), https://www.sigidwiki.com
+  Les fiches, spectres et enregistrements sont le travail collectif des
+  contributeurs du Signal Identification Wiki. Redistribution autorisée par
+  l'équipe d'Artemis (octobre 2026), avec mention et lien vers Artemis et SigIDWiki.
+  Chaque fiche (signal.json, champ "page") renvoie à sa page d'origine sur SigIDWiki.
+
+Décodeur HFDL (jsdsp/hfdl_wasm/, frontend/public/decoders/hfdl.wasm)
+  dumphfdl 1.7.0 — Tomasz Lemiech, https://github.com/szpajder/dumphfdl (GPL-3.0-or-later)
+  libacars 2.2.1 — Tomasz Lemiech, https://github.com/szpajder/libacars (MIT)
+  liquid-dsp — Joseph Gaeddert, https://github.com/jgaeddert/liquid-dsp (MIT)
+  libconfig — Mark Lindner, https://github.com/hyperrealm/libconfig (LGPL-2.1)
+
+----------------------------------------------------------------------
+English summary
+
+This is a modified, French-language version of PhantomSDR-Plus by SV1BTL.
+It ships the Artemis signal database (https://github.com/AresValley/Artemis),
+built from the Signal Identification Wiki (https://www.sigidwiki.com); all
+credit for that content goes to the SigIDWiki contributors. Redistribution
+was kindly allowed by the Artemis team with attribution and links back to
+Artemis and SigIDWiki. The HFDL decoder is based on dumphfdl and libacars
+by Tomasz Lemiech.
