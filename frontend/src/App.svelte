@@ -6450,6 +6450,29 @@
   function handleNRChange() {
     NREnabled = !NREnabled;
     applyNoiseReduction(NREnabled);
+    if (NREnabled) handleNRStrength();
+  }
+
+  // Dosage du filtre NR : atténuation maximale appliquée à une raie jugée
+  // « bruit » (audio.js nrStrengthDB, 14 dB d'origine). En dessous de 14 dB la
+  // sur-soustraction est aussi adoucie, pour que le réglage bas préserve mieux
+  // les signaux faibles ; à 14 dB et au-delà, le filtre est celui d'origine.
+  // Le réglage est mémorisé dans le navigateur du visiteur.
+  const NR_STRENGTH_KEY = "phantom.nrStrengthDB";
+  let NRStrengthDB = 14;
+  try {
+    const v = Number(localStorage.getItem(NR_STRENGTH_KEY));
+    if (Number.isFinite(v) && v >= 2 && v <= 24) NRStrengthDB = v;
+  } catch (e) {}
+
+  function handleNRStrength() {
+    if (audio && typeof audio.setNoiseReductionParams === "function") {
+      audio.setNoiseReductionParams({ strengthDB: NRStrengthDB });
+      audio.nrOverSub = Math.min(2.0, 1.0 + NRStrengthDB / 14);
+    }
+    try {
+      localStorage.setItem(NR_STRENGTH_KEY, String(NRStrengthDB));
+    } catch (e) {}
   }
 
   // AI NR (RNNoise) is a speech model: audio.js bypasses it outside the voice
@@ -10790,6 +10813,32 @@ Cliquez à nouveau pour désactiver"
                     </div>
                     <!-- End Filter Selection -->
                   </div>
+
+                  <!-- Dosage du filtre NR, visible quand NR est engagé -->
+                  {#if NREnabled}
+                    <div class="control-group -mt-4 mb-2" id="nr-strength-slider">
+                      <span
+                        class="text-xs font-semibold text-gray-300 mr-4 whitespace-nowrap"
+                        title="Dosage de la réduction de bruit NR"
+                        >NR</span
+                      >
+                      <div class="slider-container w-40">
+                        <input
+                          type="range"
+                          bind:value={NRStrengthDB}
+                          on:input={handleNRStrength}
+                          title="Dosage du filtre NR : vers la gauche plus doux (préserve les signaux faibles), vers la droite plus énergique. 14 dB = réglage d'origine."
+                          class="glass-slider"
+                          min="2"
+                          max="24"
+                          step="1"
+                        />
+                      </div>
+                      <span class="value-display text-sm text-gray-300 ml-4"
+                        >{NRStrengthDB} dB</span
+                      >
+                    </div>
+                  {/if}
 
                   <!-- AI noise reduction (RNNoise) -->
                   <div class="control-group mt-4" id="ai-nr-slider">
