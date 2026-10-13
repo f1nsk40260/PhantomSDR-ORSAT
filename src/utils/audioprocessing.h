@@ -49,6 +49,7 @@ class AGC {
     size_t hang_time;
     size_t hang_counter;
     float hang_threshold;
+    bool hang_latched = false;   // a drop already started the hang; wait for recovery
 
     // Transceiver-style AGC (Fast / Medium / Slow buttons). 0 = the legacy
     // mode-dependent AGC above ("Auto"), which stays the default.

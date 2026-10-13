@@ -477,13 +477,25 @@ void AGC::applyProgressiveAGC(float desired_gain) {
         hang_counter--;
     }
 
+    const float hang_rise_per_stage =
+        std::pow(1.0f / hang_threshold, 1.0f / static_cast<float>(gains.size()));
+    bool hang_latched_next = false;
+
     for (size_t i = 0; i < gains.size(); ++i) {
         float stage_desired_gain = std::min(std::pow(desired_gain, 1.0f / gains.size()), max_gain);
 
-        // Re-arm hang timer when signal drops sharply
-        if (stage_desired_gain < gains[i] * hang_threshold) {
+        // Hang: hold the gain for hang_time when the signal DROPS sharply
+        // (wanted gain well above the current one), so the noise between
+        // syllables and overs is not pulled up at once. The test used to be
+        // inverted (it fired when the signal ROSE, freezing the attack) and
+        // re-armed on every sample. hang_threshold keeps its meaning: a drop
+        // to below hang_threshold × the previous level, spread over the stages.
+        // Edge-triggered, so a long silence still releases after hang_time.
+        const bool dropped = stage_desired_gain > gains[i] * hang_rise_per_stage;
+        if (dropped && !hang_latched && hang_counter == 0) {
             hang_counter = hang_time;
         }
+        hang_latched_next = hang_latched_next || dropped;
 
         if (hang_counter > 0) {
             // Hang active — hold current gain, suppress release
@@ -502,8 +514,11 @@ void AGC::applyProgressiveAGC(float desired_gain) {
         }
     }
 
-    // Delayed AGC for RF stage (first stage): extra-slow release upward
-    if (desired_gain > gains[0]) {
+    hang_latched = hang_latched_next;
+
+    // Delayed AGC for RF stage (first stage): extra-slow release upward,
+    // held like the other stages while the hang runs.
+    if (hang_counter == 0 && desired_gain > gains[0]) {
         gains[0] = std::min(
             gains[0] * (1.0f - release_coeff * 0.1f) + desired_gain * release_coeff * 0.1f,
             max_gain
@@ -537,6 +552,7 @@ void AGC::reset() {
     lookahead_buffer.clear();
     lookahead_max.clear();
     hang_counter = 0;
+    hang_latched = false;
     stereo_level = 0.1f;
     stereo_gain  = 1.0f;
 }

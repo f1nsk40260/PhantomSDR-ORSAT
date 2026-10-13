@@ -449,7 +449,12 @@ AudioClient::AudioClient(connection_hdl hdl,
       audio_rate(audio_max_sps),
       signal_slices(sender.get_signal_slices()),
       signal_slice_mtx(sender.get_signal_slice_mtx()),
-      agc(0.1f, 100.0f, 30.0f, 100.0f, audio_max_sps) {
+      // Look-ahead 8 ms (was 100 ms). The AGC lowers its gain as soon as a
+      // peak enters the look-ahead window, so with 100 ms the 100 ms of audio
+      // just before every strong onset came out nearly silent (~95 ms hole,
+      // the start of each over and of loud syllables lost). 8 ms removes the
+      // hole, keeps the overshoot to a few dB, and cuts ~90 ms of latency.
+      agc(0.1f, 100.0f, 30.0f, 8.0f, audio_max_sps) {
 
     base_audio_compression = audio_compression;
     this->encoder = make_audio_encoder(audio_compression, 1);
@@ -1046,14 +1051,19 @@ void AudioClient::send_audio(std::complex<float> *buf, size_t frame_num) {
             // DC removal
             dc.removeDC(audio_real.data(), audio_fft_size / 2);
 
-            // NOISE GATE - Apply before AGC to work on full dynamic range
-            noise_gate.process(audio_real.data(), audio_fft_size / 2);
-
             // AGC (conditional — can be disabled)
             if (agc_on) {
                 std::scoped_lock lk(agc_mtx_);
                 agc.process(audio_real.data(), audio_fft_size / 2);
             }
+
+            // NOISE GATE - after the AGC (version française, F1NSK). Placed
+            // before it, the gate attenuated the pauses and the AGC then raised
+            // them back, the two working against each other. On the levelled
+            // AGC output the gate keeps the speech level and darkens the pauses
+            // 2-3 dB more (its thresholds are relative to the tracked noise
+            // floor, so the AGC's output level does not change its behaviour).
+            noise_gate.process(audio_real.data(), audio_fft_size / 2);
 
             // Quantize into 16 bit audio to save bandwidth.
             // Mono boost — mono AM should be louder than stereo (30% boost).
