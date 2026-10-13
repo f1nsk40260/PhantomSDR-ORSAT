@@ -58,6 +58,7 @@
 
 import { transformFlat } from './lib/fftRadix2.js';
 import { FtxSyncDetector } from './ftxSync.js';
+import { identifyFldigi } from './fldigiId.js';
 
 // ── Analysis constants ───────────────────────────────────────────────────────
 
@@ -98,6 +99,9 @@ const NOISE_PCTL = 0.25;     // noise floor percentile of the passband spectrum
 // 200 Hz, where the Hilbert transform's response near DC runs out.  Above
 // ~2700 Hz an SSB filter starts clipping the upper tone of a wide shift.
 // Exported so the UI can offer to move the dial rather than guess badly.
+const FLDIGI_WIN_SEC = 6;   // audio analysé par fldigiId.js
+const FLDIGI_EVERY = 3;     // une analyse tous les 3 rapports (≈ 3 s)
+
 export const RELIABLE_LO_HZ = 400;
 export const RELIABLE_HI_HZ = 2700;
 export const RECENTRE_TARGET_HZ = 1500;
@@ -177,6 +181,12 @@ export class ModeIdentifier {
     this._ftxRes = null;
     this._ftxTick = 0;
     const sps = this._sampleRateFn() || 12000;
+    // Modes fldigi (fldigiId.js) : 6 s d'audio brut, analysés toutes les 3 s.
+    this._raw = new Float32Array(Math.round(sps * FLDIGI_WIN_SEC));
+    this._rawPos = 0;
+    this._rawLen = 0;
+    this._fld = null;
+    this._fldTick = 0;
 
     // (1) spectrum
     this._acc = new Float32Array(FFT_N);
@@ -280,6 +290,11 @@ export class ModeIdentifier {
     if (!this._enabled || !pcm || !pcm.length) return;
     const sps = this._sampleRateFn() || 12000;
     this._ftx.feed(pcm);
+    {
+      const r = this._raw, n = r.length;
+      for (let i = 0; i < pcm.length; i++) { r[this._rawPos] = pcm[i]; this._rawPos = (this._rawPos + 1) % n; }
+      this._rawLen = Math.min(n, this._rawLen + pcm.length);
+    }
 
     // A chunk is a few hundred milliseconds of audio arriving at once.  Stamping
     // every cadence frame with the arrival time would smear burst edges by a
@@ -902,6 +917,19 @@ export class ModeIdentifier {
       this._ftxRes = this._ftx.detect();
     }
     const ftx = this._ftxRes || { ft8: [], js8: [], ft4: [] };
+    // Modes fldigi : géométrie MFSK vérifiée symbole par symbole, signatures
+    // MT63 / THROB / Hell. Inutile quand une synchro FTx est déjà prouvée.
+    if (++this._fldTick >= FLDIGI_EVERY && this._rawLen >= this._raw.length) {
+      this._fldTick = 0;
+      const n = this._raw.length, x = new Float32Array(n);
+      for (let i = 0; i < n; i++) x[i] = this._raw[(this._rawPos + i) % n];
+      try {
+        const r = identifyFldigi(x, sps);
+        const band = r.info && r.info.bwHz ? r : null;
+        this._fld = band && r.candidates.length ? r : null;
+      } catch (e) { this._fld = null; }
+    }
+    const fld = (ftx.ft8.length || ftx.js8.length || ftx.ft4.length) ? null : this._fld;
     const ftxBest = [...ftx.ft8, ...ftx.js8, ...ftx.ft4].sort((a, b) => b.metric - a.metric)[0] || null;
     const ftxF = {
       ftxHeardSec: this._ftx.filledSec(),
@@ -923,6 +951,17 @@ export class ModeIdentifier {
     // fixed by the IF rate (see _reset) — its ~1 kHz cutoff already passes every
     // shift we care about while rejecting the rest of the passband.
     if (spec.snrDb >= MIN_SNR_DB) this._mixHz = spec.centerHz;
+
+    if (fld && spec.snrDb < MIN_SNR_DB) {
+      // Trop faible pour le reste de l'analyse (MT63 large et plat : pas de
+      // raie marquée), mais la géométrie du mode est vérifiée.
+      const f = { ...spec, ...ftxF, centerHz: fld.info.centerHz, bwHz: fld.info.bwHz, fldigi: fld.info,
+                  baud: 0, envRate: 0, keyRate: 0, dutyOn: 1, continuous: null,
+                  burstSec: 0, runSec: 0, gridSec: 0, bursts: 0 };
+      const candidates = mergeFldigi([], fld).slice(0, 3);
+      this._emit({ t: 'result', ready: true, fill, candidates, features: f });
+      return;
+    }
 
     if (spec.snrDb < MIN_SNR_DB) {
       this._emit({
@@ -958,12 +997,13 @@ export class ModeIdentifier {
     // Une station FTx trouvée : c'est elle que le reste de l'interface vise
     // (recentrage, accord), pas la raie la plus forte de la bande.
     if (ftxBest) f.centerHz = ftxBest.hz;
+    if (fld) { f.fldigi = fld.info; f.centerHz = fld.info.centerHz; }
 
-    const candidates = scoreAll(f).filter(c => c.score > 0.25).slice(0, 3);
+    const candidates = mergeFldigi(scoreAll(f), fld).filter(c => c.score > 0.25).slice(0, 3);
     // Prêt dès qu'une réponse est sûre : attendre 32 s de cadence n'a de sens
     // que pour les modes qu'on ne reconnaît qu'à leur rythme. Une synchro FTx
     // ou un RTTY/CW/PSK à plus de 80 % n'ont pas à faire patienter.
-    const sure = !!ftxBest || (candidates[0] && candidates[0].score >= 0.8);
+    const sure = !!ftxBest || (candidates[0] && (candidates[0].score >= 0.8 || (candidates[0].fldigi && candidates[0].score >= 0.6)));
     this._emit({ t: 'result', ready: fill >= 1 || sure, fill, candidates, features: f });
   }
 
@@ -1356,6 +1396,28 @@ const MODES = [
     },
   },
 ];
+
+/**
+ * Ajoute les candidats fldigi (fldigiId.js) au classement. Ils sont vérifiés
+ * sur les symboles eux-mêmes : quand il y en a, les ressemblances globales de
+ * la table (l'ancien « Olivia » au peigne, FAX, SSTV…) passent derrière — c'est
+ * exactement là qu'elles se trompaient (Olivia pris pour du FAX, DominoEX et
+ * THOR pour de l'Olivia).
+ */
+export function mergeFldigi(ranked, fld) {
+  if (!fld || !fld.candidates || !fld.candidates.length) return ranked;
+  const top = fld.candidates[0].score;
+  const out = [];
+  for (const c of fld.candidates) out.push({ ...c, fldigi: true, centerHz: fld.info.centerHz, score: Math.max(0, Math.min(1, c.score)) });
+  for (const c of ranked) {
+    if (c.sync) { out.push(c); continue; }
+    // L'Olivia « générique » fait doublon avec l'Olivia vérifié.
+    if (c.key === 'fsk' && c.variant === 'olivia') continue;
+    out.push({ ...c, score: Math.min(c.score, top * 0.8) });
+  }
+  out.sort((a, b) => b.score - a.score);
+  return out;
+}
 
 /** Run every scorer and return them ranked. */
 export function scoreAll(features) {

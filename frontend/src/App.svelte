@@ -5525,6 +5525,16 @@
     if (candidate.key === "fsk" && candidate.variant) {
       fskVariant = candidate.variant;
       _applyFskVariantDefaults(fskVariant);
+      // Les modes fldigi reconnus par leur géométrie (fldigiId.js) donnent
+      // aussi le sous-mode (MFSK16, DominoEX 11, Olivia 16/500…) et le centre
+      // mesuré du signal : le décodeur démarre directement dessus.
+      if (candidate.modemMode && FLDIGI_MODEMS[candidate.variant]) {
+        modemModes[candidate.variant] = candidate.modemMode;
+        modemModes = modemModes;
+      }
+      if (candidate.oliviaMode) oliviaMode = candidate.oliviaMode;
+      if (candidate.centerHz > 0) fskCenter = Math.round(candidate.centerHz);
+      else if (candidate.variant === "mt63") fskCenter = 500 + _modemModeCfg("mt63").bw / 2;
     }
     const wasRunning = decoderOn && selectedDecoder === candidate.key;
     launchDecoder(candidate.key);

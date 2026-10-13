@@ -835,10 +835,21 @@ const D = [
   ["Récepteurs enregistrés en QR code", "Saved receivers as a QR code", "Receptores guardados como código QR"],
   ["La sauvegarde couvre les quatre types de récepteurs", "Backup covers all four receiver types", "La copia cubre los cuatro tipos de receptor"],
   ["Rien d'enregistré — restaurez un fichier de sauvegarde", "Nothing saved yet — restore a backup file", "Nada guardado — restaure un archivo de copia"],
+  // Decoder ID — modes fldigi (fldigiId.js)
+  ["ton jamais répété (IFK), varicode nue (pas de FEC)", "tone never repeated (IFK), bare varicode (no FEC)", "tono nunca repetido (IFK), varicode sin codificar (sin FEC)"],
+  ["ton jamais répété (IFK) — THOR possible", "tone never repeated (IFK) — could be THOR", "tono nunca repetido (IFK) — puede ser THOR"],
+  ["ton jamais répété (IFK), données codées (FEC)", "tone never repeated (IFK), coded data (FEC)", "tono nunca repetido (IFK), datos codificados (FEC)"],
+  ["même géométrie que DominoEX, avec FEC", "same geometry as DominoEX, with FEC", "misma geometría que DominoEX, con FEC"],
+  ["ton seul haché au rythme des colonnes (17,5 par seconde)", "single tone chopped at the column rate (17.5 per second)", "tono único troceado al ritmo de las columnas (17,5 por segundo)"],
 ];
 
 // ── Libellés variables : $1, $2 sont repris (et traduits s'ils sont connus) ──
 const P = [
+  ["$1 tons à $2 Hz, $3 Bd, symboles purs à $4 %, $5", "$1 tones at $2 Hz, $3 Bd, symbols $4 % pure, $5", "$1 tonos a $2 Hz, $3 Bd, símbolos puros al $4 %, $5"],
+  ["$1 tons à $2 Hz, $3 Bd, symboles purs à $4 %", "$1 tones at $2 Hz, $3 Bd, symbols $4 % pure", "$1 tonos a $2 Hz, $3 Bd, símbolos puros al $4 %"],
+  ["$1 Hz occupés à plat en permanence (64 porteuses)", "$1 Hz filled flat at all times (64 carriers)", "$1 Hz ocupados de forma plana en todo momento (64 portadoras)"],
+  ["synchro de Costas reconnue — $1 stations", "Costas sync recognised — $1 stations", "sincronismo Costas reconocido — $1 estaciones"],
+  ["synchro de Costas reconnue — $1 station", "Costas sync recognised — $1 station", "sincronismo Costas reconocido — $1 estación"],
   ["Plus lointain : $1", "Farthest: $1", "Más lejano: $1"],
   ["Active — $1", "Active — $1", "Activa — $1"],
   ["Contrôle CAT actif — $1", "CAT control active — $1", "Control CAT activo — $1"],
