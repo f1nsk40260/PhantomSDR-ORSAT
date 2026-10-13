@@ -18,8 +18,10 @@ décodeurs de PhantomSDR-Plus.
 
 `hfdl_wasm.c` (GPL-3.0-or-later) fait le lien : passage de l'audio réel à la
 bande de base (sous-porteuse à 1440 Hz), recherche du rythme exact de l'audio
-(±1 %, 11 démodulateurs en parallèle, verrouillage sur celui qui décode),
-suppression des doublons, sortie JSON + texte.
+(±1 %, 11 rythmes) et de l'écart de fréquence (±240 Hz par pas de 80 Hz,
+pour rattraper l'erreur d'horloge du récepteur ou un accord approximatif) :
+77 démodulateurs en parallèle pendant la recherche, un seul une fois verrouillé
+sur celui qui décode. Suppression des doublons, sortie JSON + texte.
 
 ## Recompiler
 

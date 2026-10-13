@@ -89,7 +89,7 @@ for f in mpdu spdu lpdu hfnpdu acars position fmtr-text fmtr-json util crc \
     SRC+=("dumphfdl/$f.c")
 done
 
-EXPORTS='["_hfdl_init","_hfdl_set_dial","_hfdl_set_offset","_hfdl_reset","_hfdl_input_ptr","_hfdl_process","_hfdl_output_ptr","_hfdl_output_len","_hfdl_output_clear","_hfdl_noise_floor_db","_hfdl_state","_hfdl_frames","_hfdl_rate_ppm","_hfdl_locked","_hfdl_load_systable","_malloc","_free"]'
+EXPORTS='["_hfdl_init","_hfdl_set_dial","_hfdl_set_offset","_hfdl_reset","_hfdl_input_ptr","_hfdl_process","_hfdl_output_ptr","_hfdl_output_len","_hfdl_output_clear","_hfdl_noise_floor_db","_hfdl_state","_hfdl_frames","_hfdl_rate_ppm","_hfdl_freq_offset","_hfdl_locked","_hfdl_load_systable","_malloc","_free"]'
 
 mkdir -p "$WORK/out"
 emcc -O2 -std=gnu11 -Istub -Idumphfdl \

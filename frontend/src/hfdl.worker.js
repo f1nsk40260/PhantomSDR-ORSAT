@@ -17,7 +17,7 @@
  * Worker → main (champ `type`) :
  *   { type: 'ready', systable }      moteur chargé (systable : noms des stations)
  *   { type: 'msg', msg, text }       une trame décodée (msg = JSON dumphfdl)
- *   { type: 'stats', noiseDb, state, frames, locked, ratePpm }   ~1 fois par seconde
+ *   { type: 'stats', noiseDb, state, frames, locked, ratePpm, freqOffset }   ~1 fois par seconde
  *   { type: 'error', message }
  */
 
@@ -107,6 +107,7 @@ function process(pcm) {
       frames: M._hfdl_frames(),
       locked: M._hfdl_locked() === 1,
       ratePpm: M._hfdl_rate_ppm(),
+      freqOffset: M._hfdl_freq_offset ? M._hfdl_freq_offset() : 0,
     });
   }
 }

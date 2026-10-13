@@ -23,6 +23,13 @@
  * une trame ; sans trame pendant UNLOCK_SAMPLES, il reprend la recherche.
  * Une même trame décodée par deux démodulateurs n'est sortie qu'une fois.
  *
+ * Recherche de la fréquence : la boucle de Costas de dumphfdl ne rattrape
+ * qu'environ ±50 Hz d'écart. Or un récepteur réel peut être décalé de
+ * plusieurs dizaines de ppm (100 à 200 Hz vers 9 MHz), et l'auditeur n'est
+ * pas toujours calé au hertz près. Chaque rythme est donc décliné sur
+ * FREQ_CNT décalages espacés de FREQ_STEP_HZ (±FREQ_SPAN_HZ), appliqués après
+ * le rééchantillonnage ; le verrouillage fixe le couple rythme + fréquence.
+ *
  * API exportée (appelée depuis hfdl.worker.js) :
  *   hfdl_init(sample_rate, dial_hz)      → 0 si OK
  *   hfdl_set_dial(dial_hz)               fréquence affichée (USB) du canal
@@ -67,7 +74,7 @@ char const * const DUMPHFDL_VERSION = "1.7.0-phantomsdr";
 
 #define HFDL_OUT_RATE 5400.0f           // HFDL_SYMBOL_RATE * SPS
 #define HFDL_AUDIO_OFFSET_HZ 1440.0f
-#define FRONTEND_LPF_HZ 1300.0f
+#define FRONTEND_LPF_HZ 1650.0f        // signal ±1200 Hz + recherche de fréquence
 
 struct hfdl_channel;
 struct hfdl_channel *hfdl_channel_new(int32_t frequency);
@@ -118,8 +125,11 @@ struct metadata *hfdl_pdu_metadata_create() {
  * State
  ******************************************/
 
-#define RATE_CNT 11                    // demodulators, ±1 % in RATE_STEP steps
+#define RATE_CNT 11                    // rates, ±1 % in RATE_STEP steps
 #define RATE_STEP 0.002f
+#define FREQ_CNT 7                     // frequency offsets per rate
+#define FREQ_STEP_HZ 80.0f             // Costas pull-in is about ±50 Hz
+#define DEMOD_CNT (RATE_CNT * FREQ_CNT)
 #define UNLOCK_SAMPLES (5400 * 180)     // 3 min without a frame → search again
 #define DEDUP_CNT 32
 #define DEDUP_WINDOW_SAMPLES (5400 * 8)
@@ -128,7 +138,8 @@ static struct {
 	float sample_rate;
 	float offset_hz;
 	int32_t dial_hz;
-	struct hfdl_channel *chan[RATE_CNT];
+	struct hfdl_channel *chan[DEMOD_CNT];       // index = rate * FREQ_CNT + freq
+	double phase[DEMOD_CNT];                    // frequency-offset rotators
 	msresamp_crcf resamp[RATE_CNT];
 	nco_crcf nco;
 	firfilt_crcf lpf;
@@ -136,6 +147,7 @@ static struct {
 	size_t in_cap;
 	float complex *mixed;
 	float complex *resampled;
+	float complex *shifted;
 	size_t work_cap;
 	la_reasm_ctx *reasm;
 	la_vstring *out;
@@ -150,6 +162,10 @@ static struct {
 
 static float rate_factor(int32_t i) {
 	return 1.0f + (float)(i - RATE_CNT / 2) * RATE_STEP;
+}
+
+static float freq_offset_hz(int32_t f) {
+	return (float)(f - FREQ_CNT / 2) * FREQ_STEP_HZ;
 }
 
 static void frontend_destroy(void) {
@@ -286,11 +302,12 @@ EXPORT int32_t hfdl_init(int32_t sample_rate, int32_t dial_hz) {
 		W.offset_hz = HFDL_AUDIO_OFFSET_HZ;
 	}
 	W.dial_hz = dial_hz;
-	for(int32_t i = 0; i < RATE_CNT; i++) {
+	for(int32_t i = 0; i < DEMOD_CNT; i++) {
 		if(W.chan[i]) {
 			hfdl_channel_free(W.chan[i]);
 		}
 		W.chan[i] = hfdl_channel_new(dial_hz);
+		W.phase[i] = 0.0;
 	}
 	W.locked = -1;
 	W.clock = 0;
@@ -302,7 +319,7 @@ EXPORT int32_t hfdl_init(int32_t sample_rate, int32_t dial_hz) {
 
 EXPORT void hfdl_set_dial(int32_t dial_hz) {
 	W.dial_hz = dial_hz;
-	for(int32_t i = 0; i < RATE_CNT; i++) {
+	for(int32_t i = 0; i < DEMOD_CNT; i++) {
 		if(W.chan[i]) {
 			hfdl_channel_set_freq(W.chan[i], dial_hz);
 		}
@@ -334,6 +351,7 @@ EXPORT float *hfdl_input_ptr(int32_t n) {
 	if((size_t)n > W.work_cap) {
 		W.mixed = realloc(W.mixed, n * sizeof(float complex));
 		W.resampled = realloc(W.resampled, (n + 64) * sizeof(float complex));
+		W.shifted = realloc(W.shifted, (n + 64) * sizeof(float complex));
 		W.work_cap = n;
 	}
 	return W.in;
@@ -360,9 +378,28 @@ EXPORT int32_t hfdl_process(int32_t n) {
 		// Every resampler keeps running so that a demodulator rejoining the
 		// search has a continuous input; only the demodulators are skipped.
 		msresamp_crcf_execute(W.resamp[k], W.mixed, n, W.resampled, &produced);
-		if(produced > 0 && (W.locked < 0 || W.locked == k)) {
-			W.current = k;
-			hfdl_channel_process(W.chan[k], W.resampled, produced);
+		if(produced == 0) {
+			continue;
+		}
+		for(int32_t f = 0; f < FREQ_CNT; f++) {
+			int32_t d = k * FREQ_CNT + f;
+			if(W.locked >= 0 && W.locked != d) {
+				continue;
+			}
+			float complex *buf = W.resampled;
+			float off = freq_offset_hz(f);
+			if(off != 0.0f) {
+				double dph = -2.0 * M_PI * off / HFDL_OUT_RATE;
+				double ph = W.phase[d];
+				for(unsigned int i = 0; i < produced; i++) {
+					W.shifted[i] = W.resampled[i] * (float complex)(cos(ph) + I * sin(ph));
+					ph += dph;
+				}
+				W.phase[d] = fmod(ph, 2.0 * M_PI);
+				buf = W.shifted;
+			}
+			W.current = d;
+			hfdl_channel_process(W.chan[d], buf, produced);
 		}
 	}
 	W.clock += produced;
@@ -385,13 +422,13 @@ EXPORT void hfdl_output_clear(void) {
 }
 
 EXPORT float hfdl_noise_floor_db(void) {
-	int32_t k = W.locked >= 0 ? W.locked : RATE_CNT / 2;
+	int32_t k = W.locked >= 0 ? W.locked : DEMOD_CNT / 2;
 	return W.chan[k] ? hfdl_channel_noise_floor_db(W.chan[k]) : 0.0f;
 }
 
 EXPORT int32_t hfdl_state(void) {
 	int32_t best = 0;
-	for(int32_t k = 0; k < RATE_CNT; k++) {
+	for(int32_t k = 0; k < DEMOD_CNT; k++) {
 		if(W.chan[k] && (W.locked < 0 || W.locked == k)) {
 			int32_t st = hfdl_channel_state(W.chan[k]);
 			if(st > best) best = st;
@@ -409,7 +446,15 @@ EXPORT int32_t hfdl_rate_ppm(void) {
 	if(W.locked < 0) {
 		return 0;
 	}
-	return (int32_t)lroundf((rate_factor(W.locked) - 1.0f) * 1e6f);
+	return (int32_t)lroundf((rate_factor(W.locked / FREQ_CNT) - 1.0f) * 1e6f);
+}
+
+/** Frequency offset of the locked demodulator, in Hz (0 while searching). */
+EXPORT int32_t hfdl_freq_offset(void) {
+	if(W.locked < 0) {
+		return 0;
+	}
+	return (int32_t)lroundf(freq_offset_hz(W.locked % FREQ_CNT));
 }
 
 EXPORT int32_t hfdl_locked(void) {

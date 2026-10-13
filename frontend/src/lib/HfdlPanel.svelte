@@ -22,6 +22,7 @@
   let frames = 0;
   let locked = false;
   let ratePpm = 0;
+  let freqOffset = 0;
   let messages = [];
   let showSquitters = false;
   let selectedStation = _nearestStationForDial(dialKhz)?.id ?? STATIONS[0].id;
@@ -157,6 +158,7 @@
       frames = ev.frames;
       locked = !!ev.locked;
       ratePpm = ev.ratePpm || 0;
+      freqOffset = ev.freqOffset || 0;
     } else if (ev.type === "msg") {
       status = "ready";
       messages = [...messages, summarize(ev.msg, ev.text)].slice(-MAX_ROWS);
@@ -284,7 +286,7 @@
     {/if}
     <span title="Trames HFDL décodées depuis l'activation">Trames : <span class="font-mono text-gray-200">{frames}</span></span>
     <span title="Le décodeur cherche le rythme exact de l'audio (±1 %) et s'y verrouille dès qu'une trame est décodée">
-      Rythme : {#if locked}<span class="font-mono text-green-300">verrouillé ({ratePpm >= 0 ? "+" : ""}{(ratePpm / 10000).toFixed(1)} %)</span>{:else}<span class="text-gray-500 italic">recherche</span>{/if}
+      Rythme : {#if locked}<span class="font-mono text-green-300">verrouillé ({ratePpm >= 0 ? "+" : ""}{(ratePpm / 10000).toFixed(1)} %)</span>{#if freqOffset}&nbsp;·&nbsp;<span class="font-mono text-green-300" title="Écart de fréquence rattrapé par le décodeur (erreur d'horloge du récepteur ou accord approximatif)">écart {freqOffset > 0 ? "+" : ""}{freqOffset} Hz</span>{/if}{:else}<span class="text-gray-500 italic">recherche</span>{/if}
     </span>
     <span title="Messages (hors squitters) / squitters des stations sol">
       Messages : <span class="font-mono text-gray-200">{counts.lpdu}</span> · Squitters : <span class="font-mono text-gray-200">{counts.squitter}</span>

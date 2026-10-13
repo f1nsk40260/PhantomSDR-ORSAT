@@ -3342,15 +3342,32 @@
         await new Promise((resolve) => setTimeout(resolve, 60));
       }
       audio.setHFDLDial(Math.round((Number(frequency) || 0) * 1000));
+      _hfdlGateOff(true);
       audio.setHFDLDecoding(true);
       _modeIdApplyReceiverDefaults("hfdl");
     });
+  }
+
+  // Le gate du serveur agit avant le décodeur : il ferait varier le niveau au
+  // milieu des trames faibles. Il est suspendu pendant le décodage HFDL, puis
+  // remis dans l'état choisi par l'auditeur.
+  function _hfdlGateOff(off) {
+    if (!backendNoiseGateEnabled) return;
+    if (
+      audio &&
+      audio.decoder &&
+      typeof audio.decoder.set_noise_gate_enable === "function"
+    ) {
+      audio.decoder.set_noise_gate_enable(!off);
+      if (!off) setTimeout(() => { lastAppliedNoiseGatePreset = null; applyNoiseGatePreset(); }, 100);
+    }
   }
 
   function _hfdlDeactivate() {
     if (!hfdlEnabled) return;
     hfdlEnabled = false;
     audio.setHFDLDecoding(false);
+    _hfdlGateOff(false);
     demodulation = _bandDefaultMode();
     handleDemodulationChange(null, true);
     if (audio && typeof audio.updateFilters === "function")
