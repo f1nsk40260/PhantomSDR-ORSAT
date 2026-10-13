@@ -102,6 +102,9 @@
   import BandSelector from "./lib/BandSelector.svelte";
   import ModesSelector from "./lib/ModesSelector.svelte";
   import { writable } from "svelte/store";
+  // Traduction intégrale FR / EN / ES (voir lib/i18n.js)
+  import { lang, LANGS, LANG_NAMES, setLang, startI18n, tr } from "./lib/i18n.js";
+  onMount(() => startI18n());
 
   import PassbandTuner from "./lib/PassbandTuner.svelte";
   import FreeDVReporter from "./lib/FreeDVReporter.svelte";
@@ -1413,11 +1416,11 @@
         },
       });
       if (!started) {
-        alert(
+        alert(tr(
           "Video recording could not start.\n\n" +
             "Make sure audio is started and the waterfall is visible. " +
             "Your browser may not support recording video.",
-        );
+        ));
         return;
       }
       isVideoRecording = true;
@@ -7208,7 +7211,7 @@
   function uploadBookmarks() {
     const file = fileInput.files[0]; // Get the selected file
     if (!file) {
-      alert("Please select a file.");
+      alert(tr("Please select a file."));
       return;
     }
 
@@ -7220,7 +7223,7 @@
       // If the file is a CSV
       processCSV(file);
     } else {
-      alert("Please select a JSON or CSV file.");
+      alert(tr("Please select a JSON or CSV file."));
     }
   }
 
@@ -7271,7 +7274,7 @@
         console.log("Final Updated Bookmarks:", finalBookmarks);
         //alert("The Bookmarks have been uploaded and saved successfully. Please reload the webpage!");
       } catch (error) {
-        alert("Error reading the file.");
+        alert(tr("Error reading the file."));
       }
     };
 
@@ -7349,7 +7352,7 @@
         console.log("Final Updated Bookmarks from CSV:", finalBookmarks);
         //alert("The Bookmarks from CSV have been uploaded and saved successfully. Please reload the webpage!");
       } catch (error) {
-        alert("Error reading the CSV file.");
+        alert(tr("Error reading the CSV file."));
       }
     };
 
@@ -9252,6 +9255,19 @@
                 style="opacity: 0.85;"
               >
                 <!-- Header -->
+                <!-- Sélecteur de langue FR / EN / ES -->
+                <div class="lang-switch" data-no-i18n role="group" aria-label="Langue / Language / Idioma">
+                  {#each LANGS as l}
+                    <button
+                      type="button"
+                      class="lang-btn"
+                      class:lang-active={$lang === l}
+                      aria-pressed={$lang === l}
+                      title={LANG_NAMES[l]}
+                      on:click={() => setLang(l)}>{l.toUpperCase()}</button
+                    >
+                  {/each}
+                </div>
 
                 <h4
                   class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
@@ -15006,6 +15022,18 @@ Cliquez à nouveau pour désactiver"
                 style="opacity: 0.85;"
               >
                 <!-- Header -->
+                <div class="lang-switch lang-switch-inline" data-no-i18n role="group" aria-label="Langue / Language / Idioma">
+                  {#each LANGS as l}
+                    <button
+                      type="button"
+                      class="lang-btn"
+                      class:lang-active={$lang === l}
+                      aria-pressed={$lang === l}
+                      title={LANG_NAMES[l]}
+                      on:click={() => setLang(l)}>{l.toUpperCase()}</button
+                    >
+                  {/each}
+                </div>
                 <div
                   class="text-xs sm:text-sm font-semibold text-gray-100 mb-2 sm:mb-4"
                 >
@@ -19448,6 +19476,36 @@ Slider: share of denoised audio, the rest is the original"
 </svelte:head>
 
 <style global lang="postcss">
+  /* SÉLECTEUR DE LANGUE (en-tête) */
+  .lang-switch {
+    position: absolute;
+    top: 10px;
+    right: 34px;
+    z-index: 5;
+    display: flex;
+    gap: 4px;
+  }
+  .lang-switch-inline {
+    position: static;
+    justify-content: flex-end;
+    margin-bottom: 6px;
+  }
+  .lang-btn {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: rgb(207, 181, 59);
+    background: rgba(207, 181, 59, 0.06);
+    border: 1px solid rgba(207, 181, 59, 0.35);
+    border-radius: 0.4rem;
+  }
+  .lang-btn.lang-active {
+    background: rgba(207, 181, 59, 0.4);
+    border-color: rgba(207, 181, 59, 0.85);
+    color: #fff8d6;
+  }
+
   /* APRS map (lib/aprsMap.js) */
   .aprs-map {
     min-height: 200px;
