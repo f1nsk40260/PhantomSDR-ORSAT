@@ -44,6 +44,11 @@
   // straight away instead of flashing the built-in one for a frame.
   const VARIANT_STORAGE_KEY = "phantom.variant";
 
+  // Version française : Analog S-Meter exclusivement, quel que soit le build
+  // ou le choix enregistré par un ancien sélecteur de version.
+  smeter = "analog";
+  layout = "v1";
+  /*
   try {
     const saved = JSON.parse(
       localStorage.getItem(VARIANT_STORAGE_KEY) || "null",
@@ -56,6 +61,7 @@
   } catch (e) {
     // Private mode / corrupt entry — keep the build default.
   }
+  */
 
   function handleVariantChange(next) {
     smeter = next.smeter;
@@ -186,7 +192,8 @@
   // Import to detect mobile devices //
   import Device from "svelte-device-info";
 
-  import VersionSelector from "./lib/VersionSelector.svelte";
+  // Version française : sélecteur de version masqué (voir <main>).
+  // import VersionSelector from "./lib/VersionSelector.svelte";
   import Spectrogram from "./lib/Spectrogram.svelte";
   import QrssPanel from "./lib/QrssPanel.svelte";
   import VideoAreaSelector from "./lib/VideoAreaSelector.svelte";
@@ -9155,10 +9162,11 @@
 {/if}
 
 <main class="custom-scrollbar">
-  <!-- comment the following 3 lines if you don't want the other versions to be shown -->
+  <!-- Version française : sélecteur de version masqué, Analog S-Meter uniquement.
   {#if !Device.isMobile}
     <VersionSelector {smeter} {layout} onSelect={handleVariantChange} />
   {/if}
+  -->
 
   <div class="h-screen overflow-hidden flex flex-col min-h-screen">
     {#if !Device.isMobile}
@@ -9210,7 +9218,7 @@
 
                   &nbsp - &nbsp
 
-                  <!-- Shortcuts trigger + popup -->
+                  <!-- Version française : bouton Keyboard Shortcuts retiré.
                   <button
                     type="button"
                     class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
@@ -9223,6 +9231,7 @@
                   >
                     ⌨️ Keyboard Shortcuts
                   </button>
+                  -->
 
                   &nbsp;&nbsp;
                   <button
@@ -9331,6 +9340,7 @@
                       <span class="icon">SW</span>
                     </button>
                     &nbsp;&nbsp;&nbsp;
+                    <!-- Version française : bouton HamDash retiré (doublon avec le menu hamdash).
                     <button
                       class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-sm sm:text-sm"
                       style="color:rgba(207, 181, 59, 0.993)"
@@ -9340,6 +9350,7 @@
                       <span class="icon">HamDash</span>
                     </button>
                     &nbsp;&nbsp;&nbsp;
+                    -->
                     <button
                       class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-sm sm:text-sm"
                       style="color:rgba(207, 181, 59, 0.993)"
