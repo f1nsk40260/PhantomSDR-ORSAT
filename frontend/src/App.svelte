@@ -9651,17 +9651,6 @@
                       📊 System Resources
                     </button>
 
-                    <!-- Installeurs PhantomSDR+ Desktop : page de téléchargement du projet
-                         (GitHub ne peut pas héberger des fichiers de cette taille). -->
-                    <button
-                      type="button"
-                      class="glass-button gold-button gold-button-sm py-1 px-2 ml-2 mt-2 rounded text-xs"
-                      on:click={() => window.open("https://phantomsdr.psychomed.gr/desktop.html", "_blank", "noopener,noreferrer")}
-                      title="Télécharger PhantomSDR+ Desktop pour Linux et Windows"
-                      style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
-                    >
-                      💾 Desktop applications
-                    </button>
 
                     {#if showSystemStats}
                       <div class="modal-backdrop" on:click={closeSystemStats}>
@@ -9811,7 +9800,23 @@
                     <span style="/*text-decoration: line-through*/">Receiver: <a href={receiverHref} target="new" style="color:rgba(207, 181, 59, 0.993)">{siteReceiver}</a></span>
                     <br>                    
                     <span style="/*text-decoration: line-through*/">Antenna: {#if antennaHref}<a href={antennaHref} target="new" style="color:rgba(207, 181, 59, 0.993)"> {siteAntenna} </a>{:else}<span style="color:rgba(207, 181, 59, 0.993)"> {siteAntenna} </span>{/if}</span> <br>
-                    <span>Github: <a href="https://github.com/sv1btl/PhantomSDR-Plus" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)"> {siteInformation} </a></span>
+                    <br>
+                    <!-- Les deux dépôts : la source originale (SV1BTL, attribution GPL §7)
+                         et cette version française modifiée (F1NSK). -->
+                    <span>Github — original source (SV1BTL): <a href={ORIGIN_URL} target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)" title="Dépôt original de PhantomSDR-Plus par SV1BTL">{ORIGIN_URL.replace("https://", "")}</a></span>
+                    <!-- Installeurs PhantomSDR+ Desktop : page de téléchargement du projet
+                         (GitHub ne peut pas héberger des fichiers de cette taille). -->
+                    <button
+                      type="button"
+                      class="glass-button gold-button gold-button-sm py-1 px-2 ml-2 rounded text-xs"
+                      on:click={() => window.open("https://phantomsdr.psychomed.gr/desktop.html", "_blank", "noopener,noreferrer")}
+                      title="Télécharger PhantomSDR+ Desktop pour Linux et Windows"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 0.8rem;"
+                    >
+                      💾 Desktop applications
+                    </button>
+                    <br>
+                    <span>Github — modified French version (F1NSK): <a href={MODIFIED_URL} target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)" title="Dépôt de cette version française modifiée par F1NSK">{MODIFIED_URL.replace("https://", "")}</a></span>
                     <br><br>
 
                     <b>Note:</b> <br> 
