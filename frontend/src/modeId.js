@@ -57,6 +57,7 @@
  */
 
 import { transformFlat } from './lib/fftRadix2.js';
+import { FtxSyncDetector } from './ftxSync.js';
 
 // ── Analysis constants ───────────────────────────────────────────────────────
 
@@ -170,6 +171,11 @@ export class ModeIdentifier {
   }
 
   _reset() {
+    // Détecteur de synchro FT8 / JS8 / FT4 (ftxSync.js) : il reconnaît chaque
+    // station à sa séquence de Costas, même en bande chargée et sous le bruit.
+    this._ftx = new FtxSyncDetector(this._sampleRateFn() || 12000);
+    this._ftxRes = null;
+    this._ftxTick = 0;
     const sps = this._sampleRateFn() || 12000;
 
     // (1) spectrum
@@ -273,6 +279,7 @@ export class ModeIdentifier {
   feedPCM(pcm) {
     if (!this._enabled || !pcm || !pcm.length) return;
     const sps = this._sampleRateFn() || 12000;
+    this._ftx.feed(pcm);
 
     // A chunk is a few hundred milliseconds of audio arriving at once.  Stamping
     // every cadence frame with the arrival time would smear burst edges by a
@@ -887,6 +894,31 @@ export class ModeIdentifier {
     const fill = Math.min(1, this._cadFill / (CADENCE_HZ * 32));
     const spec = this._analyseSpectrum(sps);
 
+    // Synchro FTx toutes les 2 s, dès 6 s d'audio : une seule émission suffit,
+    // pas besoin d'attendre la cadence. Faite AVANT le test de silence, car un
+    // FT8 à −10 dB n'a pas de raie assez forte pour passer MIN_SNR_DB.
+    if (++this._ftxTick >= 2 && this._ftx.filledSec() >= 6) {
+      this._ftxTick = 0;
+      this._ftxRes = this._ftx.detect();
+    }
+    const ftx = this._ftxRes || { ft8: [], js8: [], ft4: [] };
+    const ftxBest = [...ftx.ft8, ...ftx.js8, ...ftx.ft4].sort((a, b) => b.metric - a.metric)[0] || null;
+    const ftxF = {
+      ftxHeardSec: this._ftx.filledSec(),
+      ft8Count: ftx.ft8.length, js8Count: ftx.js8.length, ft4Count: ftx.ft4.length,
+      ft8Sync: ftx.ft8.length ? ftx.ft8[0].metric : 0,
+      js8Sync: ftx.js8.length ? ftx.js8[0].metric : 0,
+      ft4Sync: ftx.ft4.length ? ftx.ft4[0].metric : 0,
+    };
+    if (ftxBest && spec.snrDb < MIN_SNR_DB) {
+      // Trop faible pour le reste de l'analyse, mais la synchro est sûre.
+      const f = { ...spec, ...ftxF, centerHz: ftxBest.hz, baud: 0, envRate: 0, keyRate: 0,
+                  dutyOn: 1, continuous: null, burstSec: 0, runSec: 0, gridSec: 0, bursts: 0 };
+      const candidates = scoreAll(f).filter(c => c.score > 0.25).slice(0, 3);
+      this._emit({ t: 'result', ready: true, fill, candidates, features: f });
+      return;
+    }
+
     // Retune the baseband mixer to the measured band.  The boxcar length is
     // fixed by the IF rate (see _reset) — its ~1 kHz cutoff already passes every
     // shift we care about while rejecting the rest of the passband.
@@ -921,10 +953,18 @@ export class ModeIdentifier {
       // Fade-tolerant cadence, for the modes whose transmissions are long
       // enough that a QSB null lands inside one.  See _analyseCadence.
       slowGridSec: cad.slowGridSec || 0, foldDb: cad.foldDb || 0,
+      ...ftxF,
     };
+    // Une station FTx trouvée : c'est elle que le reste de l'interface vise
+    // (recentrage, accord), pas la raie la plus forte de la bande.
+    if (ftxBest) f.centerHz = ftxBest.hz;
 
     const candidates = scoreAll(f).filter(c => c.score > 0.25).slice(0, 3);
-    this._emit({ t: 'result', ready: fill >= 1, fill, candidates, features: f });
+    // Prêt dès qu'une réponse est sûre : attendre 32 s de cadence n'a de sens
+    // que pour les modes qu'on ne reconnaît qu'à leur rythme. Une synchro FTx
+    // ou un RTTY/CW/PSK à plus de 80 % n'ont pas à faire patienter.
+    const sure = !!ftxBest || (candidates[0] && candidates[0].score >= 0.8);
+    this._emit({ t: 'result', ready: fill >= 1 || sure, fill, candidates, features: f });
   }
 
   _emit(ev) {
@@ -1005,6 +1045,12 @@ const MODES = [
     // longer reaches the display threshold, while a real 12.64 s burst is
     // barely affected: clean FT8 moves 96% -> 94%.
     score: (f) => {
+      // Synchro de Costas FT8 trouvée : preuve directe, chaque station comptée.
+      if (f.ft8Count > 0) return 0.75 + 0.25 * Math.min(1, (f.ft8Sync - 0.36) / 0.3);
+      // Synchro JS8 et pas FT8 : même cadence, mais ce n'est pas du FT8.
+      // Et 16 s d'écoute sans aucune synchro : la synchro voit le FT8 bien plus
+      // bas dans le bruit que la cadence, une simple ressemblance ne suffit plus.
+      const notJs8 = (f.js8Count > 0 || f.ftxHeardSec >= 16) ? 0.2 : 1;
       // A wide tone PAIR is a teleprinter, not an FTx comb: FT8's tones are
       // 6.25 Hz apart and FT4's 20.83, so these measure 0 and 44 Hz here while
       // RTTY and NAVTEX measure 170.  Without this, a teleprinter signal
@@ -1012,20 +1058,28 @@ const MODES = [
       // full confidence.  The tone pair is the right thing to veto on because
       // it is the measurement that survives the noise that causes the mix-up.
       if (f.toneSpacingHz >= 100) return 0;
-      return 0.65 * near(f.gridSec, 15, 0.1) * (0.2 + 0.8 * nearRel(f.burstSec, 12.64, 0.25)) +
+      return notJs8 * (0.65 * near(f.gridSec, 15, 0.1) * (0.2 + 0.8 * nearRel(f.burstSec, 12.64, 0.25)) +
         0.20 * within(f.bwHz, 30, 250) +
-        0.15 * (f.continuous === false ? 1 : 0);
+        0.15 * (f.continuous === false ? 1 : 0));
     },
+  },
+  {
+    key: 'js8', variant: null,
+    label: 'JS8 (JS8Call)',
+    why: 'synchro de Costas JS8 (mode Normal) reconnue',
+    // Seule la synchro distingue le JS8 du FT8 : même signal, même cadence.
+    score: (f) => (f.js8Count > 0 ? 0.75 + 0.25 * Math.min(1, (f.js8Sync - 0.40) / 0.3) : 0),
   },
   {
     key: 'ft4', variant: null,
     label: 'FT4 (4-FSK, 7.5 s)',
     why: '~90 Hz wide, 4.5 s burst on the 7.5 s UTC grid',
     score: (f) => {
+      if (f.ft4Count > 0) return 0.75 + 0.25 * Math.min(1, (f.ft4Sync - 0.55) / 0.3);
       if (f.toneSpacingHz >= 100) return 0;    // see FT8 above
-      return 0.65 * near(f.gridSec, 7.5, 0.05) * (0.2 + 0.8 * nearRel(f.burstSec, 4.48, 0.3)) +
+      return (f.ftxHeardSec >= 16 ? 0.2 : 1) * (0.65 * near(f.gridSec, 7.5, 0.05) * (0.2 + 0.8 * nearRel(f.burstSec, 4.48, 0.3)) +
         0.20 * within(f.bwHz, 50, 300) +
-        0.15 * (f.continuous === false ? 1 : 0);
+        0.15 * (f.continuous === false ? 1 : 0));
     },
   },
   {
@@ -1309,10 +1363,24 @@ export function scoreAll(features) {
   for (const m of MODES) {
     let s = 0;
     try { s = m.score(features) || 0; } catch (_) { s = 0; }
-    out.push({
+    const c = {
       key: m.key, variant: m.variant, label: m.label, why: m.why,
       score: Math.max(0, Math.min(1, s)),
-    });
+    };
+    // Reconnu par sa synchro : on le dit, avec le nombre de stations.
+    const n = { ft8: features.ft8Count, js8: features.js8Count, ft4: features.ft4Count }[m.key] || 0;
+    if (n > 0) {
+      c.sync = true;
+      c.label = { ft8: 'FT8', js8: 'JS8', ft4: 'FT4' }[m.key] + (n > 1 ? ` ×${n}` : '');
+      c.why = `synchro de Costas reconnue — ${n} station${n > 1 ? 's' : ''}`;
+    }
+    out.push(c);
+  }
+  // Une synchro est une preuve ; les autres scores ne sont que des
+  // ressemblances. Quand une station FTx est trouvée, aucune ressemblance ne
+  // doit passer devant (dans le bruit, PSK31 ou SSTV « ressemblaient » à 100 %).
+  if (out.some((c) => c.sync)) {
+    for (const c of out) if (!c.sync) c.score = Math.min(c.score, 0.6);
   }
   out.sort((a, b) => b.score - a.score);
   return out;

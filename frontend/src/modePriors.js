@@ -151,6 +151,8 @@ export function applyBandPriors(candidates, khz) {
   const out = [];
   for (const c of candidates) {
     // The family candidate becomes a specific mode when the frequency says so.
+    // Mode prouvé par sa synchro (ftxSync.js) : le plan de bande ne le change pas.
+    if (c.sync) { out.push({ ...c, onPlan: false }); continue; }
     if (c.key === 'ft8') {
       const isFt8 = inRanges(khz, PLAN.ft8.ranges);
       const isJs8 = inRanges(khz, PLAN.js8.ranges);
@@ -180,7 +182,7 @@ export function applyBandPriors(candidates, khz) {
     if (on) {
       c.onPlan = true;
       c.score = Math.min(1, c.score * (1 + ON_PLAN_BOOST));
-    } else if (plan.strict) {
+    } else if (plan.strict && !c.sync) {
       c.score = c.score * OFF_PLAN_CUT;
       c.offPlan = true;
     }
