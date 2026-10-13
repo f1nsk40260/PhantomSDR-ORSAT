@@ -72,7 +72,9 @@ PHANTOM_DIR="$(dirname "$SCRIPT_PATH")"
 # directory look like a different one.
 PHANTOM_DIR_REAL="$(cd "$PHANTOM_DIR" 2>/dev/null && pwd -P)" || PHANTOM_DIR_REAL="$PHANTOM_DIR"
 
-REPO_SLUG="${UPDATE_REPO:-sv1btl/PhantomSDR-Plus}"
+# Version française (F1NSK) : les mises à jour viennent de ce dépôt. Pour
+# reprendre l'original anglais de SV1BTL : UPDATE_REPO=sv1btl/PhantomSDR-Plus
+REPO_SLUG="${UPDATE_REPO:-f1nsk40260/PhantomSDR-Plus}"
 REF="${UPDATE_REF:-main}"
 
 STATE_DIR="$PHANTOM_DIR/.update-state"

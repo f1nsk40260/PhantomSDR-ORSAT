@@ -381,7 +381,7 @@ Tapez `bash install.sh` exactement ainsi : il n'y a pas d'étape `chmod`. Une co
 >
 > ```bash
 > cd ~/PhantomSDR-Plus
-> curl -fLO https://raw.githubusercontent.com/sv1btl/PhantomSDR-Plus/main/update.sh
+> curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-Plus/main/update.sh
 > bash update.sh
 > ```
 >
@@ -1532,7 +1532,7 @@ Une arborescence ancienne ne contient pas le script. Récupérez-le une fois —
 
 ```bash
 cd ~/PhantomSDR-Plus
-curl -fLO https://raw.githubusercontent.com/sv1btl/PhantomSDR-Plus/main/update.sh
+curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-Plus/main/update.sh
 ```
 
 Ensuite tout — sources, frontend, documentation, installateurs et `update.sh` lui-même — arrive par l'outil.

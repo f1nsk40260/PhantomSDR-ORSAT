@@ -100,7 +100,7 @@ L'installateur pose toutes les questions d'abord — le récepteur, ce qu'il doi
 >
 > ```bash
 > cd ~/PhantomSDR-Plus
-> curl -fLO https://raw.githubusercontent.com/sv1btl/PhantomSDR-Plus/main/update.sh
+> curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-Plus/main/update.sh
 > bash update.sh
 > ```
 >

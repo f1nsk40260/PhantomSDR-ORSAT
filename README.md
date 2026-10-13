@@ -163,7 +163,7 @@ Il n'y a pas d'étape `chmod` ni de terminal à redémarrer : une copie téléch
 > **PhantomSDR-Plus tourne déjà chez vous ? Ne le réinstallez pas.** Récupérez une fois l'outil de mise à jour, puis lancez-le. Il montre ce qui changerait et demande avant d'écrire quoi que ce soit ; votre configuration `.toml`, vos repères, votre mot de passe d'administration, votre liste de fréquences et l'historique du chat ne sont jamais touchés, et aucun port de votre station ne bascule vers les nouveaux : <br />
 > ```
 > cd ~/PhantomSDR-Plus
-> curl -fLO https://raw.githubusercontent.com/sv1btl/PhantomSDR-Plus/main/update.sh
+> curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-Plus/main/update.sh
 > bash update.sh
 > ```
 > Tous les détails dans **[L'outil de mise à jour](#loutil-de-mise-à-jour)**. Relancer `install.sh` sur un site qui fonctionne n'est utile que si une reconstruction échoue faute de paquets système.
@@ -450,16 +450,15 @@ bash update.sh --from FICHIER|DOSSIER    la nouvelle version depuis un .zip/.tar
 bash update.sh --restore LAST     remet en place ce que la dernière exécution a écrasé
 ```
 
-> [!WARNING]
-> **Pour cette version française :** par défaut, `update.sh` récupère la version originale de SV1BTL, en anglais.
-> Une mise à jour remplacerait donc la documentation française par l'anglaise. Pour mettre à jour depuis cette
-> version française, lancez-le ainsi : `UPDATE_REPO=f1nsk40260/PhantomSDR-Plus bash update.sh`
-> (l'outil signale alors qu'il s'agit d'un fork).
+> [!NOTE]
+> **Pour cette version française :** `update.sh` récupère les mises à jour depuis ce dépôt
+> (github.com/f1nsk40260/PhantomSDR-Plus) ; l'outil le signale comme un fork, c'est normal.
+> Pour revenir à l'original anglais de SV1BTL : `UPDATE_REPO=sv1btl/PhantomSDR-Plus bash update.sh`.
 
 **Si votre installation n'a pas encore `update.sh`**, récupérez-le une fois — c'est la seule étape de cette procédure à faire à la main : <br />
 ```
 cd ~/PhantomSDR-Plus
-curl -fLO https://raw.githubusercontent.com/sv1btl/PhantomSDR-Plus/main/update.sh
+curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-Plus/main/update.sh
 ```
 Ensuite, tout, `update.sh` compris, est apporté par l'outil. <br />
 
