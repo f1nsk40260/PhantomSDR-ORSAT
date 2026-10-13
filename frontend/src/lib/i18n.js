@@ -681,6 +681,151 @@ const D = [
   ["Tapez un message...", "Type a message...", "Escriba un mensaje..."],
   ["Tapez votre réponse...", "Type your reply...", "Escriba su respuesta..."],
   ["d'origine :", "original from", "original de"],
+
+  // ── Sous-composants (lib/*.svelte) ──
+  // S-mètre, œil magique, spectres, sélection vidéo
+  ["Cliquer pour changer le style du S-mètre (sombre / clair / vintage)", "Click to switch meter style (dark / light / vintage)", "Clic para cambiar el estilo del S-meter (oscuro / claro / vintage)"],
+  ["cliquer pour changer de style", "click to switch style", "clic para cambiar de estilo"],
+  ["Oeil Magique (Sensible à la puissance du signal reçu", "Magic eye (responds to the received signal strength", "Ojo mágico (sensible a la potencia de la señal recibida"],
+  ["Hz audio — repères jaunes = spots décodés", "audio Hz — yellow marks = decoded spots", "Hz de audio — marcas amarillas = spots decodificados"],
+  ["Faites glisser pour choisir la zone d'enregistrement vidéo · Échap pour annuler", "Drag to select the video recording area · Esc to cancel", "Arrastre para elegir la zona de grabación de vídeo · Esc para cancelar"],
+  ["— version française modifiée par F1NSK (", "— French version modified by F1NSK (", "— versión francesa modificada por F1NSK ("],
+
+  // FreeDV Reporter
+  ["Indicatif", "Callsign", "Indicativo"],
+  ["Statut", "Status", "Estado"],
+  ["Mode TX", "TX Mode", "Modo TX"],
+  ["Dernier TX", "Last TX", "Último TX"],
+  ["Indicatif RX", "RX Callsign", "Indicativo RX"],
+  ["Mode RX", "RX Mode", "Modo RX"],
+  ["Mis à jour", "Updated", "Actualizado"],
+  ["En émission", "Transmitting", "Transmitiendo"],
+  ["En réception", "Receiving", "Recibiendo"],
+  ["Réception seule", "Receive Only", "Solo recepción"],
+
+  // Decoder ID (ModeIdChip)
+  ["ID décodeur", "Decoder ID", "ID decodificador"],
+  ["Identifier le mode numérique présent dans la bande passante. Désactivé par défaut — il ne consomme du CPU que lorsqu'il est actif.",
+   "Identify the digital mode in the passband. Off by default — it only uses CPU while it is on.",
+   "Identificar el modo digital presente en la banda de paso. Desactivado por defecto — solo usa CPU mientras está activo."],
+  ["Le signal est près du bord de la bande passante, où la mesure n'est pas fiable. Déplacez le cadran pour le placer au milieu, puis mesurez à nouveau.",
+   "The signal is near the edge of the passband, where the measurement is unreliable. Move the dial so it sits mid-passband, then measure again.",
+   "La señal está cerca del borde de la banda de paso, donde la medida no es fiable. Mueva el dial para centrarla y mida de nuevo."],
+  ["C'est une fréquence d'appel connue pour ce mode, ce qui explique en partie son premier rang.",
+   "This is a known calling frequency for that mode, which is part of why it ranks first.",
+   "Es una frecuencia de llamada conocida para ese modo, lo que explica en parte su primer puesto."],
+  ["Mesuré sur le signal", "Measured from the signal", "Medido en la señal"],
+  ["Passer au décodeur de ce mode", "Switch to the decoder for this mode", "Pasar al decodificador de este modo"],
+  ["Identifié, mais cette version n'a pas de décodeur pour ce mode.", "Identified, but this build has no decoder for it.", "Identificado, pero esta versión no tiene decodificador para él."],
+  ["Écoute…", "Listening…", "Escuchando…"],
+  ["Recentrer & réessayer", "Recentre & retry", "Recentrar y reintentar"],
+  ["ou", "or", "o"],
+  ["Utiliser", "Use", "Usar"],
+  ["pas de décodeur", "no decoder", "sin decodificador"],
+  ["qu'est-ce que j'écoute ?", "what am I listening to?", "¿qué estoy escuchando?"],
+  ["Rien au-dessus du bruit", "Nothing above the noise", "Nada por encima del ruido"],
+  ["Non reconnu", "Not recognised", "No reconocido"],
+
+  // HFDL (HfdlPanel)
+  ["Récepteur HFDL", "HFDL Receiver", "Receptor HFDL"],
+  ["chargement du décodeur…", "loading the decoder…", "cargando el decodificador…"],
+  ["décodeur indisponible", "decoder unavailable", "decodificador no disponible"],
+  ["[trame en cours]", "[frame in progress]", "[trama en curso]"],
+  ["en attente d'une trame…", "waiting for a frame…", "esperando una trama…"],
+  ["🗺 Carte (", "🗺 Map (", "🗺 Mapa ("],
+  ["Afficher la carte des avions dont une position a été reçue", "Show the map of aircraft whose position was received", "Mostrar el mapa de los aviones cuya posición se ha recibido"],
+  ["Enregistrer les messages HFDL décodés (texte)", "Save the decoded HFDL messages (text)", "Guardar los mensajes HFDL decodificados (texto)"],
+  ["Effacer les messages HFDL", "Clear the HFDL messages", "Borrar los mensajes HFDL"],
+  ["Aucune position reçue pour l'instant : seuls certains messages (rapports de position, données de performance) en contiennent.",
+   "No position received yet: only some messages (position reports, performance data) carry one.",
+   "Aún no se ha recibido ninguna posición: solo algunos mensajes (informes de posición, datos de rendimiento) la incluyen."],
+  ["Station sol HFDL", "HFDL ground station", "Estación de tierra HFDL"],
+  ["Fréquence de la station (kHz, USB)", "Station frequency (kHz, USB)", "Frecuencia de la estación (kHz, USB)"],
+  ["Accorder le récepteur sur cette fréquence HFDL en USB et régler le filtre FI", "Tune the receiver to this HFDL frequency in USB and set the IF filter", "Sintonizar el receptor en esta frecuencia HFDL en USB y ajustar el filtro FI"],
+  ["Fréquence actuellement écoutée", "Frequency being listened to", "Frecuencia que se está escuchando"],
+  ["Dial :", "Dial:", "Dial:"],
+  ["⚠ hors fréquence HFDL", "⚠ off HFDL frequency", "⚠ fuera de frecuencia HFDL"],
+  ["La fréquence écoutée n'est pas une fréquence HFDL connue : choisissez une station puis Tune", "The frequency you are on is not a known HFDL frequency: pick a station, then Tune", "La frecuencia escuchada no es una frecuencia HFDL conocida: elija una estación y luego Tune"],
+  ["Bruit :", "Noise:", "Ruido:"],
+  ["Plancher de bruit mesuré par le décodeur", "Noise floor measured by the decoder", "Ruido de fondo medido por el decodificador"],
+  ["Trames HFDL décodées depuis l'activation", "HFDL frames decoded since start", "Tramas HFDL decodificadas desde la activación"],
+  ["Rythme :", "Rate:", "Ritmo:"],
+  ["verrouillé (", "locked (", "enganchado ("],
+  ["recherche", "searching", "buscando"],
+  ["Le décodeur cherche le rythme exact de l'audio (±1 %) et s'y verrouille dès qu'une trame est décodée", "The decoder looks for the exact audio rate (±1 %) and locks onto it as soon as a frame decodes", "El decodificador busca el ritmo exacto del audio (±1 %) y se engancha en cuanto decodifica una trama"],
+  ["Écart de fréquence rattrapé par le décodeur (erreur d'horloge du récepteur ou accord approximatif)", "Frequency offset taken up by the decoder (receiver clock error or rough tuning)", "Desfase de frecuencia corregido por el decodificador (error de reloj del receptor o sintonía aproximada)"],
+  ["Messages :", "Messages:", "Mensajes:"],
+  ["· Squitters :", "· Squitters:", "· Squitters:"],
+  ["Messages (hors squitters) / squitters des stations sol", "Messages (squitters excluded) / ground station squitters", "Mensajes (sin squitters) / squitters de las estaciones de tierra"],
+  ["Afficher aussi les squitters (annonces périodiques des stations sol, toutes les 32 s)", "Also show the squitters (periodic ground station announcements, every 32 s)", "Mostrar también los squitters (anuncios periódicos de las estaciones de tierra, cada 32 s)"],
+  ["Choisissez une station sol, cliquez sur « Tune », puis patientez : les stations émettent un squitter toutes les 32 s, et les avions répondent quand ils ont du trafic.",
+   "Pick a ground station, click “Tune”, then wait: stations send a squitter every 32 s, and aircraft answer when they have traffic.",
+   "Elija una estación de tierra, pulse «Tune» y espere: las estaciones emiten un squitter cada 32 s y los aviones responden cuando tienen tráfico."],
+  ["Aucun message d'avion pour l'instant (", "No aircraft message yet (", "Ningún mensaje de avión por ahora ("],
+  ["squitter(s) reçu(s), cochez « Squitters » pour les voir).", "squitter(s) received, tick “Squitters” to see them).", "squitter(s) recibido(s), marque «Squitters» para verlos)."],
+  ["Voir la position de l'avion sur une carte", "Show the aircraft's position on a map", "Ver la posición del avión en un mapa"],
+  ["Montant : station sol → avion", "Uplink: ground station → aircraft", "Ascendente: estación de tierra → avión"],
+  ["Descendant : avion → station sol", "Downlink: aircraft → ground station", "Descendente: avión → estación de tierra"],
+  ["Décodeur dumphfdl (GPL-3) en WebAssembly, sur l'audio USB avant les filtres d'écoute. Survolez un message pour voir la trame complète.",
+   "dumphfdl decoder (GPL-3) in WebAssembly, on the USB audio before the listening filters. Hover a message to see the full frame.",
+   "Decodificador dumphfdl (GPL-3) en WebAssembly, sobre el audio USB antes de los filtros de escucha. Pase sobre un mensaje para ver la trama completa."],
+
+  // Réception en diversité (DiversityPanel)
+  ["Réception en diversité", "Receive Diversity", "Recepción en diversidad"],
+  ["Combiner ce récepteur avec un second pour passer les évanouissements", "Combine this receiver with a second one to ride through fades", "Combinar este receptor con un segundo para superar los desvanecimientos"],
+  ["2e récepteur", "Second RX", "Segundo RX"],
+  ["Ajouter un récepteur à la main", "Add a receiver by hand", "Añadir un receptor a mano"],
+  ["Tous les oublier", "Forget them all", "Olvidarlos todos"],
+  ["nom (facultatif)", "name (optional)", "nombre (opcional)"],
+  ["Monter", "Move up", "Subir"],
+  ["Descendre", "Move down", "Bajar"],
+  ["Mettre cette adresse dans le champ (faites glisser la ligne pour réordonner)", "Put this address in the box (drag the row to reorder)", "Poner esta dirección en el campo (arrastre la fila para reordenar)"],
+  ["Ouvrir la page de ce récepteur dans un nouvel onglet", "Open this receiver's own page in a new tab", "Abrir la página de este receptor en una pestaña nueva"],
+  ["Modifier le nom et l'adresse", "Edit the name and address", "Editar el nombre y la dirección"],
+  ["Retirer ce récepteur", "Remove this receiver", "Quitar este receptor"],
+  ["Ignorer", "Dismiss", "Descartar"],
+  ["Garder ce qui est enregistré et y ajouter les récepteurs du fichier", "Keep what is saved and add the file's receivers to it", "Conservar lo guardado y añadirle los receptores del archivo"],
+  ["Jeter tous les récepteurs enregistrés et utiliser ceux du fichier", "Throw away every saved receiver and use the file's", "Descartar todos los receptores guardados y usar los del archivo"],
+  ["Enregistrer toutes les listes dans un fichier à conserver", "Save every list to a file you can keep", "Guardar todas las listas en un archivo"],
+  ["Relire les listes depuis un fichier", "Read the lists back from a file", "Volver a leer las listas desde un archivo"],
+  ["Afficher les listes en QR code, pour les transférer sur un téléphone", "Show the lists as a QR code, to carry them to a phone", "Mostrar las listas como código QR, para pasarlas a un teléfono"],
+  ["Ajouté au SNR distant avant comparaison. Un codec distant avec pertes plafonne son propre bruit, son SNR paraît donc plus bas qu'en réalité. Laisser à 0 pour un autre PhantomSDR-Plus.",
+   "Added to the remote's SNR before comparison. A lossy remote codec floors its own noise, so its SNR reads lower than it really is. Leave at 0 for another PhantomSDR-Plus.",
+   "Se suma al SNR remoto antes de comparar. Un códec remoto con pérdidas limita su propio ruido, así que su SNR parece más bajo de lo que es. Deje 0 para otro PhantomSDR-Plus."],
+  ["Enregistrés pour", "Saved for", "Guardados para"],
+  ["tout effacer", "clear all", "borrar todo"],
+  ["récepteur", "receiver", "receptor"],
+  ["récepteurs", "receivers", "receptores"],
+  ["dans ce fichier", "in that file", "en ese archivo"],
+  ["fusionner", "merge", "combinar"],
+  ["remplacer", "replace", "reemplazar"],
+  ["copier le texte", "copy text", "copiar texto"],
+  ["Scannez-le avec le téléphone, puis collez-le dans", "Scan it on the phone, then paste into", "Escanéelo con el teléfono y péguelo en"],
+  ["Importer", "Import", "Importar"],
+  ["dans l'onglet Div de la page /mobile.", "on the Div tab of the /mobile page.", "en la pestaña Div de la página /mobile."],
+  ["⭳ exporter", "⭳ export", "⭳ exportar"],
+  ["⭱ importer", "⭱ import", "⭱ importar"],
+  ["Correction SNR distant", "Remote SNR trim", "Corrección SNR remoto"],
+  ["liaison", "link", "enlace"],
+  ["aligné", "aligned", "alineado"],
+  ["audio distant", "remote audio", "audio remoto"],
+  ["SNR distant", "SNR remote", "SNR remoto"],
+  ["basculements", "switches", "conmutaciones"],
+  ["le récepteur distant ne couvre pas cette fréquence", "remote does not cover this frequency", "el receptor remoto no cubre esta frecuencia"],
+  ["Les décodeurs continuent d'utiliser le récepteur local — un basculement de site en plein créneau casse le décodage cohérent. La diversité n'alimente que le haut-parleur.",
+   "Decoders keep using the local receiver — a site switch mid-slot breaks coherent decoding. Diversity feeds the speaker only.",
+   "Los decodificadores siguen usando el receptor local — un cambio de sitio a mitad de intervalo rompe la decodificación coherente. La diversidad solo alimenta el altavoz."],
+  ["Trop de récepteurs pour un QR code encore lisible par un téléphone — copiez plutôt le texte.", "Too many receivers for a QR code that a phone can still read — copy the text instead.", "Demasiados receptores para un código QR legible por un teléfono — copie el texto."],
+  ["Impossible de dessiner le QR code — copiez plutôt le texte.", "Could not draw the QR code — copy the text instead.", "No se pudo dibujar el código QR — copie el texto."],
+  ["Copié dans le presse-papiers.", "Copied to the clipboard.", "Copiado al portapapeles."],
+  ["Échec de la copie — sélectionnez le texte et copiez-le à la main.", "Copy failed — select the text and copy it by hand.", "Falló la copia — seleccione el texto y cópielo a mano."],
+  ["Ce fichier n'est pas un JSON lisible.", "That file is not readable JSON.", "Ese archivo no es un JSON legible."],
+  ["Ce fichier ne contient aucun récepteur enregistré.", "That file holds no saved receivers.", "Ese archivo no contiene receptores guardados."],
+  ["Veuillez patienter…", "Please wait…", "Espere…"],
+  ["Récepteurs enregistrés — sauvegarder ou restaurer", "Saved receivers — back up or restore", "Receptores guardados — copia de seguridad o restaurar"],
+  ["Récepteurs enregistrés en QR code", "Saved receivers as a QR code", "Receptores guardados como código QR"],
+  ["La sauvegarde couvre les quatre types de récepteurs", "Backup covers all four receiver types", "La copia cubre los cuatro tipos de receptor"],
+  ["Rien d'enregistré — restaurez un fichier de sauvegarde", "Nothing saved yet — restore a backup file", "Nada guardado — restaure un archivo de copia"],
 ];
 
 // ── Libellés variables : $1, $2 sont repris (et traduits s'ils sont connus) ──
@@ -707,6 +852,15 @@ const P = [
   ["$1 dB au-dessus du bruit de fond de la bande, suivi en continu par le waterfall", "$1 dB over the band noise floor, tracked continuously by the waterfall", "$1 dB sobre el ruido de fondo de la banda, seguido continuamente por la cascada"],
   ["Reprendre après $1 secondes de silence sur le canal", "Resume after $1 seconds of silence on the channel", "Reanudar tras $1 segundos de silencio en el canal"],
   ["Repartir après $1 même si le signal est toujours présent", "Move on after $1 even if the signal is still there", "Seguir tras $1 aunque la señal siga presente"],
+  ["PhantomSDR+ | v$1 d'origine :", "PhantomSDR+ | v$1 original from", "PhantomSDR+ | v$1 original de"],
+  ["PC : $1", "PC: $1", "PC: $1"],
+  ["$1 — pas de décodeur pour ce mode", "$1 — no decoder for this mode", "$1 — sin decodificador para este modo"],
+  ["Carte indisponible : $1", "Map unavailable: $1", "Mapa no disponible: $1"],
+  ["$1 récepteur enregistré pour ce type — cliquer pour nommer, modifier, sauvegarder ou restaurer", "$1 saved receiver for this receiver type — click to name, edit, back up or restore", "$1 receptor guardado para este tipo — clic para nombrar, editar, guardar o restaurar"],
+  ["$1 récepteurs enregistrés pour ce type — cliquer pour nommer, modifier, sauvegarder ou restaurer", "$1 saved receivers for this receiver type — click to name, edit, back up or restore", "$1 receptores guardados para este tipo — clic para nombrar, editar, guardar o restaurar"],
+  ["$1 Hz/ligne — l'affichage est la limite, réduisez la largeur", "$1 Hz/row — display is the limit, narrow the Span", "$1 Hz/fila — la pantalla es el límite, reduzca el ancho"],
+  ["$1 Hz/ligne", "$1 Hz/row", "$1 Hz/fila"],
+  ["$1 s/colonne", "$1 s/column", "$1 s/columna"],
 ];
 
 // Le fragment « decoder has taken control… » qui suit un nom de mode variable.
@@ -744,7 +898,7 @@ function entryFor(core) {
 }
 
 const HAS_LETTERS = /\p{L}{2}/u;
-const missing = new Set();
+const missing = new Set(); // plafonné, pour ne pas grossir avec le texte décodé
 
 function translateCore(core) {
   const k = norm(core);
@@ -760,7 +914,7 @@ function translateCore(core) {
       return ce ? ce[IDX[current]] : cap;
     });
   }
-  missing.add(k);
+  if (missing.size < 2000) missing.add(k);
   return null;
 }
 

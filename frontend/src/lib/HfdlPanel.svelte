@@ -355,7 +355,7 @@
         {#if messages.length === 0}
           Choisissez une station sol, cliquez sur « Tune », puis patientez : les stations émettent un squitter toutes les 32 s, et les avions répondent quand ils ont du trafic.
         {:else}
-          Aucun message d'avion pour l'instant ({counts.squitter} squitter{counts.squitter > 1 ? "s" : ""} reçu{counts.squitter > 1 ? "s" : ""}, cochez « Squitters » pour les voir).
+          Aucun message d'avion pour l'instant ({counts.squitter} squitter(s) reçu(s), cochez « Squitters » pour les voir).
         {/if}
       </div>
     {/if}
