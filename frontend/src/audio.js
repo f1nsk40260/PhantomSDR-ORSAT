@@ -885,11 +885,17 @@ export default class SpectrumAudio {
     // audio before NR/NB/NS/AN, like every other decoder here.
     this.decodeHFDL   = false;
     this.hfdlCallback = null;
-    // audioOutputSps, not trueAudioSps: the FLAC path hands the decoders audio
-    // already brought to the output rate (see flacLowLatency.js).  The decoder
-    // still searches ±1 % around it, which also covers the other paths.
+    // Le contenu de l'audio arrive avec un rythme décalé de
+    // audioOutputSps / trueAudioSps (mesuré : −0,7 % pour 12085 Hz, −1,7 %
+    // pour les 12207 Hz d'un Fobos), hors de la recherche ±1 % du décodeur si
+    // on ne le compense pas. Le décodeur est donc centré sur ce rythme, et sa
+    // recherche ±1 % ne couvre plus que l'écart résiduel.
     this._hfdlDecoder = new HFDLWorkerProxy({
-      sampleRate: () => this.audioOutputSps || this.trueAudioSps || 12000,
+      sampleRate: () => {
+        const out = this.audioOutputSps || 12000;
+        const tru = this.trueAudioSps || out;
+        return out * out / tru;
+      },
       callback: (event) => {
         if (typeof this.hfdlCallback === 'function') this.hfdlCallback(event);
       }
