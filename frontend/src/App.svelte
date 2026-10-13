@@ -6378,7 +6378,7 @@
 
   // Backend Noise Gate Control
   let noiseGatePreset = "balanced";
-  let backendNoiseGateEnabled = false;
+  let backendNoiseGateEnabled = true; // Version française : gate engagé par défaut
   let lastAppliedNoiseGatePreset = null;
 
   function applyNoiseGatePreset() {
@@ -7507,6 +7507,15 @@
 
     // Apply client-side DSP settings after audio is ready
     applyNoiseGatePreset();
+    // Version française : le gate démarre engagé, on l'envoie aussi au serveur.
+    if (
+      backendNoiseGateEnabled &&
+      audio &&
+      audio.decoder &&
+      typeof audio.decoder.set_noise_gate_enable === "function"
+    ) {
+      audio.decoder.set_noise_gate_enable(true);
+    }
     waterfall.setFrequencyMarkerComponent(frequencyMarkerComponent);
 
     // Enable after connection established
@@ -14079,25 +14088,18 @@ Cliquez à nouveau pour désactiver"
                     <h3 class="text-white text-base font-semibold">
                       Waterfall Controls
                     </h3>
-                    <button
-                      class="glass-button flex items-center gap-2 px-3 py-1 text-sm"
-                      on:click={toggleWaterfallDirection}
-                      title="Inverser le sens du waterfall (W)"
-                    >
-                      <span
-                        class={`inline-block text-[1.45rem] leading-none transition-transform duration-300 ${waterfallReverse ? "text-green-400" : "text-cyan-400"}`}
-                        style:transform={waterfallReverse
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)"}>⬆</span
-                      >
-                      <span
-                        class={waterfallReverse
-                          ? "text-green-400"
-                          : "text-cyan-400"}
-                      >
-                        {waterfallReverse ? "Reverse" : "Default"}
-                      </span>
-                    </button>
+                    <!-- Version française : bouton Default/Reverse retiré (reverse par défaut),
+                         remplacé par Auto Adj. -->
+                    <div class="flex items-center gap-2" id="auto-adjust">
+                      <span class="text-sm text-gray-300">Auto Adj.</span>
+                      <label class="toggle-switch">
+                        <input
+                          type="checkbox"
+                          on:change={() => handleAutoAdjust()}
+                        />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
                   </div>
 
                   <div class="w-full mb-5 space-y-4">
@@ -14303,21 +14305,7 @@ Cliquez à nouveau pour désactiver"
                           </label>
                         </div>
 
-                        <div
-                          id="auto-adjust"
-                          class="flex flex-col items-center"
-                        >
-                          <span class="text-sm text-gray-300 mb-1"
-                            >Auto Adj.</span
-                          >
-                          <label class="toggle-switch">
-                            <input
-                              type="checkbox"
-                              on:change={() => handleAutoAdjust()}
-                            />
-                            <span class="toggle-slider"></span>
-                          </label>
-                        </div>
+                        <!-- Version française : Auto Adj. déplacé dans l'en-tête « Waterfall Controls » -->
 
                         <div
                           id="bigger-waterfall"
@@ -16562,25 +16550,7 @@ Slider: share of denoised audio, the rest is the original"
                     <h3 class="text-white text-base font-semibold">
                       Waterfall Controls
                     </h3>
-                    <button
-                      class="glass-button flex items-center gap-2 px-3 py-1 text-sm"
-                      on:click={toggleWaterfallDirection}
-                      title="Inverser le sens du waterfall (W)"
-                    >
-                      <span
-                        class={`inline-block text-[1.45rem] leading-none transition-transform duration-300 ${waterfallReverse ? "text-green-400" : "text-cyan-400"}`}
-                        style:transform={waterfallReverse
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)"}>⬆</span
-                      >
-                      <span
-                        class={waterfallReverse
-                          ? "text-green-400"
-                          : "text-cyan-400"}
-                      >
-                        {waterfallReverse ? "Reverse" : "Default"}
-                      </span>
-                    </button>
+                    <!-- Version française : bouton Default/Reverse retiré (reverse par défaut) -->
                   </div>
 
                   <div class="w-full mb-6 space-y-5">
