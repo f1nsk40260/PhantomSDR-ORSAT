@@ -63,6 +63,12 @@
   }
   */
 
+  // Version française : la fenêtre de Chat n'est pas affichée. Le serveur de
+  // chat et le pseudo de chaque visiteur (userXXXX, liste des utilisateurs,
+  // repères sur le waterfall) restent actifs. Mettre à true pour la réafficher
+  // (siteChatEnabled de site_information.json doit alors aussi valoir true).
+  const SHOW_CHAT = false;
+
   function handleVariantChange(next) {
     smeter = next.smeter;
     layout = next.layout;
@@ -14891,7 +14897,7 @@ Cliquez à nouveau pour désactiver"
               </div>
             </div>
 
-            {#if siteChatEnabled}
+            {#if SHOW_CHAT && siteChatEnabled}
               <!--Beginn of Chatbox -->
               <!--To disable Chatbox: Delte Code from here to .. -->
 
@@ -15118,6 +15124,26 @@ Cliquez à nouveau pour désactiver"
         </div>
         <footer class="mt-4 mb-4 text-center text-gray-400 text-sm">
           <!-- <span class="text-sm text-gray-400">PhantomSDR+ | v{VERSION}</span> -->
+          {#if !(SHOW_CHAT && siteChatEnabled)}
+            <!-- Attribution GPL v3 §7 (ADDITIONAL_TERMS.md) : obligatoire et
+                 visible. Elle est d'habitude sous le Chat ; sans Chat, ici. -->
+            <span class="text-xs text-gray-400"
+              >PhantomSDR+ | v{VERSION} original from
+              <a
+                href={ORIGIN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline hover:text-gray-200"
+                >{ORIGIN_URL.replace("https://", "")}</a
+              > — {MODIFIED_NOTE} (<a
+                href={MODIFIED_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline hover:text-gray-200"
+                >{MODIFIED_URL.replace("https://", "")}</a
+              >)</span
+            >
+          {/if}
         </footer>
       </div>
     {:else}
@@ -19239,7 +19265,7 @@ Slider: share of denoised audio, the rest is the original"
               </div>
             </div>
 
-            {#if siteChatEnabled}
+            {#if SHOW_CHAT && siteChatEnabled}
               <!--Beginn of Chatbox -->
               <!--To disable Chatbox: Delte Code from here to .. -->
 
@@ -19465,6 +19491,26 @@ Slider: share of denoised audio, the rest is the original"
         </div>
         <footer class="mt-4 mb-4 text-center text-gray-400 text-sm">
           <!--  <span class="text-xs text-gray-400">PhantomSDR+ | v{VERSION}</span> -->
+          {#if !(SHOW_CHAT && siteChatEnabled)}
+            <!-- Attribution GPL v3 §7 (ADDITIONAL_TERMS.md) : obligatoire et
+                 visible. Elle est d'habitude sous le Chat ; sans Chat, ici. -->
+            <span class="text-xs text-gray-400"
+              >PhantomSDR+ | v{VERSION} original from
+              <a
+                href={ORIGIN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline hover:text-gray-200"
+                >{ORIGIN_URL.replace("https://", "")}</a
+              > — {MODIFIED_NOTE} (<a
+                href={MODIFIED_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline hover:text-gray-200"
+                >{MODIFIED_URL.replace("https://", "")}</a
+              >)</span
+            >
+          {/if}
         </footer>
       </div>
 
