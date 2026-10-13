@@ -999,8 +999,13 @@ export default class SpectrumAudio {
     // while still cleaning more than 50% does. The curve keeps 0 -> 0 and
     // 0.5 -> 0.5, so the default setting is untouched, and the deepest cut
     // only tightens above 50%.
-    this.aiNrTopWet       = 0.85; // wet share at slider 100% (1 = old behaviour)
-    this.aiNrTopFloorDB   = 20;   // deepest cut at slider 100% (aiNrMaskFloorDB at <= 50%)
+    // Version française (F1NSK) : la moitié haute du curseur est « libérée ».
+    // 0–50 % reste exactement comme ci-dessus ; de 50 à 100 % le filtre devient
+    // énergique : 100 % de signal débruité, coupe jusqu'à 40 dB, et des pauses
+    // réellement nettoyées (voir aiNrTopPauseDry). Les valeurs d'origine de la
+    // 5.1 étaient aiNrTopWet 0.85 et aiNrTopFloorDB 20.
+    this.aiNrTopWet       = 1.0;  // wet share at slider 100%
+    this.aiNrTopFloorDB   = 40;   // deepest cut at slider 100% (aiNrMaskFloorDB at <= 50%)
     // Make-up gain. RNNoise takes weak speech for noise: at -6 dB SNR it still
     // improves SNR ~5 dB, but pulls speech and noise both down ~15 dB, so a
     // weak station simply goes quiet. Restoring the long-term level keeps the
@@ -1031,6 +1036,7 @@ export default class SpectrumAudio {
     // switch to speech strength lands before the word does. Leaving speech is
     // held, then ramped, so word tails and short gaps are not treated as pauses.
     this.aiNrPauseDry     = 0.4;  // original audio's share in pauses, relative to speech (1 = off)
+    this.aiNrTopPauseDry  = 0.0;  // ...falling to this at slider 100 % (version française)
     this.aiNrVadThresh    = 0.5;  // flag level counted as speech (0.3 flags ~10% of pauses, 0.5 ~5%)
     this.aiNrVadHoldMs    = 200;  // stay in speech mode this long after the flag drops
     this.aiNrPauseRampMs  = 150;  // then move to the pause strength over this long
@@ -2197,8 +2203,14 @@ setAGC(newAGCSpeed) {
   // (1, aiNrTopWet): A = 2·top - 2, B = 2 - top. At top = 1 it is s itself.
   _aiTopWet() {
     const s = Math.min(1, Math.max(0, this.aiNrMix));
+    if (s <= 0.5) {
+      // Lower half: the 5.1 curve (top 0.85), so 0–50 % sounds exactly as before.
+      const t51 = 0.85;
+      return Math.min(1, Math.max(0, (2 * t51 - 2) * s * s + (2 - t51) * s));
+    }
+    // Upper half (version française): straight on to aiNrTopWet at 100 %.
     const top = Math.min(1, Math.max(0, this.aiNrTopWet));
-    return Math.min(1, Math.max(0, (2 * top - 2) * s * s + (2 - top) * s));
+    return 0.5 + (top - 0.5) * (s - 0.5) / 0.5;
   }
 
   // Deepest cut for the current slider position: aiNrMaskFloorDB up to 50%,
@@ -2206,8 +2218,21 @@ setAGC(newAGCSpeed) {
   _aiTopFloorDB() {
     const sl = Math.min(1, Math.max(0, this.aiNrMix));
     const base = Math.abs(this.aiNrMaskFloorDB), top = Math.abs(this.aiNrTopFloorDB);
-    if (sl <= 0.5 || top >= base) return -base;
+    if (sl <= 0.5) return -base;
+    // Interpolated either way: the 5.1 limited the top end (top < base), the
+    // French version deepens it (top > base).
     return -(base + (top - base) * (sl - 0.5) / 0.5);
+  }
+
+  // Original audio's share in the pauses. Below 50 % it is aiNrPauseDry as in
+  // the 5.1; above, it falls to aiNrTopPauseDry at 100 %, so the hiss no
+  // longer comes back between sentences on the energetic setting.
+  _aiPauseDry() {
+    const sl = Math.min(1, Math.max(0, this.aiNrMix));
+    const base = Math.min(1, Math.max(0, this.aiNrPauseDry));
+    const top = Math.min(1, Math.max(0, this.aiNrTopPauseDry));
+    if (sl <= 0.5) return base;
+    return base + (top - base) * (sl - 0.5) / 0.5;
   }
 
   _aiMaskPush(ms, wet, dry, w, g, q = 0, speech = false) {
@@ -2225,7 +2250,11 @@ setAGC(newAGCSpeed) {
       relMs = rel;
       // From the slider's own limit, so the top end's tighter cut is not undone.
       const baseFloor = Math.abs(floorDB);
-      floorDB = -(baseFloor + q * (Math.min(Math.abs(this.aiNrWeakFloorDB), baseFloor) - baseFloor));
+      // The weak-signal limit only ever makes the cut shallower than the
+      // slider's, never deeper; above 50 % it follows the slider's own depth
+      // so the energetic setting stays energetic on weak stations too.
+      const weakLim = this.aiNrMix > 0.5 ? baseFloor : Math.abs(this.aiNrWeakFloorDB);
+      floorDB = -(baseFloor + q * (Math.min(weakLim, baseFloor) - baseFloor));
     }
     if (speech && this.aiNrSpeechReleaseMs > relMs) {
       aRel = 1 - Math.exp(-ms.hopS / (this.aiNrSpeechReleaseMs / 1000));
@@ -2339,7 +2368,7 @@ setAGC(newAGCSpeed) {
     const mkMax = Math.pow(10, this.aiNrMakeupMaxDB / 20);
     const capA = 1 - Math.exp(-(FRAME / RNNOISE_RATE) / this.aiNrCapTC);
     const frameMs = FRAME / RNNOISE_RATE * 1000;
-    const pauseMix = 1 - (1 - mix) * Math.min(1, Math.max(0, this.aiNrPauseDry));
+    const pauseMix = 1 - (1 - mix) * this._aiPauseDry();
     const holdFrames = Math.round(this.aiNrVadHoldMs / frameMs);
     const rampStep = (pauseMix - mix) * frameMs / Math.max(frameMs, this.aiNrPauseRampMs);
     const vadT = this.aiNrVadThresh, gated = this.aiNrMakeupGated;

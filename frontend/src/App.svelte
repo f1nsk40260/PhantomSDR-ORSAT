@@ -10861,7 +10861,7 @@ Cliquez à nouveau pour désactiver"
                         type="range"
                         bind:value={AINRStrength}
                         on:input={handleAINRStrength}
-                        title="Réglage du seuil d'action du Filtre I.A - Réduire si vous n'entendez plus les stations QRP"
+                        title="Dosage du filtre I.A : jusqu'à 50 % réglage doux d'origine ; au-delà, filtre énergique (jusqu'à 40 dB de réduction et silences nettoyés). Réduire si vous n'entendez plus les stations QRP"
                         class="glass-slider"
                         min="0"
                         max="100"
