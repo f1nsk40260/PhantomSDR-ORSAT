@@ -107,11 +107,66 @@ LISTEN_HOST    = "0.0.0.0"
 LISTEN_PORT    = int(_cfg["proxy_port"])
 ADMIN_UPSTREAM = f"http://127.0.0.1:{int(_cfg['port'])}"
 SDR_UPSTREAM   = f"http://{_sdr_host}:{_sdr_port}"
+
+
+def _running_sdr_port():
+    """spectrumserver's real port: [server] port of the --config file of the
+    spectrumserver process running on this machine, or None."""
+    for cmd in Path("/proc").glob("[0-9]*/cmdline"):
+        try:
+            argv = cmd.read_bytes().split(b"\0")
+        except OSError:
+            continue
+        if not argv or not argv[0].endswith(b"spectrumserver"):
+            continue
+        args = [a.decode(errors="replace") for a in argv if a]
+        conf = None
+        for i, a in enumerate(args):
+            if a in ("--config", "-c") and i + 1 < len(args):
+                conf = args[i + 1]
+            elif a.startswith("--config="):
+                conf = a.split("=", 1)[1]
+        if not conf:
+            continue
+        try:
+            section = ""
+            for line in Path(conf).read_text().splitlines():
+                line = line.split("#", 1)[0].strip()
+                m = re.match(r"^\[([^\]]+)\]$", line)
+                if m:
+                    section = m.group(1).strip()
+                    continue
+                m = re.match(r"^port\s*=\s*(\d+)$", line)
+                if m and section in ("", "server"):
+                    return int(m.group(1))
+        except OSError:
+            continue
+    return None
+
+
 if _sdr_port == LISTEN_PORT and _sdr_host in ("127.0.0.1", "localhost", "::1"):
-    print(f"[ERROR] admin_config.json: public_port (spectrumserver) and proxy_port are "
-          f"both {LISTEN_PORT} — the proxy would forward to itself.", file=sys.stderr)
-    print("        Give spectrumserver its own port: bash configure-station.sh", file=sys.stderr)
-    sys.exit(1)
+    # public_port in admin_config.json is spectrumserver's own port, but the
+    # admin panel used to describe it as "the port users connect to", so it is
+    # easily set to the proxy's port. Rather than refuse to start (the whole
+    # station goes off the air), find the port spectrumserver really uses.
+    _real = None
+    for _attempt in range(30):          # at boot spectrumserver may start after us
+        _real = _running_sdr_port()
+        if _real:
+            break
+        import time as _time
+        _time.sleep(2)
+    if _real and _real != LISTEN_PORT:
+        print(f"[WARN] admin_config.json: public_port ({_sdr_port}) equals proxy_port — using "
+              f"spectrumserver's real port {_real} from its config.", file=sys.stderr)
+        print(f"       Fix it for good: set public_port to {_real} in admin_config.json.", file=sys.stderr)
+        _sdr_port = _real
+        SDR_UPSTREAM = f"http://{_sdr_host}:{_sdr_port}"
+    else:
+        print(f"[ERROR] admin_config.json: public_port (spectrumserver) and proxy_port are "
+              f"both {LISTEN_PORT} — the proxy would forward to itself.", file=sys.stderr)
+        print("        Give spectrumserver its own port: bash configure-station.sh", file=sys.stderr)
+        sys.exit(1)
 
 # ── Side services behind the same public port ──────────────────────────────────
 # A station set up with configure-station.sh forwards ONE port on its router.

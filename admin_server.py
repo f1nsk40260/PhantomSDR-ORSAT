@@ -1864,9 +1864,9 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <input type="text" id="sdr-dir" style="width:100%;margin-bottom:1rem;" placeholder="/path/to/PhantomSDR-Plus">
             <div class="card-header" style="margin:.4rem 0;">
               <div class="dot" style="background:var(--blue);box-shadow:0 0 6px var(--blue);"></div>
-              PUBLIC WEBSDR PORT
+              SPECTRUMSERVER PORT (INTERNAL)
             </div>
-            <p style="color:var(--text2);font-size:.7rem;margin-bottom:.4rem;">Port users connect to (proxy.py / nginx / spectrumserver direct). Used for the Users page.</p>
+            <p style="color:var(--text2);font-size:.7rem;margin-bottom:.4rem;">The port spectrumserver itself listens on ([server] port of its config). Not the public port users connect to when proxy.py is in front — never enter the proxy port here.</p>
             <input type="number" id="public-port" style="width:100%;margin-bottom:1rem;" placeholder="8900" min="1" max="65535">
             <div class="card-header" style="margin:.4rem 0;">
               <div class="dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div>
@@ -3906,6 +3906,9 @@ def api_setup():
     if len(new_password) < 4:
         return jsonify({"ok": False, "msg": "Password must be at least 4 characters"})
     cfg = load_admin_config()
+    if cfg.get("proxy_port") and public_port == int(cfg["proxy_port"]):
+        return jsonify({"ok": False, "msg": f"Port {public_port} is the proxy's public port. "
+                        "Enter spectrumserver's own port ([server] port in its config)."})
     cfg["sdr_base_dir"]     = sdr_dir
     cfg["sdr_process_name"] = proc_name
     cfg["public_port"]      = public_port
@@ -4668,9 +4671,14 @@ def api_settings():
         cfg["stop_script"] = data["stop_script"]
     if "public_port" in data:
         try:
-            cfg["public_port"] = int(data["public_port"])
+            pp = int(data["public_port"])
         except (ValueError, TypeError):
-            pass
+            pp = None
+        if pp is not None:
+            if cfg.get("proxy_port") and pp == int(cfg["proxy_port"]):
+                return jsonify({"ok": False, "msg": f"Port {pp} is the proxy's public port. "
+                                "Enter spectrumserver's own port ([server] port in its config)."})
+            cfg["public_port"] = pp
     save_admin_config(cfg)
     return jsonify({"ok": True})
 
