@@ -7177,12 +7177,11 @@
     handleMaxMove();
     handleBrightnessMove();
 
-    // Set Waterfall Display
-    waterfallDisplay = !bookmark.waterfallDisplay;
+    // Cascade et spectre toujours affichés (version française : plus de
+    // bouton pour les couper) — un ancien signet ne doit pas les masquer.
+    waterfallDisplay = false;
     handleWaterfallChange();
-
-    // Set Spectrum Display
-    spectrumDisplay = !bookmark.spectrumDisplay;
+    spectrumDisplay = false;
     handleSpectrumChange();
 
     // Set Waterfall Size
@@ -14319,80 +14318,9 @@ Cliquez à nouveau pour désactiver"
                     </div>
                     <hr class="border-gray-600 my-2" />
                   </div>
-                  <div class="w-full mb-4">
-                    <!-- START of waterfal control buttons when Desktop -->
-                    <div class="w-full mb-4">
-                      <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                        <div
-                          id="waterfall-toggle"
-                          class="flex flex-col items-center"
-                        >
-                          <span class="text-sm text-gray-300 mb-1 text-center"
-                            >Waterfall</span
-                          >
-                          <label class="toggle-switch">
-                            {#if waterfallDisplay}
-                              <input
-                                type="checkbox"
-                                checked
-                                on:change={handleWaterfallChange}
-                              />
-                            {:else}
-                              <input
-                                type="checkbox"
-                                on:change={handleWaterfallChange}
-                              />
-                            {/if}
-                            <span class="toggle-slider"></span>
-                          </label>
-                        </div>
-
-                        <div
-                          id="spectrum-toggle"
-                          class="flex flex-col items-center"
-                        >
-                          <span class="text-sm text-gray-300 mb-1"
-                            >Spectrum</span
-                          >
-                          <label class="toggle-switch">
-                            {#if spectrumDisplay}
-                              <input
-                                type="checkbox"
-                                checked
-                                on:change={handleSpectrumChange}
-                              />
-                            {:else}
-                              <input
-                                type="checkbox"
-                                on:change={handleSpectrumChange}
-                              />
-                            {/if}
-                            <span class="toggle-slider"></span>
-                          </label>
-                        </div>
-
-                        <!-- Version française : Auto Adj. déplacé dans l'en-tête « Waterfall Controls » -->
-
-                        <div
-                          id="bigger-waterfall"
-                          class="flex flex-col items-center"
-                        >
-                          <span class="text-sm text-gray-300 mb-1 text-center"
-                            >Height (+)</span
-                          >
-                          <label class="toggle-switch">
-                            <input
-                              type="checkbox"
-                              on:change={handleWaterfallSizeChange}
-                            />
-                            <span class="toggle-slider"></span>
-                          </label>
-                        </div>
-                      </div>
-                      <!-- <hr class="border-gray-600 my-2" /> -->
-                    </div>
-                  </div>
-                  <!-- END of Waterfall Control Buttons when Desktop -->
+                  <!-- Version française : boutons Waterfall / Spectrum / Height (+)
+                       supprimés de la colonne de droite — cascade et spectre
+                       toujours affichés, hauteur standard. -->
 
                   <div class="w-full mb-4">
                     <div id="colormap-select" class="relative">
