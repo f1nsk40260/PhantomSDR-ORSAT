@@ -95,6 +95,7 @@
   // DominoEX, THOR, THROB, Hell, MT63). fsk.js is in this bundle already.
   import { FLDIGI_MODEMS } from "./fsk.js";
   import SignalRefPanel from "./lib/SignalRefPanel.svelte";
+  import HeaderClock from "./lib/HeaderClock.svelte";
   import { meterGated } from "./lib/sUnits.js";
   import { loadReceivers } from "./lib/receivers";
   import SMeterAnalog from "./lib/SMeterAnalog.svelte";
@@ -9660,7 +9661,7 @@
                   <div>
                   <!-- Bouton clignotant centré, sélecteur de langue à droite -->
                   <div class="menu-toggle-row">
-                    <div></div>
+                    <div class="menu-toggle-left"><HeaderClock /></div>
                     <div class="menu-toggle-center">
                       <button
                         title={infoMenuOpen
@@ -19468,7 +19469,7 @@ Slider: share of denoised audio, the rest is the original"
      flux et ne peut plus chevaucher le titre. */
   /* Ligne du bouton clignotant : 3 colonnes 1fr | auto | 1fr.
      Les deux colonnes latérales ont la même largeur, donc le bouton reste
-     exactement centré ; le sélecteur de langue occupe celle de droite. */
+     exactement centré ; l'horloge occupe celle de gauche, le sélecteur de langue celle de droite. */
   .menu-toggle-row {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -19479,6 +19480,10 @@ Slider: share of denoised audio, the rest is the original"
   .menu-toggle-center {
     display: flex;
     justify-content: center;
+  }
+  .menu-toggle-left {
+    display: flex;
+    justify-content: flex-start;
   }
   .menu-toggle-right {
     display: flex;
