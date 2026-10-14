@@ -196,11 +196,11 @@ function _animateNeedle(ts) {
         bgGradient.addColorStop(1, "#845223");
         bgGradient.addColorStop(1.0, "#4b2b12");
       } else {
-        bgGradient.addColorStop(0, "#f7f6f2");
-        bgGradient.addColorStop(0.45, "#d1d1cf");
-        bgGradient.addColorStop(0.8, "#9e9e9d");
-        bgGradient.addColorStop(1, "#6e6d6d");
-        bgGradient.addColorStop(1.0, "#4b2b12");
+        // Electric-blue face (was pale grey)
+        bgGradient.addColorStop(0, "#eaf7ff");
+        bgGradient.addColorStop(0.45, "#3fa9f5");
+        bgGradient.addColorStop(0.8, "#0b5ed7");
+        bgGradient.addColorStop(1, "#04214f");
       }
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, width, height);
