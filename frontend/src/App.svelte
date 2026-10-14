@@ -9919,7 +9919,9 @@
                       💾 Desktop applications
                     </button>
                     <br>
-                    <span>Github — modified French version (F1NSK): <a href={MODIFIED_URL} target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)" title="Dépôt de cette version française modifiée par F1NSK">{MODIFIED_URL.replace("https://", "")}</a></span>
+                    <span>Github — modified ORSAT version (F1NSK): <a href={MODIFIED_URL} target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)" title="Dépôt de cette version ORSAT modifiée par F1NSK">{MODIFIED_URL.replace("https://", "")}</a></span>
+                    <br>
+                    <span>Github — Artemis (signal database): <a href="https://github.com/AresValley/Artemis" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)" title="Base de données d'identification des signaux Artemis">github.com/AresValley/Artemis</a></span>
                     <br><br>
 
                     <b>Note:</b> <br> 
@@ -9974,7 +9976,7 @@
                      
                      <br><br>
                              
-                  <div style="font-weight: bold; text-align: center;">MULTI LINGUAL USERS MENU</div>
+                  <div style="font-weight: bold; text-align: center;">USER MANUAL</div>
                   <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 10px;">
 
                     <button
