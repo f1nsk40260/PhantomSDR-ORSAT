@@ -9278,35 +9278,23 @@
               <div
                 class="p-3 sm:p-5 flex flex-col bg-gray-800 border border-gray-700 rounded-lg w-full mb-2 screw-panel"
                 id="chat-box"
-                style="opacity: 0.85;"
               >
                 <!-- Header -->
-                <!-- Sélecteur de langue FR / EN / ES -->
-                <div class="lang-switch" data-no-i18n role="group" aria-label="Langue / Language / Idioma">
-                  {#each LANGS as l}
-                    <button
-                      type="button"
-                      class="lang-btn"
-                      class:lang-active={$lang === l}
-                      aria-pressed={$lang === l}
-                      title={LANG_NAMES[l]}
-                      on:click={() => setLang(l)}
-                      >{@html LANG_FLAGS[l]}<span>{l.toUpperCase()}</span></button
-                    >
-                  {/each}
-                </div>
-
                 <h4
                   class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
                 >
-                  WebSDR <a
-                    href="https://www.qrz.com/db/{siteSysop}"
+                  QRZ page : <a
+                    href="https://www.qrz.com/db/F1NSK"
                     target="new"
+                    class="link-button"
+                    title="Page QRZ du Sysop"
                     style="color:rgba(207, 181, 59, 0.993)">{siteSysop}</a
-                  >, located in
+                  >, SDR over Web located at
                   <a
                     href="http://k7fry.com/grid/?qth={siteGridSquare}"
                     target="new"
+                    class="link-button"
+                    title="Ouvre la carte satellite du QTH de l'ORSAT"
                     style="color:rgba(207, 181, 59, 0.993)"
                     >{siteCity}, {siteGridSquare}</a
                   >
@@ -9670,7 +9658,10 @@
 
                   <!-- Collapsible Menu -->
                   <div>
-                    <center>
+                  <!-- Bouton clignotant centré, sélecteur de langue à droite -->
+                  <div class="menu-toggle-row">
+                    <div></div>
+                    <div class="menu-toggle-center">
                       <button
                         title={infoMenuOpen
                           ? "Fermer les fenêtres"
@@ -9678,13 +9669,30 @@
                         class="glass-button gold-button py-2 px-4 rounded-lg flex items-center"
                         class:blink-attention={!infoMenuOpen}
                         on:click={() => toggleMenu()}
-                        style="margin-top: 15px;"
                       >
                         <span id="menu-toggle-label">{infoMenuOpen
                           ? "Close Windows"
                           : "Open Meteo - Alerts - Infos - Propagation - DXcluster and User Manuals"}</span>
                       </button>
-                    </center>
+                    </div>
+                    <div class="menu-toggle-right">
+                      <!-- Sélecteur de langue FR / EN / ES -->
+                      <div class="lang-switch" data-no-i18n role="group" aria-label="Langue / Language / Idioma">
+                        <span class="lang-globe" aria-hidden="true" title="Langue / Language / Idioma">🌐</span>
+                        {#each LANGS as l}
+                          <button
+                            type="button"
+                            class="lang-btn"
+                            class:lang-active={$lang === l}
+                            aria-pressed={$lang === l}
+                            title={LANG_NAMES[l]}
+                            on:click={() => setLang(l)}
+                            >{@html LANG_FLAGS[l]}<span>{l.toUpperCase()}</span></button
+                          >
+                        {/each}
+                      </div>
+                    </div>
+                  </div>
 
 <!-- @@COLLAPSIBLE_MENU_START@@ -->
 
@@ -14981,6 +14989,7 @@ Cliquez à nouveau pour désactiver"
               >
                 <!-- Header -->
                 <div class="lang-switch lang-switch-inline" data-no-i18n role="group" aria-label="Langue / Language / Idioma">
+                  <span class="lang-globe" aria-hidden="true" title="Langue / Language / Idioma">🌐</span>
                   {#each LANGS as l}
                     <button
                       type="button"
@@ -19444,32 +19453,81 @@ Slider: share of denoised audio, the rest is the original"
 </svelte:head>
 
 <style global lang="postcss">
-  /* SÉLECTEUR DE LANGUE (en-tête) */
-  .lang-switch {
-    position: absolute;
-    top: 10px;
-    right: 34px;
-    z-index: 5;
+  /* HEADER : seul le FOND du panneau est translucide (85 %).
+     Avant, style="opacity: 0.85" sur #chat-box rendait translucide tout son
+     contenu : boutons, textes, menu déplié et fenêtres Users/Stats. */
+  #chat-box.screw-panel {
+    background-color: rgba(36, 43, 53, 0.85);
+  }
+
+  /* SÉLECTEUR DE LANGUE (en-tête)
+     Une seule pastille segmentée 🌐 | FR | EN | ES, à droite
+     du bouton clignotant, sur la même ligne (desktop). Plus de position:absolute : elle reste dans le
+     flux et ne peut plus chevaucher le titre. */
+  /* Ligne du bouton clignotant : 3 colonnes 1fr | auto | 1fr.
+     Les deux colonnes latérales ont la même largeur, donc le bouton reste
+     exactement centré ; le sélecteur de langue occupe celle de droite. */
+  .menu-toggle-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-top: 15px;
+  }
+  .menu-toggle-center {
     display: flex;
-    gap: 4px;
+    justify-content: center;
+  }
+  .menu-toggle-right {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .lang-switch {
+    display: inline-flex;
+    align-items: stretch;
+    flex-shrink: 0;
+    border: 1px solid rgba(207, 181, 59, 0.6);
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 5;
   }
   .lang-switch-inline {
-    position: static;
-    justify-content: flex-end;
+    align-self: flex-end;
+    margin-right: 0;
     margin-bottom: 6px;
+  }
+  .lang-globe {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 8px 0 10px;
+    font-size: 0.95rem;
+    border-right: 1px solid rgba(207, 181, 59, 0.35);
+    cursor: default;
+  }
+  .lang-globe img {
+    width: 16px;
+    height: 16px;
   }
   .lang-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 7px;
-    font-size: 0.75rem;
+    gap: 6px;
+    padding: 4px 11px;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.05em;
-    color: rgb(207, 181, 59);
-    background: rgba(207, 181, 59, 0.06);
-    border: 1px solid rgba(207, 181, 59, 0.35);
-    border-radius: 0.4rem;
+    color: rgba(207, 181, 59, 0.8);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .lang-btn + .lang-btn {
+    border-left: 1px solid rgba(207, 181, 59, 0.25);
   }
   .lang-flag {
     width: 21px;
@@ -19477,17 +19535,19 @@ Slider: share of denoised audio, the rest is the original"
     flex-shrink: 0;
     border-radius: 2px;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
-    opacity: 0.7;
-    transition: opacity 0.15s ease;
   }
-  .lang-btn:hover .lang-flag,
-  .lang-btn.lang-active .lang-flag {
-    opacity: 1;
+  .lang-btn:hover {
+    background: rgba(207, 181, 59, 0.18);
+    color: rgb(230, 205, 90);
   }
   .lang-btn.lang-active {
-    background: rgba(207, 181, 59, 0.4);
-    border-color: rgba(207, 181, 59, 0.85);
-    color: #fff8d6;
+    background: rgb(207, 181, 59);
+    color: #1a1405;
+    cursor: default;
+  }
+  .lang-btn:focus-visible {
+    outline: 2px solid #fff8d6;
+    outline-offset: -2px;
   }
 
   /* APRS map (lib/aprsMap.js) */
@@ -19581,23 +19641,23 @@ Slider: share of denoised audio, the rest is the original"
   }
 
   @media (min-width: 1380px) {
-    #title-box {
+    #chat-box {
       min-width: var(--middle-column-width);
     }
-    #page-column {
+    #chat-column {
       align-items: center;
     }
   }
 
   /* ESPACEMENT ENTRE LES BLOCS DE LA PAGE
-     3px par écart, chacun défini à un seul endroit (#title-box, waterfall, #middle-column).
+     3px par écart, chacun défini à un seul endroit (#chat-box, waterfall, #middle-column).
      Par id : le balisage existe par variante de layout, et l'id l'emporte sur Tailwind sans !important. */
-  #page-column {
+  #chat-column {
     padding-top: 0;
     padding-bottom: 0;
   }
   /* Annule le mb-2 qui s'ajoutait à la marge propre du waterfall. */
-  #title-box {
+  #chat-box {
     margin-bottom: 0;
   }
   #outer-waterfall-container {
@@ -21471,7 +21531,7 @@ Slider: share of denoised audio, the rest is the original"
      desktop it sits in empty space beside the title; below that it lands
      on top of it, so give the title bar room to clear it. */
   @media (max-width: 1279px) {
-    #title-box {
+    #chat-box {
       padding-top: 52px;
     }
   }

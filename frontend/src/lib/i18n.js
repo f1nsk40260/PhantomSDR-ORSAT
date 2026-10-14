@@ -52,6 +52,10 @@ export const lang = writable(current);
 const D = [
   // En-tête
   [", situé à", ", located in", ", ubicado en"],
+  ["Page QRZ :", "QRZ page :", "Página QRZ :"],
+  [", SDR sur le Web situé à", ", SDR over Web located at", ", SDR por la Web ubicado en"],
+  ["Page QRZ du Sysop", "Sysop's QRZ page", "Página QRZ del Sysop"],
+  ["Ouvre la carte satellite du QTH de l'ORSAT", "Opens the satellite map of the ORSAT QTH", "Abre el mapa satelital del QTH del ORSAT"],
   ["e-mail", "email", "correo"],
   ["Utilisateurs connectés", "Connected users", "Usuarios conectados"],
   ["📝 Utilisateurs", "📝 Users", "📝 Usuarios"],
