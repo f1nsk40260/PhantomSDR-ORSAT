@@ -78,6 +78,8 @@ const DECODE_BY_LEN = (() => {
 })();
 
 export default class CWDecoder {
+  static LOCK_HZ = 40; // demi-largeur de la fenêtre de recherche quand le ton est verrouillé
+
   constructor({ sampleRate = 12000, callback = null } = {}) {
     this.sr = sampleRate || 12000;
     this.callback = callback || null;
@@ -96,6 +98,7 @@ export default class CWDecoder {
 
     // Tone acquisition
     this.toneHz = 700; this.toneValid = false;
+    this.toneLocked = false; // verrou : la recherche reste à ±LOCK_HZ du ton accroché
     this.specAvg = null; this.specFrames = 0;
     this.fftBuf = new Float32Array(this.FFT_N); this.fftFill = 0;
 
@@ -217,8 +220,13 @@ export default class CWDecoder {
     this.specFrames++;
 
     const res = sr / N;
-    const bLo = Math.max(1, Math.floor(200 / res));
-    const bHi = Math.min(half, Math.ceil(2500 / res));
+    // Ton verrouillé : on ne cherche qu'autour du ton accroché (suit une
+    // dérive lente, ignore une station plus forte ailleurs dans le filtre).
+    const lockOn = this.toneLocked && this.toneValid;
+    const fLo = lockOn ? Math.max(200, this.toneHz - CWDecoder.LOCK_HZ) : 200;
+    const fHi = lockOn ? Math.min(2500, this.toneHz + CWDecoder.LOCK_HZ) : 2500;
+    const bLo = Math.max(1, Math.floor(fLo / res));
+    const bHi = Math.min(half, Math.ceil(fHi / res));
     const spec = this.specAvg;
     let maxP = 0, maxB = bLo;
     for (let b = bLo; b <= bHi; b++) if (spec[b] > maxP) { maxP = spec[b]; maxB = b; }
@@ -248,6 +256,11 @@ export default class CWDecoder {
       }
       this._emitFreq();
     }
+  }
+
+  // Verrouille / déverrouille la recherche de tonalité sur le ton actuel.
+  setToneLock(on) {
+    this.toneLocked = !!on;
   }
 
   _resetTiming() {

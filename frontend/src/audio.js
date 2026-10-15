@@ -7316,6 +7316,10 @@ js8Pending() {
     else if (this.cw) this.cw.setEnabled(false);
   }
 
+  setCWToneLock(on) {
+    if (this.cw && typeof this.cw.setToneLock === 'function') this.cw.setToneLock(!!on);
+  }
+
   setCWCallback(cb) {
     this.cwCallback = cb;
   }

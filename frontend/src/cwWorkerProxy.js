@@ -86,6 +86,11 @@ export class CWWorkerProxy {
     this._post({ t: 'reset', sampleRate: this._sampleRate });
   }
 
+  setToneLock(on) {
+    if (this._local) { this._local.setToneLock(on); return; }
+    this._post({ t: 'toneLock', on: !!on });
+  }
+
   /**
    * `pcm` here is the PROCESSED playback buffer, moments before it is handed to
    * playPCM() — copying is not optional.

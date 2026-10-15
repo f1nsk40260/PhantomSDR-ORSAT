@@ -22,6 +22,7 @@
  *   { t: 'sampleRate', sampleRate }
  *   { t: 'reset',      sampleRate }
  *   { t: 'pcm',        pcm: Float32Array, sampleRate }
+ *   { t: 'toneLock',   on }
  *   { t: 'destroy' }
  *
  * Worker → main: the decoder's own events, forwarded verbatim
@@ -76,6 +77,10 @@ self.onmessage = ({ data }) => {
           ensure().setSampleRate(sampleRate);
         }
         if (d.pcm && d.pcm.length) ensure().feed(d.pcm);
+        break;
+
+      case 'toneLock':
+        ensure().setToneLock(!!d.on);
         break;
 
       case 'destroy':

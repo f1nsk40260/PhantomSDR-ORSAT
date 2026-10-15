@@ -4358,6 +4358,13 @@
   let cwMessages = [];
   let cwCurrentLine = "";
   let cwDetectedHz = 0;
+  // Verrou de tonalité CW : une fois calé sur une station, le décodeur ne
+  // saute plus sur un signal plus fort ailleurs dans le filtre.
+  let cwToneLocked = false;
+  function toggleCwToneLock() {
+    cwToneLocked = !cwToneLocked;
+    audio.setCWToneLock(cwToneLocked);
+  }
   let cwDetectedWpm = 0;
   let cwScrollEl;
 
@@ -5106,6 +5113,7 @@
       audio.setCWDecoding(false);
       audio.setCWCallback(null);
       cwDetectedHz = 0;
+      cwToneLocked = false;
       cwDetectedWpm = 0;
     }
     // WSPR
@@ -5272,6 +5280,7 @@
     } else if (d === "cw") {
       cwEnabled = true;
       cwMessages = [];
+      cwToneLocked = false;
       cwCurrentLine = "";
       cwDetectedHz = 0;
       cwDetectedWpm = 0;
@@ -12465,6 +12474,13 @@ Cliquez à nouveau pour désactiver"
                             >
                           {/if}
                         </h4>
+                        <div class="flex items-center gap-2">
+                        <button
+                          title={cwToneLocked ? "Déverrouiller la tonalité (le décodeur reprend la recherche dans tout le filtre)" : "Verrouiller la tonalité sur la station décodée (ignore les autres signaux du filtre)"}
+                          disabled={!cwToneLocked && cwDetectedHz <= 0}
+                          class="text-xs px-2 py-0.5 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed {cwToneLocked ? 'cw-lock-on' : 'cw-lock-off'}"
+                          on:click={toggleCwToneLock}>{cwToneLocked ? "🔒 Tonalité verrouillée" : "🔓 Verrouiller la tonalité"}</button
+                        >
                         <button title="Effacer les messages CW"
                           class="text-green-100 bg-green-900 hover:bg-green-800 hover:text-white text-xs px-2 py-0.5 rounded border border-green-700 hover:border-green-500 transition-colors"
                           on:click={() => {
@@ -12472,6 +12488,7 @@ Cliquez à nouveau pour désactiver"
                             cwCurrentLine = "";
                           }}>Clear</button
                         >
+                        </div>
                       </div>
                       <CwSchedulePanel onTune={cwStationTune} />
                       <div
@@ -17097,6 +17114,13 @@ Slider: share of denoised audio, the rest is the original"
                             >
                           {/if}
                         </h4>
+                        <div class="flex items-center gap-2">
+                        <button
+                          title={cwToneLocked ? "Déverrouiller la tonalité (le décodeur reprend la recherche dans tout le filtre)" : "Verrouiller la tonalité sur la station décodée (ignore les autres signaux du filtre)"}
+                          disabled={!cwToneLocked && cwDetectedHz <= 0}
+                          class="text-xs px-2 py-0.5 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed {cwToneLocked ? 'cw-lock-on' : 'cw-lock-off'}"
+                          on:click={toggleCwToneLock}>{cwToneLocked ? "🔒 Tonalité verrouillée" : "🔓 Verrouiller la tonalité"}</button
+                        >
                         <button title="Effacer les messages CW"
                           class="text-green-100 bg-green-900 hover:bg-green-800 hover:text-white text-xs px-2 py-0.5 rounded border border-green-700 hover:border-green-500 transition-colors"
                           on:click={() => {
@@ -17104,6 +17128,7 @@ Slider: share of denoised audio, the rest is the original"
                             cwCurrentLine = "";
                           }}>Clear</button
                         >
+                        </div>
                       </div>
                       <CwSchedulePanel onTune={cwStationTune} />
                       <div
@@ -21612,4 +21637,9 @@ Slider: share of denoised audio, the rest is the original"
       border-width: 2px;
     }
   }
+  /* Bouton de verrouillage de tonalité du décodeur CW (thème vieil or) */
+  .cw-lock-off { color: rgb(207, 181, 59); background: rgba(207, 181, 59, 0.08); border-color: rgba(207, 181, 59, 0.5); }
+  .cw-lock-off:not(:disabled):hover { background: rgba(207, 181, 59, 0.25); color: #fff; }
+  .cw-lock-on { color: #111827; background: rgb(207, 181, 59); border-color: rgb(207, 181, 59); font-weight: 600; }
+  .cw-lock-on:hover { filter: brightness(1.1); }
 </style>
