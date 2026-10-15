@@ -724,6 +724,10 @@ const D = [
 
   // Decoder ID (ModeIdChip)
   ["ID décodeur", "Decoder ID", "ID decodificador"],
+  ["Qu'est-ce que j'entends ?", "What am I hearing?", "¿Qué estoy escuchando?"],
+  ["Reconnaît le mode du signal écouté (FT8, RTTY, CW, PSK…) et propose le bon décodeur", "Recognises the mode of the signal you are hearing (FT8, RTTY, CW, PSK…) and offers the right decoder", "Reconoce el modo de la señal que escucha (FT8, RTTY, CW, PSK…) y propone el decodificador adecuado"],
+  ["📚 Chercher dans la base de signaux", "📚 Search the signal database", "📚 Buscar en la base de señales"],
+  ["Analyse en continu le signal de la bande passante. Désactivée par défaut : ne consomme du processeur que lorsqu'elle est active.", "Continuously analyses the signal in the passband. Off by default: it only uses CPU while it is on.", "Analiza continuamente la señal de la banda de paso. Desactivada por defecto: solo consume CPU mientras está activa."],
   ["Reconnaissance automatique du mode numérique entendu", "Automatic recognition of the digital mode you are hearing", "Reconocimiento automático del modo digital que escucha"],
   ["Analyse : ON", "Analysis: ON", "Análisis: ON"],
   ["Analyse : OFF", "Analysis: OFF", "Análisis: OFF"],

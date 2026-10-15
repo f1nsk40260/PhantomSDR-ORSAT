@@ -124,14 +124,14 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
     <span class="modeid-icon" aria-hidden="true">📡</span>
     <div class="flex flex-col leading-tight min-w-0">
-      <span class="modeid-title">Decoder ID</span>
-      <span class="text-gray-400 text-[11px]">Reconnaissance automatique du mode numérique entendu</span>
+      <span class="modeid-title">Qu'est-ce que j'entends ?</span>
+      <span class="text-gray-400 text-[11px]">Reconnaît le mode du signal écouté (FT8, RTTY, CW, PSK…) et propose le bon décodeur</span>
     </div>
     <span class="flex-1"></span>
     <button
       class="modeid-switch {on ? 'is-on' : ''}"
       on:click={() => dispatch("toggle")}
-      title="Identify the digital mode in the passband. Off by default — it only uses CPU while it is on."
+      title="Analyse en continu le signal de la bande passante. Désactivée par défaut : ne consomme du processeur que lorsqu'elle est active."
       aria-pressed={on}
     >
       <span class="modeid-knob" aria-hidden="true"></span>
@@ -142,7 +142,7 @@
       on:click={() => dispatch("identify")}
       title="Chercher dans la base de signaux de référence ce qui correspond à la fréquence, à la largeur du filtre et à la démodulation en cours"
     >
-      📚 Que peut être ce signal ?
+      📚 Chercher dans la base de signaux
     </button>
   </div>
 
