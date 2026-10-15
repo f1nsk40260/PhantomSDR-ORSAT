@@ -26,6 +26,7 @@
   const player = typeof Audio !== "undefined" ? new Audio() : null;
   let playing = false, pos = 0, dur = 0, playErr = "";
   let refMuted = false;
+  let loadedSrc = "", blobUrl = "";
   function setRefMuted(on) {
     if (on === refMuted) return;
     refMuted = on;
@@ -44,8 +45,18 @@
     if (!player) return;
     playErr = "";
     if (playing) { player.pause(); return; }
-    if (player.src !== new URL(src, location.href).href) { player.src = src; pos = 0; dur = 0; }
     try {
+      if (loadedSrc !== src) {
+        // Le serveur peut annoncer le .opus en text/plain (Firefox le refuse) :
+        // on le relit en Blob explicitement typé audio/ogg.
+        const r = await fetch(src);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const blob = new Blob([await r.arrayBuffer()], { type: "audio/ogg" });
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+        blobUrl = URL.createObjectURL(blob);
+        player.src = blobUrl;
+        loadedSrc = src; pos = 0; dur = 0;
+      }
       await player.play();
       playing = true;
       setRefMuted(true);
@@ -65,7 +76,11 @@
     player.currentTime = Number(ev.target.value);
   }
   const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
-  onDestroy(() => { stopRef(); if (player) player.removeAttribute("src"); });
+  onDestroy(() => {
+    stopRef();
+    if (player) player.removeAttribute("src");
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+  });
 
   let index = [];
   let results = [];

@@ -37,6 +37,7 @@ import re
 import sys
 import time
 import json
+import mimetypes
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
@@ -436,6 +437,35 @@ def _is_local(request: web.Request) -> bool:
 
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Le spectrumserver ne connaît que html/js/css/wasm et sert tout le reste en
+# text/plain : Firefox refuse alors de lire les sons .opus de la base de
+# signaux (« not suitable »). On corrige le type d'après l'extension.
+_EXTRA_TYPES = {
+    ".opus": "audio/ogg", ".ogg": "audio/ogg", ".oga": "audio/ogg",
+    ".mp3": "audio/mpeg", ".wav": "audio/wav", ".flac": "audio/flac",
+    ".webp": "image/webp", ".svg": "image/svg+xml", ".png": "image/png",
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".ico": "image/x-icon",
+    ".pdf": "application/pdf", ".json": "application/json",
+    ".woff": "font/woff", ".woff2": "font/woff2", ".ttf": "font/ttf",
+    ".mp4": "video/mp4", ".webm": "video/webm",
+}
+
+
+def _fix_static_type(headers: dict, url: str) -> None:
+    key = next((k for k in headers if k.lower() == "content-type"), None)
+    cur = (headers.get(key, "") if key else "").split(";")[0].strip().lower()
+    if cur and cur != "text/plain":
+        return
+    path = url.split("?", 1)[0].split("#", 1)[0]
+    ext = path[path.rfind("."):].lower() if "." in path.rsplit("/", 1)[-1] else ""
+    ctype = _EXTRA_TYPES.get(ext) or (mimetypes.guess_type(path)[0] if ext else None)
+    if not ctype or ctype == "text/plain":
+        return
+    if key:
+        del headers[key]
+    headers["Content-Type"] = ctype
+
+
 async def proxy_request(request: web.Request, upstream: str,
                         set_rx: str = "", path: str = "") -> web.StreamResponse:
     url = upstream + (path or _upstream_path(request))
@@ -459,11 +489,10 @@ async def proxy_request(request: web.Request, upstream: str,
                 allow_redirects=False,
                 ssl=False,
             ) as resp:
-                response = web.StreamResponse(
-                    status=resp.status,
-                    headers={k: v for k, v in resp.headers.items()
-                             if k.lower() not in ("transfer-encoding", "connection")},
-                )
+                fwd = {k: v for k, v in resp.headers.items()
+                       if k.lower() not in ("transfer-encoding", "connection")}
+                _fix_static_type(fwd, url)
+                response = web.StreamResponse(status=resp.status, headers=fwd)
                 if set_rx:
                     response.set_cookie(RX_COOKIE, set_rx, max_age=31536000,
                                         path="/", samesite="Lax")
