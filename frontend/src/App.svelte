@@ -115,6 +115,7 @@
   import MagicEyeIndicator from "./lib/MagicEyeIndicator.svelte";
   import ModeIdChip from "./lib/ModeIdChip.svelte";
   import HfdlPanel from "./lib/HfdlPanel.svelte";
+  import CwSchedulePanel from "./lib/CwSchedulePanel.svelte";
   import {
     RELIABLE_LO_HZ,
     RELIABLE_HI_HZ,
@@ -3380,6 +3381,18 @@
   }
 
   /** Accorde sur une fréquence HFDL (kHz) : USB, la fréquence affichée = celle de la liste. */
+  // Stations CW régulières (FAV22, F9TM…) : clic sur une fréquence de la
+  // fenêtre du décodeur CW → réglage du récepteur en CW.
+  function cwStationTune(khz) {
+    const hz = Math.round(Number(khz) * 1000);
+    if (!(hz > 0)) return;
+    try {
+      tuneToUserFrequency(hz, "CW");
+    } catch (e) {
+      console.warn("[CW] tune error", e);
+    }
+  }
+
   function hfdlTune(khz) {
     const hz = Math.round(Number(khz) * 1000);
     if (!(hz > 0)) return;
@@ -12460,6 +12473,7 @@ Cliquez à nouveau pour désactiver"
                           }}>Clear</button
                         >
                       </div>
+                      <CwSchedulePanel onTune={cwStationTune} />
                       <div
                         bind:this={cwScrollEl}
                         class="w-full font-mono text-sm text-amber-300 bg-gray-900 rounded p-3 overflow-y-auto max-h-64 custom-scrollbar text-left recess-window"
@@ -17091,6 +17105,7 @@ Slider: share of denoised audio, the rest is the original"
                           }}>Clear</button
                         >
                       </div>
+                      <CwSchedulePanel onTune={cwStationTune} />
                       <div
                         bind:this={cwScrollEl}
                         class="w-full font-mono text-sm text-amber-300 bg-gray-900 rounded p-3 overflow-y-auto max-h-64 custom-scrollbar text-left recess-window"
