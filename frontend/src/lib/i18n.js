@@ -726,6 +726,10 @@ const D = [
   ["ID décodeur", "Decoder ID", "ID decodificador"],
   ["Qu'est-ce que j'entends ?", "What am I hearing?", "¿Qué estoy escuchando?"],
   ["Reconnaît le mode du signal écouté (FT8, RTTY, CW, PSK…) et propose le bon décodeur", "Recognises the mode of the signal you are hearing (FT8, RTTY, CW, PSK…) and offers the right decoder", "Reconoce el modo de la señal que escucha (FT8, RTTY, CW, PSK…) y propone el decodificador adecuado"],
+  ["▶ Écouter le modèle", "▶ Play the sample", "▶ Escuchar la muestra"],
+  ["⏸ Pause", "⏸ Pause", "⏸ Pausa"],
+  ["Écouter l'enregistrement de référence (le son du récepteur est coupé pendant l'écoute)", "Play the reference recording (the receiver audio is muted while it plays)", "Escuchar la grabación de referencia (el audio del receptor se silencia durante la escucha)"],
+  ["Position de lecture", "Playback position", "Posición de reproducción"],
   ["📚 Chercher dans la base de signaux", "📚 Search the signal database", "📚 Buscar en la base de señales"],
   ["Analyse en continu le signal de la bande passante. Désactivée par défaut : ne consomme du processeur que lorsqu'elle est active.", "Continuously analyses the signal in the passband. Off by default: it only uses CPU while it is on.", "Analiza continuamente la señal de la banda de paso. Desactivada por defecto: solo consume CPU mientras está activa."],
   ["Reconnaissance automatique du mode numérique entendu", "Automatic recognition of the digital mode you are hearing", "Reconocimiento automático del modo digital que escucha"],
@@ -900,6 +904,7 @@ const D = [
 
 // ── Libellés variables : $1, $2 sont repris (et traduits s'ils sont connus) ──
 const P = [
+  ["Lecture impossible : $1", "Playback failed: $1", "Reproducción imposible: $1"],
   ["vu $1× · il y a $2 s", "seen $1× · $2 s ago", "visto $1× · hace $2 s"],
   ["vu $1× · il y a $2 min", "seen $1× · $2 min ago", "visto $1× · hace $2 min"],
   ["vu $1× · à l'instant", "seen $1× · just now", "visto $1× · ahora mismo"],

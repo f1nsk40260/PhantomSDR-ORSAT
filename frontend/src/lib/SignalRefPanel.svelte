@@ -19,16 +19,53 @@
 
   const dispatch = createEventDispatcher();
 
-  // Pendant l'écoute d'un enregistrement de référence, le son réel du
-  // récepteur est coupé (sinon les deux se superposent) ; il revient dès que
-  // la lecture s'arrête, se termine, change de fiche ou que le panneau ferme.
-  let refPlaying = false;
-  function setRefPlaying(on) {
-    if (on === refPlaying) return;
-    refPlaying = on;
+  // Lecteur du son de référence. Un seul objet Audio, hors du DOM, piloté par
+  // nos boutons : la lecture démarre d'abord (geste de l'utilisateur), puis le
+  // son réel du récepteur est coupé ; il revient à l'arrêt, à la fin, au
+  // changement de fiche ou à la fermeture du panneau.
+  const player = typeof Audio !== "undefined" ? new Audio() : null;
+  let playing = false, pos = 0, dur = 0, playErr = "";
+  let refMuted = false;
+  function setRefMuted(on) {
+    if (on === refMuted) return;
+    refMuted = on;
     dispatch("refplay", on);
   }
-  onDestroy(() => setRefPlaying(false));
+  if (player) {
+    player.preload = "auto";
+    player.addEventListener("timeupdate", () => { pos = player.currentTime; });
+    const upDur = () => { dur = isFinite(player.duration) ? player.duration : 0; };
+    player.addEventListener("loadedmetadata", upDur);
+    player.addEventListener("durationchange", upDur);
+    player.addEventListener("pause", () => { playing = false; setRefMuted(false); });
+    player.addEventListener("ended", () => { playing = false; pos = 0; setRefMuted(false); });
+  }
+  async function playRef(src) {
+    if (!player) return;
+    playErr = "";
+    if (playing) { player.pause(); return; }
+    if (player.src !== new URL(src, location.href).href) { player.src = src; pos = 0; dur = 0; }
+    try {
+      await player.play();
+      playing = true;
+      setRefMuted(true);
+    } catch (err) {
+      playing = false;
+      playErr = "Lecture impossible : " + (err && err.message ? err.message : err);
+      setRefMuted(false);
+    }
+  }
+  function stopRef() {
+    if (player && !player.paused) player.pause();
+    playing = false;
+    setRefMuted(false);
+  }
+  function seek(ev) {
+    if (!player || !dur) return;
+    player.currentTime = Number(ev.target.value);
+  }
+  const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+  onDestroy(() => { stopRef(); if (player) player.removeAttribute("src"); });
 
   let index = [];
   let results = [];
@@ -56,6 +93,8 @@
     : [];
 
   async function select(e) {
+    stopRef();
+    playErr = "";
     selected = e;
     detail = null;
     detail = await loadRef(e.id);
@@ -125,12 +164,16 @@
             <img class="sigref-img" src={refImage(selected.id)} alt="Spectre de référence" loading="lazy" />
           {/if}
           {#if selected.has_snd && refSound(selected.id)}
-            <!-- svelte-ignore a11y-media-has-caption -->
-            <audio class="w-full mt-1" controls preload="none" src={refSound(selected.id)}
-              on:play={() => setRefPlaying(true)}
-              on:pause={() => setRefPlaying(false)}
-              on:ended={() => setRefPlaying(false)}
-              on:emptied={() => setRefPlaying(false)}></audio>
+<div class="sigref-player">
+              <button class="sigref-play" on:click={() => playRef(refSound(selected.id))}
+                title="Écouter l'enregistrement de référence (le son du récepteur est coupé pendant l'écoute)">
+                {playing ? "⏸ Pause" : "▶ Écouter le modèle"}
+              </button>
+              <input type="range" min="0" max={dur || 0} step="0.1" value={pos} disabled={!dur}
+                on:input={seek} aria-label="Position de lecture" />
+              <span class="text-gray-400 text-[11px] whitespace-nowrap" data-no-i18n>{mmss(pos)}{dur ? " / " + mmss(dur) : ""}</span>
+            </div>
+            {#if playErr}<div class="text-red-400 text-[11px] mt-1">{playErr}</div>{/if}
           {/if}
           <table class="sigref-tab">
             <tr><td>Largeur</td><td data-no-i18n>{selected.bw ? fmtHz(selected.bw) : "—"}</td></tr>
@@ -173,6 +216,13 @@
   .sigref-head { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #374151; }
   .sigref-x { color: #9ca3af; padding: 0 6px; font-size: 14px; background: transparent; border: 0; }
   .sigref-x:hover { color: #fff; }
+  .sigref-player { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .sigref-player input[type="range"] { flex: 1; accent-color: rgb(207, 181, 59); }
+  .sigref-play {
+    padding: 0.25rem 0.7rem; border-radius: 6px; font-weight: 700; font-size: 12px; white-space: nowrap;
+    background: rgb(207, 181, 59); color: #111827;
+  }
+  .sigref-play:hover { filter: brightness(1.1); }
   .sigref-form { display: flex; flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; border-bottom: 1px solid #374151; }
   .sigref-form label { display: flex; flex-direction: column; gap: 2px; color: #9ca3af; font-size: 11px; }
   .sigref-form label.grow { flex: 1; min-width: 140px; }
