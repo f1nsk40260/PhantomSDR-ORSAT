@@ -802,7 +802,8 @@ _IP_RE = re.compile(r"^[0-9.]+$|^\[?[0-9a-fA-F:]+\]?$")
 def _https_redirect(request: web.Request):
     if not HTTPS_REDIRECT or _via_tls(request) or request.method != "GET":
         return None
-    if request.path not in ("/", "/index.html"):
+    is_admin = request.path == "/admin" or request.path.startswith("/admin/")
+    if request.path not in ("/", "/index.html") and not is_admin:
         return None
     if request.headers.get("Upgrade") or "text/html" not in request.headers.get("Accept", ""):
         return None
@@ -813,6 +814,8 @@ def _https_redirect(request: web.Request):
     if _is_local(request):
         return None
     qs = request.query_string
+    if is_admin:                       # le mot de passe du panneau ne circule jamais en clair
+        return web.HTTPFound(f"https://{name}{request.path}" + (f"?{qs}" if qs else ""))
     return web.HTTPFound(f"https://{name}/" + (f"?{qs}" if qs else ""))
 
 
@@ -828,6 +831,47 @@ _sec_blocked_logged: "dict[str, float]" = {}
 _login_fail: "dict[str, list]" = {}
 _login_lock: "dict[str, float]" = {}
 LOGIN_MAX_FAIL, LOGIN_WINDOW, LOGIN_LOCK = 5, 900, 1800
+# Blocage global : contre un réseau de machines qui essaie depuis des milliers
+# d'IP différentes. Au-delà de GLOBAL_MAX_FAIL échecs en 1 h (toutes IP
+# confondues), la connexion au panneau est refusée 15 min — sauf aux IP qui se
+# sont déjà connectées avec succès (90 derniers jours), pour que le
+# propriétaire ne soit jamais enfermé dehors.
+GLOBAL_MAX_FAIL, GLOBAL_WINDOW, GLOBAL_LOCK = 30, 3600, 900
+_login_fail_all: "list[float]" = []
+_global_lock_until = 0.0
+_TRUSTED_FILE = Path(__file__).resolve().parent / "logs" / "admin_trusted.json"
+_TRUSTED_TTL = 90 * 86400
+
+
+def _load_trusted() -> dict:
+    try:
+        data = json.loads(_TRUSTED_FILE.read_text())
+        cut = time.time() - _TRUSTED_TTL
+        return {k: v for k, v in data.items() if isinstance(v, (int, float)) and v > cut}
+    except Exception:
+        return {}
+
+
+_admin_trusted = _load_trusted()
+
+
+def _is_trusted(ip: str) -> bool:
+    try:
+        t = _admin_trusted.get(LI.ip_hash(ip))
+        return bool(t and t > time.time() - _TRUSTED_TTL)
+    except Exception:
+        return False
+
+
+def _mark_trusted(ip: str) -> None:
+    try:
+        _admin_trusted[LI.ip_hash(ip)] = time.time()
+        _TRUSTED_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = _TRUSTED_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(_admin_trusted))
+        tmp.replace(_TRUSTED_FILE)
+    except Exception as e:
+        logging.getLogger("security").warning("admin trusted: %s", e)
 
 
 async def _sec_record(request: web.Request, ip: str, cat: str, status: int, extra: dict = None) -> None:
@@ -857,12 +901,20 @@ def _sec_after(request: web.Request, ip: str, status: int) -> None:
             fails = [t for t in _login_fail.get(ip, []) if now - t < LOGIN_WINDOW] + [now]
             _login_fail[ip] = fails
             cat = "admin_login_fail"
+            global _login_fail_all, _global_lock_until
+            _login_fail_all = [t for t in _login_fail_all if now - t < GLOBAL_WINDOW] + [now]
+            if len(_login_fail_all) >= GLOBAL_MAX_FAIL and _global_lock_until <= now:
+                _global_lock_until = now + GLOBAL_LOCK
+                _login_fail_all = []
+                asyncio.create_task(_sec_record(request, ip, "admin_global_lock", 429,
+                                                {"fails": GLOBAL_MAX_FAIL}))
             if len(fails) >= LOGIN_MAX_FAIL:
                 _login_lock[ip] = now + LOGIN_LOCK
                 asyncio.create_task(_sec_record(request, ip, "admin_locked", 429,
                                                 {"fails": len(fails)}))
         elif status in (301, 302, 303):
             _login_fail.pop(ip, None)
+            _mark_trusted(ip)
             cat = "admin_login_ok"
     if status == 404 and not cat:
         hits = [t for t in _sec_404.get(ip, []) if now - t < 300] + [now]
@@ -886,6 +938,10 @@ async def handle(request: web.Request) -> web.StreamResponse:
     if (not local and request.method == "POST" and request.path in ("/admin", "/admin/")
             and _login_lock.get(ip, 0) > time.monotonic()):
         return web.Response(status=429, text="Trop de tentatives de connexion. Réessayez dans 30 minutes.")
+    if (not local and request.method == "POST" and request.path in ("/admin", "/admin/")
+            and _global_lock_until > time.monotonic() and not _is_trusted(ip)):
+        return web.Response(status=429, text="Connexion au panneau temporairement suspendue "
+                            "(trop de tentatives sur le serveur). Réessayez dans 15 minutes.")
     try:
         resp = await _handle(request)
     except web.HTTPException as e:

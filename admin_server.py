@@ -13,6 +13,8 @@ import os
 import sys
 import json
 import hashlib
+import hmac
+import secrets
 import subprocess
 import threading
 import time
@@ -103,6 +105,30 @@ DEFAULT_CONFIG = {
 # ─── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
+# Cookie de session : invisible au JavaScript, non envoyé depuis un autre site,
+# connexion qui expire après 12 h sans activité (prolongée à chaque requête).
+from datetime import timedelta as _td
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=_td(hours=12),
+)
+
+
+from flask.sessions import SecureCookieSessionInterface as _SCSI
+
+
+class _SessionIface(_SCSI):
+    """En https, le cookie est marqué Secure (jamais renvoyé en clair) ; en
+    http (accès local par IP), il reste utilisable."""
+    def get_cookie_secure(self, app):
+        try:
+            return bool(request.is_secure)
+        except Exception:
+            return False
+
+
+app.session_interface = _SessionIface()
 
 # Trust X-Forwarded-* headers from proxy.py so Flask generates correct
 # external URLs for redirects and url_for() calls.
@@ -156,12 +182,41 @@ def save_admin_config(cfg):
     with open(ADMIN_CONFIG_FILE, "w") as f:
         json.dump(cfg, f, indent=2)
 
+# Mot de passe : PBKDF2-SHA256 salé (« pbkdf2$itérations$sel$empreinte »).
+# L'ancien format (SHA-256 nu, 64 caractères hexa) reste accepté et est
+# converti automatiquement à la première connexion réussie.
+PBKDF2_ITER = 240000
+MIN_PASSWORD_LEN = 12
+
 def hash_password(pwd):
-    return hashlib.sha256(pwd.encode()).hexdigest()
+    salt = secrets.token_hex(16)
+    dk = hashlib.pbkdf2_hmac("sha256", pwd.encode(), bytes.fromhex(salt), PBKDF2_ITER)
+    return f"pbkdf2${PBKDF2_ITER}${salt}${dk.hex()}"
+
+def _verify_hash(pwd, stored):
+    stored = stored or ""
+    if stored.startswith("pbkdf2$"):
+        try:
+            _, it, salt, h = stored.split("$", 3)
+            dk = hashlib.pbkdf2_hmac("sha256", pwd.encode(), bytes.fromhex(salt), int(it))
+            return hmac.compare_digest(dk.hex(), h)
+        except (ValueError, TypeError):
+            return False
+    legacy = hashlib.sha256(pwd.encode()).hexdigest()
+    return hmac.compare_digest(legacy, stored)
 
 def check_password(pwd):
     cfg = load_admin_config()
-    return hash_password(pwd) == cfg.get("password_hash", "")
+    stored = cfg.get("password_hash", "")
+    if not _verify_hash(pwd, stored):
+        return False
+    if not stored.startswith("pbkdf2$"):
+        try:
+            cfg["password_hash"] = hash_password(pwd)
+            save_admin_config(cfg)
+        except Exception:
+            pass
+    return True
 
 def login_required(f):
     @wraps(f)
@@ -1032,7 +1087,7 @@ async function completeSetup() {
   var pw2 = document.getElementById("new-pwd2").value;
   if (!dir)          { showErr("SDR base directory is required"); return; }
   if (!pw)           { showErr("Password is required"); return; }
-  if (pw.length < 4) { showErr("Password must be at least 4 characters"); return; }
+  if (pw.length < 12) { showErr("Password must be at least 12 characters"); return; }
   if (pw !== pw2)    { showErr("Passwords do not match"); return; }
   var btn = document.getElementById("setup-btn");
   btn.disabled = true; btn.textContent = "Saving...";
@@ -2323,7 +2378,7 @@ async function liSessions(){
 
 let secDays = 7;
 const SEC_COL = {scan:'var(--amber)', traversal:'var(--red)', method:'var(--amber)', forbidden:'var(--red)',
-  burst404:'var(--amber)', admin_login_fail:'var(--red)', admin_login_ok:'var(--green)', admin_locked:'var(--red)', blocked:'var(--text3)'};
+  burst404:'var(--amber)', admin_login_fail:'var(--red)', admin_login_ok:'var(--green)', admin_locked:'var(--red)', admin_global_lock:'var(--red)', blocked:'var(--text3)'};
 function secCat(c, n){ return `<span style="border:1px solid ${SEC_COL[c]||'var(--text3)'};color:${SEC_COL[c]||'var(--text3)'};border-radius:3px;padding:0 .3rem;font-size:.6rem;white-space:nowrap;margin:0 .15rem .15rem 0;display:inline-block;">${liEsc(c)}${n!=null?' ×'+n:''}</span>`; }
 async function secLoad(days, btn){
   secDays = days;
@@ -2331,7 +2386,7 @@ async function secLoad(days, btn){
   try {
     const d = await (await fetch('/admin/api/security?days=' + days, {cache:'no-store'})).json();
     const L = d.labels || {};
-    const order = ['admin_login_fail','admin_locked','scan','traversal','forbidden','method','burst404','blocked','admin_login_ok'];
+    const order = ['admin_login_fail','admin_locked','admin_global_lock','scan','traversal','forbidden','method','burst404','blocked','admin_login_ok'];
     document.getElementById('sec-kpis').innerHTML = order.map(c => `<div class="card" style="padding:.55rem;" title="${liEsc(L[c]||c)}"><div style="font-size:.58rem;color:var(--text3);">${liEsc(L[c]||c)}</div><div style="font-size:1.15rem;color:${(d.cats||{})[c]?(SEC_COL[c]||'var(--green)'):'var(--text3)'};">${(d.cats||{})[c]||0}</div></div>`).join('');
     const bans = d.bans || [];
     document.getElementById('sec-bans').innerHTML = bans.length ? `<div class="card"><div style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.3rem;">IP BANNIES</div>` +
@@ -3514,7 +3569,7 @@ async function changePassword(e) {
   const n = document.getElementById('new-pwd').value;
   const n2 = document.getElementById('new-pwd2').value;
   if (n !== n2) { toast('Passwords do not match', 'err'); return; }
-  if (n.length < 4) { toast('Password too short (min 4)', 'err'); return; }
+  if (n.length < 12) { toast('Password too short (min 12)', 'err'); return; }
   const r = await fetch('/admin/api/change-password', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -4243,8 +4298,8 @@ def api_setup():
     new_password = data.get("new_password", "")
     if not sdr_dir:
         return jsonify({"ok": False, "msg": "SDR base directory is required"})
-    if len(new_password) < 4:
-        return jsonify({"ok": False, "msg": "Password must be at least 4 characters"})
+    if len(new_password) < MIN_PASSWORD_LEN or new_password.lower() == "admin":
+        return jsonify({"ok": False, "msg": f"Password must be at least {MIN_PASSWORD_LEN} characters"})
     cfg = load_admin_config()
     if cfg.get("proxy_port") and public_port == int(cfg["proxy_port"]):
         return jsonify({"ok": False, "msg": f"Port {public_port} is the proxy's public port. "
@@ -5247,8 +5302,8 @@ def api_change_password():
     new_pwd = data.get("new_pwd", "")
     if not check_password(old):
         return jsonify({"ok": False, "msg": "Current password incorrect"})
-    if len(new_pwd) < 4:
-        return jsonify({"ok": False, "msg": "Password too short"})
+    if len(new_pwd) < MIN_PASSWORD_LEN or new_pwd.lower() == "admin":
+        return jsonify({"ok": False, "msg": f"Password too short (minimum {MIN_PASSWORD_LEN} characters)"})
     cfg = load_admin_config()
     cfg["password_hash"] = hash_password(new_pwd)
     save_admin_config(cfg)
