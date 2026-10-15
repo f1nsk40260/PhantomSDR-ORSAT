@@ -599,7 +599,37 @@ async def proxy_websocket(request: web.Request, upstream: str,
     return ws_client
 
 
+# A station with https sends the browsers that open its plain http page to the
+# https one: same name, port 443, same query (frequency, mode...). Only a page
+# load is redirected — GET of "/" asking for text/html, under a DNS name — so
+# the websdr.org callback, Kiwi clients, directory polls, http-only diversity
+# partners and LAN access by IP address keep using http exactly as before.
+# Off with "https_redirect": false in admin_config.json.
+HTTPS_REDIRECT = bool(TLS_PORT) and _cfg.get("https_redirect", True) is not False
+_IP_RE = re.compile(r"^[0-9.]+$|^\[?[0-9a-fA-F:]+\]?$")
+
+
+def _https_redirect(request: web.Request):
+    if not HTTPS_REDIRECT or _via_tls(request) or request.method != "GET":
+        return None
+    if request.path not in ("/", "/index.html"):
+        return None
+    if request.headers.get("Upgrade") or "text/html" not in request.headers.get("Accept", ""):
+        return None
+    host = (request.headers.get("Host") or "").strip()
+    name = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+    if not name or "." not in name or _IP_RE.match(name) or name.endswith((".local", ".lan", ".home")):
+        return None
+    if _is_local(request):
+        return None
+    qs = request.query_string
+    return web.HTTPFound(f"https://{name}/" + (f"?{qs}" if qs else ""))
+
+
 async def handle(request: web.Request) -> web.StreamResponse:
+    _redir = _https_redirect(request)
+    if _redir is not None:
+        return _redir
     if request.path == "/__proxy_control/kick":
         return await handle_kick(request)
     # spectrumserver's /~~kick is allowed for a loopback TCP peer — and to it,
