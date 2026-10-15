@@ -2378,7 +2378,7 @@ async function liSessions(){
 
 let secDays = 7;
 const SEC_COL = {scan:'var(--amber)', traversal:'var(--red)', method:'var(--amber)', forbidden:'var(--red)',
-  burst404:'var(--amber)', admin_login_fail:'var(--red)', admin_login_ok:'var(--green)', admin_locked:'var(--red)', admin_global_lock:'var(--red)', blocked:'var(--text3)'};
+  burst404:'var(--amber)', admin_login_fail:'var(--red)', admin_login_ok:'var(--green)', admin_locked:'var(--red)', admin_global_lock:'var(--red)', admin_country:'var(--amber)', blocked:'var(--text3)'};
 function secCat(c, n){ return `<span style="border:1px solid ${SEC_COL[c]||'var(--text3)'};color:${SEC_COL[c]||'var(--text3)'};border-radius:3px;padding:0 .3rem;font-size:.6rem;white-space:nowrap;margin:0 .15rem .15rem 0;display:inline-block;">${liEsc(c)}${n!=null?' ×'+n:''}</span>`; }
 async function secLoad(days, btn){
   secDays = days;
@@ -2386,7 +2386,7 @@ async function secLoad(days, btn){
   try {
     const d = await (await fetch('/admin/api/security?days=' + days, {cache:'no-store'})).json();
     const L = d.labels || {};
-    const order = ['admin_login_fail','admin_locked','admin_global_lock','scan','traversal','forbidden','method','burst404','blocked','admin_login_ok'];
+    const order = ['admin_login_fail','admin_locked','admin_global_lock','admin_country','scan','traversal','forbidden','method','burst404','blocked','admin_login_ok'];
     document.getElementById('sec-kpis').innerHTML = order.map(c => `<div class="card" style="padding:.55rem;" title="${liEsc(L[c]||c)}"><div style="font-size:.58rem;color:var(--text3);">${liEsc(L[c]||c)}</div><div style="font-size:1.15rem;color:${(d.cats||{})[c]?(SEC_COL[c]||'var(--green)'):'var(--text3)'};">${(d.cats||{})[c]||0}</div></div>`).join('');
     const bans = d.bans || [];
     document.getElementById('sec-bans').innerHTML = bans.length ? `<div class="card"><div style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.3rem;">IP BANNIES</div>` +

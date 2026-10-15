@@ -319,6 +319,7 @@ SEC_LABELS = {
     "admin_login_fail": "Échec de connexion au panneau admin",
     "admin_login_ok": "Connexion réussie au panneau admin",
     "admin_locked": "Panneau verrouillé après échecs répétés",
+    "admin_country": "Accès au panneau refusé : pays non autorisé",
     "admin_global_lock": "Panneau suspendu 15 min : trop d'échecs, toutes IP confondues",
     "blocked": "Requête d'une IP bannie refusée",
 }

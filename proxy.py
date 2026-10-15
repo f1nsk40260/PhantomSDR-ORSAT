@@ -855,6 +855,46 @@ def _load_trusted() -> dict:
 _admin_trusted = _load_trusted()
 
 
+# Restriction par pays du panneau admin : "admin_countries": ["FR"] dans
+# admin_config.json (relu à chaque modification, sans redémarrage). Absent ou
+# vide = aucune restriction. Toujours autorisés : réseau local, et IP déjà
+# connectées avec succès au panneau (90 j) — sécurité contre l'auto-blocage.
+_countries_cache = {"mtime": None, "val": ()}
+
+
+def _admin_countries() -> tuple:
+    try:
+        m = _cfg_path.stat().st_mtime
+        if m != _countries_cache["mtime"]:
+            with open(_cfg_path) as f:
+                v = json.load(f).get("admin_countries") or []
+            _countries_cache.update(mtime=m, val=tuple(str(c).upper() for c in v if c))
+    except Exception:
+        pass
+    return _countries_cache["val"]
+
+
+async def _admin_country_denied(request: web.Request, ip: str):
+    allowed = _admin_countries()
+    if not allowed or _is_trusted(ip):
+        return None
+    loop = asyncio.get_running_loop()
+    try:
+        g = await loop.run_in_executor(None, LI.geo, ip)
+    except Exception:
+        g = {}
+    cc = (g.get("countryCode") or "").upper()
+    if g.get("local") or cc in allowed:
+        return None
+    now = time.monotonic()
+    if now - _sec_blocked_logged.get("cc:" + ip, 0) > 600:
+        _sec_blocked_logged["cc:" + ip] = now
+        asyncio.create_task(_sec_record(request, ip, "admin_country", 403, {"cc": cc or "?"}))
+    msg = ("403 — Panneau d'administration non accessible depuis ce pays."
+           if cc else "403 — Localisation impossible pour le moment, réessayez dans une minute.")
+    return web.Response(status=403, text=msg)
+
+
 def _is_trusted(ip: str) -> bool:
     try:
         t = _admin_trusted.get(LI.ip_hash(ip))
@@ -935,6 +975,10 @@ async def handle(request: web.Request) -> web.StreamResponse:
             _sec_blocked_logged[ip] = now
             asyncio.create_task(_sec_record(request, ip, "blocked", 403))
         return web.Response(status=403, text="403 Forbidden")
+    if not local and (request.path == "/admin" or request.path.startswith("/admin/")):
+        denied = await _admin_country_denied(request, ip)
+        if denied is not None:
+            return denied
     if (not local and request.method == "POST" and request.path in ("/admin", "/admin/")
             and _login_lock.get(ip, 0) > time.monotonic()):
         return web.Response(status=429, text="Trop de tentatives de connexion. Réessayez dans 30 minutes.")
