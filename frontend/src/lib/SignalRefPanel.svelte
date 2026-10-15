@@ -7,7 +7,7 @@
    *     la fréquence, de la largeur du filtre et de la démodulation en cours.
    * (version française, F1NSK)
    */
-  import { createEventDispatcher, onMount } from "svelte";
+  import { createEventDispatcher, onMount, onDestroy } from "svelte";
   import {
     loadIndex, loadRef, refImage, refSound, searchRefs, mdToHtml, fmtHz,
   } from "./signalRefs.js";
@@ -18,6 +18,17 @@
   export let demod = "USB";
 
   const dispatch = createEventDispatcher();
+
+  // Pendant l'écoute d'un enregistrement de référence, le son réel du
+  // récepteur est coupé (sinon les deux se superposent) ; il revient dès que
+  // la lecture s'arrête, se termine, change de fiche ou que le panneau ferme.
+  let refPlaying = false;
+  function setRefPlaying(on) {
+    if (on === refPlaying) return;
+    refPlaying = on;
+    dispatch("refplay", on);
+  }
+  onDestroy(() => setRefPlaying(false));
 
   let index = [];
   let results = [];
@@ -115,7 +126,11 @@
           {/if}
           {#if selected.has_snd && refSound(selected.id)}
             <!-- svelte-ignore a11y-media-has-caption -->
-            <audio class="w-full mt-1" controls preload="none" src={refSound(selected.id)}></audio>
+            <audio class="w-full mt-1" controls preload="none" src={refSound(selected.id)}
+              on:play={() => setRefPlaying(true)}
+              on:pause={() => setRefPlaying(false)}
+              on:ended={() => setRefPlaying(false)}
+              on:emptied={() => setRefPlaying(false)}></audio>
           {/if}
           <table class="sigref-tab">
             <tr><td>Largeur</td><td data-no-i18n>{selected.bw ? fmtHz(selected.bw) : "—"}</td></tr>

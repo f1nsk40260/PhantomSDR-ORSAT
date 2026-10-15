@@ -5549,6 +5549,17 @@
   // Largeur proposée : celle mesurée par le Decoder ID si elle existe, sinon
   // celle du filtre de réception en cours.
   let signalRef = null;
+  // Lecture d'un son de référence : coupe le son réel le temps de l'écoute.
+  // Ne rétablit le son que si c'est nous qui l'avions coupé et qu'il l'est encore.
+  let refPlayMuted = false;
+  function onRefPlay(on) {
+    if (on) {
+      if (!mute) { handleMuteChange(); refPlayMuted = true; }
+    } else if (refPlayMuted) {
+      refPlayMuted = false;
+      if (mute) handleMuteChange();
+    }
+  }
   function openSignalRef(id) {
     const f = modeIdResult && modeIdResult.features;
     const measured = f && f.bwHz > 0 ? f.bwHz : 0;
@@ -19484,7 +19495,8 @@ Slider: share of denoised audio, the rest is the original"
     freqHz={signalRef.freqHz}
     bwHz={signalRef.bwHz}
     demod={signalRef.demod}
-    on:close={() => (signalRef = null)}
+    on:close={() => { onRefPlay(false); signalRef = null; }}
+    on:refplay={(e) => onRefPlay(e.detail)}
   />
 {/if}
 </main>
