@@ -787,7 +787,89 @@ def _https_redirect(request: web.Request):
     return web.HTTPFound(f"https://{name}/" + (f"?{qs}" if qs else ""))
 
 
+# ── Sécurité : détection des tentatives anormales ─────────────────────────────
+# Tout le trafic web (http et https via Caddy) passe ici : chaque requête
+# suspecte est notée dans logs/security_*.jsonl pour la page « Analyse
+# auditeurs » du panneau. Les IP bannies depuis le panneau (logs/blocklist.json)
+# reçoivent un 403. Après 5 échecs de connexion au panneau en 15 min, la
+# connexion est refusée 30 min à cette IP.
+_sec_404: "dict[str, list]" = {}
+_sec_404_logged: "dict[str, float]" = {}
+_sec_blocked_logged: "dict[str, float]" = {}
+_login_fail: "dict[str, list]" = {}
+_login_lock: "dict[str, float]" = {}
+LOGIN_MAX_FAIL, LOGIN_WINDOW, LOGIN_LOCK = 5, 900, 1800
+
+
+async def _sec_record(request: web.Request, ip: str, cat: str, status: int, extra: dict = None) -> None:
+    ev = {"ip": LI.norm_ip(ip), "cat": cat, "method": request.method,
+          "path": (request.raw_path or "")[:300], "status": status,
+          "ua": request.headers.get("User-Agent", "")[:200],
+          "https": _via_tls(request), "host": request.headers.get("Host", "")[:80]}
+    if extra:
+        ev.update(extra)
+    loop = asyncio.get_running_loop()
+    try:
+        g = await loop.run_in_executor(None, LI.geo, ip)
+        ev.update(_geo_fields(g))
+        if g.get("rdns"):
+            ev["rdns"] = g["rdns"]
+        ev["iph"] = LI.ip_hash(ip)
+        await loop.run_in_executor(None, LI.append_security, ev)
+    except Exception as e:
+        logging.getLogger("security").warning("security log: %s", e)
+
+
+def _sec_after(request: web.Request, ip: str, status: int) -> None:
+    now = time.monotonic()
+    cat = LI.classify_request(request.method, request.raw_path or request.path, status)
+    if request.path in ("/admin", "/admin/") and request.method == "POST":
+        if status == 200:                      # page de login réaffichée = mauvais code
+            fails = [t for t in _login_fail.get(ip, []) if now - t < LOGIN_WINDOW] + [now]
+            _login_fail[ip] = fails
+            cat = "admin_login_fail"
+            if len(fails) >= LOGIN_MAX_FAIL:
+                _login_lock[ip] = now + LOGIN_LOCK
+                asyncio.create_task(_sec_record(request, ip, "admin_locked", 429,
+                                                {"fails": len(fails)}))
+        elif status in (301, 302, 303):
+            _login_fail.pop(ip, None)
+            cat = "admin_login_ok"
+    if status == 404 and not cat:
+        hits = [t for t in _sec_404.get(ip, []) if now - t < 300] + [now]
+        _sec_404[ip] = hits
+        if len(hits) >= 20 and now - _sec_404_logged.get(ip, 0) > 300:
+            _sec_404_logged[ip] = now
+            cat = "burst404"
+    if cat:
+        asyncio.create_task(_sec_record(request, ip, cat, status))
+
+
 async def handle(request: web.Request) -> web.StreamResponse:
+    ip = _client(request)
+    local = _is_local(request)
+    if not local and LI.is_blocked(ip):
+        now = time.monotonic()
+        if now - _sec_blocked_logged.get(ip, 0) > 600:
+            _sec_blocked_logged[ip] = now
+            asyncio.create_task(_sec_record(request, ip, "blocked", 403))
+        return web.Response(status=403, text="403 Forbidden")
+    if (not local and request.method == "POST" and request.path in ("/admin", "/admin/")
+            and _login_lock.get(ip, 0) > time.monotonic()):
+        return web.Response(status=429, text="Trop de tentatives de connexion. Réessayez dans 30 minutes.")
+    try:
+        resp = await _handle(request)
+    except web.HTTPException as e:
+        resp = e
+    if not local:
+        try:
+            _sec_after(request, ip, getattr(resp, "status", 0) or 0)
+        except Exception as e:
+            logging.getLogger("security").warning("security check: %s", e)
+    return resp
+
+
+async def _handle(request: web.Request) -> web.StreamResponse:
     if request.path == "/__usage":
         return await handle_usage(request)
     _redir = _https_redirect(request)

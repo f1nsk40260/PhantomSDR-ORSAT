@@ -2060,6 +2060,31 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <tbody id="li-sess-tbody"></tbody>
           </table>
         </div>
+        <div class="section-head" style="margin-top:1.2rem;">SÉCURITÉ — TENTATIVES ANORMALES</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-bottom:.6rem;">Tout le trafic web passe par le proxy : recherches de failles, remontées de dossiers, méthodes inhabituelles, actions interdites, rafales de 404, échecs de connexion au panneau (verrouillage 30 min après 5 échecs en 15 min). Les IP bannies reçoivent un refus sur tout le site et sont coupées de l'audio.</div>
+        <div style="display:flex;gap:.4rem;margin-bottom:.8rem;flex-wrap:wrap;align-items:center;" id="sec-period-btns">
+          <button class="btn" onclick="secLoad(1,this)">AUJOURD'HUI</button>
+          <button class="btn btn-blue" onclick="secLoad(7,this)">7 J</button>
+          <button class="btn" onclick="secLoad(30,this)">30 J</button>
+          <button class="btn" onclick="secLoad(90,this)">90 J</button>
+          <span style="flex:1"></span>
+          <input id="sec-ban-ip" placeholder="IP à bannir" style="width:11rem;">
+          <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="secBan(document.getElementById('sec-ban-ip').value,24)">BANNIR 24 H</button>
+        </div>
+        <div id="sec-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.5rem;margin-bottom:.8rem;"></div>
+        <div id="sec-bans" style="margin-bottom:.8rem;"></div>
+        <div class="card" style="overflow-x:auto;padding:0;margin-bottom:.8rem;">
+          <table style="width:100%;border-collapse:collapse;font-size:.7rem;">
+            <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">REVERSE DNS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">LIEU / FAI</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">TYPE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ÉVÉNEMENTS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CATÉGORIES</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">EXEMPLES DE CHEMINS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DERNIER</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ACTION</th></tr></thead>
+            <tbody id="sec-ips-tbody"></tbody>
+          </table>
+        </div>
+        <div class="card" style="overflow-x:auto;padding:0;">
+          <table style="width:100%;border-collapse:collapse;font-size:.68rem;">
+            <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">HEURE (UTC)</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CATÉGORIE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">REQUÊTE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CODE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">NAVIGATEUR / OUTIL</th></tr></thead>
+            <tbody id="sec-ev-tbody"></tbody>
+          </table>
+        </div>
       </div>
       <div class="page" id="page-wfmsg">
         <div class="section-head">📢 WATERFALL MESSAGE</div>
@@ -2203,7 +2228,7 @@ function liFlag(cc){ if(!cc||cc.length!==2) return ''; return String.fromCodePoi
 function liBadge(n){ const b = LI_NET[n] || LI_NET['?']; return `<span style="border:1px solid ${b[1]};color:${b[1]};border-radius:3px;padding:0 .3rem;font-size:.62rem;white-space:nowrap;">${b[0]}</span>`; }
 function liDur(s){ s = +s||0; const h = Math.floor(s/3600), m = Math.floor(s%3600/60); return h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min`; }
 const liTd = 'style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;"';
-async function liLoadAll(){ liLive(); liStats(liDays); liSessions(); }
+async function liLoadAll(){ liLive(); liStats(liDays); liSessions(); secLoad(secDays); }
 function liToggleAuto(){
   const b = document.getElementById('li-auto-btn');
   if (liAutoTimer){ clearInterval(liAutoTimer); liAutoTimer = null; b.innerHTML = '&#9654; AUTO'; }
@@ -2219,13 +2244,13 @@ async function liLive(){
     tb.innerHTML = u.map(x => `<tr>
       <td ${liTd}><span style="font-family:monospace;">${liEsc(x.ip)}</span>${x.returning?'<br><span style="color:var(--green);font-size:.6rem;">FIDÈLE</span>':'<br><span style="color:var(--amber);font-size:.6rem;">NOUVEAU</span>'}</td>
       <td ${liTd}>${liFlag(x.cc)} ${liEsc(x.city)}<br><span style="color:var(--text3);">${liEsc(x.region)}${x.region?', ':''}${liEsc(x.country)}</span>${x.lat!=null?`<br><a href="https://www.openstreetmap.org/?mlat=${x.lat}&mlon=${x.lon}&zoom=9" target="_blank" style="font-size:.6rem;color:var(--blue);">carte ≈</a>`:''}</td>
-      <td ${liTd}>${liEsc(x.isp)}<br><span style="color:var(--text3);">${liEsc(x.as)}</span></td>
+      <td ${liTd}>${liEsc(x.isp)}<br><span style="color:var(--text3);">${liEsc(x.as)}</span>${x.rdns?`<br><span style="color:var(--blue);font-family:monospace;font-size:.62rem;">${liEsc(x.rdns)}</span>`:''}</td>
       <td ${liTd}>${liBadge(x.net)}${x.https?'<br><span style="font-size:.6rem;color:var(--green);">HTTPS</span>':'<br><span style="font-size:.6rem;color:var(--text3);">http</span>'}</td>
       <td ${liTd}>${x.freq_khz!=null?(+x.freq_khz).toFixed(2)+' kHz':''}</td>
       <td ${liTd}>${liEsc(x.mode)}<br><span style="color:var(--text3);">${liEsc(x.band)}</span></td>
       <td ${liTd}>${x.decoder?`<b style="color:var(--amber);">${liEsc(x.decoder)}</b>`:'—'}${x.decoders_used.length?`<br><span style="color:var(--text3);font-size:.6rem;">utilisés : ${liEsc(x.decoders_used.join(', '))}</span>`:''}</td>
       <td ${liTd} title="${liEsc(x.ua)}">${liEsc(x.browser)} / ${liEsc(x.os)}<br><span style="color:var(--text3);">${liEsc(x.device)} ${liEsc(x.screen)}</span></td>
-      <td ${liTd}>${liEsc(x.lang)}<br><span style="color:var(--text3);">${liEsc(x.tz_browser)}${x.tz_browser&&x.tz_ip&&x.tz_browser!==x.tz_ip?' <span style="color:var(--red);" title="Fuseau du navigateur différent de celui de l IP (indice de VPN)">≠ IP</span>':''}</span></td>
+      <td ${liTd}>${liEsc(x.lang)}<br><span style="color:var(--text3);">${liEsc(x.tz_browser)}${x.tz_browser&&x.tz_ip&&x.tz_browser!==x.tz_ip?' <span style="color:var(--red);" title="Fuseau du navigateur différent de celui de l’IP (indice de VPN)">≠ IP</span>':''}</span></td>
       <td ${liTd}>${liEsc(x.src||'direct')}</td>
       <td ${liTd}>${liEsc(x.duration)}</td></tr>`).join('');
   } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
@@ -2284,7 +2309,7 @@ async function liSessions(){
       <td ${liTd}>${liEsc((x.start||'').replace('T',' ').replace('Z',''))}</td>
       <td ${liTd}>${liDur(x.dur)}</td>
       <td ${liTd}>${liFlag(x.cc)} ${liEsc(x.city)}${x.country?', '+liEsc(x.country):''}</td>
-      <td ${liTd}>${liEsc(x.isp)}</td>
+      <td ${liTd} title="${liEsc(x.rdns)}">${liEsc(x.isp)}${x.rdns?`<br><span style="color:var(--blue);font-family:monospace;font-size:.6rem;">${liEsc(x.rdns)}</span>`:''}</td>
       <td ${liTd}>${liBadge(x.net)}</td>
       <td ${liTd}>${liEsc(x.bands.join(', '))}</td>
       <td ${liTd}>${liEsc(x.modes.join(', '))}</td>
@@ -2294,6 +2319,55 @@ async function liSessions(){
       <td ${liTd} style="font-family:monospace;color:var(--text3);">${liEsc(x.iph)}</td></tr>`).join('')
       : `<tr><td colspan="11" ${liTd} style="text-align:center;color:var(--text3);">Aucune session</td></tr>`;
   } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
+}
+
+let secDays = 7;
+const SEC_COL = {scan:'var(--amber)', traversal:'var(--red)', method:'var(--amber)', forbidden:'var(--red)',
+  burst404:'var(--amber)', admin_login_fail:'var(--red)', admin_login_ok:'var(--green)', admin_locked:'var(--red)', blocked:'var(--text3)'};
+function secCat(c, n){ return `<span style="border:1px solid ${SEC_COL[c]||'var(--text3)'};color:${SEC_COL[c]||'var(--text3)'};border-radius:3px;padding:0 .3rem;font-size:.6rem;white-space:nowrap;margin:0 .15rem .15rem 0;display:inline-block;">${liEsc(c)}${n!=null?' ×'+n:''}</span>`; }
+async function secLoad(days, btn){
+  secDays = days;
+  if (btn){ document.querySelectorAll('#sec-period-btns .btn').forEach(b => b.classList.remove('btn-blue')); btn.classList.add('btn-blue'); }
+  try {
+    const d = await (await fetch('/admin/api/security?days=' + days, {cache:'no-store'})).json();
+    const L = d.labels || {};
+    const order = ['admin_login_fail','admin_locked','scan','traversal','forbidden','method','burst404','blocked','admin_login_ok'];
+    document.getElementById('sec-kpis').innerHTML = order.map(c => `<div class="card" style="padding:.55rem;" title="${liEsc(L[c]||c)}"><div style="font-size:.58rem;color:var(--text3);">${liEsc(L[c]||c)}</div><div style="font-size:1.15rem;color:${(d.cats||{})[c]?(SEC_COL[c]||'var(--green)'):'var(--text3)'};">${(d.cats||{})[c]||0}</div></div>`).join('');
+    const bans = d.bans || [];
+    document.getElementById('sec-bans').innerHTML = bans.length ? `<div class="card"><div style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.3rem;">IP BANNIES</div>` +
+      bans.map(b => `<div style="font-size:.7rem;margin:.15rem 0;"><span style="font-family:monospace;">${liEsc(b.ip)}</span> — ${b.until?'jusqu’au '+new Date(b.until*1000).toLocaleString():'définitivement'} <button class="btn" style="font-size:.6rem;padding:0 .4rem;" onclick="secUnban('${liEsc(b.ip)}')">DÉBANNIR</button></div>`).join('') + '</div>' : '';
+    const ips = d.ips || [];
+    document.getElementById('sec-ips-tbody').innerHTML = ips.length ? ips.map(x => `<tr>
+      <td ${liTd} style="font-family:monospace;">${liEsc(x.ip)}</td>
+      <td ${liTd} style="font-family:monospace;color:var(--blue);font-size:.62rem;">${liEsc(x.rdns||'—')}</td>
+      <td ${liTd}>${liFlag(x.countryCode)} ${liEsc(x.city||'')}${x.country?', '+liEsc(x.country):''}<br><span style="color:var(--text3);">${liEsc(x.isp||'')} ${liEsc(x.as||'')}</span></td>
+      <td ${liTd}>${liBadge(x.net||'?')}</td>
+      <td ${liTd}>${x.count}</td>
+      <td ${liTd}>${Object.entries(x.cats).map(([c,n]) => secCat(c,n)).join('')}</td>
+      <td ${liTd} style="font-family:monospace;font-size:.6rem;color:var(--text2);">${x.paths.map(liEsc).join('<br>')}</td>
+      <td ${liTd}>${liEsc((x.last||'').replace('T',' ').replace('Z',''))}</td>
+      <td ${liTd}>${x.banned?`<button class="btn" style="font-size:.6rem;" onclick="secUnban('${liEsc(x.ip)}')">DÉBANNIR</button>`:`<button class="btn" style="font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',24)">24 H</button> <button class="btn" style="font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',0)">DÉFINITIF</button>`}</td></tr>`).join('')
+      : `<tr><td colspan="9" ${liTd} style="text-align:center;color:var(--text3);">Aucune tentative anormale sur la période</td></tr>`;
+    const ev = d.events || [];
+    document.getElementById('sec-ev-tbody').innerHTML = ev.length ? ev.slice(0,200).map(e => `<tr>
+      <td ${liTd}>${liEsc((e.ts||'').replace('T',' ').replace('Z',''))}</td>
+      <td ${liTd} style="font-family:monospace;" title="${liEsc(e.rdns||'')}">${liEsc(e.ip)}</td>
+      <td ${liTd}>${secCat(e.cat)}</td>
+      <td ${liTd} style="font-family:monospace;font-size:.6rem;word-break:break-all;">${liEsc(e.method)} ${liEsc(e.path)}</td>
+      <td ${liTd}>${liEsc(e.status)}</td>
+      <td ${liTd} style="font-size:.6rem;color:var(--text3);">${liEsc((e.ua||'').slice(0,90))}</td></tr>`).join('')
+      : `<tr><td colspan="6" ${liTd} style="text-align:center;color:var(--text3);">—</td></tr>`;
+  } catch(e){ document.getElementById('sec-kpis').innerHTML = `<div style="color:var(--red);">Erreur : ${liEsc(e.message)}</div>`; }
+}
+async function secBan(ip, hours){
+  ip = (ip||'').trim(); if (!ip) return;
+  if (!confirm(`Bannir ${ip} ${hours ? hours + ' h' : 'définitivement'} ?`)) return;
+  const d = await (await fetch('/admin/api/security/ban', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ip, hours, reason:'panneau'})})).json();
+  toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err'); secLoad(secDays);
+}
+async function secUnban(ip){
+  const d = await (await fetch('/admin/api/security/ban', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ip, unban:true})})).json();
+  toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err'); secLoad(secDays);
 }
 
 function showPage(name, el) {
@@ -5379,7 +5453,7 @@ def api_listeners_live():
                 "country": g.get("country", ""), "cc": g.get("countryCode", ""),
                 "lat": g.get("lat"), "lon": g.get("lon"), "tz_ip": g.get("timezone", ""),
                 "isp": g.get("isp", ""), "org": g.get("org", ""), "as": g.get("as", ""),
-                "net": LI.net_kind(g),
+                "rdns": g.get("rdns", ""), "net": LI.net_kind(g),
                 "freq_khz": u.get("freq_khz"), "mode": (u.get("mode") or "").upper(),
                 "band": LI.band_of(u.get("freq_hz")),
                 "duration": u.get("duration", ""), "duration_s": u.get("duration_s", 0),
@@ -5479,11 +5553,81 @@ def api_listeners_sessions():
         vis = st.get("visit", {})
         s.update({"city": g.get("city", ""), "country": g.get("country", ""),
                   "cc": g.get("countryCode", ""), "isp": g.get("isp", ""),
+                  "rdns": g.get("rdns", ""),
                   "net": LI.net_kind(g), "decoders": st.get("decoders_used", []),
                   "browser": vis.get("browser", ""), "os": vis.get("os", ""),
                   "src": vis.get("src", ""), "returning": bool(vis.get("returning"))})
         rows.append(s)
     return jsonify({"ok": True, "sessions": rows})
+
+
+@app.route("/admin/api/security")
+@login_required
+def api_security():
+    """Tentatives anormales vues par proxy.py (logs/security_*.jsonl)."""
+    _li_maintain()
+    try:
+        days = max(1, min(LI.RETENTION_DAYS, int(request.args.get("days", 7))))
+    except ValueError:
+        days = 7
+    events, per_ip, cats = [], {}, {}
+    for i in range(days - 1, -1, -1):
+        d = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
+        for e in LI.read_jsonl(LI.LOGS / ("security_%s.jsonl" % d)):
+            events.append(e)
+            c = e.get("cat", "?")
+            cats[c] = cats.get(c, 0) + 1
+            ip = e.get("ip", "?")
+            x = per_ip.setdefault(ip, {"ip": ip, "count": 0, "cats": {}, "first": e.get("ts", ""),
+                                       "last": "", "paths": []})
+            x["count"] += 1
+            x["cats"][c] = x["cats"].get(c, 0) + 1
+            x["last"] = e.get("ts", "")
+            for k in ("city", "country", "countryCode", "isp", "as", "net", "rdns"):
+                if e.get(k):
+                    x[k] = e[k]
+            pth = e.get("path", "")
+            if pth and pth not in x["paths"] and len(x["paths"]) < 8:
+                x["paths"].append(pth)
+    bl = LI.load_blocklist()
+    now = time.time()
+    for x in per_ip.values():
+        b = bl.get(x["ip"])
+        x["banned_until"] = b.get("until") if b and (not b.get("until") or b["until"] > now) else None
+        x["banned"] = bool(b) and (not b.get("until") or b["until"] > now)
+    ips = sorted(per_ip.values(), key=lambda x: x["count"], reverse=True)[:100]
+    bans = [{"ip": k, **v} for k, v in bl.items() if not v.get("until") or v["until"] > now]
+    LI.flush()
+    return jsonify({"ok": True, "days": days, "cats": cats, "labels": LI.SEC_LABELS,
+                    "ips": ips, "events": events[-300:][::-1], "bans": bans})
+
+
+@app.route("/admin/api/security/ban", methods=["POST"])
+@login_required
+def api_security_ban():
+    data = request.get_json(silent=True) or {}
+    ip = LI.norm_ip(str(data.get("ip", "")))
+    if not re.match(r'^[\d.a-fA-F:]+$', ip) or LI.is_private(ip):
+        return jsonify({"ok": False, "msg": "IP invalide ou locale"})
+    bl = dict(LI.load_blocklist())
+    if data.get("unban"):
+        bl.pop(ip, None)
+        LI.save_blocklist(bl)
+        return jsonify({"ok": True, "msg": "%s débannie" % ip})
+    try:
+        hours = float(data.get("hours", 24))
+    except (TypeError, ValueError):
+        hours = 24
+    until = None if hours <= 0 else time.time() + hours * 3600
+    bl[ip] = {"until": until, "since": time.time(), "reason": str(data.get("reason", ""))[:120]}
+    LI.save_blocklist(bl)
+    # Coupe aussi l'audio en cours, et bannit côté spectrumserver pour la même durée.
+    try:
+        _proxy_kick(ip)
+        _server_kick(ip, ban_s=int(hours * 3600) if hours > 0 else 10 * 365 * 86400)
+    except Exception:
+        pass
+    return jsonify({"ok": True, "msg": "%s bannie %s" % (ip, "définitivement" if until is None else "%g h" % hours)})
 
 def _proxy_kick(ip):
     """Ask proxy.py to close all WebSockets from `ip`.

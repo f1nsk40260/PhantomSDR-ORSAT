@@ -29,7 +29,9 @@ import ipaddress
 import json
 import os
 import re
+import socket
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -127,6 +129,20 @@ def _save_cache(force: bool = False) -> None:
     _cache_dirty = 0.0
 
 
+_rdns_pool = ThreadPoolExecutor(max_workers=4)
+
+
+def rdns(ip: str, timeout: float = 2.0) -> str:
+    """Nom inverse (PTR) de l'IP — souvent le FAI et son central (lfbn-bor-1...)."""
+    ip = norm_ip(ip)
+    if not ip or is_private(ip):
+        return ""
+    try:
+        return _rdns_pool.submit(lambda: socket.gethostbyaddr(ip)[0]).result(timeout=timeout).lower()
+    except Exception:
+        return ""
+
+
 def geo(ip: str, allow_lookup: bool = True) -> dict:
     """Fiche d'une IP : ville, FAI, AS, mobile / VPN-proxy / datacenter.
 
@@ -142,25 +158,35 @@ def geo(ip: str, allow_lookup: bool = True) -> dict:
     with _lock:
         c = _load_cache()
         hit = c.get(key)
-        if hit and time.time() - hit.get("t", 0) < GEO_TTL:
+        fresh = hit and time.time() - hit.get("t", 0) < GEO_TTL
+        if fresh and "rdns" in hit["d"]:
             return hit["d"]
-        if not allow_lookup:
+        if fresh:                       # fiche d'avant le reverse DNS : on complète
+            if not allow_lookup:
+                return hit["d"]
+            d = dict(hit["d"])
+        else:
+            d = None
+        if d is None and not allow_lookup:
             return {}
-        now = time.time()
-        _calls[:] = [t for t in _calls if now - t < 60]
-        if len(_calls) >= GEO_MAX_PER_MIN:
+        if d is None:
+            now = time.time()
+            _calls[:] = [t for t in _calls if now - t < 60]
+            if len(_calls) >= GEO_MAX_PER_MIN:
+                return {}
+            _calls.append(now)
+    if d is None:
+        try:
+            url = "http://ip-api.com/json/%s?fields=%s&lang=fr" % (ip, GEO_FIELDS)
+            with urllib.request.urlopen(url, timeout=4) as r:
+                d = json.loads(r.read().decode())
+        except Exception:
             return {}
-        _calls.append(now)
-    try:
-        url = "http://ip-api.com/json/%s?fields=%s&lang=fr" % (ip, GEO_FIELDS)
-        with urllib.request.urlopen(url, timeout=4) as r:
-            d = json.loads(r.read().decode())
-    except Exception:
-        return {}
-    if d.get("status") != "success":
-        return {}
-    d.pop("status", None)
-    d.pop("message", None)
+        if d.get("status") != "success":
+            return {}
+        d.pop("status", None)
+        d.pop("message", None)
+    d["rdns"] = rdns(ip)
     with _lock:
         _load_cache()[key] = {"t": time.time(), "d": d}
         if not _cache_dirty:
@@ -263,6 +289,95 @@ def read_jsonl(path: Path):
                         continue
     except FileNotFoundError:
         return
+
+
+# ── Sécurité : tentatives anormales ─────────────────────────────────────────
+# logs/security_AAAA-MM-JJ.jsonl — une ligne par événement suspect vu par
+# proxy.py (qui reçoit tout le trafic web, http comme https). L'IP y est en
+# clair : c'est précisément ce qu'il faut pour bannir. Effacé après 90 jours.
+# logs/blocklist.json — IP refusées par proxy.py (bannissements du panneau).
+
+BLOCK_FILE = LOGS / "blocklist.json"
+
+_SCAN_RE = re.compile(
+    r"(\.php|\.asp|\.aspx|\.jsp|\.cgi|wp-|wordpress|xmlrpc|phpmyadmin|pma/|/\.env|"
+    r"/\.git|/\.svn|/\.aws|/\.ssh|/\.ds_store|cgi-bin|/boaform|/hnap1|/shell|/manager/html|"
+    r"/actuator|/solr|/owa/|autodiscover|vendor/phpunit|/console|/druid|/server-status|"
+    r"/etc/passwd|/proc/self|/bin/sh|/remote/login|/sslvpn|/dana-na|/global-protect|"
+    r"/geoserver|/jenkins|/telescope|/debug|/backup|\.sql|\.bak$|\.zip$|\.tar|/config\.json|"
+    r"/api/v1/pods|/containers/json|/cdn-cgi/|/developmentserver|/ecp/|/mgmt|/setup\.cgi)",
+    re.I)
+_TRAV_RE = re.compile(r"(\.\./|\.\.%2f|%2e%2e|%252e|\\\.\.)", re.I)
+_OK_METHODS = {"GET", "POST", "HEAD", "OPTIONS"}
+
+SEC_LABELS = {
+    "scan": "Recherche de failles (chemins typiques)",
+    "traversal": "Tentative de remontée de dossiers (../)",
+    "method": "Méthode HTTP inhabituelle",
+    "forbidden": "Action interdite refusée (kick, contrôle du proxy…)",
+    "burst404": "Rafale de pages introuvables (balayage)",
+    "admin_login_fail": "Échec de connexion au panneau admin",
+    "admin_login_ok": "Connexion réussie au panneau admin",
+    "admin_locked": "Panneau verrouillé après échecs répétés",
+    "blocked": "Requête d'une IP bannie refusée",
+}
+
+
+def classify_request(method: str, path: str, status: int):
+    """Catégorie de sécurité d'une requête, ou None si elle est normale."""
+    m = (method or "").upper()
+    if m not in _OK_METHODS:
+        return "method"
+    if _TRAV_RE.search(path or ""):
+        return "traversal"
+    if _SCAN_RE.search(path or "") and not (path or "").startswith("/admin"):
+        return "scan"
+    if status == 403:
+        return "forbidden"
+    return None
+
+
+def append_security(event: dict) -> None:
+    event.setdefault("ts", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    line = json.dumps(event, ensure_ascii=False, separators=(",", ":"))
+    with _lock:
+        LOGS.mkdir(exist_ok=True)
+        with open(LOGS / ("security_%s.jsonl" % _today()), "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+
+
+_block_cache = {"mtime": None, "data": {}}
+
+
+def load_blocklist() -> dict:
+    """{ip: {"until": epoch, "reason": str, "since": epoch}} — relu si modifié."""
+    try:
+        mt = BLOCK_FILE.stat().st_mtime
+    except FileNotFoundError:
+        _block_cache.update(mtime=None, data={})
+        return {}
+    if mt != _block_cache["mtime"]:
+        try:
+            _block_cache.update(mtime=mt, data=json.loads(BLOCK_FILE.read_text()))
+        except Exception:
+            pass
+    return _block_cache["data"]
+
+
+def is_blocked(ip: str) -> bool:
+    ip = norm_ip(ip)
+    b = load_blocklist().get(ip)
+    return bool(b) and (not b.get("until") or b["until"] > time.time())
+
+
+def save_blocklist(data: dict) -> None:
+    now = time.time()
+    data = {k: v for k, v in data.items() if not v.get("until") or v["until"] > now}
+    with _lock:
+        LOGS.mkdir(exist_ok=True)
+        tmp = BLOCK_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=1))
+        tmp.replace(BLOCK_FILE)
 
 
 # ── Bandes ───────────────────────────────────────────────────────────────────
@@ -388,10 +503,10 @@ def maintain() -> dict:
             tmp.write_text(json.dumps(agg, ensure_ascii=False))
             tmp.replace(AGG_FILE)
         limit = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).strftime("%Y-%m-%d")
-        for pat, cut in (("users_*.jsonl", 6), ("usage_*.jsonl", 6)):
+        for pat, cut in (("users_*.jsonl", 6), ("usage_*.jsonl", 6), ("security_*.jsonl", 9)):
             for p in LOGS.glob(pat):
                 d = p.stem[cut:]
-                if d < limit and d in agg:
+                if d < limit and (d in agg or pat.startswith("security")):
                     try:
                         p.unlink()
                     except OSError:
