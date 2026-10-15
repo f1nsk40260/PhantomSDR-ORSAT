@@ -724,6 +724,13 @@ const D = [
 
   // Decoder ID (ModeIdChip)
   ["ID décodeur", "Decoder ID", "ID decodificador"],
+  ["Reconnaissance automatique du mode numérique entendu", "Automatic recognition of the digital mode you are hearing", "Reconocimiento automático del modo digital que escucha"],
+  ["Analyse : ON", "Analysis: ON", "Análisis: ON"],
+  ["Analyse : OFF", "Analysis: OFF", "Análisis: OFF"],
+  ["📚 Que peut être ce signal ?", "📚 What could this signal be?", "📚 ¿Qué puede ser esta señal?"],
+  ["Activez l'analyse : le mode est reconnu en 15 s environ (FT8, WSPR, RTTY, PSK, Olivia, CW…).",
+   "Turn the analysis on: the mode is recognised in about 15 s (FT8, WSPR, RTTY, PSK, Olivia, CW…).",
+   "Active el análisis: el modo se reconoce en unos 15 s (FT8, WSPR, RTTY, PSK, Olivia, CW…)."],
   ["Identifier le mode numérique présent dans la bande passante. Désactivé par défaut — il ne consomme du CPU que lorsqu'il est actif.",
    "Identify the digital mode in the passband. Off by default — it only uses CPU while it is on.",
    "Identificar el modo digital presente en la banda de paso. Desactivado por defecto — solo usa CPU mientras está activo."],
