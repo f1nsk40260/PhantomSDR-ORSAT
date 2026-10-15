@@ -2600,7 +2600,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inp) inp.focus();
   });
 });
-});
 
 
 // ─── File Editor ─────────────────────────────────────────────────────────────
