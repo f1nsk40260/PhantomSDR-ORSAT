@@ -728,6 +728,16 @@ const D = [
   ["Analyse : ON", "Analysis: ON", "Análisis: ON"],
   ["Analyse : OFF", "Analysis: OFF", "Análisis: OFF"],
   ["📚 Que peut être ce signal ?", "📚 What could this signal be?", "📚 ¿Qué puede ser esta señal?"],
+  ["Mesure en cours :", "Current measurement:", "Medida actual:"],
+  ["Modes reconnus, par pertinence", "Recognised modes, by relevance", "Modos reconocidos, por relevancia"],
+  ["Mesuré sur le signal", "Measured from the signal", "Medido en la señal"],
+  ["Nombre de mesures qui ont reconnu ce mode", "Number of measurements that recognised this mode", "Número de medidas que reconocieron este modo"],
+  ["Aucun mode reconnu pour l'instant. Essayez l'analyse visuelle :", "No mode recognised yet. Try the visual analysis:", "Ningún modo reconocido por ahora. Pruebe el análisis visual:"],
+  ["📚 Comparer avec la base de signaux", "📚 Compare with the signal database", "📚 Comparar con la base de señales"],
+  ["📊 Voir le spectrogramme audio", "📊 Show the audio spectrogram", "📊 Ver el espectrograma de audio"],
+  ["Comparer la forme du signal avec les spectrogrammes et les sons de la base de signaux", "Compare the signal with the spectrograms and sounds of the signal database", "Comparar la señal con los espectrogramas y sonidos de la base de señales"],
+  ["Afficher le spectrogramme audio pour voir la structure du signal (tons, espacement, rythme)", "Show the audio spectrogram to see the signal structure (tones, spacing, rhythm)", "Mostrar el espectrograma de audio para ver la estructura de la señal (tonos, separación, ritmo)"],
+  ["Astuce : centrez le signal dans la bande passante et élargissez le filtre s'il est coupé.", "Tip: centre the signal in the passband and widen the filter if it is clipped.", "Consejo: centre la señal en la banda de paso y amplíe el filtro si está recortada."],
   ["Activez l'analyse : le mode est reconnu en 15 s environ (FT8, WSPR, RTTY, PSK, Olivia, CW…).",
    "Turn the analysis on: the mode is recognised in about 15 s (FT8, WSPR, RTTY, PSK, Olivia, CW…).",
    "Active el análisis: el modo se reconoce en unos 15 s (FT8, WSPR, RTTY, PSK, Olivia, CW…)."],
@@ -886,6 +896,10 @@ const D = [
 
 // ── Libellés variables : $1, $2 sont repris (et traduits s'ils sont connus) ──
 const P = [
+  ["vu $1× · il y a $2 s", "seen $1× · $2 s ago", "visto $1× · hace $2 s"],
+  ["vu $1× · il y a $2 min", "seen $1× · $2 min ago", "visto $1× · hace $2 min"],
+  ["vu $1× · à l'instant", "seen $1× · just now", "visto $1× · ahora mismo"],
+  ["▶ Lancer $1", "▶ Launch $1", "▶ Iniciar $1"],
   ["$1 tons à $2 Hz, $3 Bd, symboles purs à $4 %, $5", "$1 tones at $2 Hz, $3 Bd, symbols $4 % pure, $5", "$1 tonos a $2 Hz, $3 Bd, símbolos puros al $4 %, $5"],
   ["$1 tons à $2 Hz, $3 Bd, symboles purs à $4 %", "$1 tones at $2 Hz, $3 Bd, symbols $4 % pure", "$1 tonos a $2 Hz, $3 Bd, símbolos puros al $4 %"],
   ["$1 Hz occupés à plat en permanence (64 porteuses)", "$1 Hz filled flat at all times (64 carriers)", "$1 Hz ocupados de forma plana en todo momento (64 portadoras)"],

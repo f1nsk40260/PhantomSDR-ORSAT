@@ -13,7 +13,7 @@
    * It wraps rather than overflowing: the parent lives inside screw-col-2, and
    * nothing here may grow past that column.
    */
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount, onDestroy } from "svelte";
   import { refIdForCandidate } from "./signalRefs.js";
   const dispatch = createEventDispatcher();
 
@@ -61,6 +61,52 @@
         .join("  ·  ")
     : "";
 
+  // ── Mémoire des verdicts ────────────────────────────────────────────────
+  // Chaque mesure remplace la précédente : un mode bien reconnu disparaissait
+  // dès la mesure suivante (silence entre deux cycles FT8, fading…). On garde
+  // donc chaque mode vu, avec son meilleur score qui s'érode lentement, et on
+  // les présente par pertinence. Remise à zéro quand l'analyse est coupée ou
+  // que le cadran bouge (App.svelte remet alors result à null).
+  const HOLD_S = 120;          // un mode non revu depuis 2 min disparaît
+  const DECAY_PER_S = 0.003;   // -18 points de score par minute sans être revu
+  const MIN_SCORE = 0.3;
+  let memory = new Map();
+  let lastResult = null;
+  let now = Date.now();
+  let timer;
+  onMount(() => { timer = setInterval(() => (now = Date.now()), 2000); });
+  onDestroy(() => clearInterval(timer));
+
+  $: if (!on || result === null) { memory = new Map(); lastResult = null; }
+  $: if (on && ready && result !== lastResult) { lastResult = result; absorb(candidates); }
+
+  function absorb(list) {
+    const t = Date.now();
+    const m = new Map(memory);
+    for (const c of list || []) {
+      if (!c || (c.score || 0) < MIN_SCORE) continue;
+      const k = c.label;
+      const e = m.get(k);
+      const kept = e ? e.score - DECAY_PER_S * (t - e.seen) / 1000 : 0;
+      m.set(k, { c, score: Math.max(c.score, kept), seen: t, hits: (e ? e.hits : 0) + 1 });
+    }
+    memory = m;
+    now = t;
+  }
+
+  $: memList = [...memory.values()]
+    .map((e) => ({ ...e, eff: Math.max(0, e.score - DECAY_PER_S * (now - e.seen) / 1000),
+                   age: Math.round((now - e.seen) / 1000) }))
+    .filter((e) => e.age < HOLD_S)
+    .sort((a, b) => b.eff - a.eff)
+    .slice(0, 5);
+
+  function ago(s) {
+    if (s < 4) return "à l'instant";
+    if (s < 60) return `il y a ${s} s`;
+    return `il y a ${Math.round(s / 60)} min`;
+  }
+
   function pct(x) {
     return `${Math.round((x || 0) * 100)}%`;
   }
@@ -104,102 +150,84 @@
   <div class="modeid-result flex flex-wrap items-center gap-x-3 gap-y-1.5">
     {#if !on}
       <span class="text-gray-500">Activez l'analyse : le mode est reconnu en 15 s environ (FT8, WSPR, RTTY, PSK, Olivia, CW…).</span>
-    {/if}
-    {#if on}
-      {#if !ready}
-        <!-- The cadence measurements need ~15 s before FT8/WSPR timing means
-             anything, so say so rather than showing a half-formed guess. -->
-        <span class="text-gray-400 whitespace-nowrap">Listening…</span>
-        <div class="flex-1 h-2.5 bg-gray-700 rounded overflow-hidden min-w-[4rem]">
-          <div class="h-full bg-blue-500 transition-all" style="width:{pct(fill)}"></div>
-        </div>
-        <span class="text-gray-500 whitespace-nowrap">{pct(fill)}</span>
-      {:else if !best}
-        <span class="text-gray-400 whitespace-nowrap">
-          {result && result.quiet ? "Nothing above the noise" : "Not recognised"}
-        </span>
-        {#if measured}
-          <span class="text-gray-500 flex-1 truncate">{measured}</span>
-        {:else}
-          <span class="flex-1"></span>
-        {/if}
-        {#if offCentre}
-          <button
-            class="px-3 py-0.5 rounded bg-amber-700 hover:bg-amber-600 text-white whitespace-nowrap transition-colors"
-            on:click={() => dispatch("recentre")}
-            title="The signal is near the edge of the passband, where the measurement is unreliable. Move the dial so it sits mid-passband, then measure again."
-          >
-            Recentre &amp; retry
-          </button>
-        {/if}
-      {:else}
-        <span class="{tone(best.score)} font-bold text-base whitespace-nowrap" title={best.why}>
-          {best.label}
-        </span>
-        {#if bestRef}
-          <button
-            class="px-1 rounded text-blue-300 hover:bg-gray-700 hover:text-blue-200 transition-colors"
-            on:click={() => dispatch("info", bestRef)}
-            title="Fiche de référence : spectre, son et description du mode"
-            aria-label="Fiche de référence"
-          >ⓘ</button>
-        {/if}
-        {#if best.onPlan}
-          <span
-            class="text-blue-300 whitespace-nowrap"
-            title="This is a known calling frequency for that mode, which is part of why it ranks first."
-          >📻</span>
-        {/if}
-        <span class="text-gray-400 whitespace-nowrap">{pct(best.score)}</span>
-
-        {#if measured}
-          <span class="text-gray-500 flex-1 truncate" title="Measured from the signal">
-            {measured}
-          </span>
-        {:else}
-          <span class="flex-1"></span>
-        {/if}
-
-        {#if rest.length}
-          <span class="text-gray-600 whitespace-nowrap">or</span>
-          {#each rest as c}
+    {:else}
+      <div class="w-full flex flex-col gap-1.5">
+        <!-- État de la mesure en cours -->
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {#if !ready}
+            <span class="text-gray-400 whitespace-nowrap">Écoute…</span>
+            <div class="flex-1 h-2.5 bg-gray-700 rounded overflow-hidden min-w-[4rem]">
+              <div class="h-full bg-blue-500 transition-all" style="width:{pct(fill)}"></div>
+            </div>
+            <span class="text-gray-500 whitespace-nowrap">{pct(fill)}</span>
+          {:else}
+            <span class="text-gray-400 whitespace-nowrap">
+              {#if best}Mesure en cours :{:else if result && result.quiet}Rien au-dessus du bruit{:else}Non reconnu{/if}
+            </span>
+            {#if best}<span class="{tone(best.score)} font-semibold whitespace-nowrap">{best.label}</span>{/if}
+            {#if measured}
+              <span class="text-gray-500 flex-1 truncate" title="Mesuré sur le signal">{measured}</span>
+            {:else}
+              <span class="flex-1"></span>
+            {/if}
+          {/if}
+          {#if offCentre}
             <button
-              class="px-1.5 py-0.5 rounded text-gray-400 whitespace-nowrap transition-colors {c.key
-                ? 'hover:bg-gray-700 hover:text-gray-200'
-                : 'opacity-60 cursor-default'}"
-              on:click={() => c.key && dispatch("tune", c)}
-              title={c.key ? c.why : `${c.why} — no decoder for this mode`}
-            >
-              {c.label.split(" (")[0]}
-              <span class="text-gray-600">{pct(c.score)}</span>
-            </button>
-          {/each}
-        {/if}
+              class="px-3 py-0.5 rounded bg-amber-700 hover:bg-amber-600 text-white whitespace-nowrap transition-colors"
+              on:click={() => dispatch("recentre")}
+              title="The signal is near the edge of the passband, where the measurement is unreliable. Move the dial so it sits mid-passband, then measure again."
+            >Recentrer &amp; réessayer</button>
+          {/if}
+        </div>
 
-        {#if offCentre}
-          <button
-            class="px-3 py-0.5 rounded bg-amber-700 hover:bg-amber-600 text-white whitespace-nowrap transition-colors"
-            on:click={() => dispatch("recentre")}
-            title="The signal is near the edge of the passband, where the measurement is unreliable. Move the dial so it sits mid-passband, then measure again."
-          >
-            Recentre &amp; retry
-          </button>
+        {#if memList.length}
+          <!-- Modes reconnus, par pertinence : ils restent affichés -->
+          <div class="modeid-list">
+            <div class="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Modes reconnus, par pertinence</div>
+            {#each memList as e, i (e.c.label)}
+              <div class="modeid-row {i === 0 ? 'is-best' : ''}">
+                <span class="modeid-rank">{i + 1}</span>
+                <span class="{tone(e.eff)} {i === 0 ? 'text-base font-bold' : 'font-semibold'} whitespace-nowrap" title={e.c.why}>{e.c.label}</span>
+                {#if refIdForCandidate(e.c)}
+                  <button
+                    class="px-1 rounded text-blue-300 hover:bg-gray-700 hover:text-blue-200 transition-colors"
+                    on:click={() => dispatch("info", refIdForCandidate(e.c))}
+                    title="Fiche de référence : spectre, son et description du mode"
+                    aria-label="Fiche de référence"
+                  >ⓘ</button>
+                {/if}
+                {#if e.c.onPlan}
+                  <span class="text-blue-300" title="This is a known calling frequency for that mode, which is part of why it ranks first.">📻</span>
+                {/if}
+                <div class="modeid-bar"><div style="width:{pct(e.eff)}"></div></div>
+                <span class="text-gray-300 w-9 text-right">{pct(e.eff)}</span>
+                <span class="text-gray-500 whitespace-nowrap text-[11px] w-24" title="Nombre de mesures qui ont reconnu ce mode">vu {e.hits}× · {ago(e.age)}</span>
+                {#if e.c.key}
+                  <button
+                    class="modeid-launch {i === 0 ? 'is-best' : ''}"
+                    on:click={() => dispatch("tune", e.c)}
+                    title="Switch to the decoder for this mode"
+                  >▶ Lancer {e.c.label.split(" (")[0]}</button>
+                {:else}
+                  <span class="text-gray-500 whitespace-nowrap text-[11px]" title="Identified, but this build has no decoder for it.">pas de décodeur</span>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {:else if ready}
+          <!-- Rien de reconnu : proposer l'analyse visuelle -->
+          <div class="modeid-hint">
+            <span>Aucun mode reconnu pour l'instant. Essayez l'analyse visuelle :</span>
+            <div class="flex flex-wrap gap-2 mt-1.5">
+              <button class="modeid-lookup" on:click={() => dispatch("identify")}
+                title="Comparer la forme du signal avec les spectrogrammes et les sons de la base de signaux">📚 Comparer avec la base de signaux</button>
+              <button class="modeid-lookup" on:click={() => dispatch("spectro")}
+                title="Afficher le spectrogramme audio pour voir la structure du signal (tons, espacement, rythme)">📊 Voir le spectrogramme audio</button>
+            </div>
+            <span class="text-gray-500 text-[11px] block mt-1.5">Astuce : centrez le signal dans la bande passante et élargissez le filtre s'il est coupé.</span>
+          </div>
         {/if}
-        {#if best.key}
-          <button
-            class="px-3 py-0.5 rounded bg-green-700 hover:bg-green-600 text-white whitespace-nowrap transition-colors"
-            on:click={() => dispatch("tune", best)}
-            title="Switch to the decoder for this mode"
-          >
-            Use {best.label.split(" (")[0]}
-          </button>
-        {:else}
-          <span
-            class="text-gray-500 whitespace-nowrap"
-            title="Identified, but this build has no decoder for it."
-          >no decoder</span>
-        {/if}
-      {/if}
+      </div>
     {/if}
   </div>
 </div>
@@ -244,5 +272,31 @@
     margin-top: 0.55rem; padding-top: 0.5rem; min-height: 2rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     font-size: 0.8rem;
+  }
+  .modeid-list { display: flex; flex-direction: column; gap: 0.3rem; }
+  .modeid-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+    padding: 0.3rem 0.5rem; border-radius: 0.375rem;
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .modeid-row.is-best { background: rgba(207, 181, 59, 0.08); box-shadow: inset 0 0 0 1px rgba(207, 181, 59, 0.3); }
+  .modeid-rank {
+    width: 1.2rem; height: 1.2rem; border-radius: 50%; flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 700; background: rgb(55, 65, 81); color: rgb(209, 213, 219);
+  }
+  .modeid-row.is-best .modeid-rank { background: rgb(207, 181, 59); color: #111; }
+  .modeid-bar { flex: 1; min-width: 3rem; height: 0.45rem; background: rgb(55, 65, 81); border-radius: 999px; overflow: hidden; }
+  .modeid-bar > div { height: 100%; background: linear-gradient(90deg, rgb(37, 99, 235), rgb(34, 197, 94)); }
+  .modeid-launch {
+    padding: 0.2rem 0.6rem; border-radius: 0.375rem; white-space: nowrap; font-weight: 600;
+    background: rgb(21, 128, 61); color: #fff; transition: background 0.2s;
+  }
+  .modeid-launch:hover { background: rgb(22, 163, 74); }
+  .modeid-launch:not(.is-best) { background: rgb(55, 65, 81); }
+  .modeid-launch:not(.is-best):hover { background: rgb(21, 128, 61); }
+  .modeid-hint {
+    padding: 0.5rem 0.6rem; border-radius: 0.375rem; color: rgb(209, 213, 219);
+    background: rgba(207, 181, 59, 0.06); border: 1px dashed rgba(207, 181, 59, 0.4);
   }
 </style>

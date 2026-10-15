@@ -12194,6 +12194,7 @@ Cliquez à nouveau pour désactiver"
                             on:recentre={modeIdRecentre}
                             on:info={(e) => openSignalRef(e.detail)}
                             on:identify={() => openSignalRef(null)}
+                            on:spectro={() => { if (!spectrogramEnabled) toggleSpectrogram(); }}
                           />
                         </div>
                         <!-- One row, always: ten equal cells that shrink
