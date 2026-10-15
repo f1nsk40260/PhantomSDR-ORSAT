@@ -3,6 +3,7 @@
   // lib/version.js, shared with the /mobile page.  The attribution is a GPL v3
   // section 7(b) author attribution — see ADDITIONAL_TERMS.md.
   import { VERSION, ORIGIN_URL, MODIFIED_NOTE, MODIFIED_URL } from "./lib/version.js";
+  import { reportDecoder, reportHello } from "./lib/usageBeacon.js";
   // Manuels utilisateur PDF (version française F1NSK)
   import manualFRUrl from "./assets/docs/manualFR.pdf";
   import manualENUrl from "./assets/docs/manualEN.pdf";
@@ -5668,6 +5669,9 @@
 
   /** The decoder currently running, or "none" — drives the button highlight. */
   $: activeDecoder = decoderOn ? selectedDecoder : "none";
+  // Statistiques privées (panneau admin) : décodeur utilisé.
+  $: reportDecoder(activeDecoder);
+  reportHello();
 
   /**
    * The Decoders button row.  RADEL/RADEU are deliberately absent — they have

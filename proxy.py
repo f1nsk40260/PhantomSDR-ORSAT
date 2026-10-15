@@ -35,8 +35,13 @@ import asyncio
 import logging
 import re
 import sys
+import time
 import json
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import listener_intel as LI   # statistiques privées (panneau admin uniquement)
 
 try:
     import aiohttp
@@ -599,6 +604,162 @@ async def proxy_websocket(request: web.Request, upstream: str,
     return ws_client
 
 
+# ── Statistiques privées des auditeurs ─────────────────────────────────────────
+# Tout ce qui suit ne sert qu'au panneau admin (page « Analyse auditeurs »).
+#  • /__usage : la page signale ses décodeurs et quelques infos de navigateur.
+#    Le proxy y ajoute l'identifiant HMAC de l'auditeur et la fiche ip-api de
+#    son IP, puis l'écrit dans logs/usage_*.jsonl — jamais l'IP en clair.
+#  • chaque chargement de la page est noté (provenance, navigateur, https).
+#  • /users, /users.json et /logs/users_*.jsonl contiennent les IP : pour le
+#    public, le proxy les remplace par l'identifiant HMAC. Le panneau, lui,
+#    les lit directement sur la boucle locale.
+_usage_hits: "dict[str, list]" = {}
+_known_listeners: "set[str]" = set()
+
+
+def _load_known_listeners() -> None:
+    limit = (datetime.now(timezone.utc) - timedelta(days=LI.RETENTION_DAYS)).strftime("%Y-%m-%d")
+    for p in LI.LOGS.glob("usage_*.jsonl"):
+        if p.stem[6:] >= limit:
+            for e in LI.read_jsonl(p):
+                if e.get("ev") == "visit" and e.get("iph"):
+                    _known_listeners.add(e["iph"])
+
+
+def _usage_rate_ok(ip: str) -> bool:
+    now = time.monotonic()
+    hits = [t for t in _usage_hits.get(ip, []) if now - t < 60]
+    if len(hits) >= 30:
+        _usage_hits[ip] = hits
+        return False
+    hits.append(now)
+    _usage_hits[ip] = hits
+    return True
+
+
+def _geo_fields(g: dict) -> dict:
+    keep = ("country", "countryCode", "regionName", "city", "lat", "lon", "timezone",
+            "isp", "org", "as", "asname", "mobile", "proxy", "hosting", "local")
+    out = {k: g[k] for k in keep if k in g}
+    out["net"] = LI.net_kind(g)
+    return out
+
+
+async def _record(ip: str, event: dict) -> None:
+    loop = asyncio.get_running_loop()
+    try:
+        g = await loop.run_in_executor(None, LI.geo, ip)
+        event["iph"] = LI.ip_hash(ip)
+        event.update(_geo_fields(g))
+        await loop.run_in_executor(None, LI.append, event)
+    except Exception as e:                      # les stats ne doivent jamais gêner
+        logging.getLogger("usage").warning("usage log: %s", e)
+
+
+_USAGE_STR = {"ev": 12, "decoder": 16, "prev": 16, "lang": 16, "tz": 48, "screen": 16,
+              "ref": 300, "path": 64}
+
+
+async def handle_usage(request: web.Request) -> web.Response:
+    if request.method != "POST":
+        return web.Response(status=405)
+    ip = _client(request)
+    if not _usage_rate_ok(ip):
+        return web.Response(status=204)
+    try:
+        raw = await request.content.read(4096)
+        d = json.loads(raw.decode("utf-8", "replace"))
+        if not isinstance(d, dict):
+            raise ValueError
+    except Exception:
+        return web.Response(status=400)
+    ev = str(d.get("ev", ""))[:12]
+    if ev not in ("hello", "decoder"):
+        return web.Response(status=400)
+    rec = {k: str(d[k])[:n] for k, n in _USAGE_STR.items() if d.get(k) not in (None, "")}
+    if isinstance(d.get("langs"), list):
+        rec["langs"] = [str(x)[:16] for x in d["langs"][:4]]
+    for k in ("dpr", "touch"):
+        if isinstance(d.get(k), (int, float)):
+            rec[k] = d[k]
+    if ev == "hello":
+        rec["https"] = _via_tls(request)
+        rec["src"] = LI.ref_host(rec.get("ref", ""), request.headers.get("Host", ""))
+        rec.update(LI.classify_ua(request.headers.get("User-Agent", "")))
+    asyncio.create_task(_record(ip, rec))
+    return web.Response(status=204)
+
+
+def _note_visit(request: web.Request) -> None:
+    if request.method != "GET" or request.path not in ("/", "/index.html"):
+        return
+    if "text/html" not in request.headers.get("Accept", "") or _is_local(request):
+        return
+    ip = _client(request)
+    iph = LI.ip_hash(ip)
+    ua = request.headers.get("User-Agent", "")
+    rec = {"ev": "visit", "https": _via_tls(request),
+           "src": LI.ref_host(request.headers.get("Referer", ""), request.headers.get("Host", "")),
+           "query": request.query_string[:120], "accept_lang": request.headers.get("Accept-Language", "")[:40],
+           "ua": ua[:200], "returning": iph in _known_listeners}
+    rec.update(LI.classify_ua(ua))
+    _known_listeners.add(iph)
+    asyncio.create_task(_record(ip, rec))
+
+
+def _anon_ip(ip: str) -> str:
+    return ip if LI.is_private(ip) else "h:" + LI.ip_hash(ip)
+
+
+async def _public_listener_data(request: web.Request, upstream: str):
+    """/users, /users.json et /logs/users_*.jsonl pour le public : IP remplacées."""
+    path = request.path
+    is_users = path in ("/users", "/users.json")
+    is_log = path.startswith("/logs/") and path.endswith(".jsonl")
+    if not (is_users or is_log) or _is_local(request) or request.method != "GET":
+        return None
+    try:
+        async with ClientSession(timeout=ClientTimeout(total=20)) as session:
+            async with session.get(upstream + _upstream_path(request)) as resp:
+                status = resp.status
+                body = await resp.read()
+    except Exception:
+        return web.Response(status=502, text="502 Bad Gateway")
+    if status != 200:
+        return web.Response(status=status, body=body)
+    text = body.decode("utf-8", "replace")
+    if is_users:
+        try:
+            d = json.loads(text)
+            for u in d.get("users", []):
+                ip = u.get("ip", "")
+                if ip:
+                    if u.get("geo") == ip:
+                        u["geo"] = ""
+                    u["ip"] = _anon_ip(ip)
+            text = json.dumps(d, ensure_ascii=False)
+        except ValueError:
+            return web.Response(status=502, text="502 Bad Gateway")
+        ctype = "application/json"
+    else:
+        out = []
+        for line in text.splitlines():
+            try:
+                e = json.loads(line)
+            except ValueError:
+                continue
+            if e.get("ip"):
+                if e.get("geo") == e["ip"]:
+                    e["geo"] = ""
+                e["ip"] = _anon_ip(e["ip"])
+            out.append(json.dumps(e, ensure_ascii=False))
+        text = "\n".join(out) + ("\n" if out else "")
+        ctype = "application/x-ndjson"
+    return web.Response(text=text, content_type=ctype.split(";")[0],
+                        headers={"Cache-Control": "no-store",
+                                 "Access-Control-Allow-Origin": "*"})
+
+
 # A station with https sends the browsers that open its plain http page to the
 # https one: same name, port 443, same query (frequency, mode...). Only a page
 # load is redirected — GET of "/" asking for text/html, under a DNS name — so
@@ -627,9 +788,12 @@ def _https_redirect(request: web.Request):
 
 
 async def handle(request: web.Request) -> web.StreamResponse:
+    if request.path == "/__usage":
+        return await handle_usage(request)
     _redir = _https_redirect(request)
     if _redir is not None:
         return _redir
+    _note_visit(request)
     if request.path == "/__proxy_control/kick":
         return await handle_kick(request)
     # spectrumserver's /~~kick is allowed for a loopback TCP peer — and to it,
@@ -660,6 +824,9 @@ async def handle(request: web.Request) -> web.StreamResponse:
                      "Access-Control-Allow-Origin": "*"})
     else:
         upstream, set_rx = _pick_receiver(request)
+        anon = await _public_listener_data(request, upstream)
+        if anon is not None:
+            return anon
     if request.headers.get("Upgrade", "").lower() == "websocket":
         return await proxy_websocket(request, upstream)
     return await proxy_request(request, upstream, set_rx)
@@ -771,6 +938,10 @@ async def main():
     )
     logging.getLogger("aiohttp.access").addFilter(QuietPollFilter())
 
+    try:
+        _load_known_listeners()
+    except Exception as e:
+        print(f"[WARN] statistiques auditeurs : {e}", file=sys.stderr)
     app = web.Application()
     app.router.add_route("*", "/{path_info:.*}", handle)
 

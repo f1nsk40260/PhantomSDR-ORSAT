@@ -1,0 +1,5 @@
+# Statistiques privées des auditeurs (jamais publiées)
+.listener_secret
+.listener_geo_cache.json
+.listener_geo_cache.tmp
+logs/

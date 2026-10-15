@@ -25,6 +25,9 @@ from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import listener_intel as LI   # statistiques privées des auditeurs
+
 try:
     import tomllib
 except ImportError:
@@ -1456,6 +1459,9 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <a class="nav-item" onclick="showPage('users',this)" href="#">
         <span class="icon">👥</span><span>Users</span>
       </a>
+      <a class="nav-item" onclick="showPage('listeners',this)" href="#">
+        <span class="icon">🔎</span><span>Analyse auditeurs</span>
+      </a>
       <a class="nav-item" onclick="showPage('wfmsg',this)" href="#">
         <span class="icon">📢</span><span>WF Message</span>
       </a>
@@ -2021,6 +2027,40 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       </div>
 
       <!-- ══════ WATERFALL MESSAGE PAGE ══════ -->
+      <div class="page" id="page-listeners">
+        <div class="section-head">ANALYSE AUDITEURS — EN DIRECT</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-bottom:.6rem;">Données privées, visibles uniquement ici. Détail conservé 90 jours, résumés quotidiens sans limite. Lieu, FAI et type de réseau : ip-api.com (VPN/proxy, datacenter, mobile).</div>
+        <div style="display:flex;gap:.5rem;margin-bottom:.8rem;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-blue" onclick="liLoadAll()">&#8635; ACTUALISER</button>
+          <button class="btn btn-green" id="li-auto-btn" onclick="liToggleAuto()">&#9654; AUTO</button>
+          <span style="font-size:.65rem;color:var(--text3);" id="li-live-label"></span>
+        </div>
+        <div class="card" style="overflow-x:auto;padding:0;margin-bottom:1.2rem;">
+          <table style="width:100%;border-collapse:collapse;font-size:.72rem;">
+            <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">LIEU</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">FAI / RÉSEAU</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">TYPE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">FRÉQ.</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">MODE / BANDE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DÉCODEUR</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">NAVIGATEUR</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">LANGUE / FUSEAU</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">PROVENANCE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DEPUIS</th></tr></thead>
+            <tbody id="li-live-tbody"><tr><td colspan="11" style="color:var(--text3);text-align:center;padding:.8rem;">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="section-head">STATISTIQUES</div>
+        <div style="display:flex;gap:.4rem;margin-bottom:.8rem;flex-wrap:wrap;" id="li-period-btns">
+          <button class="btn btn-blue" onclick="liStats(1,this)">AUJOURD'HUI</button>
+          <button class="btn" onclick="liStats(7,this)">7 J</button>
+          <button class="btn" onclick="liStats(30,this)">30 J</button>
+          <button class="btn" onclick="liStats(90,this)">90 J</button>
+          <button class="btn" onclick="liStats(365,this)">1 AN</button>
+          <button class="btn" onclick="liStats(3650,this)">TOUT</button>
+        </div>
+        <div id="li-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem;margin-bottom:.8rem;"></div>
+        <div id="li-days" class="card" style="margin-bottom:.8rem;"></div>
+        <div id="li-tops" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.6rem;margin-bottom:1.2rem;"></div>
+        <div class="section-head">SESSIONS DES 7 DERNIERS JOURS</div>
+        <div class="card" style="overflow-x:auto;padding:0;">
+          <table style="width:100%;border-collapse:collapse;font-size:.7rem;">
+            <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DÉBUT (UTC)</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DURÉE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">LIEU</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">FAI</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">TYPE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">BANDES</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">MODES</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DÉCODEURS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">NAV.</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">PROVENANCE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ID</th></tr></thead>
+            <tbody id="li-sess-tbody"></tbody>
+          </table>
+        </div>
+      </div>
       <div class="page" id="page-wfmsg">
         <div class="section-head">📢 WATERFALL MESSAGE</div>
         <div class="grid grid-2">
@@ -2154,6 +2194,108 @@ const LOG_TAB_PANES = {
 };
 
 // ─── Page navigation ────────────────────────────────────────────────────────
+// ─── Analyse auditeurs (statistiques privées) ───────────────────────────────
+let liAutoTimer = null, liDays = 1;
+const LI_NET = {vpn:['VPN/PROXY','var(--red)'], datacenter:['DATACENTER','var(--amber)'],
+  mobile:['MOBILE','var(--blue)'], fixe:['FIXE','var(--green)'], local:['LOCAL','var(--text3)'], '?':['?','var(--text3)']};
+function liEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function liFlag(cc){ if(!cc||cc.length!==2) return ''; return String.fromCodePoint(...[...cc.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)); }
+function liBadge(n){ const b = LI_NET[n] || LI_NET['?']; return `<span style="border:1px solid ${b[1]};color:${b[1]};border-radius:3px;padding:0 .3rem;font-size:.62rem;white-space:nowrap;">${b[0]}</span>`; }
+function liDur(s){ s = +s||0; const h = Math.floor(s/3600), m = Math.floor(s%3600/60); return h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min`; }
+const liTd = 'style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;"';
+async function liLoadAll(){ liLive(); liStats(liDays); liSessions(); }
+function liToggleAuto(){
+  const b = document.getElementById('li-auto-btn');
+  if (liAutoTimer){ clearInterval(liAutoTimer); liAutoTimer = null; b.innerHTML = '&#9654; AUTO'; }
+  else { liAutoTimer = setInterval(() => { if (currentPage === 'listeners') liLive(); }, 10000); b.innerHTML = '&#9632; STOP'; liLive(); }
+}
+async function liLive(){
+  const tb = document.getElementById('li-live-tbody');
+  try {
+    const d = await (await fetch('/admin/api/listeners/live', {cache:'no-store'})).json();
+    const u = d.users || [];
+    document.getElementById('li-live-label').textContent = `${u.length} auditeur(s) — ${new Date().toLocaleTimeString()}`;
+    if (!u.length){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="text-align:center;color:var(--text3);">Aucun auditeur connecté</td></tr>`; return; }
+    tb.innerHTML = u.map(x => `<tr>
+      <td ${liTd}><span style="font-family:monospace;">${liEsc(x.ip)}</span>${x.returning?'<br><span style="color:var(--green);font-size:.6rem;">FIDÈLE</span>':'<br><span style="color:var(--amber);font-size:.6rem;">NOUVEAU</span>'}</td>
+      <td ${liTd}>${liFlag(x.cc)} ${liEsc(x.city)}<br><span style="color:var(--text3);">${liEsc(x.region)}${x.region?', ':''}${liEsc(x.country)}</span>${x.lat!=null?`<br><a href="https://www.openstreetmap.org/?mlat=${x.lat}&mlon=${x.lon}&zoom=9" target="_blank" style="font-size:.6rem;color:var(--blue);">carte ≈</a>`:''}</td>
+      <td ${liTd}>${liEsc(x.isp)}<br><span style="color:var(--text3);">${liEsc(x.as)}</span></td>
+      <td ${liTd}>${liBadge(x.net)}${x.https?'<br><span style="font-size:.6rem;color:var(--green);">HTTPS</span>':'<br><span style="font-size:.6rem;color:var(--text3);">http</span>'}</td>
+      <td ${liTd}>${x.freq_khz!=null?(+x.freq_khz).toFixed(2)+' kHz':''}</td>
+      <td ${liTd}>${liEsc(x.mode)}<br><span style="color:var(--text3);">${liEsc(x.band)}</span></td>
+      <td ${liTd}>${x.decoder?`<b style="color:var(--amber);">${liEsc(x.decoder)}</b>`:'—'}${x.decoders_used.length?`<br><span style="color:var(--text3);font-size:.6rem;">utilisés : ${liEsc(x.decoders_used.join(', '))}</span>`:''}</td>
+      <td ${liTd} title="${liEsc(x.ua)}">${liEsc(x.browser)} / ${liEsc(x.os)}<br><span style="color:var(--text3);">${liEsc(x.device)} ${liEsc(x.screen)}</span></td>
+      <td ${liTd}>${liEsc(x.lang)}<br><span style="color:var(--text3);">${liEsc(x.tz_browser)}${x.tz_browser&&x.tz_ip&&x.tz_browser!==x.tz_ip?' <span style="color:var(--red);" title="Fuseau du navigateur différent de celui de l IP (indice de VPN)">≠ IP</span>':''}</span></td>
+      <td ${liTd}>${liEsc(x.src||'direct')}</td>
+      <td ${liTd}>${liEsc(x.duration)}</td></tr>`).join('');
+  } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
+}
+function liTop(title, obj, n){
+  const arr = Object.entries(obj||{}).sort((a,b) => b[1]-a[1]).slice(0, n||12);
+  const max = arr.length ? arr[0][1] : 1, sum = Object.values(obj||{}).reduce((a,b)=>a+b,0) || 1;
+  return `<div class="card"><div style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.4rem;">${liEsc(title)}</div>` +
+    (arr.length ? arr.map(([k,v]) => `<div style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;margin:.15rem 0;">
+      <span style="flex:0 0 42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${liEsc(k)}">${liEsc(k)}</span>
+      <span style="flex:1;background:var(--border);height:.5rem;border-radius:2px;"><span style="display:block;height:100%;width:${Math.max(2,v/max*100)}%;background:var(--green2);border-radius:2px;"></span></span>
+      <span style="flex:0 0 3.6rem;text-align:right;color:var(--text2);">${v} · ${Math.round(v/sum*100)}%</span></div>`).join('')
+      : '<div style="font-size:.7rem;color:var(--text3);">—</div>') + '</div>';
+}
+function liKpi(label, val, sub){ return `<div class="card" style="padding:.6rem;"><div style="font-size:.6rem;color:var(--text3);letter-spacing:.1em;">${liEsc(label)}</div><div style="font-size:1.2rem;color:var(--green);">${liEsc(val)}</div>${sub?`<div style="font-size:.6rem;color:var(--text3);">${liEsc(sub)}</div>`:''}</div>`; }
+async function liStats(days, btn){
+  liDays = days;
+  if (btn){ document.querySelectorAll('#li-period-btns .btn').forEach(b => b.classList.remove('btn-blue')); btn.classList.add('btn-blue'); }
+  try {
+    const d = await (await fetch('/admin/api/listeners/stats?days=' + days, {cache:'no-store'})).json();
+    const t = d.total || {}, net = t.net || {};
+    const lis = Object.values(net).reduce((a,b)=>a+b,0) || 0;
+    const pct = (a,b) => b ? Math.round(a/b*100) + ' %' : '—';
+    document.getElementById('li-kpis').innerHTML = [
+      liKpi('AUDITEURS', t.unique_listeners!=null ? t.unique_listeners : (t.listeners||0), t.unique_listeners!=null ? 'uniques sur la période' : 'somme des auditeurs / jour'),
+      liKpi('SESSIONS', t.sessions||0, (t.sessions? 'durée moy. ' + liDur((t.listen_s||0)/t.sessions):'')),
+      liKpi("TEMPS D'ÉCOUTE", liDur(t.listen_s||0)),
+      liKpi('VISITES DE LA PAGE', t.visits||0, pct(t.returning||0, t.visits||0) + ' de fidèles'),
+      liKpi('VIA HTTPS', pct(t.https||0, t.visits||0)),
+      liKpi('VPN / PROXY', pct(net.vpn||0, lis), (net.datacenter||0) + ' datacenter'),
+      liKpi('MOBILE', pct(net.mobile||0, lis)),
+      liKpi('UTILISENT UN DÉCODEUR', t.decoder_users||0, pct(t.decoder_users||0, t.unique_listeners||t.listeners||0) + ' des auditeurs'),
+    ].join('');
+    const pd = d.per_day || [];
+    const mx = Math.max(1, ...pd.map(x => x.listeners));
+    document.getElementById('li-days').innerHTML = pd.length > 1
+      ? `<div style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.4rem;">AUDITEURS PAR JOUR</div><div style="display:flex;align-items:flex-end;gap:2px;height:80px;">` +
+        pd.map(x => `<div title="${x.date} : ${x.listeners} auditeurs, ${x.sessions} sessions" style="flex:1;background:var(--green2);min-width:2px;height:${Math.max(2, x.listeners/mx*100)}%;"></div>`).join('') + '</div>'
+      : '';
+    const hours = {}; for (let h = 0; h < 24; h++){ const k = String(h).padStart(2,'0'); hours[k+' h UTC'] = (t.hours||{})[k] || 0; }
+    document.getElementById('li-tops').innerHTML = [
+      liTop('PAYS', t.countries), liTop('VILLES', t.cities, 15), liTop("FOURNISSEURS D'ACCÈS", t.isps, 15),
+      liTop('TYPE DE RÉSEAU', t.net), liTop('DÉCODEURS (activations)', t.decoders), liTop('BANDES', t.bands, 15),
+      liTop('MODES', t.modes), liTop('PROVENANCE (site précédent)', t.sources), liTop('NAVIGATEURS', t.browsers),
+      liTop('SYSTÈMES', t.os), liTop('APPAREILS', t.devices), liTop('LANGUES', t.langs),
+      liTop('SESSIONS PAR HEURE', Object.fromEntries(Object.entries(hours).filter(e => e[1])), 24),
+    ].join('');
+  } catch(e){ document.getElementById('li-kpis').innerHTML = `<div style="color:var(--red);">Erreur : ${liEsc(e.message)}</div>`; }
+}
+async function liSessions(){
+  const tb = document.getElementById('li-sess-tbody');
+  try {
+    const d = await (await fetch('/admin/api/listeners/sessions?days=7', {cache:'no-store'})).json();
+    const r = d.sessions || [];
+    tb.innerHTML = r.length ? r.map(x => `<tr>
+      <td ${liTd}>${liEsc((x.start||'').replace('T',' ').replace('Z',''))}</td>
+      <td ${liTd}>${liDur(x.dur)}</td>
+      <td ${liTd}>${liFlag(x.cc)} ${liEsc(x.city)}${x.country?', '+liEsc(x.country):''}</td>
+      <td ${liTd}>${liEsc(x.isp)}</td>
+      <td ${liTd}>${liBadge(x.net)}</td>
+      <td ${liTd}>${liEsc(x.bands.join(', '))}</td>
+      <td ${liTd}>${liEsc(x.modes.join(', '))}</td>
+      <td ${liTd}>${x.decoders.length?`<span style="color:var(--amber);">${liEsc(x.decoders.join(', '))}</span>`:'—'}</td>
+      <td ${liTd}>${liEsc(x.browser)} ${liEsc(x.os)}</td>
+      <td ${liTd}>${liEsc(x.src||'')}</td>
+      <td ${liTd} style="font-family:monospace;color:var(--text3);">${liEsc(x.iph)}</td></tr>`).join('')
+      : `<tr><td colspan="11" ${liTd} style="text-align:center;color:var(--text3);">Aucune session</td></tr>`;
+  } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
+}
+
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -2177,6 +2319,7 @@ function showPage(name, el) {
   if (name === 'settings') { loadSettingsPage(); }
   if (name === 'graphs')   { initGraphs(); }
   if (name === 'users')    { loadUsers(); }
+  if (name === 'listeners') { liLoadAll(); }
   if (name === 'wfmsg')    { loadWfMsgStatus(); }
   return false;
 }
@@ -5174,6 +5317,173 @@ def api_users():
         return jsonify({"ok": True, "users": users, "ports": ports})
     except Exception as e:
         return jsonify({"ok": False, "users": [], "error": str(e)})
+
+
+# ── API : Analyse auditeurs (statistiques privées — panneau admin uniquement) ─
+_LI_MAINT = {"t": 0.0}
+
+
+def _li_maintain():
+    if time.time() - _LI_MAINT["t"] > 3600:
+        _LI_MAINT["t"] = time.time()
+        try:
+            LI.maintain()
+        except Exception as e:
+            print("[WARN] listener stats maintenance: %s" % e, file=sys.stderr)
+
+
+def _li_recent_usage(days=2):
+    """Événements récents de logs/usage_*.jsonl, par auditeur (iph)."""
+    by = {}
+    for i in range(days - 1, -1, -1):
+        d = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
+        for e in LI.read_jsonl(LI.LOGS / ("usage_%s.jsonl" % d)):
+            st = by.setdefault(e.get("iph", "?"), {})
+            ev = e.get("ev")
+            if ev == "visit":
+                st["visit"] = e
+            elif ev == "hello":
+                st["hello"] = e
+            elif ev == "decoder":
+                st["decoder"] = e
+                used = st.setdefault("decoders_used", [])
+                dec = (e.get("decoder") or "").upper()
+                if dec and dec != "NONE" and dec not in used:
+                    used.append(dec)
+    return by
+
+
+@app.route("/admin/api/listeners/live")
+@login_required
+def api_listeners_live():
+    import urllib.request
+    usage = _li_recent_usage(2)
+    rows, errors = [], []
+    for port in _sdr_ports():
+        try:
+            with urllib.request.urlopen("http://127.0.0.1:%d/users" % port, timeout=2) as r:
+                d = json.loads(r.read().decode())
+        except Exception as e:
+            errors.append("%s: %s" % (port, e))
+            continue
+        for u in d.get("users", []):
+            ip = LI.norm_ip(u.get("ip", ""))
+            iph = LI.ip_hash(ip)
+            g = LI.geo(ip)
+            st = usage.get(iph, {})
+            vis, hel, dec = st.get("visit", {}), st.get("hello", {}), st.get("decoder", {})
+            cur_dec = (dec.get("decoder") or "none")
+            rows.append({
+                "ip": ip, "iph": iph,
+                "city": g.get("city", ""), "region": g.get("regionName", ""),
+                "country": g.get("country", ""), "cc": g.get("countryCode", ""),
+                "lat": g.get("lat"), "lon": g.get("lon"), "tz_ip": g.get("timezone", ""),
+                "isp": g.get("isp", ""), "org": g.get("org", ""), "as": g.get("as", ""),
+                "net": LI.net_kind(g),
+                "freq_khz": u.get("freq_khz"), "mode": (u.get("mode") or "").upper(),
+                "band": LI.band_of(u.get("freq_hz")),
+                "duration": u.get("duration", ""), "duration_s": u.get("duration_s", 0),
+                "decoder": "" if cur_dec == "none" else cur_dec.upper(),
+                "decoders_used": st.get("decoders_used", []),
+                "browser": vis.get("browser") or hel.get("browser", ""),
+                "os": vis.get("os") or hel.get("os", ""),
+                "device": vis.get("device") or hel.get("device", ""),
+                "lang": hel.get("lang") or (vis.get("accept_lang", "")[:5]),
+                "tz_browser": hel.get("tz", ""), "screen": hel.get("screen", ""),
+                "src": vis.get("src") or hel.get("src", ""),
+                "https": bool(vis.get("https") or hel.get("https")),
+                "returning": bool(vis.get("returning")),
+                "ua": vis.get("ua", ""),
+                "port": port,
+            })
+    LI.flush()
+    return jsonify({"ok": True, "users": rows, "errors": errors})
+
+
+def _li_merge(dst, src):
+    for k, v in src.items():
+        if isinstance(v, dict):
+            sub = dst.setdefault(k, {})
+            for kk, vv in v.items():
+                sub[kk] = sub.get(kk, 0) + vv
+        elif isinstance(v, (int, float)):
+            dst[k] = dst.get(k, 0) + v
+
+
+@app.route("/admin/api/listeners/stats")
+@login_required
+def api_listeners_stats():
+    _li_maintain()
+    try:
+        days = max(1, min(3650, int(request.args.get("days", 30))))
+    except ValueError:
+        days = 30
+    agg = LI.load_aggregates()
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    start = (datetime.utcnow() - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+    total, per_day, uniq = {}, [], set()
+    have_detail_all = True
+    for i in range(days - 1, -1, -1):
+        d = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
+        day = LI.aggregate_day(d) if d == today else agg.get(d)
+        if day is None:
+            continue
+        _li_merge(total, day)
+        per_day.append({"date": d, "listeners": day.get("listeners", 0),
+                        "sessions": day.get("sessions", 0), "listen_s": day.get("listen_s", 0)})
+        f = LI.LOGS / ("users_%s.jsonl" % d)
+        if f.exists():
+            for e in LI.read_jsonl(f):
+                uniq.add(LI.ip_hash(e.get("ip", "")))
+        else:
+            have_detail_all = False
+    LI.flush()
+    total["unique_listeners"] = len(uniq) if have_detail_all else None
+    return jsonify({"ok": True, "days": days, "from": start, "to": today,
+                    "total": total, "per_day": per_day,
+                    "retention_days": LI.RETENTION_DAYS})
+
+
+@app.route("/admin/api/listeners/sessions")
+@login_required
+def api_listeners_sessions():
+    try:
+        days = max(1, min(LI.RETENTION_DAYS, int(request.args.get("days", 7))))
+    except ValueError:
+        days = 7
+    usage = _li_recent_usage(days)
+    sess = {}
+    for i in range(days - 1, -1, -1):
+        d = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
+        for e in LI.read_jsonl(LI.LOGS / ("users_%s.jsonl" % d)):
+            sid = "%s:%s" % (d, e.get("id") or e.get("ip"))
+            s = sess.get(sid)
+            if s is None:
+                ip = e.get("ip", "")
+                s = sess[sid] = {"start": e.get("ts", ""), "iph": LI.ip_hash(ip), "_ip": ip,
+                                 "dur": 0, "bands": [], "modes": [], "end": ""}
+            if e.get("event") == "tune":
+                b = LI.band_of(e.get("freq_hz"))
+                if b not in s["bands"]:
+                    s["bands"].append(b)
+                m = (e.get("mode") or "").upper()
+                if m and m not in s["modes"]:
+                    s["modes"].append(m)
+            elif e.get("event") == "disconnect":
+                s["dur"] = max(s["dur"], int(e.get("duration_s") or 0))
+                s["end"] = e.get("ts", "")
+    rows = []
+    for s in sorted(sess.values(), key=lambda x: x["start"], reverse=True)[:500]:
+        g = LI.geo(s.pop("_ip"), allow_lookup=False)
+        st = usage.get(s["iph"], {})
+        vis = st.get("visit", {})
+        s.update({"city": g.get("city", ""), "country": g.get("country", ""),
+                  "cc": g.get("countryCode", ""), "isp": g.get("isp", ""),
+                  "net": LI.net_kind(g), "decoders": st.get("decoders_used", []),
+                  "browser": vis.get("browser", ""), "os": vis.get("os", ""),
+                  "src": vis.get("src", ""), "returning": bool(vis.get("returning"))})
+        rows.append(s)
+    return jsonify({"ok": True, "sessions": rows})
 
 def _proxy_kick(ip):
     """Ask proxy.py to close all WebSockets from `ip`.
