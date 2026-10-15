@@ -206,11 +206,22 @@ $SITE {
 ${TLS_LINE:+$TLS_LINE
 }    reverse_proxy 127.0.0.1:$PORT_TLS
 }"
+# Global options. http_redirect answers a plain http:// request that arrives on
+# the https port with a redirect to https:// instead of a 400 error: directories
+# such as sdr.shbrg.nl list the station as http://NAME:443, which then still works.
 GLOBAL=""
-[ -n "${STATION_EMAIL:-}" ] && [ "$MODE" = on ] && GLOBAL="{
-    email $STATION_EMAIL
+if [ "$MODE" = on ]; then
+    GLOBAL="{
+${STATION_EMAIL:+    email $STATION_EMAIL
+}    servers :443 {
+        listener_wrappers {
+            http_redirect
+            tls
+        }
+    }
 }
 "
+fi
 # A Caddyfile that is still the distribution's sample page (or ours) is
 # replaced, keeping a copy; one the sysop wrote gets ours imported beside it.
 if [ ! -f "$CADDYFILE" ] || grep -qF "$MARK" "$CADDYFILE" \
