@@ -2251,7 +2251,7 @@ async function liLive(){
       <td ${liTd}>${x.decoder?`<b style="color:var(--amber);">${liEsc(x.decoder)}</b>`:'—'}${x.decoders_used.length?`<br><span style="color:var(--text3);font-size:.6rem;">utilisés : ${liEsc(x.decoders_used.join(', '))}</span>`:''}</td>
       <td ${liTd} title="${liEsc(x.ua)}">${liEsc(x.browser)} / ${liEsc(x.os)}<br><span style="color:var(--text3);">${liEsc(x.device)} ${liEsc(x.screen)}</span></td>
       <td ${liTd}>${liEsc(x.lang)}<br><span style="color:var(--text3);">${liEsc(x.tz_browser)}${x.tz_browser&&x.tz_ip&&x.tz_browser!==x.tz_ip?' <span style="color:var(--red);" title="Fuseau du navigateur différent de celui de l’IP (indice de VPN)">≠ IP</span>':''}</span></td>
-      <td ${liTd}>${liEsc(x.src||'direct')}</td>
+      <td ${liTd}>${x.src?liEsc(x.src):'<span style="color:var(--text3);">direct / inconnu</span>'}</td>
       <td ${liTd}>${liEsc(x.duration)}</td></tr>`).join('');
   } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
 }
@@ -2315,8 +2315,8 @@ async function liSessions(){
       <td ${liTd}>${liEsc(x.modes.join(', '))}</td>
       <td ${liTd}>${x.decoders.length?`<span style="color:var(--amber);">${liEsc(x.decoders.join(', '))}</span>`:'—'}</td>
       <td ${liTd}>${liEsc(x.browser)} ${liEsc(x.os)}</td>
-      <td ${liTd}>${liEsc(x.src||'')}</td>
-      <td ${liTd} style="font-family:monospace;color:var(--text3);">${liEsc(x.iph)}</td></tr>`).join('')
+      <td ${liTd}>${x.src?liEsc(x.src):'<span style="color:var(--text3);">direct / inconnu</span>'}</td>
+      <td ${liTd} style="font-family:monospace;color:var(--text3);" title="Identifiant anonyme de l’auditeur : même IP = même ID pendant 90 jours">${liEsc(x.iph)}</td></tr>`).join('')
       : `<tr><td colspan="11" ${liTd} style="text-align:center;color:var(--text3);">Aucune session</td></tr>`;
   } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
 }
