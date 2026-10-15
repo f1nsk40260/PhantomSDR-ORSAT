@@ -1588,13 +1588,14 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <div class="dot" style="background:var(--green);box-shadow:0 0 6px var(--green)"></div>
             TERMINAL
             <span style="margin-left:.4rem;font-size:.6rem;color:var(--text3);" id="term-cwd">~</span>
-            <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="termClear()">&#10005; CLEAR</span>
+            <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="termCopy()" title="Copier la sélection, ou toute la sortie si rien n'est sélectionné">&#10697; COPIER</span>
+            <span style="margin-left:.8rem;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="termClear()">&#10005; CLEAR</span>
           </div>
           <div id="term-output"
             style="font-family:'Share Tech Mono',monospace;font-size:.75rem;line-height:1.5;
                    background:#020902;border:1px solid var(--border);border-radius:3px;
                    padding:.5rem .7rem;height:300px;overflow-y:auto;color:var(--text);
-                   white-space:pre-wrap;word-break:break-all;"></div>
+                   white-space:pre-wrap;word-break:break-all;user-select:text;-webkit-user-select:text;resize:vertical;"></div>
           <div style="display:flex;align-items:center;gap:.4rem;margin-top:.4rem;
                       background:#020902;border:1px solid var(--border);border-radius:3px;padding:.3rem .6rem;">
             <span style="color:var(--green);font-size:.75rem;flex-shrink:0;">$</span>
@@ -1603,7 +1604,8 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
                      color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.75rem;"
               placeholder="type command and press Enter"
               onkeydown="termKey(event)">
-            <button class="btn btn-green" style="padding:.2rem .6rem;font-size:.65rem;" onclick="termRun()">&#9654;</button>
+            <button id="term-run" class="btn btn-green" style="padding:.2rem .6rem;font-size:.65rem;" onclick="termRun()">&#9654;</button>
+            <button id="term-stop" class="btn" style="display:none;padding:.2rem .6rem;font-size:.65rem;color:#ff6666;border-color:#ff6666;" onclick="termKill()" title="Interrompre la commande (Ctrl+C)">&#9632; STOP</button>
           </div>
         </div>
         
@@ -2427,21 +2429,112 @@ function termClear() {
   if (out) out.innerHTML = '';
 }
 
+// Commande en cours (tâche de fond côté serveur) : sortie relevée en direct,
+// la ligne tapée pendant qu'elle tourne est envoyée à son entrée standard
+// (réponses aux menus des scripts), Ctrl+C ou STOP l'interrompt.
+let _termJob = null;      // { id, pos, div, timer }
+
+function termSetRunning(on) {
+  const stop = document.getElementById('term-stop');
+  const run  = document.getElementById('term-run');
+  const inp  = document.getElementById('term-input');
+  if (stop) stop.style.display = on ? '' : 'none';
+  if (run)  run.style.display  = on ? 'none' : '';
+  if (inp)  inp.placeholder = on
+    ? 'commande en cours : tapez une réponse + Entrée, Ctrl+C pour interrompre'
+    : 'type command and press Enter';
+}
+
+function termAppend(text) {
+  if (!_termJob || !text) return;
+  const out = document.getElementById('term-output');
+  if (!_termJob.div) {
+    _termJob.div = document.createElement('div');
+    _termJob.div.style.cssText = 'color:var(--text);';
+    out.appendChild(_termJob.div);
+  }
+  const atBottom = out.scrollHeight - out.scrollTop - out.clientHeight < 40;
+  _termJob.div.appendChild(document.createTextNode(text));
+  if (atBottom) out.scrollTop = out.scrollHeight;
+  _termJob.tail = ((_termJob.tail || '') + text).slice(-200);
+  termPasswordMode(/(assword|mot de passe)[^:]*: *$/i.test(_termJob.tail));
+}
+
+// Mot de passe demandé (sudo…) : saisie masquée, rien n'est réaffiché.
+function termPasswordMode(on) {
+  const inp = document.getElementById('term-input');
+  if (inp) inp.type = on ? 'password' : 'text';
+}
+
+async function termPoll() {
+  if (!_termJob) return;
+  const job = _termJob;
+  try {
+    const r = await fetch('/admin/api/terminal/poll?id=' + encodeURIComponent(job.id) + '&pos=' + job.pos);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d.lost) termPrint('… (début de sortie tronqué)', 'err');
+    termAppend(d.output);
+    job.pos = d.pos;
+    if (d.done) {
+      _termJob = null;
+      termSetRunning(false);
+      termPasswordMode(false);
+      if (d.gone) termPrint('(commande introuvable sur le serveur)', 'err');
+      else if (d.rc !== 0) termPrint('[code de sortie ' + d.rc + ']', 'err');
+      else if (job.pos === 0) termPrint('(no output)', '');
+      return;
+    }
+    job.fails = 0;
+  } catch (ex) {
+    job.fails = (job.fails || 0) + 1;
+    if (job.fails === 5) termPrint('Connexion perdue, nouvel essai… (' + ex.message + ')', 'err');
+  }
+  job.timer = setTimeout(termPoll, 400);
+}
+
+async function termKill() {
+  if (!_termJob) return;
+  termPrint('^C', 'cmd');
+  try {
+    await fetch('/admin/api/terminal/kill', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: _termJob.id})
+    });
+  } catch (ex) {}
+}
+
 async function termRun() {
   const inp = document.getElementById('term-input');
   if (!inp) return;
-  const cmd = inp.value.trim();
-  if (!cmd) return;
+  const cmd = inp.value;
+  // Commande en cours : la ligne part vers son entrée standard
+  if (_termJob) {
+    inp.value = '';
+    const secret = inp.type === 'password';
+    termPasswordMode(false);
+    _termJob.tail = '';
+    termAppend((secret ? '********' : cmd) + String.fromCharCode(10));
+    _termJob.div = null;
+    try {
+      await fetch('/admin/api/terminal/input', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: _termJob.id, text: cmd})
+      });
+    } catch (ex) { termPrint('Network error: ' + ex.message, 'err'); }
+    return;
+  }
+  if (!cmd.trim()) return;
   inp.value = '';
-  _termHist.unshift(cmd);
+  _termHist.unshift(cmd.trim());
   if (_termHist.length > 100) _termHist.pop();
   _termIdx = -1;
-  termPrint('$ ' + cmd, 'cmd');
+  termPrint('$ ' + cmd.trim(), 'cmd');
   try {
-    const r = await fetch('/admin/api/terminal/exec', {
+    const r = await fetch('/admin/api/terminal/start', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({cmd: cmd, cwd: _termCwd})
+      body: JSON.stringify({cmd: cmd.trim(), cwd: _termCwd})
     });
     if (!r.ok) { termPrint('HTTP error: ' + r.status, 'err'); return; }
     const d = await r.json();
@@ -2449,10 +2542,35 @@ async function termRun() {
       _termCwd = d.cwd;
       termUpdatePrompt();
     }
+    if (d.id) {
+      _termJob = { id: d.id, pos: 0, div: null, timer: null };
+      termSetRunning(true);
+      termPoll();
+      return;
+    }
     if (d.output) termPrint(d.output, d.ok ? '' : 'err');
   } catch(ex) {
     termPrint('Network error: ' + ex.message, 'err');
   }
+}
+
+function termCopy() {
+  const out = document.getElementById('term-output');
+  if (!out) return;
+  const sel = window.getSelection ? String(window.getSelection()) : '';
+  const text = sel || out.innerText;
+  const done = () => toast(sel ? 'Sélection copiée' : 'Sortie du terminal copiée', 'ok');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done, () => termCopyFallback(text, done));
+  } else termCopyFallback(text, done);
+}
+
+function termCopyFallback(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { toast('Copie impossible', 'err'); }
+  ta.remove();
 }
 
 function termKey(e) {
@@ -2460,10 +2578,12 @@ function termKey(e) {
   if (!inp) return;
   if (e.key === 'Enter') {
     e.preventDefault(); termRun();
-  } else if (e.key === 'ArrowUp') {
+  } else if ((e.key === 'c' || e.key === 'C') && e.ctrlKey && _termJob && !inp.selectionEnd) {
+    e.preventDefault(); termKill();
+  } else if (e.key === 'ArrowUp' && !_termJob) {
     e.preventDefault();
     if (_termIdx < _termHist.length - 1) { _termIdx++; inp.value = _termHist[_termIdx]; }
-  } else if (e.key === 'ArrowDown') {
+  } else if (e.key === 'ArrowDown' && !_termJob) {
     e.preventDefault();
     if (_termIdx > 0) { _termIdx--; inp.value = _termHist[_termIdx]; }
     else { _termIdx = -1; inp.value = ''; }
@@ -2472,10 +2592,14 @@ function termKey(e) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const out = document.getElementById('term-output');
+  // Clic dans la sortie → focus sur la saisie, sauf si l'on vient de
+  // sélectionner du texte (sinon la sélection disparaît et rien n'est copiable).
   if (out) out.addEventListener('click', () => {
+    if (window.getSelection && String(window.getSelection())) return;
     const inp = document.getElementById('term-input');
     if (inp) inp.focus();
   });
+});
 });
 
 
@@ -3998,6 +4122,159 @@ def api_terminal_exec():
         return jsonify({"ok": False, "output": "(command timed out after 300s)", "cwd": cwd})
     except Exception as ex:
         return jsonify({"ok": False, "output": str(ex), "cwd": cwd})
+
+# ── Terminal : commandes longues en tâche de fond (sortie en direct) ─────────
+# /terminal/exec attend la fin de la commande dans une seule requête HTTP ; or
+# proxy.py coupe toute requête vers le panneau au bout de 60 s (ClientTimeout),
+# d'où le « HTTP error: 500 » sur ./recompile.sh --frontend alors que la
+# commande, elle, continue et réussit. Ici la commande tourne en tâche de fond :
+# le navigateur la lance (start), relève la sortie par petites requêtes (poll),
+# peut répondre aux questions d'un script (input) et l'interrompre (kill).
+# Plus de limite de durée, sortie affichée au fil de l'eau.
+_TERM_JOBS = {}
+_TERM_LOCK = threading.Lock()
+_TERM_MAX_OUT = 2 * 1024 * 1024          # sortie gardée par commande (octets)
+_TERM_KEEP_S  = 600                      # une commande finie est oubliée après 10 min
+_ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07]*\x07|\x1b[()][A-Z0-9]")
+
+def _term_reader(job):
+    fd = job["fd"]
+    while True:
+        try:
+            chunk = os.read(fd, 4096)
+        except OSError:
+            break
+        if not chunk:
+            break
+        text = chunk.decode("utf-8", "replace")
+        text = _ANSI_RE.sub("", text).replace("\r\n", "\n").replace("\r", "\n")
+        with job["lock"]:
+            job["out"] += text
+            if len(job["out"]) > _TERM_MAX_OUT:
+                cut = len(job["out"]) - _TERM_MAX_OUT
+                job["out"] = job["out"][cut:]
+                job["base"] += cut
+    rc = job["proc"].wait()
+    try:
+        os.close(fd)
+    except OSError:
+        pass
+    with job["lock"]:
+        job["rc"] = rc
+        job["done"] = True
+        job["ended"] = time.time()
+
+def _term_gc():
+    now = time.time()
+    with _TERM_LOCK:
+        for jid in [j for j, v in _TERM_JOBS.items()
+                    if v["done"] and now - v["ended"] > _TERM_KEEP_S]:
+            _TERM_JOBS.pop(jid, None)
+
+@app.route("/admin/api/terminal/start", methods=["POST"])
+@login_required
+def api_terminal_start():
+    data = request.get_json(silent=True) or {}
+    cmd = (data.get("cmd") or "").strip()
+    default_cwd = str(get_sdr_dir())
+    cwd = (data.get("cwd") or "").strip() or default_cwd
+    if not os.path.isdir(cwd):
+        cwd = default_cwd
+    # cd, clear et commande vide : réponse immédiate, comme /terminal/exec
+    if not cmd or cmd in ("clear", "cls") or cmd == "cd" or cmd.startswith("cd ") or cmd == "cd~":
+        return api_terminal_exec()
+    _term_gc()
+    env = {**os.environ, "TERM": "dumb", "PYTHONUNBUFFERED": "1", "NO_COLOR": "1",
+           "COLUMNS": "160", "LINES": "50"}
+    # Pseudo-terminal : les scripts se croient dans un vrai terminal, donc
+    # « read -p » affiche sa question, la sortie arrive ligne par ligne au lieu
+    # d'être retenue en tampon, et sudo peut demander son mot de passe.
+    import pty, termios, fcntl, struct
+    master, slave = pty.openpty()
+    try:
+        attrs = termios.tcgetattr(slave)
+        attrs[3] &= ~termios.ECHO            # le navigateur affiche déjà la saisie
+        termios.tcsetattr(slave, termios.TCSANOW, attrs)
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 50, 160, 0, 0))
+    except Exception:
+        pass
+    def _ctty():
+        os.setsid()
+        try:
+            fcntl.ioctl(0, termios.TIOCSCTTY, 0)
+        except Exception:
+            pass
+    try:
+        proc = subprocess.Popen(
+            cmd, shell=True, cwd=cwd, executable="/bin/bash",
+            stdin=slave, stdout=slave, stderr=slave,
+            env=env, preexec_fn=_ctty, close_fds=True,
+        )
+    except Exception as ex:
+        os.close(master); os.close(slave)
+        return jsonify({"ok": False, "output": str(ex), "cwd": cwd})
+    os.close(slave)
+    jid = "%d-%d" % (int(time.time() * 1000), proc.pid)
+    job = {"proc": proc, "fd": master, "out": "", "base": 0, "done": False, "rc": None,
+           "ended": 0, "lock": threading.Lock(), "cmd": cmd}
+    with _TERM_LOCK:
+        _TERM_JOBS[jid] = job
+    threading.Thread(target=_term_reader, args=(job,), daemon=True).start()
+    return jsonify({"ok": True, "id": jid, "cwd": cwd})
+
+@app.route("/admin/api/terminal/poll")
+@login_required
+def api_terminal_poll():
+    job = _TERM_JOBS.get(request.args.get("id", ""))
+    if not job:
+        return jsonify({"ok": False, "gone": True, "output": "", "pos": 0, "done": True})
+    try:
+        pos = int(request.args.get("pos", "0"))
+    except ValueError:
+        pos = 0
+    with job["lock"]:
+        start = max(pos - job["base"], 0)
+        out = job["out"][start:]
+        newpos = job["base"] + len(job["out"])
+        lost = pos < job["base"]
+        return jsonify({"ok": True, "output": out, "pos": newpos, "lost": lost,
+                        "done": job["done"], "rc": job["rc"]})
+
+@app.route("/admin/api/terminal/input", methods=["POST"])
+@login_required
+def api_terminal_input():
+    data = request.get_json(silent=True) or {}
+    job = _TERM_JOBS.get(data.get("id", ""))
+    if not job or job["done"]:
+        return jsonify({"ok": False, "msg": "commande terminée"})
+    try:
+        os.write(job["fd"], (str(data.get("text", "")) + "\n").encode("utf-8"))
+    except Exception as ex:
+        return jsonify({"ok": False, "msg": str(ex)})
+    return jsonify({"ok": True})
+
+@app.route("/admin/api/terminal/kill", methods=["POST"])
+@login_required
+def api_terminal_kill():
+    data = request.get_json(silent=True) or {}
+    job = _TERM_JOBS.get(data.get("id", ""))
+    if not job or job["done"]:
+        return jsonify({"ok": False})
+    pid = job["proc"].pid
+    def _kill():
+        for sig, wait in ((signal.SIGINT, 3), (signal.SIGTERM, 3), (signal.SIGKILL, 0)):
+            try:
+                os.killpg(pid, sig)
+            except Exception:
+                return
+            t0 = time.time()
+            while time.time() - t0 < wait:
+                if job["done"]:
+                    return
+                time.sleep(0.2)
+    threading.Thread(target=_kill, daemon=True).start()
+    return jsonify({"ok": True})
+
 # ── API: Config files ─────────────────────────────────────────────────────────
 @app.route("/admin/api/config-files")
 @login_required
