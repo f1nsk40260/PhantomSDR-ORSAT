@@ -157,6 +157,7 @@ const D = [
   ["💾 Applications desktop", "💾 Desktop applications", "💾 Aplicaciones de escritorio"],
   ["Télécharger PhantomSDR+ Desktop pour Linux et Windows", "Download PhantomSDR+ Desktop for Linux and Windows", "Descargar PhantomSDR+ Desktop para Linux y Windows"],
   ["Remarque :", "Note:", "Nota:"],
+  ["LIENS EXTERNES", "EXTERNAL LINKS", "ENLACES EXTERNOS"],
   ["Info :", "Info:", "Info:"],
   ["📡 Carte FT8", "📡 FT8 map", "📡 Mapa FT8"],
   ["📡 Carte FT4", "📡 FT4 map", "📡 Mapa FT4"],

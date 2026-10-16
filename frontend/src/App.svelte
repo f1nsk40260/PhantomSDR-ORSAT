@@ -9965,7 +9965,7 @@
                     <span>Github — Artemis (signal database): <a href="https://github.com/AresValley/Artemis" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)" title="Base de données d'identification des signaux Artemis">github.com/AresValley/Artemis</a></span>
                     <br><br>
 
-                    <b>Note:</b> <br> 
+                    <b>LIENS EXTERNES</b> <br> 
                      <span style="/*text-decoration: line-through*/"><button
                        title="Ouvrir la carte des spots FT8 (PSK Reporter)"
                        type="button"
@@ -10012,10 +10012,6 @@
                        🗺️ WSPR map
                      </button> <br><br>
 
-                     <b>Info:</b>
-                     {siteNote}
-                     
-                     <br><br>
                              
                   <div style="font-weight: bold; text-align: center;">USER MANUAL</div>
                   <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 10px;">
