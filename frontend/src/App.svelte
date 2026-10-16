@@ -15365,12 +15365,14 @@ Cliquez à nouveau pour désactiver"
     border: 1px solid rgba(207, 181, 59, 0.55);
   }
   .wf-auto-btn:hover { background: rgba(207, 181, 59, 0.2); }
+  /* Actif : vieil or patiné, comme le bouton AGC « Auto » sélectionné — pas de jaune vif. */
   .wf-auto-btn.is-on {
-    color: #111827; border-color: rgb(207, 181, 59);
-    background: linear-gradient(180deg, rgb(226, 201, 84), rgb(190, 163, 45));
-    box-shadow: 0 0 14px rgba(207, 181, 59, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    color: #f3e7a6; border-color: rgba(207, 181, 59, 0.75);
+    background: linear-gradient(180deg, rgba(207, 181, 59, 0.30), rgba(120, 100, 30, 0.30));
+    box-shadow: 0 0 8px rgba(207, 181, 59, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
-  .wf-auto-btn.is-on:hover { filter: brightness(1.06); }
+  .wf-auto-btn.is-on .wf-auto-icon { color: rgb(207, 181, 59); background: rgba(0, 0, 0, 0.3); }
+  .wf-auto-btn.is-on:hover { background: linear-gradient(180deg, rgba(207, 181, 59, 0.38), rgba(120, 100, 30, 0.38)); }
   .wf-auto-icon {
     flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
