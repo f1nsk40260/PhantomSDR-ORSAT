@@ -31,8 +31,9 @@
   let head = 0;                  // ligne la plus récente
   let ro, raf = 0, failed = "";
 
-  // Caméra fixe (pas de réglage d'inclinaison : vue de face, légèrement plongeante).
-  const yaw = 0, pitch = 0.5, dist = 2.7;
+  // Rendu : montée du passé et hauteur du relief (en unités écran, -1..1).
+  const RISE = 0.9;
+  const AMP = 0.75;
 
   const VS = `#version 300 es
   in vec2 aUV;
@@ -40,7 +41,8 @@
   uniform highp sampler2D uRange;   // par trace : plage [L, R] en indices FFT
   uniform int uHead;
   uniform vec2 uView;               // fenêtre affichée [L, R]
-  uniform mat4 uMVP;
+  uniform float uRise;              // montée totale du passé (unités écran)
+  uniform float uAmp;               // hauteur du relief
   out float vVal;
   out float vAge;
   void main() {
@@ -56,8 +58,12 @@
     }
     vVal = val;
     vAge = aUV.y;
-    float y = pow(val, 1.25) * 0.9;
-    gl_Position = uMVP * vec4((aUV.x - 0.5) * 3.2, y, aUV.y * 2.4, 1.0);
+    // Projection cavalière : pas de perspective. Chaque trace plus ancienne
+    // est décalée vers le haut ; x reste celui de la fréquence, donc le relief
+    // reste aligné sur le waterfall et rien ne converge ni ne penche.
+    float x = aUV.x * 2.0 - 1.0;
+    float y = -0.96 + aUV.y * uRise + pow(val, 1.3) * uAmp;
+    gl_Position = vec4(x, y, aUV.y * 0.98, 1.0);
   }`;
 
   const FS = `#version 300 es
@@ -176,25 +182,6 @@
     schedule();
   }
 
-  // ── Matrices 4×4 (colonnes) ──────────────────────────────────────────────
-  function mul(a, b) {
-    const o = new Float32Array(16);
-    for (let c = 0; c < 4; c++)
-      for (let r = 0; r < 4; r++) {
-        let s = 0;
-        for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k];
-        o[c * 4 + r] = s;
-      }
-    return o;
-  }
-  function persp(fov, asp, n, f) {
-    const t = 1 / Math.tan(fov / 2);
-    return new Float32Array([t / asp, 0, 0, 0, 0, t, 0, 0, 0, 0, (f + n) / (n - f), -1, 0, 0, (2 * f * n) / (n - f), 0]);
-  }
-  const tr = (x, y, z) => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
-  const rx = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]); };
-  const ry = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]); };
-
   function schedule() { if (!raf) raf = requestAnimationFrame(render); }
 
   function render() {
@@ -203,12 +190,6 @@
     const w = canvas.width, h = canvas.height;
     gl.viewport(0, 0, w, h);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // Le paysage va de z=0 (ligne la plus récente, devant) à z=2,4 (le passé).
-    // On le recule et on le pivote autour de son centre.
-    const model = tr(0, -0.15, -1.2);
-    const view = mul(tr(0, 0, -dist), mul(rx(pitch), ry(yaw)));
-    const flip = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1]); // le passé s'éloigne
-    const mvp = mul(persp(0.6, w / Math.max(1, h), 0.05, 50), mul(view, mul(flip, model)));
     gl.useProgram(prog);
     gl.bindVertexArray(vao);
     gl.activeTexture(gl.TEXTURE0);
@@ -222,7 +203,8 @@
     gl.uniform1i(gl.getUniformLocation(prog, "uRange"), 2);
     gl.uniform2f(gl.getUniformLocation(prog, "uView"), viewL, viewR);
     gl.uniform1i(gl.getUniformLocation(prog, "uHead"), head);
-    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "uMVP"), false, mvp);
+    gl.uniform1f(gl.getUniformLocation(prog, "uRise"), RISE);
+    gl.uniform1f(gl.getUniformLocation(prog, "uAmp"), AMP);
     gl.drawElements(gl.TRIANGLES, nIdx, gl.UNSIGNED_INT, 0);
   }
 
