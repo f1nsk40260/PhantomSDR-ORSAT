@@ -233,14 +233,25 @@ say "Dossier : $BASE_DIR"
 # Fichier régénéré par chaque build : sans intérêt, il bloquerait le pull.
 git checkout -- frontend/stats.html 2>/dev/null || true
 
-dirty=$(git status --porcelain --untracked-files=no)
+# Les fichiers propres à la station (config, marqueurs, infos du site…) sont
+# modifiés localement par nature : ils ne bloquent la mise à jour que si la
+# nouvelle version modifie aussi ces mêmes fichiers.
+step "Vérification des nouveautés (git fetch)"
+git --no-pager fetch 2>&1 || finish 1 "(échec du git fetch)"
+dirty=$(git diff --name-only HEAD)
+incoming=$(git diff --name-only HEAD @{u} 2>/dev/null)
+clash=$(printf '%s\n' "$dirty" | grep -Fxf <(printf '%s\n' "$incoming") | grep -v '^$' || true)
 if [ -n "$dirty" ]; then
+  say "Fichiers modifiés localement (conservés) :"
+  printf '%s\n' "$dirty" | sed 's/^/  • /'
+fi
+if [ -n "$clash" ]; then
   say ""
-  say "✗ Des fichiers suivis par git ont été modifiés localement :"
-  say "$dirty"
+  say "✗ La nouvelle version modifie aussi ces fichiers modifiés localement :"
+  printf '%s\n' "$clash" | sed 's/^/  • /'
   say "  La mise à jour s'arrête pour ne rien écraser. Copiez vos modifications,"
   say "  puis annulez-les (git checkout -- <fichier>) avant de relancer."
-  finish 1 "(fichiers modifiés localement)"
+  finish 1 "(conflit avec des fichiers modifiés localement)"
 fi
 
 old=$(git rev-parse HEAD)
