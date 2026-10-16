@@ -57,7 +57,7 @@ export default class SpectrumWaterfall {
     this.minWaterfall = -30
     this.maxWaterfall = 110
     // https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
-    this.view3d = null   // ORSAT : vue 3D branchée par lib/Waterfall3D.svelte
+    this.view3d = null   // ORSAT : spectre 3D branché par lib/Waterfall3D.svelte
     this.colormap = []
 
     this.setColormap('gqrx')
@@ -624,8 +624,16 @@ export default class SpectrumWaterfall {
 
       const { data: waterfallArray, l: curL, r: curR } = this.waterfallQueue.pop();
       const [arr, pxL, pxR] = this.calculateOffsets(waterfallArray, curL, curR, true);
-      // ORSAT : vue 3D (lib/Waterfall3D.svelte), seulement si elle est ouverte.
-      if (this.view3d) this.view3d.pushLine(arr, pxL, pxR, this.canvasWidth);
+      // ORSAT : spectre 3D (lib/Waterfall3D.svelte), seulement s'il est ouvert.
+      // Comme le spectre 2D : vrais niveaux, sans le nivellement de Auto Adj.
+      if (this.view3d) {
+        let a3 = arr
+        if (this.autoAdjust) {
+          a3 = new Uint8Array(waterfallArray.length)
+          for (let i = 0; i < a3.length; i++) a3[i] = this.transformValue(waterfallArray[i])
+        }
+        this.view3d.pushLine(a3, pxL, pxR, this.canvasWidth);
+      }
 
       if (this.waterfall) {
         this.drawWaterfall(arr, pxL, pxR, curL, curR);
@@ -1399,7 +1407,7 @@ export default class SpectrumWaterfall {
     const newCanvasWidth = newCanvasX2 - newCanvasX1
 
     this.ctx.drawImage(this.canvasElem, 0, 0, this.canvasWidth, this.canvasHeight, newCanvasX1, 0, newCanvasWidth, this.canvasHeight)
-    // ORSAT : la vue 3D étire son historique de la même façon.
+    // ORSAT : le spectre 3D étire son historique de la même façon.
     if (this.view3d) this.view3d.remap(newCanvasX1, newCanvasWidth, this.canvasWidth)
 
 

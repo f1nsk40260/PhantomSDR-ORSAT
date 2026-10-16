@@ -1,7 +1,7 @@
 <script>
   /**
-   * Waterfall3D — vue 3D du waterfall (ORSAT, F1NSK), façon « paysage » :
-   * fréquence en largeur, temps en profondeur, niveau en hauteur.
+   * Waterfall3D — spectre 3D (ORSAT, F1NSK) : les dernières traces du spectre
+   * empilées en relief — fréquence en largeur, temps en profondeur, niveau en hauteur.
    *
    * Tout est calculé par la carte graphique (WebGL2) : l'historique des lignes
    * est une texture circulaire W×H mise à jour d'une seule ligne à chaque trame,
@@ -18,8 +18,8 @@
   export let onClose = () => {};
 
   const W = 1024;                // largeur de l'historique (points de fréquence)
-  const H = 256;                 // profondeur de l'historique (lignes)
-  const GX = 1024, GY = 192;     // maillage affiché
+  const H = 128;                 // profondeur de l'historique (traces)
+  const GX = 1024, GY = 128;     // maillage affiché
 
   let canvas, gl, prog, vao, histTex, cmapTex, nIdx = 0;
   let hist = new Uint8Array(W * H);
@@ -27,7 +27,7 @@
   let ro, raf = 0, failed = "";
 
   // Caméra
-  const DEF = { yaw: 0, pitch: 0.62, dist: 3.1 };
+  const DEF = { yaw: 0, pitch: 0.5, dist: 2.7 };
   let yaw = DEF.yaw, pitch = DEF.pitch, dist = DEF.dist;
   let drag = null;
 
@@ -45,7 +45,7 @@
     float val = float(texelFetch(uHist, ivec2(x, row), 0).r) / 255.0;
     vVal = val;
     vAge = aUV.y;
-    float y = pow(val, 1.6) * 0.55;
+    float y = pow(val, 1.25) * 0.9;
     gl_Position = uMVP * vec4((aUV.x - 0.5) * 3.2, y, aUV.y * 2.4, 1.0);
   }`;
 
@@ -57,7 +57,7 @@
   out vec4 frag;
   void main() {
     vec3 c = texture(uCmap, vec2(vVal, 0.5)).rgb;
-    float fog = 1.0 - 0.6 * vAge;
+    float fog = 1.0 - 0.7 * vAge;
     frag = vec4(c * fog, 1.0);
   }`;
 
@@ -278,12 +278,12 @@
     on:pointercancel={up}
     on:wheel={wheel}
     on:dblclick={reset}
-    title="Vue 3D — glisser : tourner / incliner · molette : rapprocher / éloigner · double-clic : vue d'origine"
+    title="Spectre 3D — glisser : tourner / incliner · molette : rapprocher / éloigner · double-clic : vue d'origine"
   ></canvas>
   {#if failed}<div class="w3d-msg">{failed}</div>{/if}
   <div class="w3d-tools">
     <button on:click={reset} title="Revenir à la vue d'origine">⟲ Vue d'origine</button>
-    <button on:click={onClose} title="Revenir au waterfall classique">✕ 2D</button>
+    <button on:click={onClose} title="Revenir au spectre classique">✕ 2D</button>
   </div>
 </div>
 

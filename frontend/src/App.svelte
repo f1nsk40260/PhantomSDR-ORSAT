@@ -4575,7 +4575,7 @@
     turbo: "Turbo", gqrx: "Gqrx", twente: "Twente", twentev2: "Twente v2",
     SpectraVU: "SpectraVU", jet: "Jet", custom: "Perso", PhantomSDR: "PhantomSDR",
   };
-  // ORSAT : vue 3D du waterfall (désactivée par défaut).
+  // ORSAT : spectre 3D (désactivé par défaut).
   let view3D = false;
   const has3D = (() => {
     try { return !!document.createElement("canvas").getContext("webgl2"); } catch (e) { return false; }
@@ -10137,7 +10137,10 @@
                       on:select={handleAreaSelect}
                       on:cancel={handleAreaCancel}
                     />
-                    <div class="relative w-full">
+                    <div class="relative w-full" style:height={view3D ? "300px" : null}>
+                      {#if view3D}
+                        <Waterfall3D {waterfall} onClose={() => (view3D = false)} />
+                      {/if}
                       <canvas
                         class="w-full bg-black peer {spectrumDisplay
                           ? 'max-h-40'
@@ -10213,9 +10216,6 @@ Shift + Wheel = 0.1 KHz
 Ctrl + Wheel = 0.01 KHz
 Shift + Ctrl + Wheel = snap to .00 KHz"
                       ></canvas>
-                      {#if view3D}
-                        <Waterfall3D {waterfall} onClose={() => (view3D = false)} />
-                      {/if}
 
                       <!-- Cursor Frequency Display -->
                       {#if showCursorFreq && cursorFrequency !== null}
@@ -14362,10 +14362,10 @@ Cliquez à nouveau pour désactiver"
                       class="wf-3d-btn {view3D ? 'is-on' : ''}"
                       on:click={() => (view3D = !view3D)}
                       aria-pressed={view3D}
-                      title="Afficher le waterfall en relief (3D). Glisser pour tourner, molette pour rapprocher, double-clic pour la vue d'origine."
+                      title="Afficher le spectre en relief (3D). Glisser pour tourner, molette pour rapprocher, double-clic pour la vue d'origine."
                     >
                       <span aria-hidden="true">🧊</span>
-                      <span>{view3D ? "Vue 3D : ON" : "Vue 3D : OFF"}</span>
+                      <span>{view3D ? "Spectre 3D : ON" : "Spectre 3D : OFF"}</span>
                     </button>
                   {/if}
 
