@@ -265,7 +265,7 @@ export class AprsMap {
     if (st.track.length > 1) {
       if (!st.line) {
         st.line = L.polyline(st.track, this.planeIcons
-          ? { color: '#cfb53b', weight: 2, opacity: 0.7, dashArray: '4 4' }
+          ? { color: '#ff2a2a', weight: 3, opacity: 0.95 }
           : { color: '#10b981', weight: 2, opacity: 0.7 }).addTo(this.map);
       } else {
         st.line.setLatLngs(st.track);
