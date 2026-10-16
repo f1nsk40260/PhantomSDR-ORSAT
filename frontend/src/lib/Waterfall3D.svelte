@@ -33,8 +33,9 @@
 
   // Rendu : montée du passé et hauteur du relief (en unités écran, -1..1).
   const RISE = 1.25;   // remontée du sol, de l'avant au fond
-  const AMP = 0.95;    // hauteur des crêtes (devant)
-  const K = 0.35;      // perspective : le fond fait 1/(1+K) ≈ 74 % de la largeur
+  const AMP = 0.85;    // hauteur des crêtes (devant)
+  const K = 0.28;      // perspective : au fond, les signaux se rapprochent du centre d'un facteur 1/(1+K)
+  const FLOORV = "0.07";  // niveau attribué hors des traces (≈ bruit de fond), en littéral GLSL
 
   const VS = `#version 300 es
   in vec2 aUV;
@@ -55,33 +56,39 @@
     vec2 rr = texelFetch(uRange, ivec2(row, 0), 0).rg;
     float idx = uView.x + u * (uView.y - uView.x);
     float t = (idx - rr.x) / max(rr.y - rr.x, 1e-6);
-    if (t < 0.0 || t >= 1.0) return 0.0;
+    if (t < 0.0 || t >= 1.0) return ${FLOORV};   // hors de la trace : niveau du bruit
     int x = int(t * float(${W}));
     return float(texelFetch(uHist, ivec2(min(x, ${W - 1}), row), 0).r) / 255.0;
   }
 
   void main() {
     int age = int(aUV.y * float(${H - 1}) + 0.5);
-    float v = sampleAt(aUV.x, age);
-    float du = 1.0 / float(${GX - 1});
-    float vl = sampleAt(aUV.x - du, age);
-    float vr = sampleAt(aUV.x + du, age);
-    float vf = sampleAt(aUV.x, max(age - 1, 0));
-    float vb = sampleAt(aUV.x, min(age + 1, ${H - 1}));
-
     float d = aUV.y;                              // 0 = trace la plus récente (devant)
+    // Perspective : chaque rangée couvre toute la largeur de l'écran ; plus
+    // elle est loin, plus elle montre de fréquences (facteur 1/s) — seuls les
+    // signaux convergent doucement vers le centre, la nappe garde ses bords droits.
+    float s = 1.0 / (1.0 + ${K} * d);
+    float sx = aUV.x * 2.0 - 1.0;
+    float u = 0.5 + 0.5 * sx / s;
+    float v = sampleAt(u, age);
+    float du = 1.0 / float(${GX - 1}) / s;
+    float vl = sampleAt(u - du, age);
+    float vr = sampleAt(u + du, age);
+    float vf = sampleAt(u, max(age - 1, 0));
+    float vb = sampleAt(u, min(age + 1, ${H - 1}));
+
     // Perspective douce d'un plan vu de haut : au fond, largeur et hauteurs
     // sont réduites du facteur s (point de fuite au centre). Devant, s = 1 :
     // la trace la plus récente est exactement alignée sur le waterfall.
-    float s = 1.0 / (1.0 + ${K} * d);
     float sBack = 1.0 / (1.0 + ${K});
     float ground = -0.97 + uRise * (1.0 - s) / (1.0 - sBack);
     float amp = uAmp * s;
-    float y = ground + v * amp;
-    float x = (aUV.x * 2.0 - 1.0) * s;
+    // Courbe de hauteur : relève le moutonnement du bruit, comprime les signaux forts.
+    float y = ground + pow(v, 0.65) * amp;
+    float x = sx;
 
     // Éclairage : normale estimée à partir des pentes voisines.
-    vec3 n = normalize(vec3((vl - vr) * amp * 45.0, 1.0, (vf - vb) * amp * 25.0));
+    vec3 n = normalize(vec3((pow(vl, 0.65) - pow(vr, 0.65)) * amp * 45.0, 1.0, (pow(vf, 0.65) - pow(vb, 0.65)) * amp * 25.0));
     vLight = 0.5 + 0.5 * max(dot(n, normalize(vec3(-0.35, 0.8, 0.5))), 0.0);
 
     vVal = v;
@@ -100,8 +107,8 @@
 
   // Dégradé façon AetherSDR : nappe de bruit bleue, signaux du cyan au vert puis au jaune.
   vec3 ramp(float v) {
-    vec3 c0 = vec3(0.03, 0.10, 0.42);
-    vec3 c1 = vec3(0.06, 0.38, 0.92);
+    vec3 c0 = vec3(0.05, 0.22, 0.72);
+    vec3 c1 = vec3(0.10, 0.50, 1.00);
     vec3 c2 = vec3(0.25, 0.80, 1.00);
     vec3 c3 = vec3(0.30, 0.95, 0.45);
     vec3 c4 = vec3(0.95, 0.95, 0.30);
@@ -203,9 +210,12 @@
   const line = new Uint8Array(W);
   const hist256 = new Uint32Array(256);
   let floorE = -1, spanE = -1;
+  const norm = new Float32Array(W), prev = new Float32Array(W);
+  let havePrev = false, prevL = 0, prevR = 0;
   const rng = new Float32Array(2);
   function pushLine(arr, l, r) {
     if (!gl || !arr || !arr.length || !(r > l)) return;
+    if (l !== prevL || r !== prevR) { havePrev = false; prevL = l; prevR = r; }
     const n = arr.length;
     for (let x = 0; x < W; x++) {
       const i0 = Math.floor((x * n) / W);
@@ -227,8 +237,18 @@
     const base = floorE - spanE * 0.08;
     for (let x = 0; x < W; x++) {
       const v = (line[x] - base) / (spanE * 1.15);
-      line[x] = v <= 0 ? 0 : v >= 1 ? 255 : Math.round(v * 255);
+      norm[x] = v <= 0 ? 0 : v >= 1 ? 1 : v;
     }
+    // Lissage léger : entre fréquences voisines (1-2-1) puis dans le temps,
+    // pour des crêtes en « tubes » plutôt qu'en pics hérissés.
+    for (let x = 0; x < W; x++) {
+      const a = norm[x > 0 ? x - 1 : 0], b = norm[x], c = norm[x < W - 1 ? x + 1 : W - 1];
+      let v = 0.25 * a + 0.5 * b + 0.25 * c;
+      if (havePrev) v = 0.6 * v + 0.4 * prev[x];
+      prev[x] = v;
+      line[x] = Math.round(v * 255);
+    }
+    havePrev = true;
     head = (head + 1) % H;
     gl.bindTexture(gl.TEXTURE_2D, histTex);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, head, W, 1, gl.RED_INTEGER, gl.UNSIGNED_BYTE, line);
