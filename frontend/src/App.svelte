@@ -7616,6 +7616,10 @@
       element.disabled = false;
     });
 
+    // ORSAT : le réglage automatique du waterfall est le mode normal,
+    // engagé dès l'ouverture de la page.
+    if (!autoAdjustEnabled) handleAutoAdjust();
+
     // Enable WBFM option if bandwidth is wide enough
     if (audio.trueAudioSps > 170000) {
       demodulators.push("WBFM");
@@ -14213,31 +14217,39 @@ Cliquez à nouveau pour désactiver"
                 <div
                   class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg screw-panel screw-col-3"
                 >
-                  <div class="mb-4 flex items-center gap-3">
-                    <h3 class="text-white text-base font-semibold">
-                      Waterfall Controls
-                    </h3>
-                    <!-- Version française : bouton Default/Reverse retiré (reverse par défaut),
-                         remplacé par Auto Adj. -->
-                    <div class="flex items-center gap-2" id="auto-adjust">
-                      <span class="text-sm text-gray-300">Auto Adj.</span>
-                      <label class="toggle-switch">
-                        <input
-                          type="checkbox"
-                          on:change={() => handleAutoAdjust()}
-                        />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
+                  <!-- ORSAT : commandes du waterfall repensées (desktop).
+                       Le réglage automatique est le mode normal, actif au démarrage ;
+                       les curseurs ne servent qu'en mode manuel. Curseur de zoom retiré. -->
+                  <h3 class="text-white text-base font-semibold mb-3">Commandes du waterfall</h3>
 
-                  <div class="w-full mb-5 space-y-4">
-                    <div
-                      id="brightness-controls"
-                      class="flex items-center justify-between mb-2"
-                    >
-                      <span class="text-gray-300 text-sm w-10">Min:</span>
-                      <div class="slider-container w-48 mx-2">
+                  <button
+                    class="wf-auto-btn {autoAdjustEnabled ? 'is-on' : ''}"
+                    on:click={() => handleAutoAdjust()}
+                    aria-pressed={autoAdjustEnabled}
+                    title={autoAdjustEnabled
+                      ? "Le réglage automatique mesure en continu le bruit de fond et ajuste luminosité et contraste. C'est le réglage normal. Cliquez pour passer en manuel."
+                      : "Revenir au réglage automatique, le réglage normal et recommandé"}
+                  >
+                    <span class="wf-auto-icon" aria-hidden="true">{autoAdjustEnabled ? "✓" : "⟲"}</span>
+                    <span class="wf-auto-txt">
+                      {#if autoAdjustEnabled}
+                        <span class="wf-auto-main">Réglage automatique</span>
+                        <span class="wf-auto-sub">Actif · mode normal recommandé</span>
+                      {:else}
+                        <span class="wf-auto-main">Revenir au réglage automatique</span>
+                        <span class="wf-auto-sub">Vous êtes en réglage manuel</span>
+                      {/if}
+                    </span>
+                  </button>
+
+                  <div class="wf-manual w-full mb-5 {autoAdjustEnabled ? 'is-locked' : ''}">
+                    <div class="wf-manual-head">
+                      <span>Réglage manuel</span>
+                      {#if autoAdjustEnabled}<span class="wf-manual-note">valeurs choisies automatiquement</span>{/if}
+                    </div>
+                    <div id="brightness-controls" class="wf-row">
+                      <span class="wf-label" title="Niveau affiché en noir : montez-le pour assombrir le bruit de fond">Fond (bruit)</span>
+                      <div class="slider-container flex-1 mx-2">
                         <input
                           type="range"
                           bind:value={min_waterfall}
@@ -14246,16 +14258,15 @@ Cliquez à nouveau pour désactiver"
                           step="1"
                           class="glass-slider w-full"
                           on:input={handleMinMove}
-                          title="Curseur de luminosité"
+                          disabled={autoAdjustEnabled}
+                          title="Niveau affiché en noir : montez-le pour assombrir le bruit de fond"
                         />
                       </div>
-                      <span class="text-gray-300 text-sm w-10 text-right"
-                        >{min_waterfall}</span
-                      >
+                      <span class="wf-val">{min_waterfall}</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-gray-300 text-sm w-10">Max:</span>
-                      <div class="slider-container w-48 mx-2">
+                    <div class="wf-row">
+                      <span class="wf-label" title="Niveau affiché à pleine couleur : baissez-le pour faire ressortir les signaux faibles">Signaux forts</span>
+                      <div class="slider-container flex-1 mx-2">
                         <input
                           type="range"
                           bind:value={max_waterfall}
@@ -14264,69 +14275,13 @@ Cliquez à nouveau pour désactiver"
                           step="1"
                           class="glass-slider w-full"
                           on:input={handleMaxMove}
-                          title="Réglage du contraste"
+                          disabled={autoAdjustEnabled}
+                          title="Niveau affiché à pleine couleur : baissez-le pour faire ressortir les signaux faibles"
                         />
                       </div>
-                      <span class="text-gray-300 text-sm w-10 text-right"
-                        >{max_waterfall}</span
-                      >
-                    </div>
-
-                    <!-- Zoom Slider when Desktop -->
-                    <div
-                      class="flex items-center justify-between"
-                      id="zoom-slider"
-                    >
-                      <button
-                        class="glass-button text-white font-bold rounded-full w-6 h-6 flex items-center justify-center mr-4"
-                        style="background: {zoomStepEnabled
-                          ? 'rgba(0, 180, 255, 0.3)'
-                          : 'rgba(255, 255, 255, 0.05)'}"
-                        on:click={(e) => handleZoomStepMove(e, (zoomStep += 1))}
-                        title="Active le zoom manuel par pas"
-                      >
-                        <span class="text-white text-xs font-semibold">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path
-                              d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"
-                            />
-                            <path d="M21 21l-6 -6" />
-                            <path d="M8 8l-2 2l2 2" />
-                            <path d="M12 8l2 2l-2 2" />
-                          </svg>
-                        </span>
-                      </button>
-
-                      <div class="slider-container w-48 mx-2">
-                        <input
-                          type="range"
-                          bind:value={zoomStep}
-                          min="1"
-                          max="8"
-                          step="1"
-                          class="glass-slider w-full"
-                          on:input={(e) => handleZoomStepMove(e, zoomStep)}
-                          title="Réglage du zoom"
-                        />
-                      </div>
-
-                      <span class="text-gray-300 text-sm w-10 text-right"
-                        >×{zoomStep}</span
-                      >
-                      <hr class="border-gray-600 my-2" />
+                      <span class="wf-val">{max_waterfall}</span>
                     </div>
                   </div>
-                  <!-- End of Zoom Slider when Desktop -->
 
                   <MagicEyeIndicator dbm={eyeDbm} />
 
@@ -19809,6 +19764,47 @@ Slider: share of denoised audio, the rest is the original"
   .click-button:active {
     @apply bg-blue-600 text-white;
   }
+
+  /* ORSAT : commandes du waterfall */
+  .wf-auto-btn {
+    width: 100%; display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.65rem 0.9rem; margin-bottom: 1rem; border-radius: 0.6rem;
+    text-align: left; cursor: pointer; transition: all 0.2s;
+    color: rgb(207, 181, 59); background: rgba(207, 181, 59, 0.08);
+    border: 1px solid rgba(207, 181, 59, 0.55);
+  }
+  .wf-auto-btn:hover { background: rgba(207, 181, 59, 0.2); }
+  .wf-auto-btn.is-on {
+    color: #111827; border-color: rgb(207, 181, 59);
+    background: linear-gradient(180deg, rgb(226, 201, 84), rgb(190, 163, 45));
+    box-shadow: 0 0 14px rgba(207, 181, 59, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  .wf-auto-btn.is-on:hover { filter: brightness(1.06); }
+  .wf-auto-icon {
+    flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; font-weight: 800;
+    background: rgba(0, 0, 0, 0.18); border: 1px solid currentColor;
+  }
+  .wf-auto-txt { display: flex; flex-direction: column; line-height: 1.2; }
+  .wf-auto-main { font-weight: 700; font-size: 0.95rem; }
+  .wf-auto-sub { font-size: 0.72rem; opacity: 0.85; }
+  .wf-manual {
+    padding: 0.6rem 0.75rem; border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(207, 181, 59, 0.2);
+    display: flex; flex-direction: column; gap: 0.6rem; transition: opacity 0.2s;
+  }
+  .wf-manual.is-locked { opacity: 0.55; }
+  .wf-manual-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: rgb(207, 181, 59);
+  }
+  .wf-manual-note { text-transform: none; letter-spacing: 0; color: rgb(156, 163, 175); }
+  .wf-row { display: flex; align-items: center; }
+  .wf-label { width: 6.2rem; flex: none; font-size: 0.85rem; color: rgb(209, 213, 219); cursor: help; }
+  .wf-val { width: 2.4rem; flex: none; text-align: right; font-size: 0.85rem; color: rgb(209, 213, 219); }
+  .wf-manual.is-locked input[type="range"] { cursor: not-allowed; }
 
   .custom-scrollbar::-webkit-scrollbar {
     width: 12px;

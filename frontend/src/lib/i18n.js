@@ -612,6 +612,18 @@ const D = [
 
   // Colonne 3 : waterfall
   ["Commandes du waterfall", "Waterfall Controls", "Controles de la cascada"],
+  ["Réglage automatique", "Automatic adjustment", "Ajuste automático"],
+  ["Actif · mode normal recommandé", "On · recommended normal mode", "Activo · modo normal recomendado"],
+  ["Revenir au réglage automatique", "Back to automatic adjustment", "Volver al ajuste automático"],
+  ["Vous êtes en réglage manuel", "You are in manual adjustment", "Está en ajuste manual"],
+  ["Réglage manuel", "Manual adjustment", "Ajuste manual"],
+  ["valeurs choisies automatiquement", "values chosen automatically", "valores elegidos automáticamente"],
+  ["Fond (bruit)", "Background (noise)", "Fondo (ruido)"],
+  ["Signaux forts", "Strong signals", "Señales fuertes"],
+  ["Le réglage automatique mesure en continu le bruit de fond et ajuste luminosité et contraste. C'est le réglage normal. Cliquez pour passer en manuel.", "Automatic adjustment continuously measures the noise floor and sets brightness and contrast. This is the normal setting. Click to switch to manual.", "El ajuste automático mide continuamente el ruido de fondo y ajusta brillo y contraste. Es el ajuste normal. Haga clic para pasar a manual."],
+  ["Revenir au réglage automatique, le réglage normal et recommandé", "Back to automatic adjustment, the normal and recommended setting", "Volver al ajuste automático, el ajuste normal y recomendado"],
+  ["Niveau affiché en noir : montez-le pour assombrir le bruit de fond", "Level shown as black: raise it to darken the noise floor", "Nivel mostrado en negro: súbalo para oscurecer el ruido de fondo"],
+  ["Niveau affiché à pleine couleur : baissez-le pour faire ressortir les signaux faibles", "Level shown at full colour: lower it to bring out weak signals", "Nivel mostrado a pleno color: bájelo para resaltar las señales débiles"],
   ["Réglage auto", "Auto Adj.", "Ajuste auto"],
   ["Réglage automatique", "Automatic adjustment", "Ajuste automático"],
   ["Min :", "Min:", "Mín:"],
