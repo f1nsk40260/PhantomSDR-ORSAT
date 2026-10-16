@@ -4415,7 +4415,6 @@ def api_scripts_debug():
     })
 
 # ── API: Server control ───────────────────────────────────────────────────────
-@app.route("/admin/api/terminal/exec", methods=["POST"])
 def _is_plain_cd(cmd):
     """Un « cd » seul est géré par le panneau (le dossier courant est mémorisé) ;
     « cd X && commande », « cd X; commande »… part au shell tel quel."""
@@ -4425,6 +4424,7 @@ def _is_plain_cd(cmd):
 
 
 @login_required
+@app.route("/admin/api/terminal/exec", methods=["POST"])
 def api_terminal_exec():
     data = request.get_json(silent=True) or {}
     cmd  = (data.get("cmd") or "").strip()
