@@ -146,7 +146,7 @@
   import { quintOut } from "svelte/easing";
 
   import { pinch, pan } from "./lib/hammeractions.js";
-  import { availableColormaps } from "./lib/colormaps";
+  import getColormap, { availableColormaps, computeColormapArray } from "./lib/colormaps";
   import FtxSpectrum from "./lib/FtxSpectrum.svelte";
   import {
     SUBMODE_NAMES as JS8_SUBMODE_NAMES,
@@ -4567,6 +4567,27 @@
       currentColormap = savedColormap;
     }
     waterfall.setColormap(currentColormap);
+  }
+
+  // ORSAT : nuanciers de palettes (aperçu en dégradé CSS).
+  const COLORMAP_NAMES = {
+    turbo: "Turbo", gqrx: "Gqrx", twente: "Twente", twentev2: "Twente v2",
+    SpectraVU: "SpectraVU", jet: "Jet", custom: "Perso", PhantomSDR: "PhantomSDR",
+  };
+  const _gradCache = {};
+  function colormapGradient(name) {
+    if (_gradCache[name]) return _gradCache[name];
+    try {
+      const arr = computeColormapArray(getColormap(name));
+      const stops = [];
+      for (let i = 0; i <= 10; i++) {
+        const [r, g, b] = arr[Math.min(255, Math.round((i * 255) / 10))];
+        stops.push(`rgb(${r},${g},${b}) ${i * 10}%`);
+      }
+      return (_gradCache[name] = `linear-gradient(90deg, ${stops.join(", ")})`);
+    } catch (e) {
+      return "#333";
+    }
   }
 
   function handleWaterfallColormapSelect(event) {
@@ -14341,30 +14362,21 @@ Cliquez à nouveau pour désactiver"
                        supprimés de la colonne de droite — cascade et spectre
                        toujours affichés, hauteur standard. -->
 
-                  <div class="w-full mb-4">
-                    <div id="colormap-select" class="relative">
-                      <select
-                        bind:value={currentColormap}
-                        on:change={handleWaterfallColormapSelect}
-                        class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none"
-                      >
-                        {#each availableColormaps as colormap}
-                          <option value={colormap}>{colormap}</option>
-                        {/each}
-                      </select>
-                      <div
-                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
-                      >
-                        <svg
-                          class="fill-current h-4 w-4"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
+                  <!-- ORSAT : choix de la palette du waterfall sous forme de nuanciers. -->
+                  <div class="wf-pal mb-4">
+                    <h3 class="text-white text-base font-semibold text-center mb-2">Couleurs du waterfall</h3>
+                    <div class="wf-pal-grid" id="colormap-select">
+                      {#each availableColormaps as cm}
+                        <button
+                          class="wf-pal-item {currentColormap === cm ? 'is-on' : ''}"
+                          on:click={() => handleWaterfallColormapSelect({ target: { value: cm } })}
+                          aria-pressed={currentColormap === cm}
+                          title="Appliquer la palette {COLORMAP_NAMES[cm] || cm} au waterfall"
                         >
-                          <path
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          />
-                        </svg>
-                      </div>
+                          <span class="wf-pal-bar" style="background:{colormapGradient(cm)}"></span>
+                          <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[cm] || cm}</span>
+                        </button>
+                      {/each}
                     </div>
                   </div>
 
@@ -15350,6 +15362,24 @@ Cliquez à nouveau pour désactiver"
   .click-button:active {
     @apply bg-blue-600 text-white;
   }
+
+  /* ORSAT : nuanciers de palettes du waterfall (18rem : ne pas élargir la colonne). */
+  .wf-pal { width: 18rem; max-width: 100%; }
+  .wf-pal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+  .wf-pal-item {
+    display: flex; flex-direction: column; gap: 0.25rem; padding: 0.35rem 0.4rem;
+    border-radius: 0.45rem; cursor: pointer; transition: all 0.15s;
+    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(207, 181, 59, 0.25);
+  }
+  .wf-pal-item:hover { border-color: rgba(207, 181, 59, 0.6); background: rgba(207, 181, 59, 0.08); }
+  .wf-pal-item.is-on {
+    border-color: rgba(207, 181, 59, 0.9);
+    background: linear-gradient(180deg, rgba(207, 181, 59, 0.22), rgba(120, 100, 30, 0.22));
+    box-shadow: 0 0 6px rgba(207, 181, 59, 0.2);
+  }
+  .wf-pal-bar { display: block; height: 0.7rem; border-radius: 0.2rem; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4); }
+  .wf-pal-name { font-size: 0.72rem; color: rgb(209, 213, 219); text-align: center; line-height: 1.1; }
+  .wf-pal-item.is-on .wf-pal-name { color: #f3e7a6; font-weight: 700; }
 
   /* ORSAT : commandes du waterfall.
      Largeur fixe de 18rem = largeur des anciennes lignes de curseurs
