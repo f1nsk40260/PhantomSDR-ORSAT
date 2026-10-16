@@ -32,8 +32,9 @@
   let ro, raf = 0, failed = "";
 
   // Rendu : montée du passé et hauteur du relief (en unités écran, -1..1).
-  const RISE = 1.55;
-  const AMP = 0.5;
+  const RISE = 1.25;   // remontée du sol, de l'avant au fond
+  const AMP = 0.95;    // hauteur des crêtes (devant)
+  const K = 0.35;      // perspective : le fond fait 1/(1+K) ≈ 74 % de la largeur
 
   const VS = `#version 300 es
   in vec2 aUV;
@@ -69,12 +70,15 @@
     float vb = sampleAt(aUV.x, min(age + 1, ${H - 1}));
 
     float d = aUV.y;                              // 0 = trace la plus récente (devant)
-    // Profondeur : les traces se resserrent vers le fond (effet de recul),
-    // sans aucune convergence horizontale : x reste celui de la fréquence,
-    // donc rien ne penche et le relief reste aligné sur le waterfall.
-    float depth = 1.0 - pow(1.0 - d, 1.6);
-    float amp = uAmp * (1.0 - 0.45 * d);
-    float y = -1.0 + depth * uRise + pow(v, 1.15) * amp;
+    // Perspective douce d'un plan vu de haut : au fond, largeur et hauteurs
+    // sont réduites du facteur s (point de fuite au centre). Devant, s = 1 :
+    // la trace la plus récente est exactement alignée sur le waterfall.
+    float s = 1.0 / (1.0 + ${K} * d);
+    float sBack = 1.0 / (1.0 + ${K});
+    float ground = -0.97 + uRise * (1.0 - s) / (1.0 - sBack);
+    float amp = uAmp * s;
+    float y = ground + v * amp;
+    float x = (aUV.x * 2.0 - 1.0) * s;
 
     // Éclairage : normale estimée à partir des pentes voisines.
     vec3 n = normalize(vec3((vl - vr) * amp * 45.0, 1.0, (vf - vb) * amp * 25.0));
@@ -83,7 +87,7 @@
     vVal = v;
     vAge = d;
     vRow = aUV.y * float(${GY - 1});
-    gl_Position = vec4(aUV.x * 2.0 - 1.0, y, d * 0.98, 1.0);
+    gl_Position = vec4(x, y, d * 0.98, 1.0);
   }`;
 
   const FS = `#version 300 es
@@ -111,11 +115,11 @@
 
   void main() {
     vec3 c = ramp(vVal) * vLight;
-    // Une fine ligne claire par trace (une sur deux) : l'aspect « fil de fer ».
-    float r = vRow * 0.5;
+    // Une ligne discrète toutes les quatre traces : l'aspect « fil de fer ».
+    float r = vRow * 0.25;
     float g = min(fract(r), 1.0 - fract(r));
     float line = 1.0 - smoothstep(0.0, fwidth(r) * 1.2, g);
-    c += line * 0.22 * vec3(0.7, 0.85, 1.0);
+    c += line * 0.10 * vec3(0.7, 0.85, 1.0);
     c *= 1.0 - 0.35 * vAge;                 // le passé s'estompe doucement
     frag = vec4(c, 1.0);
   }`;
@@ -197,6 +201,8 @@
 
   /** Nouvelle trace : indices de palette 0-255 couvrant les indices FFT [l, r]. */
   const line = new Uint8Array(W);
+  const hist256 = new Uint32Array(256);
+  let floorE = -1, spanE = -1;
   const rng = new Float32Array(2);
   function pushLine(arr, l, r) {
     if (!gl || !arr || !arr.length || !(r > l)) return;
@@ -207,6 +213,21 @@
       let m = 0;
       for (let i = i0; i < i1 && i < n; i++) if (arr[i] > m) m = arr[i];   // max : garde les porteuses fines
       line[x] = m;
+    }
+    // Étalonnage sur le bruit de fond de la trace (lissé dans le temps) :
+    // le bruit forme une nappe qui moutonne, les signaux s'en dressent.
+    hist256.fill(0);
+    for (let x = 0; x < W; x++) hist256[line[x]]++;
+    let acc = 0, p20 = 0, p995 = 255;
+    for (let i = 0; i < 256; i++) { acc += hist256[i]; if (acc >= W * 0.2) { p20 = i; break; } }
+    acc = 0;
+    for (let i = 255; i >= 0; i--) { acc += hist256[i]; if (acc >= W * 0.005) { p995 = i; break; } }
+    floorE = floorE < 0 ? p20 : floorE * 0.9 + p20 * 0.1;
+    spanE = spanE < 0 ? Math.max(40, p995 - p20) : spanE * 0.95 + Math.max(40, p995 - p20) * 0.05;
+    const base = floorE - spanE * 0.08;
+    for (let x = 0; x < W; x++) {
+      const v = (line[x] - base) / (spanE * 1.15);
+      line[x] = v <= 0 ? 0 : v >= 1 ? 255 : Math.round(v * 255);
     }
     head = (head + 1) % H;
     gl.bindTexture(gl.TEXTURE_2D, histTex);
