@@ -184,11 +184,19 @@
       Math.abs(pos.lat) <= 90 &&
       Math.abs(pos.lon) <= 180 &&
       !(pos.lat === 0 && pos.lon === 0);
-    const aircraft = [
-      acars && acars.reg ? String(acars.reg).replace(/^\.+/, "") : "",
-      (acars && acars.flight) || (flightId ? String(flightId).trim() : ""),
-      icao ? String(icao).toUpperCase() : "",
-    ].filter(Boolean);
+    const regTxt = acars && acars.reg ? String(acars.reg).replace(/^\.+/, "").trim() : "";
+    const fltTxt = String((acars && acars.flight) || (flightId ? String(flightId) : "")).trim();
+    const icaoTxt = icao ? String(icao).toUpperCase() : "";
+    const aircraft = [regTxt, fltTxt, icaoTxt].filter(Boolean);
+    // Liens FlightAware : vol, immatriculation, adresse ICAO 24 bits (Mode S).
+    const fa = [];
+    if (regTxt) fa.push({ t: regTxt, url: `https://www.flightaware.com/live/flight/${encodeURIComponent(regTxt.replace(/[^A-Za-z0-9]/g, ""))}`, title: "Fiche de l'avion (immatriculation) sur FlightAware" });
+    if (fltTxt) {
+      // ACARS écrit souvent « AF0123 » : FlightAware attend « AF123 ».
+      const f = fltTxt.replace(/[^A-Za-z0-9]/g, "").replace(/^([A-Za-z]{2,3})0+(\d)/, "$1$2");
+      fa.push({ t: fltTxt, url: `https://www.flightaware.com/live/flight/${encodeURIComponent(f)}`, title: "Fiche du vol sur FlightAware" });
+    }
+    if (icaoTxt) fa.push({ t: icaoTxt, url: `https://www.flightaware.com/live/modes/${encodeURIComponent(icaoTxt.toLowerCase())}/redirect`, title: "Avion identifié par son transpondeur (ICAO 24 bits) sur FlightAware" });
     return {
       id: `${h.t ? h.t.sec + "." + h.t.usec : Date.now()}-${Math.random()}`,
       time: t.toISOString().slice(11, 19),
@@ -203,6 +211,7 @@
       gsName: entityLabel(gs),
       acName: uplink ? entityLabel(dst) : entityLabel(src),
       aircraft: aircraft.join(" · "),
+      fa,
       kind,
       label: acars && acars.label ? acars.label : "",
       msgText: acars && acars.msg_text ? String(acars.msg_text).trim() : "",
@@ -414,7 +423,14 @@
           >
           <span class="text-gray-200">{m.gsName}</span>
           {#if !m.squitter && m.acName}<span class="text-gray-400">{m.acName}</span>{/if}
-          {#if m.aircraft}<span class="text-yellow-300 font-semibold">{m.aircraft}</span>{/if}
+          {#if m.fa && m.fa.length}
+            <span class="text-yellow-300 font-semibold" data-no-i18n>
+              {#each m.fa as a, i}{#if i}<span class="text-gray-500"> · </span>{/if}<a
+                  href={a.url} target="_blank" rel="noopener noreferrer"
+                  class="hover:underline hover:text-yellow-200" title={a.title}
+                  on:click|stopPropagation>{a.t}</a>{/each}
+            </span>
+          {:else if m.aircraft}<span class="text-yellow-300 font-semibold">{m.aircraft}</span>{/if}
           <span class="text-teal-300">{m.kind}{m.label ? ` ${m.label}` : ""}</span>
           {#if m.snr !== null}<span class="text-gray-500">{m.snr.toFixed(0)} dB</span>{/if}
           {#if m.bps}<span class="text-gray-600">{m.bps} bps</span>{/if}
