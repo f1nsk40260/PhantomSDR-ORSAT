@@ -121,13 +121,11 @@
 
 <div class="glass-window modeid-panel rounded-md px-3 py-2.5 text-xs w-full">
   <!-- Ligne 1 : titre, explication, interrupteur d'analyse et recherche manuelle -->
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-    <span class="modeid-icon" aria-hidden="true">📡</span>
-    <div class="flex flex-col leading-tight min-w-0">
-      <span class="modeid-title">ANALYSE DES SIGNAUX NUMÉRIQUES</span>
-      <span class="text-gray-400 text-[11px]">Tente de reconnaître le signal</span>
-    </div>
-    <span class="flex-1"></span>
+  <div class="modeid-head">
+    <span class="modeid-title"><span class="modeid-icon" aria-hidden="true">📡</span>ANALYSE DES SIGNAUX NUMÉRIQUES</span>
+    <span class="modeid-sub">Tente de reconnaître le signal et propose un décodeur adapté. Expérimental !</span>
+  </div>
+  <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 mt-2">
     <button
       class="modeid-switch {on ? 'is-on' : ''}"
       on:click={() => dispatch("toggle")}
@@ -237,7 +235,10 @@
     border-left: 3px solid rgb(207, 181, 59);
     box-shadow: inset 0 0 0 1px rgba(207, 181, 59, 0.18);
   }
-  .modeid-icon { font-size: 1.35rem; line-height: 1; }
+  .modeid-head { display: flex; flex-direction: column; align-items: center; text-align: center; line-height: 1.25; }
+  .modeid-icon { font-size: 1.2rem; line-height: 1; margin-right: 0.45rem; }
+  .modeid-title { display: inline-flex; align-items: center; justify-content: center; }
+  .modeid-sub { color: rgb(207, 181, 59); opacity: 0.85; font-size: 11px; margin-top: 2px; }
   .modeid-title {
     color: rgb(207, 181, 59);
     font-weight: 700;
@@ -247,21 +248,22 @@
   .modeid-switch {
     display: inline-flex; align-items: center; gap: 0.45rem;
     padding: 0.3rem 0.7rem 0.3rem 0.35rem; border-radius: 999px;
-    background: rgb(55, 65, 81); color: rgb(209, 213, 219);
+    color: rgb(207, 181, 59); border: 1px solid rgba(207, 181, 59, 0.55);
+    background: rgba(207, 181, 59, 0.08);
     font-weight: 600; white-space: nowrap; transition: all 0.2s;
   }
-  .modeid-switch:hover { background: rgb(75, 85, 99); }
-  .modeid-switch.is-on { background: rgb(37, 99, 235); color: #fff; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+  .modeid-switch:hover { background: rgba(207, 181, 59, 0.2); color: #f3e7a6; }
+  .modeid-switch.is-on { background: rgb(207, 181, 59); color: #111827; border-color: rgb(207, 181, 59); box-shadow: 0 0 10px rgba(207, 181, 59, 0.55); }
   .modeid-knob {
     width: 1.6rem; height: 0.95rem; border-radius: 999px; position: relative;
     background: rgba(0, 0, 0, 0.35); flex: none;
   }
   .modeid-knob::after {
     content: ""; position: absolute; top: 0.12rem; left: 0.12rem;
-    width: 0.71rem; height: 0.71rem; border-radius: 50%; background: #d1d5db;
+    width: 0.71rem; height: 0.71rem; border-radius: 50%; background: rgb(207, 181, 59);
     transition: transform 0.2s;
   }
-  .modeid-switch.is-on .modeid-knob::after { transform: translateX(0.65rem); background: #fff; }
+  .modeid-switch.is-on .modeid-knob::after { transform: translateX(0.65rem); background: #111827; }
   .modeid-lookup {
     padding: 0.3rem 0.75rem; border-radius: 0.375rem; white-space: nowrap;
     color: rgb(207, 181, 59); border: 1px solid rgba(207, 181, 59, 0.55);

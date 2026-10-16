@@ -736,7 +736,7 @@ const D = [
   ["Analyse : ON", "Analysis: ON", "Análisis: ON"],
   ["Analyse : OFF", "Analysis: OFF", "Análisis: OFF"],
   ["ANALYSE DES SIGNAUX NUMÉRIQUES", "DIGITAL SIGNAL ANALYSIS", "ANÁLISIS DE SEÑALES DIGITALES"],
-  ["Tente de reconnaître le signal", "Tries to recognise the signal", "Intenta reconocer la señal"],
+  ["Tente de reconnaître le signal et propose un décodeur adapté. Expérimental !", "Tries to recognise the signal and offers a suitable decoder. Experimental!", "Intenta reconocer la señal y propone un decodificador adecuado. ¡Experimental!"],
   ["Analyse automatique : ON", "Automatic analysis: ON", "Análisis automático: ON"],
   ["Analyse automatique : OFF", "Automatic analysis: OFF", "Análisis automático: OFF"],
   ["Toutes les catégories", "All categories", "Todas las categorías"],
