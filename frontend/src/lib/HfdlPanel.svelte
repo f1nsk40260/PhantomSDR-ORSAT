@@ -30,6 +30,45 @@
     return { destroy: () => acMap.close() };
   }
 
+  // ── Carte grand format : fenêtre flottante, déplaçable et redimensionnable ──
+  let bigMap = false;
+  let bx = null, by = null, bdrag = null, bwin;
+  function openBig() { showMap = false; bigMap = true; }
+  function closeBig() { bigMap = false; }
+  // La fenêtre est rattachée à <body> : aucun parent (transform, filtre) ne la contraint.
+  function portal(node) {
+    document.body.appendChild(node);
+    return { destroy: () => node.remove() };
+  }
+  function bigMount(node) {
+    mapError = "";
+    const r = node.closest(".hfdl-big");
+    if (r && bx === null) {
+      const w = r.offsetWidth, h = r.offsetHeight;
+      bx = Math.max(8, (window.innerWidth - w) / 2);
+      by = Math.max(8, (window.innerHeight - h) / 2);
+    }
+    acMap.open(node).then(
+      () => acMap.fitAll(),
+      (e) => (mapError = "Carte indisponible : " + (e && e.message ? e.message : e)),
+    );
+    const ro = new ResizeObserver(() => acMap.invalidate());
+    ro.observe(node);
+    return { destroy: () => { ro.disconnect(); acMap.close(); } };
+  }
+  function bigDown(e) {
+    if (e.button !== 0 || e.target.closest("button")) return;
+    bdrag = { x: e.clientX - bx, y: e.clientY - by };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+  function bigMove(e) {
+    if (!bdrag) return;
+    bx = Math.min(Math.max(e.clientX - bdrag.x, 40 - (bwin ? bwin.offsetWidth : 400)), window.innerWidth - 40);
+    by = Math.min(Math.max(e.clientY - bdrag.y, 0), window.innerHeight - 36);
+  }
+  function bigUp() { bdrag = null; }
+  function bigKey(e) { if (bigMap && e.key === "Escape") closeBig(); }
+
   function addPlane(m) {
     if (!m.pos) return;
     const call = m.aircraft || m.acName || "Avion";
@@ -264,7 +303,12 @@
       <button
         title="Afficher la carte des avions dont une position a été reçue"
         class="text-green-100 {showMap ? 'bg-green-700' : 'bg-green-900'} hover:bg-green-800 text-xs px-2 py-0.5 rounded border border-green-700 hover:border-green-500 transition-colors"
-        on:click={() => (showMap = !showMap)}>🗺 Carte ({planeCount})</button
+        on:click={() => { bigMap = false; showMap = !showMap; }}>🗺 Carte ({planeCount})</button
+      >
+      <button
+        title="Ouvrir la carte des avions dans une grande fenêtre déplaçable et redimensionnable"
+        class="text-green-100 {bigMap ? 'bg-green-700' : 'bg-green-900'} hover:bg-green-800 text-xs px-2 py-0.5 rounded border border-green-700 hover:border-green-500 transition-colors"
+        on:click={() => (bigMap ? closeBig() : openBig())}>⤢ Grand format</button
       >
       <button
         title="Enregistrer les messages HFDL décodés (texte)"
@@ -395,3 +439,63 @@
     Décodeur dumphfdl (GPL-3) en WebAssembly, sur l'audio USB avant les filtres d'écoute. Survolez un message pour voir la trame complète.
   </p>
 </div>
+
+<svelte:window on:keydown={bigKey} />
+
+{#if bigMap}
+  <div
+    use:portal
+    bind:this={bwin}
+    class="hfdl-big"
+    role="dialog"
+    aria-label="Carte HFDL"
+    style={bx === null ? "visibility:hidden" : `left:${bx}px; top:${by}px`}
+  >
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div class="hfdl-big-head" class:dragging={bdrag}
+      on:pointerdown={bigDown} on:pointermove={bigMove} on:pointerup={bigUp} on:pointercancel={bigUp}
+      title="Glisser pour déplacer la fenêtre">
+      <span class="hfdl-grip" aria-hidden="true">⠿</span>
+      <span class="hfdl-big-title">HFDL — carte des avions ({planeCount})</span>
+      <span style="flex:1"></span>
+      <button class="hfdl-big-btn" on:click={() => acMap.fitAll()} title="Recadrer sur tous les avions">⌖ Tout voir</button>
+      <button class="hfdl-big-btn" on:click={closeBig} title="Fermer" aria-label="Fermer">✕</button>
+    </div>
+    <div class="hfdl-big-map" use:bigMount></div>
+    {#if mapError}
+      <div class="hfdl-big-note err">{mapError}</div>
+    {:else if planeCount === 0}
+      <div class="hfdl-big-note">Aucune position reçue pour l'instant : seuls certains messages (rapports de position, données de performance) en contiennent.</div>
+    {/if}
+  </div>
+{/if}
+
+<style>
+  .hfdl-big {
+    position: fixed; z-index: 1000;
+    width: min(1100px, calc(100vw - 16px)); height: min(72vh, 760px);
+    min-width: 420px; min-height: 280px;
+    max-width: calc(100vw - 8px); max-height: calc(100vh - 8px);
+    resize: both; overflow: hidden;
+    display: flex; flex-direction: column;
+    border-radius: 8px; background: rgba(17, 24, 39, 0.97);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(207, 181, 59, 0.45);
+  }
+  .hfdl-big-head {
+    display: flex; align-items: center; gap: 10px; padding: 6px 10px;
+    border-bottom: 1px solid #374151; background: rgba(207, 181, 59, 0.10);
+    cursor: grab; user-select: none; touch-action: none;
+  }
+  .hfdl-big-head.dragging { cursor: grabbing; }
+  .hfdl-grip { color: rgb(207, 181, 59); font-size: 15px; line-height: 1; }
+  .hfdl-big-title { color: #f3e7a6; font-weight: 600; font-size: 13px; }
+  .hfdl-big-btn {
+    padding: 2px 8px; border-radius: 5px; font-size: 12px; font-weight: 600;
+    color: rgb(207, 181, 59); background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(207, 181, 59, 0.55);
+  }
+  .hfdl-big-btn:hover { background: rgba(207, 181, 59, 0.18); }
+  .hfdl-big-map { flex: 1; min-height: 0; }
+  .hfdl-big-note { font-size: 11px; color: #9ca3af; font-style: italic; padding: 4px 10px; }
+  .hfdl-big-note.err { color: #f87171; font-style: normal; }
+</style>
