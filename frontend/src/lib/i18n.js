@@ -612,6 +612,10 @@ const D = [
 
   // Colonne 3 : waterfall
   ["Commandes du waterfall", "Waterfall Controls", "Controles de la cascada"],
+  ["AGC Auto : la CAG du récepteur, polyvalente. Bon choix par défaut pour l'écoute générale.", "AGC Auto: the receiver's own AGC, all-purpose. A good default for general listening.", "AGC Auto: el CAG del receptor, polivalente. Buena opción por defecto para la escucha general."],
+  ["AGC Rapide (remontée en 0,3 s environ) : idéale en CW et en modes numériques (RTTY, PSK…), et sur bande bruyante (QRN, parasites).", "Fast AGC (recovers in about 0.3 s): best for CW and digital modes (RTTY, PSK…), and on noisy bands (QRN, static).", "AGC rápido (recupera en unos 0,3 s): ideal en CW y modos digitales (RTTY, PSK…), y en bandas ruidosas (QRN, parásitos)."],
+  ["AGC Moyenne (maintien 0,25 s, remontée 1,2 s) : idéale en SSB (BLU) pour les QSO, et en AM avec fading.", "Medium AGC (0.25 s hold, 1.2 s recovery): best for SSB QSOs, and for AM with fading.", "AGC medio (retención 0,25 s, recuperación 1,2 s): ideal en SSB (BLU) para los QSO, y en AM con desvanecimiento."],
+  ["AGC Lente (maintien 1 s, remontée 3 s) : idéale en AM (radiodiffusion) et pour les signaux SSB stables ; utilisée automatiquement par les décodeurs.", "Slow AGC (1 s hold, 3 s recovery): best for AM broadcast and steady SSB signals; used automatically by the decoders.", "AGC lento (retención 1 s, recuperación 3 s): ideal en AM (radiodifusión) y para señales SSB estables; usado automáticamente por los decodificadores."],
   ["Couleurs du waterfall", "Waterfall colours", "Colores de la cascada"],
   ["Couleurs", "Colours", "Colores"],
   ["Choisir la palette de couleurs du waterfall", "Choose the waterfall colour palette", "Elegir la paleta de colores de la cascada"],

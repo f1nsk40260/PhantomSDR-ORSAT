@@ -10888,9 +10888,14 @@ Cliquez à nouveau pour désactiver"
                   <!-- End Compressor Popup -->
                   <div class="w-full mb-6">
                     <div id="moreoptions" class="grid grid-cols-4 gap-2">
-                      {#each [{ option: "Auto", AGCbutton: 0 }, { option: "Fast", AGCbutton: 1 }, { option: "Medium", AGCbutton: 2 }, { option: "Slow", AGCbutton: 3 }] as { option, AGCbutton }}
+                      {#each [
+                        { option: "Auto", AGCbutton: 0, tip: "AGC Auto : la CAG du récepteur, polyvalente. Bon choix par défaut pour l'écoute générale." },
+                        { option: "Fast", AGCbutton: 1, tip: "AGC Rapide (remontée en 0,3 s environ) : idéale en CW et en modes numériques (RTTY, PSK…), et sur bande bruyante (QRN, parasites)." },
+                        { option: "Medium", AGCbutton: 2, tip: "AGC Moyenne (maintien 0,25 s, remontée 1,2 s) : idéale en SSB (BLU) pour les QSO, et en AM avec fading." },
+                        { option: "Slow", AGCbutton: 3, tip: "AGC Lente (maintien 1 s, remontée 3 s) : idéale en AM (radiodiffusion) et pour les signaux SSB stables ; utilisée automatiquement par les décodeurs." },
+                      ] as { option, AGCbutton, tip }}
                         <button
-                          title={`Réglage AGC : ${option}`}
+                          title={tip}
                           class={`retro-button text-white font-bold h-8 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out ${
                             AGCbutton == currentAGC
                               ? "bg-blue-600 pressed scale-95"
