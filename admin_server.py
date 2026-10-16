@@ -740,7 +740,7 @@ def run_script(script_name):
     else:
         script_path = base / script_name
     if not script_path.exists():
-        return False, "Script not found: " + str(script_path)
+        return False, "Script introuvable : " + str(script_path)
     try:
         script_path.chmod(script_path.stat().st_mode | 0o111)
         proc = subprocess.Popen(
@@ -757,7 +757,7 @@ def run_script(script_name):
             out = "(running in background)"
         with log_lock:
             log_buffer.append("[" + datetime.now().strftime("%H:%M:%S") + "] RAN " + script_name + ": " + out[:200])
-        return True, "Started " + script_path.name + " (PID " + str(proc.pid) + ")" + chr(10) + out
+        return True, "Démarré : " + script_path.name + " (PID " + str(proc.pid) + ")" + chr(10) + out
     except Exception as e:
         return False, str(e)
 
@@ -773,7 +773,7 @@ def stop_server():
     # Last resort: kill by process name
     try:
         subprocess.run(["killall", "spectrumserver"], capture_output=True)
-        return True, "Sent SIGTERM to spectrumserver"
+        return True, "SIGTERM envoyé à spectrumserver"
     except Exception as e:
         return False, str(e)
 
@@ -788,7 +788,7 @@ def write_file_safe(path, content):
     try:
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
-        return True, "Saved successfully"
+        return True, "Enregistré avec succès"
     except Exception as e:
         return False, str(e)
 
@@ -881,11 +881,11 @@ def tail_log(n=100, log_name=None):
 
 # ─── HTML Template ─────────────────────────────────────────────────────────────
 LOGIN_HTML = """<!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhantomSDR Admin · Login</title>
+<title>PhantomSDR Admin · Connexion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -943,14 +943,14 @@ input[type=password]:focus{border-color:var(--green);box-shadow:var(--glow);}
   <div class="logo">
     <div class="logo-icon">📡</div>
     <div class="logo-title">PHANTOM<span style="color:var(--amber)">SDR</span></div>
-    <div class="logo-sub">ADMIN CONTROL PANEL</div>
+    <div class="logo-sub">PANNEAU D'ADMINISTRATION</div>
   </div>
   <div class="card">
     {% if error %}<div class="error">⚠ {{ error }}</div>{% endif %}
     <form method="post">
-      <label>ACCESS CODE</label>
+      <label>CODE D'ACCÈS</label>
       <input type="password" name="password" autofocus placeholder="••••••••">
-      <button type="submit" class="btn">▶ AUTHENTICATE<span class="blink">_</span></button>
+      <button type="submit" class="btn">▶ SE CONNECTER<span class="blink">_</span></button>
     </form>
   </div>
 </div>
@@ -958,11 +958,11 @@ input[type=password]:focus{border-color:var(--green);box-shadow:var(--glow);}
 </html>"""
 
 SETUP_HTML = """<!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhantomSDR Admin &#183; Setup</title>
+<title>PhantomSDR Admin &#183; Installation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -1007,40 +1007,40 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
   <div class="logo">
     <div class="logo-icon">&#128225;</div>
     <div class="logo-title">PHANTOM<span style="color:var(--amber)">SDR</span></div>
-    <div class="logo-sub">FIRST-RUN SETUP</div>
+    <div class="logo-sub">PREMIÈRE CONFIGURATION</div>
   </div>
   <div class="card">
-    <div class="step-label">&#9654; CONFIGURE YOUR STATION</div>
+    <div class="step-label">&#9654; CONFIGUREZ VOTRE STATION</div>
     <div class="field">
-      <label>SDR INSTALLATION DIRECTORY</label>
-      <button class="detect-btn" onclick="autoDetect()" id="detect-btn">&#9889; AUTO-DETECT</button>
+      <label>RÉPERTOIRE D'INSTALLATION SDR</label>
+      <button class="detect-btn" onclick="autoDetect()" id="detect-btn">&#9889; DÉTECTION AUTO</button>
       <select id="dir-sel" onchange="dirSelChange()" style="margin-bottom:.4rem;display:none;"></select>
-      <input type="text" id="sdr-dir" placeholder="/path/to/PhantomSDR-Plus">
-      <div class="hint">Root folder containing config.toml, build/, frontend/, etc.</div>
+      <input type="text" id="sdr-dir" placeholder="/chemin/vers/PhantomSDR-Plus">
+      <div class="hint">Dossier racine contenant config.toml, build/, frontend/, etc.</div>
     </div>
     <div class="field-row">
       <div class="field">
-        <label>SDR PROCESS NAME</label>
+        <label>NOM DU PROCESSUS SDR</label>
         <input type="text" id="proc-name" value="spectrumserver" placeholder="spectrumserver">
-        <div class="hint">For ONLINE status detection</div>
+        <div class="hint">Pour détecter l'état EN LIGNE</div>
       </div>
       <div class="field">
-        <label>PUBLIC PORT</label>
+        <label>PORT PUBLIC</label>
         <input type="number" id="pub-port" value="8900" placeholder="8900" min="1" max="65535">
-        <div class="hint">Port users connect to</div>
+        <div class="hint">Port auquel les auditeurs se connectent</div>
       </div>
     </div>
     <div class="field">
-      <label>NEW ADMIN PASSWORD <span style="color:var(--red)">*</span></label>
-      <input type="password" id="new-pwd" placeholder="Choose a strong password" autocomplete="new-password">
+      <label>NOUVEAU MOT DE PASSE ADMIN <span style="color:var(--red)">*</span></label>
+      <input type="password" id="new-pwd" placeholder="Choisissez un mot de passe robuste" autocomplete="new-password">
     </div>
     <div class="field">
-      <label>CONFIRM PASSWORD</label>
-      <input type="password" id="new-pwd2" placeholder="Repeat password" autocomplete="new-password">
+      <label>CONFIRMER LE MOT DE PASSE</label>
+      <input type="password" id="new-pwd2" placeholder="Répétez le mot de passe" autocomplete="new-password">
     </div>
     <div class="err" id="err-box"></div>
-    <div class="ok-msg" id="ok-box">Setup complete! Redirecting...<span class="blink">_</span></div>
-    <button class="btn" onclick="completeSetup()" id="setup-btn">&#9654; COMPLETE SETUP<span class="blink">_</span></button>
+    <div class="ok-msg" id="ok-box">Configuration terminée ! Redirection…<span class="blink">_</span></div>
+    <button class="btn" onclick="completeSetup()" id="setup-btn">&#9654; TERMINER LA CONFIGURATION<span class="blink">_</span></button>
   </div>
 </div>
 <script>
@@ -1062,11 +1062,11 @@ async function autoDetect() {
         sel.appendChild(opt);
       });
       document.getElementById("sdr-dir").value = candidates[0];
-      btn.textContent = "Found " + candidates.length + " candidate(s)";
+      btn.textContent = "Trouvé : " + candidates.length + " candidat(s)";
     } else {
-      btn.textContent = "Nothing found — enter path manually";
+      btn.textContent = "Rien trouvé — saisissez le chemin à la main";
     }
-  } catch(e) { btn.textContent = "Detection failed"; }
+  } catch(e) { btn.textContent = "Échec de la détection"; }
   btn.disabled = false;
 }
 function dirSelChange() {
@@ -1085,10 +1085,10 @@ async function completeSetup() {
   var pp  = parseInt(document.getElementById("pub-port").value) || 8900;
   var pw  = document.getElementById("new-pwd").value;
   var pw2 = document.getElementById("new-pwd2").value;
-  if (!dir)          { showErr("SDR base directory is required"); return; }
-  if (!pw)           { showErr("Password is required"); return; }
-  if (pw.length < 12) { showErr("Password must be at least 12 characters"); return; }
-  if (pw !== pw2)    { showErr("Passwords do not match"); return; }
+  if (!dir)          { showErr("Le répertoire de base SDR est obligatoire"); return; }
+  if (!pw)           { showErr("Le mot de passe est obligatoire"); return; }
+  if (pw.length < 12) { showErr("Le mot de passe doit contenir au moins 12 caractères"); return; }
+  if (pw !== pw2)    { showErr("Les mots de passe ne correspondent pas"); return; }
   var btn = document.getElementById("setup-btn");
   btn.disabled = true; btn.textContent = "Saving...";
   try {
@@ -1104,12 +1104,12 @@ async function completeSetup() {
       btn.style.display = "none";
       setTimeout(function() { window.location.href = "/admin/dashboard"; }, 1200);
     } else {
-      showErr(d.msg || "Setup failed");
-      btn.disabled = false; btn.textContent = "&#9654; COMPLETE SETUP_";
+      showErr(d.msg || "Échec de la configuration");
+      btn.disabled = false; btn.textContent = "&#9654; TERMINER LA CONFIGURATION_";
     }
   } catch(e) {
-    showErr("Network error: " + e.message);
-    btn.disabled = false; btn.textContent = "&#9654; COMPLETE SETUP_";
+    showErr("Erreur réseau : " + e.message);
+    btn.disabled = false; btn.textContent = "&#9654; TERMINER LA CONFIGURATION_";
   }
 }
 autoDetect();
@@ -1118,11 +1118,11 @@ autoDetect();
 </html>"""
 
 MAIN_HTML = """<!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhantomSDR Admin Panel</title>
+<title>PhantomSDR · Panneau d'administration</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -1480,45 +1480,45 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <div class="sub">ADMIN v5.1.0</div>
     </div>
     <div class="nav-section">
-      <div class="nav-label">MAIN</div>
+      <div class="nav-label">PRINCIPAL</div>
       <a class="nav-item active" onclick="showPage('dashboard',this)" href="#">
-        <span class="icon">⬡</span><span>Dashboard</span>
+        <span class="icon">⬡</span><span>Tableau de bord</span>
       </a>
     </div>
     <div class="nav-section">
       <div class="nav-label">CONFIGURATION</div>
       <a class="nav-item" onclick="showPage('config',this)" href="#">
-        <span class="icon">⚙</span><span>Config Editor</span>
+        <span class="icon">⚙</span><span>Éditeur de config</span>
       </a>
       <a class="nav-item" onclick="showPage('siteinfo',this)" href="#">
-        <span class="icon">◎</span><span>Site Info</span>
+        <span class="icon">◎</span><span>Infos du site</span>
       </a>
       <a class="nav-item" onclick="showPage('markers',this)" href="#">
-        <span class="icon">◉</span><span>Markers</span>
+        <span class="icon">◉</span><span>Marqueurs</span>
       </a>
       <a class="nav-item" onclick="showPage('reporting',this)" href="#">
-        <span class="icon">📶</span><span>Spot Reporting</span>
+        <span class="icon">📶</span><span>Envoi des spots</span>
       </a>
     </div>
     <div class="nav-section">
-      <div class="nav-label">MONITORING</div>
+      <div class="nav-label">SURVEILLANCE</div>
       <a class="nav-item" onclick="showPage('logs',this)" href="#">
-        <span class="icon">▤</span><span>Log Viewer</span>
+        <span class="icon">▤</span><span>Journaux</span>
       </a>
       <a class="nav-item" onclick="showPage('chat',this)" href="#">
-        <span class="icon">◫</span><span>Chat History</span>
+        <span class="icon">◫</span><span>Historique du chat</span>
       </a>
       <a class="nav-item" onclick="showPage('graphs',this)" href="#">
-        <span class="icon">📈</span><span>Graphs</span>
+        <span class="icon">📈</span><span>Graphiques</span>
       </a>
       <a class="nav-item" onclick="showPage('users',this)" href="#">
-        <span class="icon">👥</span><span>Users</span>
+        <span class="icon">👥</span><span>Auditeurs connectés</span>
       </a>
       <a class="nav-item" onclick="showPage('listeners',this)" href="#">
         <span class="icon">🔎</span><span>Analyse auditeurs</span>
       </a>
       <a class="nav-item" onclick="showPage('wfmsg',this)" href="#">
-        <span class="icon">📢</span><span>WF Message</span>
+        <span class="icon">📢</span><span>Message waterfall</span>
       </a>
       <a class="nav-item" onclick="showPage('map',this)" href="#">
         <span class="icon">🗺</span><span>Carte auditeurs</span>
@@ -1531,7 +1531,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       </a>
     </div>
     <div class="nav-section">
-      <div class="nav-label">SYSTEM</div>
+      <div class="nav-label">SYSTÈME</div>
       <a class="nav-item" onclick="showPage('update',this)" href="#">
         <span class="icon">🔄</span><span>Mise à jour</span>
       </a>
@@ -1539,7 +1539,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
         <span class="icon">💾</span><span>Sauvegardes</span>
       </a>
       <a class="nav-item" onclick="showPage('settings',this)" href="#">
-        <span class="icon">◧</span><span>Settings</span>
+        <span class="icon">◧</span><span>Réglages</span>
       </a>
     </div>
     <div class="sidebar-footer">
@@ -1550,14 +1550,14 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
   <!-- Main -->
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="page-title">DASHBOARD</div>
+      <div class="topbar-title" id="page-title">TABLEAU DE BORD</div>
       <div class="topbar-right">
         <div id="sdr-status" class="status-pill offline">
           <div class="status-dot offline"></div>
-          <span>OFFLINE</span>
+          <span>HORS LIGNE</span>
         </div>
         <div class="topbar-time" id="clock">--:--:--</div>
-        <a class="logout-btn" href="/admin/logout">⏻ LOGOUT</a>
+        <a class="logout-btn" href="/admin/logout">⏻ DÉCONNEXION</a>
       </div>
     </div>
 
@@ -1566,12 +1566,12 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       {% if fork_origin %}
       <!-- Installed from a fork — see fork_origin() -->
       <div class="fork-notice">
-        &#9432; This copy of PhantomSDR-Plus was installed from a fork:
+        &#9432; Cette copie de PhantomSDR-Plus a été installée depuis un fork :
         <b>{{ fork_origin }}</b><br>
-        The original PhantomSDR-Plus is developed at
+        Le PhantomSDR-Plus d'origine est développé sur
         <a href="{{ origin_repo }}" target="_blank" rel="noopener noreferrer">{{ origin_repo }}</a>.
-        A fork may be older than the original or changed by its owner; updates,
-        documentation and support come from the original.
+        Un fork peut être plus ancien que l'original ou modifié par son auteur ; mises à jour,
+        documentation et assistance proviennent de l'original.
       </div>
       {% endif %}
 
@@ -1579,83 +1579,83 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <div class="page active" id="page-dashboard">
         <div class="grid grid-5" style="margin-bottom:1rem;">
           <div class="card">
-            <div class="card-header"><div class="dot"></div>SDR STATUS</div>
+            <div class="card-header"><div class="dot"></div>ÉTAT DU SDR</div>
             <div class="stat-val" id="stat-status">--</div>
-            <div class="stat-label">PROCESS STATE</div>
+            <div class="stat-label">ÉTAT DU PROCESSUS</div>
             <div class="stat-sub" id="stat-pid">PID: --</div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>CPU USAGE</div>
+            <div class="card-header"><div class="dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>UTILISATION CPU</div>
             <div class="stat-val" id="stat-cpu">--%</div>
-            <div class="stat-label">SYSTEM CPU</div>
+            <div class="stat-label">CPU SYSTÈME</div>
             <div class="bar-wrap"><div class="bar-fill" id="bar-cpu" style="width:0%"></div></div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot" style="background:var(--blue);box-shadow:0 0 6px var(--blue)"></div>MEMORY</div>
+            <div class="card-header"><div class="dot" style="background:var(--blue);box-shadow:0 0 6px var(--blue)"></div>MÉMOIRE</div>
             <div class="stat-val" id="stat-mem">-- GB</div>
-            <div class="stat-label">USED / TOTAL</div>
+            <div class="stat-label">UTILISÉ / TOTAL</div>
             <div class="bar-wrap"><div class="bar-fill" id="bar-mem" style="width:0%"></div></div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot" style="background:#ff88ff;box-shadow:0 0 6px #ff88ff"></div>DISK</div>
+            <div class="card-header"><div class="dot" style="background:#ff88ff;box-shadow:0 0 6px #ff88ff"></div>DISQUE</div>
             <div class="stat-val" id="stat-disk">-- GB</div>
-            <div class="stat-label">USED / TOTAL</div>
+            <div class="stat-label">UTILISÉ / TOTAL</div>
             <div class="bar-wrap"><div class="bar-fill" id="bar-disk" style="width:0%"></div></div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot" style="background:#ff4444;box-shadow:0 0 6px #ff4444"></div>TEMPERATURE</div>
+            <div class="card-header"><div class="dot" style="background:#ff4444;box-shadow:0 0 6px #ff4444"></div>TEMPÉRATURE</div>
             <div class="stat-val" id="stat-temp">--&#176;C</div>
-            <div class="stat-label">CPU TEMP</div>
+            <div class="stat-label">TEMP. CPU</div>
             <div class="bar-wrap"><div class="bar-fill" id="bar-temp" style="width:0%;background:linear-gradient(90deg,#4ade80,#fbbf24,#ef4444)"></div></div>
-            <div class="stat-sub" id="stat-temp-guard" style="margin-top:.3rem;">GUARD: --</div>
+            <div class="stat-sub" id="stat-temp-guard" style="margin-top:.3rem;">GARDE : --</div>
           </div>
         </div>
 
-        <!-- ══════ WEBSDR DIVERSITY RELAY ══════ -->
+        <!-- ══════ RELAIS DIVERSITÉ WEBSDR ══════ -->
         <div class="card" id="relay-card" style="margin-bottom:1rem;display:none;">
           <div class="card-header">
             <div class="dot" id="rl-dot" style="background:var(--text3);box-shadow:none"></div>
-            WEBSDR DIVERSITY RELAY
+            RELAIS DIVERSITÉ WEBSDR
             <span style="margin-left:auto;font-size:.6rem;color:var(--text3);" id="rl-ua"></span>
           </div>
           <div class="grid grid-4" style="gap:.6rem;margin-bottom:.6rem;">
-            <div><div style="font-size:.6rem;color:var(--text3);">STATE</div>
+            <div><div style="font-size:.6rem;color:var(--text3);">ÉTAT</div>
                  <div id="rl-state" style="font-size:.9rem;color:var(--green);">--</div></div>
             <div><div style="font-size:.6rem;color:var(--text3);">PORT</div>
                  <div id="rl-port" style="font-size:.9rem;color:var(--text);">--</div></div>
             <div><div style="font-size:.6rem;color:var(--text3);">SESSIONS</div>
                  <div id="rl-sessions" style="font-size:.9rem;color:var(--amber);">--</div></div>
-            <div><div style="font-size:.6rem;color:var(--text3);">CAP PER SITE</div>
+            <div><div style="font-size:.6rem;color:var(--text3);">LIMITE PAR SITE</div>
                  <div id="rl-cap" style="font-size:.9rem;color:var(--text);">--</div></div>
           </div>
           <div id="rl-hosts" style="font-size:.7rem;color:var(--text2);"></div>
           <div id="rl-reason" style="font-size:.65rem;color:var(--text3);margin-top:.3rem;"></div>
         </div>
 
-        <!-- ══════ THERMAL GUARD ══════ -->
+        <!-- ══════ GARDE THERMIQUE ══════ -->
         <div class="card" id="thermal-card" style="margin-bottom:1rem;display:none;">
           <div class="card-header">
             <div class="dot" id="tg-dot" style="background:#ff4444;box-shadow:0 0 6px #ff4444"></div>
-            THERMAL GUARD
+            GARDE THERMIQUE
             <span style="margin-left:auto;font-size:.6rem;color:var(--text3);" id="tg-sensor"></span>
           </div>
           <div class="grid grid-4" style="gap:.6rem;margin-bottom:.6rem;">
-            <div><div style="font-size:.6rem;color:var(--text3);">STATE</div>
+            <div><div style="font-size:.6rem;color:var(--text3);">ÉTAT</div>
                  <div id="tg-state" style="font-size:.9rem;color:var(--green);">--</div></div>
             <div><div style="font-size:.6rem;color:var(--text3);">MODE</div>
                  <div id="tg-mode" style="font-size:.9rem;color:var(--text);">--</div></div>
-            <div><div style="font-size:.6rem;color:var(--text3);">STOPS AT</div>
+            <div><div style="font-size:.6rem;color:var(--text3);">ARRÊT À</div>
                  <div id="tg-stop" style="font-size:.9rem;color:var(--amber);">--</div></div>
-            <div><div style="font-size:.6rem;color:var(--text3);">RESUMES AT</div>
+            <div><div style="font-size:.6rem;color:var(--text3);">REPRISE À</div>
                  <div id="tg-resume" style="font-size:.9rem;color:var(--blue);">--</div></div>
           </div>
           <div id="tg-reason" style="font-size:.7rem;color:var(--text2);margin-bottom:.4rem;"></div>
           <div id="tg-last" style="font-size:.68rem;color:var(--text3);font-family:'Share Tech Mono',monospace;word-break:break-word;"></div>
           <div style="margin-top:.6rem;">
             <button class="btn btn-amber" style="padding:.2rem .6rem;font-size:.65rem;"
-                    onclick="thermalReset()">CLEAR LOCKOUT</button>
+                    onclick="thermalReset()">LEVER LE BLOCAGE</button>
             <span style="font-size:.6rem;color:var(--text3);margin-left:.5rem;">
-              thresholds and mode are in Settings</span>
+              seuils et mode dans Réglages</span>
           </div>
         </div>
 
@@ -1665,7 +1665,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             TERMINAL
             <span style="margin-left:.4rem;font-size:.6rem;color:var(--text3);" id="term-cwd">~</span>
             <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onmousedown="event.preventDefault()" onclick="termCopy()" title="Copier la sélection, ou toute la sortie si rien n'est sélectionné">&#10697; COPIER</span>
-            <span style="margin-left:.8rem;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="termClear()">&#10005; CLEAR</span>
+            <span style="margin-left:.8rem;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="termClear()">&#10005; CLEAR<#10005; EFFACER</span>
           </div>
           <div id="term-output"
             style="font-family:'Share Tech Mono',monospace;font-size:.75rem;line-height:1.5;
@@ -1678,35 +1678,35 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <input id="term-input" type="text" autocomplete="off" spellcheck="false"
               style="flex:1;background:transparent;border:none;outline:none;
                      color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.75rem;"
-              placeholder="type command and press Enter"
+              placeholder="tapez une commande puis Entrée"
               onkeydown="termKey(event)">
             <button id="term-run" class="btn btn-green" style="padding:.2rem .6rem;font-size:.65rem;" onclick="termRun()">&#9654;</button>
-            <button id="term-stop" class="btn" style="display:none;padding:.2rem .6rem;font-size:.65rem;color:#ff6666;border-color:#ff6666;" onclick="termKill()" title="Interrompre la commande (Ctrl+C)">&#9632; STOP</button>
+            <button id="term-stop" class="btn" style="display:none;padding:.2rem .6rem;font-size:.65rem;color:#ff6666;border-color:#ff6666;" onclick="termKill()" title="Interrompre la commande (Ctrl+C)">&#9632; ARRÊT</button>
           </div>
         </div>
         
         <div class="grid grid-2" style="margin-bottom:1rem;">
           <div class="card">
             <div class="card-header">
-              <div class="dot"></div>RECENT LOG OUTPUT
-              <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="loadLogs('dash-log')">↻ refresh</span>
+              <div class="dot"></div>DERNIÈRES LIGNES DU JOURNAL
+              <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="loadLogs('dash-log')">↻ actualiser</span>
             </div>
-            <div class="log-box" id="dash-log" style="height:280px;">Loading...</div>
+            <div class="log-box" id="dash-log" style="height:280px;">Chargement…</div>
           </div>
           <div class="card">
             <div class="card-header">
               <div class="dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>
-              TOP PROCESSES
-              <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="updateStatus()">↻ refresh</span>
+              PRINCIPAUX PROCESSUS
+              <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="updateStatus()">↻ actualiser</span>
             </div>
             <table class="top-procs">
               <thead>
                 <tr>
-                  <th>PID</th><th>NAME</th><th>USER</th><th>CPU%</th><th>MEM%</th>
+                  <th>PID</th><th>NOM</th><th>UTILISATEUR</th><th>CPU%</th><th>MEM%</th>
                 </tr>
               </thead>
               <tbody id="top-procs-tbody">
-                <tr><td colspan="5" style="color:var(--text3);text-align:center;">Loading...</td></tr>
+                <tr><td colspan="5" style="color:var(--text3);text-align:center;">Chargement…</td></tr>
               </tbody>
             </table>
           </div>
@@ -1715,85 +1715,85 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
 
       <!-- ══════ CONFIG EDITOR PAGE ══════ -->
       <div class="page" id="page-config">
-        <div class="section-head">FILE EDITOR</div>
+        <div class="section-head">ÉDITEUR DE FICHIERS</div>
         <div class="editor-toolbar">
           <select class="file-select" id="config-file-sel" onchange="loadConfigFile()" style="flex:1;min-width:0;"></select>
-          <button class="btn btn-blue" onclick="loadConfigList(true)">🔄 RESCAN</button>
-          <button class="btn btn-blue" onclick="loadConfigFile()">↻ RELOAD</button>
-          <button class="btn btn-green" onclick="saveConfigFile()">💾 SAVE</button>
+          <button class="btn btn-blue" onclick="loadConfigList(true)">🔄 RESCANNER</button>
+          <button class="btn btn-blue" onclick="loadConfigFile()">↻ RECHARGER</button>
+          <button class="btn btn-green" onclick="saveConfigFile()">💾 ENREGISTRER</button>
         </div>
         <div class="json-path" id="config-filepath">--</div>
-        <textarea class="code" id="config-editor" rows="32" spellcheck="false" placeholder="Select a file to edit..."></textarea>
+        <textarea class="code" id="config-editor" rows="32" spellcheck="false" placeholder="Choisissez un fichier à modifier…"></textarea>
         <div style="margin-top:.5rem;display:flex;gap:.5rem;align-items:center;">
-          <button class="btn btn-green" onclick="saveConfigFile()">💾 SAVE FILE</button>
+          <button class="btn btn-green" onclick="saveConfigFile()">💾 ENREGISTRER LE FICHIER</button>
           <span style="font-size:.65rem;color:var(--text3);margin-left:.5rem;" id="config-save-msg"></span>
         </div>
       </div>
 
       <!-- ══════ SITE INFO PAGE ══════ -->
       <div class="page" id="page-siteinfo">
-        <div class="section-head">SITE INFORMATION EDITOR</div>
+        <div class="section-head">ÉDITEUR DES INFOS DU SITE</div>
         <div class="editor-toolbar">
           <select class="file-select" id="json-file-sel" onchange="loadJsonFile()"></select>
-          <button class="btn btn-blue" onclick="loadJsonFile()">↻ RELOAD</button>
+          <button class="btn btn-blue" onclick="loadJsonFile()">↻ RECHARGER</button>
         </div>
         <div class="tab-bar">
-          <div class="tab active" onclick="switchJsonTab('form',this)">FORM VIEW</div>
-          <div class="tab" onclick="switchJsonTab('raw',this)">RAW JSON</div>
+          <div class="tab active" onclick="switchJsonTab('form',this)">FORMULAIRE</div>
+          <div class="tab" onclick="switchJsonTab('raw',this)">JSON BRUT</div>
         </div>
         <div class="tab-pane active" id="json-form-pane">
           <div id="json-form-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;"></div>
           <div style="margin-top:.8rem;display:flex;gap:.5rem;">
-            <button class="btn btn-green" onclick="saveJsonForm()">💾 SAVE CHANGES</button>
+            <button class="btn btn-green" onclick="saveJsonForm()">💾 ENREGISTRER LES MODIFICATIONS</button>
             <span id="json-save-msg" style="font-size:.65rem;color:var(--text3);margin-left:.5rem;"></span>
           </div>
         </div>
         <div class="tab-pane" id="json-raw-pane">
           <textarea class="code" id="json-raw-editor" rows="25" spellcheck="false"></textarea>
           <div style="margin-top:.5rem;">
-            <button class="btn btn-green" onclick="saveJsonRaw()">💾 SAVE RAW JSON</button>
+            <button class="btn btn-green" onclick="saveJsonRaw()">💾 ENREGISTRER LE JSON BRUT</button>
           </div>
         </div>
       </div>
 
       <!-- ══════ MARKERS PAGE ══════ -->
       <div class="page" id="page-markers">
-        <div class="section-head">FREQUENCY MARKERS EDITOR</div>
+        <div class="section-head">ÉDITEUR DES MARQUEURS DE FRÉQUENCE</div>
         <div style="margin-bottom:.8rem;display:flex;gap:.5rem;flex-wrap:wrap;">
-          <button class="btn btn-green" onclick="addMarker()">+ ADD MARKER</button>
-          <button class="btn btn-amber" onclick="saveMarkers()">💾 SAVE MARKERS</button>
-          <button class="btn btn-blue" onclick="loadMarkers()">↻ RELOAD</button>
+          <button class="btn btn-green" onclick="addMarker()">+ AJOUTER UN MARQUEUR</button>
+          <button class="btn btn-amber" onclick="saveMarkers()">💾 ENREGISTRER LES MARQUEURS</button>
+          <button class="btn btn-blue" onclick="loadMarkers()">↻ RECHARGER</button>
           <span id="markers-save-msg" style="font-size:.65rem;color:var(--text3);margin:auto 0;"></span>
         </div>
         <div class="card" style="overflow-x:auto;">
           <table class="markers">
             <thead>
               <tr>
-                <th>FREQUENCY (Hz)</th><th>NAME</th><th>MODE</th><th>COLOR</th><th>ACTION</th>
+                <th>FRÉQUENCE (Hz)</th><th>NOM</th><th>MODE</th><th>COULEUR</th><th>ACTION</th>
               </tr>
             </thead>
             <tbody id="markers-tbody"></tbody>
           </table>
         </div>
         <div style="margin-top:.8rem;">
-          <div class="card-header"><div class="dot"></div>RAW JSON PREVIEW</div>
+          <div class="card-header"><div class="dot"></div>APERÇU DU JSON BRUT</div>
           <textarea class="code" id="markers-raw" rows="10" readonly style="opacity:.7;"></textarea>
         </div>
       </div>
 
       <!-- ══════ SPOT REPORTING PAGE ══════ -->
       <div class="page" id="page-reporting">
-        <div class="section-head">SPOT REPORTING &#183; AUTORUN</div>
+        <div class="section-head">ENVOI DES SPOTS &#183; AUTORUN</div>
 
         <div class="card" style="margin-bottom:.9rem;">
           <div class="card-header"><div class="dot" id="ar-dot"></div><span id="ar-state">&#8212;</span></div>
           <div id="ar-status" style="font-size:.7rem;color:var(--text2);line-height:1.7;">&#8212;</div>
           <div style="margin-top:.8rem;display:flex;gap:.5rem;flex-wrap:wrap;">
-            <button class="btn btn-green" onclick="autorunStart()">&#9654; START</button>
-            <button class="btn btn-red" onclick="autorunStop()">&#9632; STOP</button>
-            <button class="btn btn-amber" onclick="autorunSave()">&#128190; SAVE CONFIG</button>
-            <button class="btn btn-blue" onclick="autorunLoad()">&#8635; RELOAD</button>
-            <button class="btn btn-red" onclick="autorunFreeAll()">&#10005; FREE ALL SLOTS</button>
+            <button class="btn btn-green" onclick="autorunStart()">&#9654; DÉMARRER</button>
+            <button class="btn btn-red" onclick="autorunStop()">&#9632; ARRÊT</button>
+            <button class="btn btn-amber" onclick="autorunSave()">&#128190; ENREGISTRER LA CONFIG</button>
+            <button class="btn btn-blue" onclick="autorunLoad()">&#8635; RECHARGER</button>
+            <button class="btn btn-red" onclick="autorunFreeAll()">&#10005; LIBÉRER TOUS LES SLOTS</button>
             <span id="ar-msg" style="font-size:.65rem;color:var(--text3);margin:auto 0;"></span>
           </div>
         </div>
@@ -1802,7 +1802,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
              cannot separate FT8, FT4 and JS8 (they share one upload queue), so
              the daemon counts them separately and reports them here. -->
         <div class="card" style="margin-bottom:.9rem;">
-          <div class="card-header"><div class="dot"></div>SPOTS UPLOADED PER DECODER</div>
+          <div class="card-header"><div class="dot"></div>SPOTS ENVOYÉS PAR DÉCODEUR</div>
           <div class="grid grid-4" id="ar-spots-grid">
             <div class="ar-spot-tile">
               <div class="ar-spot-mode">FT8</div>
@@ -1826,52 +1826,52 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             </div>
           </div>
           <p style="color:var(--text3);font-size:.65rem;margin-top:.6rem;" id="ar-spots-note">
-            Counts run from the last daemon start &#8212; Stop/Start resets them to zero.</p>
+            Compteurs depuis le dernier démarrage du démon &#8212; Arrêt/Démarrage les remet à zéro.</p>
         </div>
 
         <div class="card" style="margin-bottom:.9rem;">
-          <div class="card-header"><div class="dot"></div>REPORTER IDENTITY</div>
+          <div class="card-header"><div class="dot"></div>IDENTITÉ DE LA STATION</div>
           <p style="color:var(--text2);font-size:.68rem;margin:.2rem 0 .7rem;">
-            Spots upload under this callsign/grid. Defaults come from Site Info (siteSysop /
-            siteGridSquare, first 6 chars). Editable for other sysops &#8212; set your own call before enabling reporting.</p>
+            Les spots sont envoyés sous cet indicatif/locator. Valeurs par défaut issues des Infos du site (siteSysop /
+            siteGridSquare, 6 premiers caractères). Modifiable &#8212; mettez votre propre indicatif avant d'activer l'envoi.</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;">
-            <div class="field"><label>CALLSIGN</label><input id="ar-call" type="text" placeholder="SV1BTL"></div>
-            <div class="field"><label>GRID (6 CHAR)</label><input id="ar-grid" type="text" maxlength="6" placeholder="KM17VX"></div>
+            <div class="field"><label>INDICATIF</label><input id="ar-call" type="text" placeholder="SV1BTL"></div>
+            <div class="field"><label>LOCATOR (6 CAR.)</label><input id="ar-grid" type="text" maxlength="6" placeholder="KM17VX"></div>
           </div>
         </div>
 
         <div class="card" style="margin-bottom:.9rem;">
-          <div class="card-header"><div class="dot"></div>REPORTING DESTINATIONS</div>
+          <div class="card-header"><div class="dot"></div>DESTINATIONS D'ENVOI</div>
           <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;margin:.4rem 0;">
             <input type="checkbox" id="ar-psk"> PSK Reporter <span style="color:var(--text3)">&#8212; FT8 &amp; FT4 &#8594; report.pskreporter.info</span></label>
           <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;margin:.4rem 0;">
             <input type="checkbox" id="ar-wspr"> wsprnet <span style="color:var(--text3)">&#8212; WSPR &#8594; wsprnet.org</span></label>
-          <p style="color:var(--amber);font-size:.65rem;margin-top:.5rem;">Reporting is OFF by default. Nothing uploads until you enable a destination, Save, and Start.</p>
+          <p style="color:var(--amber);font-size:.65rem;margin-top:.5rem;">L'envoi est DÉSACTIVÉ par défaut. Rien n'est envoyé tant que vous n'avez pas coché une destination, enregistré puis démarré.</p>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="dot"></div>BANDS &amp; MODES
-            <span style="margin-left:auto;font-size:.62rem;color:var(--text3);">MAX SLOTS
+          <div class="card-header"><div class="dot"></div>BANDES &amp; MODES
+            <span style="margin-left:auto;font-size:.62rem;color:var(--text3);">SLOTS MAX
               <input id="ar-max" type="number" min="1" max="64" onchange="autorunCount()" style="width:3.4rem;margin-left:.3rem;background:#071007;border:1px solid var(--border);color:var(--green);padding:.15rem;"></span>
           </div>
           <div style="overflow-x:auto;"><table class="markers" id="ar-matrix"></table></div>
           <p style="color:var(--text3);font-size:.62rem;margin-top:.5rem;" id="ar-count">&#8212;</p>
           <p style="color:var(--text3);font-size:.62rem;margin-top:.3rem;display:none;" id="ar-slot-note">
-            The number beside each box is that band+mode's <b>all-time</b> uploaded spots, kept across
-            restarts. <span style="color:var(--amber)">Amber with a dot (&#183;123)</span> means decodes not
-            uploaded yet &#8212; normal between flushes; a plain
-            <span style="color:var(--amber)">0</span> means enabled but nothing decoded yet (WSPR can take
-            minutes &#8212; it runs on a 2-minute cycle). Hover for the detail.</p>
+            Le nombre à côté de chaque case est le total <b>cumulé</b> de spots envoyés pour cette bande+mode, conservé entre
+            les redémarrages. <span style="color:var(--amber)">En ambre avec un point (&#183;123)</span> : décodages pas
+            encore envoyés &#8212; normal entre deux envois ; un simple
+            <span style="color:var(--amber)">0</span> : activé mais rien décodé pour l'instant (le WSPR peut prendre
+            plusieurs minutes &#8212; cycle de 2 minutes). Survolez pour le détail.</p>
         </div>
       </div>
 
       <!-- ══════ LOG VIEWER PAGE ══════ -->
       <div class="page" id="page-logs">
-        <div class="section-head">LOG VIEWER</div>
+        <div class="section-head">JOURNAUX</div>
         <div style="display:flex;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap;">
-          <button class="btn btn-blue" onclick="loadCurrentLogTab()">↻ REFRESH LOGS</button>
-          <button class="btn btn-green" id="auto-refresh-btn" onclick="toggleAutoRefresh()">⏵ AUTO REFRESH</button>
-          <button class="btn btn-red" onclick="clearLogView()">✕ CLEAR LOGS</button>
+          <button class="btn btn-blue" onclick="loadCurrentLogTab()">↻ ACTUALISER</button>
+          <button class="btn btn-green" id="auto-refresh-btn" onclick="toggleAutoRefresh()">⏵ ACTUALISATION AUTO</button>
+          <button class="btn btn-red" onclick="clearLogView()">✕ VIDER LES JOURNAUX</button>
         </div>
         <div class="tab-bar" style="margin-bottom:.6rem;">
           <div class="tab log-tab active" data-log-name="logwebsdr.txt" onclick="switchLogTab('logwebsdr.txt', this)">LOGWEBSDR</div>
@@ -1907,11 +1907,11 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
 
       <!-- ══════ CHAT HISTORY PAGE ══════ -->
       <div class="page" id="page-chat">
-        <div class="section-head">CHAT HISTORY</div>
+        <div class="section-head">HISTORIQUE DU CHAT</div>
         <div style="display:flex;gap:.5rem;margin-bottom:.7rem;">
-          <button class="btn btn-blue" onclick="loadChat()">↻ REFRESH</button>
+          <button class="btn btn-blue" onclick="loadChat()">↻ ACTUALISER</button>
         </div>
-        <div class="chat-log" id="chat-log">Loading...</div>
+        <div class="chat-log" id="chat-log">Chargement…</div>
       </div>
 
       <!-- ══════ SETTINGS PAGE ══════ -->
@@ -1923,104 +1923,104 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <div class="page" id="page-backup"><div id="x-backup"></div></div>
 
       <div class="page" id="page-settings">
-        <div class="section-head">ADMIN SETTINGS</div>
+        <div class="section-head">RÉGLAGES ADMIN</div>
         <div class="grid grid-2" style="margin-bottom:1rem;">
           <div class="card">
-            <div class="card-header"><div class="dot"></div>CHANGE PASSWORD</div>
+            <div class="card-header"><div class="dot"></div>CHANGER LE MOT DE PASSE</div>
             <form onsubmit="changePassword(event)">
               <div style="margin-bottom:.6rem;">
-                <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">CURRENT PASSWORD</label>
+                <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MOT DE PASSE ACTUEL</label>
                 <input type="password" id="old-pwd" style="width:100%;">
               </div>
               <div style="margin-bottom:.6rem;">
-                <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">NEW PASSWORD</label>
+                <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">NOUVEAU MOT DE PASSE</label>
                 <input type="password" id="new-pwd" style="width:100%;">
               </div>
               <div style="margin-bottom:.8rem;">
-                <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">CONFIRM NEW PASSWORD</label>
+                <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">CONFIRMER LE NOUVEAU MOT DE PASSE</label>
                 <input type="password" id="new-pwd2" style="width:100%;">
               </div>
-              <button type="submit" class="btn btn-green">🔑 UPDATE PASSWORD</button>
+              <button type="submit" class="btn btn-green">🔑 MODIFIER LE MOT DE PASSE</button>
             </form>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot"></div>SDR BASE DIRECTORY</div>
-            <p style="color:var(--text2);font-size:.75rem;margin-bottom:.6rem;">Path to PhantomSDR-Plus installation:</p>
-            <input type="text" id="sdr-dir" style="width:100%;margin-bottom:1rem;" placeholder="/path/to/PhantomSDR-Plus">
+            <div class="card-header"><div class="dot"></div>RÉPERTOIRE DE BASE SDR</div>
+            <p style="color:var(--text2);font-size:.75rem;margin-bottom:.6rem;">Chemin de l'installation PhantomSDR-Plus :</p>
+            <input type="text" id="sdr-dir" style="width:100%;margin-bottom:1rem;" placeholder="/chemin/vers/PhantomSDR-Plus">
             <div class="card-header" style="margin:.4rem 0;">
               <div class="dot" style="background:var(--blue);box-shadow:0 0 6px var(--blue);"></div>
-              SPECTRUMSERVER PORT (INTERNAL)
+              PORT SPECTRUMSERVER (INTERNE)
             </div>
-            <p style="color:var(--text2);font-size:.7rem;margin-bottom:.4rem;">The port spectrumserver itself listens on ([server] port of its config). Not the public port users connect to when proxy.py is in front — never enter the proxy port here.</p>
+            <p style="color:var(--text2);font-size:.7rem;margin-bottom:.4rem;">Le port sur lequel spectrumserver écoute lui-même (port de la section [server] de sa config). Ce n'est pas le port public des auditeurs quand proxy.py est devant — n'indiquez jamais le port du proxy ici.</p>
             <input type="number" id="public-port" style="width:100%;margin-bottom:1rem;" placeholder="8900" min="1" max="65535">
             <div class="card-header" style="margin:.4rem 0;">
               <div class="dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div>
-              DEFAULT START SCRIPT
+              SCRIPT DE DÉMARRAGE PAR DÉFAUT
             </div>
             <select class="script-select" id="default-start-sel" style="width:100%;margin-bottom:.8rem;"></select>
             <div class="card-header" style="margin:.4rem 0;">
               <div class="dot" style="background:var(--red);box-shadow:0 0 6px var(--red);"></div>
-              DEFAULT STOP SCRIPT
+              SCRIPT D'ARRÊT PAR DÉFAUT
             </div>
             <select class="script-select" id="default-stop-sel" style="width:100%;margin-bottom:.8rem;"></select>
-            <button class="btn btn-amber" onclick="saveSettings()">💾 SAVE SETTINGS</button>
+            <button class="btn btn-amber" onclick="saveSettings()">💾 ENREGISTRER LES RÉGLAGES</button>
             <div id="settings-msg" style="margin-top:.5rem;font-size:.7rem;color:var(--text3);"></div>
           </div>
         </div>
 
-        <!-- ══════ THERMAL GUARD SETTINGS ══════ -->
-        <div class="section-head">THERMAL GUARD</div>
+        <!-- ══════ GARDE THERMIQUE SETTINGS ══════ -->
+        <div class="section-head">GARDE THERMIQUE</div>
         <div class="card" style="margin-bottom:1rem;">
           <p style="color:var(--text2);font-size:.75rem;margin-bottom:.6rem;">
-            Protects the machine when the CPU overheats. Blank temperature fields mean
-            <b>auto</b> — derived from this machine's own critical trip point
-            (<span id="tg-cfg-crit">--</span>), so the numbers are right for Intel, AMD and Pi alike.
-            Every stage must be held for its sustain time, so a brief spike never acts.
-            <b>Start with mode = log</b> for a while and read the results in the CRASH log.
+            Protège la machine quand le CPU surchauffe. Un champ de température vide signifie
+            <b>auto</b> — calculé depuis le seuil critique propre à cette machine
+            (<span id="tg-cfg-crit">--</span>), donc juste pour Intel, AMD comme Pi.
+            Chaque palier doit durer son temps de maintien : un pic bref ne déclenche rien.
+            <b>Commencez en mode = log</b> quelque temps et lisez les résultats dans le journal CRASH.
           </p>
           <div class="field-row" style="margin-bottom:.7rem;">
             <div>
               <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MODE</label>
               <select id="tg-cfg-mode" style="width:100%;">
-                <option value="log">log — record only, never act (safe default)</option>
-                <option value="throttle">throttle — lower CPU clock, never stop</option>
-                <option value="stop">stop — throttle, then stop the server</option>
-                <option value="stop+restart">stop+restart — and restart once cool</option>
+                <option value="log">log — enregistre seulement, aucune action (défaut sûr)</option>
+                <option value="throttle">throttle — baisse la fréquence CPU, sans jamais arrêter</option>
+                <option value="stop">stop — bride, puis arrête le serveur</option>
+                <option value="stop+restart">stop+restart — et redémarre une fois refroidi</option>
               </select>
             </div>
             <div>
-              <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">ENABLED</label>
+              <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">ACTIVÉ</label>
               <select id="tg-cfg-enabled" style="width:100%;">
                 <option value="1">yes</option><option value="0">no</option>
               </select>
             </div>
           </div>
           <div class="grid grid-4" style="gap:.6rem;margin-bottom:.7rem;">
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">WARN °C</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">ALERTE °C</label>
                  <input type="number" step="0.5" id="tg-cfg-warn" style="width:100%;" placeholder="auto"></div>
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">THROTTLE °C</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">BRIDAGE °C</label>
                  <input type="number" step="0.5" id="tg-cfg-throttle" style="width:100%;" placeholder="auto"></div>
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">STOP °C</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">ARRÊT °C</label>
                  <input type="number" step="0.5" id="tg-cfg-stop" style="width:100%;" placeholder="auto"></div>
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">RESUME °C</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">REPRISE °C</label>
                  <input type="number" step="0.5" id="tg-cfg-resume" style="width:100%;" placeholder="auto"></div>
           </div>
           <div class="grid grid-4" style="gap:.6rem;margin-bottom:.7rem;">
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">STOP SUSTAIN (s)</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MAINTIEN ARRÊT (s)</label>
                  <input type="number" id="tg-cfg-sustain" style="width:100%;" placeholder="60"></div>
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">WARN SUSTAIN (s)</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MAINTIEN ALERTE (s)</label>
                  <input type="number" id="tg-cfg-warnsustain" style="width:100%;" placeholder="30"></div>
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">RESUME HOLD (s)</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MAINTIEN REPRISE (s)</label>
                  <input type="number" id="tg-cfg-resumes" style="width:100%;" placeholder="300"></div>
-            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MAX STOPS / HOUR</label>
+            <div><label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">ARRÊTS MAX / HEURE</label>
                  <input type="number" id="tg-cfg-maxstops" style="width:100%;" placeholder="2"></div>
           </div>
           <div style="margin-bottom:.7rem;">
             <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">
-              TEST TEMPERATURE °C — inject a fake reading to prove the whole path works, blank = off</label>
-            <input type="number" step="0.5" id="tg-cfg-test" style="width:100%;" placeholder="blank = use the real sensor">
+              TEMPÉRATURE DE TEST °C — injecte une fausse mesure pour vérifier toute la chaîne, vide = désactivé</label>
+            <input type="number" step="0.5" id="tg-cfg-test" style="width:100%;" placeholder="vide = capteur réel">
           </div>
-          <button class="btn btn-amber" onclick="saveThermal()">💾 SAVE THERMAL SETTINGS</button>
+          <button class="btn btn-amber" onclick="saveThermal()">💾 ENREGISTRER LA GARDE THERMIQUE</button>
           <div id="tg-cfg-msg" style="margin-top:.5rem;font-size:.7rem;color:var(--text3);"></div>
         </div>
       </div>
@@ -2028,13 +2028,13 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <!-- ══════ USERS PAGE ══════ -->
       <!-- ══════ GRAPHS PAGE ══════ -->
       <div class="page" id="page-graphs">
-        <div class="section-head">SYSTEM GRAPHS</div>
+        <div class="section-head">GRAPHIQUES SYSTÈME</div>
         <div style="display:flex;gap:.5rem;margin-bottom:.8rem;flex-wrap:wrap;align-items:center;">
           <button class="btn btn-green graph-range active" data-range="900"  onclick="graphSetRange(900,this)">15 MIN</button>
-          <button class="btn graph-range" data-range="3600" onclick="graphSetRange(3600,this)">1 HOUR</button>
-          <button class="btn graph-range" data-range="14400" onclick="graphSetRange(14400,this)">4 HOURS</button>
-          <button class="btn graph-range" data-range="43200" onclick="graphSetRange(43200,this)">12 HOURS</button>
-          <button class="btn graph-range" data-range="86400" onclick="graphSetRange(86400,this)">24 HOURS</button>
+          <button class="btn graph-range" data-range="3600" onclick="graphSetRange(3600,this)">1 HEURE</button>
+          <button class="btn graph-range" data-range="14400" onclick="graphSetRange(14400,this)">4 HEURES</button>
+          <button class="btn graph-range" data-range="43200" onclick="graphSetRange(43200,this)">12 HEURES</button>
+          <button class="btn graph-range" data-range="86400" onclick="graphSetRange(86400,this)">24 HEURES</button>
           <span style="font-size:.78rem;color:var(--text3);margin-left:.4rem;" id="graph-info-label"></span>
         </div>
 
@@ -2042,24 +2042,24 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
              own, so these tiles carry the exact reading the curves only imply. -->
         <div class="grid grid-4" style="margin-bottom:1rem;">
           <div class="card">
-            <div class="card-header"><div class="dot"></div>CPU FREQUENCY</div>
+            <div class="card-header"><div class="dot"></div>FRÉQUENCE CPU</div>
             <div class="stat-val" id="g-cur-freq">--</div>
-            <div class="stat-label" id="g-sub-freq">GHz average</div>
+            <div class="stat-label" id="g-sub-freq">GHz en moyenne</div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot"></div>CPU LOAD</div>
+            <div class="card-header"><div class="dot"></div>CHARGE CPU</div>
             <div class="stat-val" id="g-cur-load">--</div>
             <div class="stat-label">percent</div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot"></div>CPU TEMPERATURE</div>
+            <div class="card-header"><div class="dot"></div>TEMPÉRATURE CPU</div>
             <div class="stat-val" id="g-cur-temp">--</div>
-            <div class="stat-label" id="g-sub-temp">degrees C</div>
+            <div class="stat-label" id="g-sub-temp">degrés C</div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="dot"></div>USERS ONLINE</div>
+            <div class="card-header"><div class="dot"></div>AUDITEURS EN LIGNE</div>
             <div class="stat-val" id="g-cur-users">--</div>
-            <div class="stat-label">connected now</div>
+            <div class="stat-label">connectés maintenant</div>
           </div>
         </div>
 
@@ -2077,9 +2077,9 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       </div>
 
       <div class="page" id="page-users">
-        <div class="section-head">CONNECTED USERS</div>
+        <div class="section-head">AUDITEURS CONNECTÉS</div>
         <div style="display:flex;gap:.5rem;margin-bottom:.8rem;flex-wrap:wrap;align-items:center;">
-          <button class="btn btn-blue" onclick="loadUsers()">&#8635; REFRESH</button>
+          <button class="btn btn-blue" onclick="loadUsers()">&#8635; ACTUALISER</button>
           <button class="btn btn-green" id="users-auto-btn" onclick="toggleUsersAutoRefresh()">&#9654; AUTO</button>
           <span style="font-size:.65rem;color:var(--text3);margin-left:.4rem;" id="users-info-label"></span>
         </div>
@@ -2088,16 +2088,16 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <table style="width:100%;border-collapse:collapse;font-size:.75rem;">
             <thead>
               <tr>
-                <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP / LOCATION</th>
-                <th id="users-rx-th" style="display:none;color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">RECEIVER</th>
-                <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">FREQUENCY</th>
+                <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP / LIEU</th>
+                <th id="users-rx-th" style="display:none;color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">RÉCEPTEUR</th>
+                <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">FRÉQUENCE</th>
                 <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">MODE</th>
-                <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DURATION</th>
+                <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DURÉE</th>
                 <th style="color:var(--text3);font-weight:normal;letter-spacing:.1em;padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ACTION</th>
               </tr>
             </thead>
             <tbody id="users-tbody">
-              <tr><td colspan="5" style="color:var(--text3);text-align:center;padding:.8rem;">Click REFRESH to load</td></tr>
+              <tr><td colspan="5" style="color:var(--text3);text-align:center;padding:.8rem;">Cliquez sur ACTUALISER pour charger</td></tr>
             </tbody>
           </table>
         </div>
@@ -2164,39 +2164,39 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
         </div>
       </div>
       <div class="page" id="page-wfmsg">
-        <div class="section-head">📢 WATERFALL MESSAGE</div>
+        <div class="section-head">📢 MESSAGE SUR LE WATERFALL</div>
         <div class="grid grid-2">
 
           <div class="card">
             <div class="card-header">
               <div class="dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>
-              COMPOSE &amp; BROADCAST
+              RÉDACTION &amp; DIFFUSION
             </div>
 
             <div style="margin-bottom:.6rem;">
-              <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MESSAGE (max 200 chars)</label>
+              <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">MESSAGE (200 car. max)</label>
               <textarea id="wfmsg-text"
                 style="width:100%;background:#030803;border:1px solid var(--border);
                        color:var(--text);font-family:'Share Tech Mono',monospace;
                        font-size:.85rem;padding:.5rem .7rem;border-radius:3px;
                        resize:vertical;height:80px;outline:none;transition:.15s;"
-                placeholder="QRT in 10 min — 73 de SV1BTL!" maxlength="200"
+                placeholder="QRT dans 10 min — 73 de F1NSK !" maxlength="200"
                 onfocus="this.style.borderColor='var(--amber)'"
                 onblur="this.style.borderColor='var(--border)'"></textarea>
               <div id="wfmsg-charcount" style="font-size:.6rem;color:var(--text3);text-align:right;margin-top:.2rem;">0 / 200</div>
             </div>
 
             <div style="margin-bottom:.8rem;">
-              <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">TEXT COLOUR</label>
+              <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">COULEUR DU TEXTE</label>
               <select id="wfmsg-color"
                 style="width:100%;background:#071207;border:1px solid var(--border);
                        color:var(--text);font-family:'Share Tech Mono',monospace;
                        font-size:.8rem;padding:.4rem .6rem;border-radius:2px;outline:none;">
-                <option value="#ffffff">⬜ White</option>
-                <option value="#ffff00">🟡 Yellow</option>
+                <option value="#ffffff">⬜ Blanc</option>
+                <option value="#ffff00">🟡 Jaune</option>
                 <option value="#00ffff">🩵 Cyan</option>
-                <option value="#00ff41">🟢 Green</option>
-                <option value="#ffb000">🟠 Amber</option>
+                <option value="#00ff41">🟢 Vert</option>
+                <option value="#ffb000">🟠 Ambre</option>
               </select>
             </div>
 
@@ -2221,31 +2221,31 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             </div>
 
             <div style="display:flex;gap:.5rem;">
-              <button class="btn btn-amber" onclick="sendWfMsg()" style="flex:1;">📢 BROADCAST</button>
-              <button class="btn btn-red" onclick="clearWfMsg()">✕ CLEAR</button>
+              <button class="btn btn-amber" onclick="sendWfMsg()" style="flex:1;">📢 DIFFUSER</button>
+              <button class="btn btn-red" onclick="clearWfMsg()">✕ EFFACER</button>
             </div>
             <div id="wfmsg-status" style="margin-top:.6rem;font-size:.7rem;color:var(--text3);min-height:1.4em;padding:.2rem 0;"></div>
           </div>
 
           <div class="card">
-            <div class="card-header"><div class="dot"></div>STATUS &amp; NOTES</div>
+            <div class="card-header"><div class="dot"></div>ÉTAT &amp; NOTES</div>
             <div style="font-size:.75rem;color:var(--text2);line-height:2;">
-              <p>The message appears as a <span style="color:var(--green)">fixed dark banner at the top of the waterfall</span> for all connected users.</p>
+              <p>Le message s'affiche dans un <span style="color:var(--green)">bandeau sombre fixe en haut du waterfall</span> pour tous les auditeurs connectés.</p>
               <br>
-              <p>&#9679; Stays visible until you click <strong style="color:var(--red)">CLEAR</strong>, or until the end time you chose (DURÉE D'AFFICHAGE).</p>
-              <p>&#9679; Browsers poll every 10 s — message appears within 10 s of BROADCAST.</p>
-              <p>&#9679; Disappears within 10 s of CLEAR.</p>
-              <p>&#9679; Users who connect after CLEAR never see it.</p>
-              <p>&#9679; No page refresh required on either side.</p>
+              <p>&#9679; Reste visible jusqu'à un clic sur <strong style="color:var(--red)">EFFACER</strong>, ou jusqu'à l'heure de fin choisie (DURÉE D'AFFICHAGE).</p>
+              <p>&#9679; Les navigateurs interrogent toutes les 10 s — le message apparaît dans les 10 s après DIFFUSER.</p>
+              <p>&#9679; Disparaît dans les 10 s après EFFACER.</p>
+              <p>&#9679; Les auditeurs connectés après EFFACER ne le voient jamais.</p>
+              <p>&#9679; Aucun rechargement de page nécessaire, ni d'un côté ni de l'autre.</p>
             </div>
 
             <div style="margin-top:1rem;padding:.6rem .8rem;border-radius:3px;border:1px solid var(--border);background:#030803;">
-              <div style="font-size:.6rem;color:var(--text3);letter-spacing:.15em;margin-bottom:.4rem;">CURRENT ACTIVE MESSAGE</div>
+              <div style="font-size:.6rem;color:var(--text3);letter-spacing:.15em;margin-bottom:.4rem;">MESSAGE ACTUELLEMENT AFFICHÉ</div>
               <div id="wfmsg-active" style="font-size:.85rem;color:var(--text3);word-break:break-word;min-height:1.4em;">—</div>
             </div>
 
             <div style="margin-top:.8rem;display:flex;gap:.5rem;">
-              <button class="btn btn-blue" onclick="loadWfMsgStatus()" style="flex:1;">↻ REFRESH STATUS</button>
+              <button class="btn btn-blue" onclick="loadWfMsgStatus()" style="flex:1;">↻ ACTUALISER L'ÉTAT</button>
             </div>
           </div>
 
@@ -2260,28 +2260,28 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
 <!-- Mobile bottom navigation bar -->
 <nav class="bottom-nav" id="bottom-nav">
   <a href="#" onclick="showPage('dashboard',this);return false;" class="active" data-page="dashboard">
-    <span class="bi">⬡</span><span>DASH</span>
+    <span class="bi">⬡</span><span>ACCUEIL</span>
   </a>
   <a href="#" onclick="showPage('config',this);return false;" data-page="config">
     <span class="bi">⚙</span><span>CONFIG</span>
   </a>
   <a href="#" onclick="showPage('markers',this);return false;" data-page="markers">
-    <span class="bi">◉</span><span>MARKERS</span>
+    <span class="bi">◉</span><span>MARQUEURS</span>
   </a>
   <a href="#" onclick="showPage('logs',this);return false;" data-page="logs">
-    <span class="bi">▤</span><span>LOGS</span>
+    <span class="bi">▤</span><span>JOURNAUX</span>
   </a>
   <a href="#" onclick="showPage('graphs',this);return false;" data-page="graphs">
-    <span class="bi">📈</span><span>Graphs</span>
+    <span class="bi">📈</span><span>Graphiques</span>
   </a>
   <a href="#" onclick="showPage('users',this);return false;" data-page="users">
-    <span class="bi">👥</span><span>USERS</span>
+    <span class="bi">👥</span><span>AUDITEURS</span>
   </a>
   <a href="#" onclick="showPage('wfmsg',this);return false;" data-page="wfmsg">
     <span class="bi">📢</span><span>MSG</span>
   </a>
   <a href="#" onclick="showPage('settings',this);return false;" data-page="settings">
-    <span class="bi">◧</span><span>MORE</span>
+    <span class="bi">◧</span><span>PLUS</span>
   </a>
 </nav>
 
@@ -2336,7 +2336,7 @@ async function liLive(){
   try {
     const d = await (await fetch('/admin/api/listeners/live', {cache:'no-store'})).json();
     const u = d.users || [];
-    document.getElementById('li-live-label').textContent = `${u.length} auditeur(s) — ${new Date().toLocaleTimeString()}`;
+    document.getElementById('li-live-label').textContent = `${u.length} auditeur(s) — ${new Date().toLocaleTimeString('fr-FR')}`;
     if (!u.length){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="text-align:center;color:var(--text3);">Aucun auditeur connecté</td></tr>`; return; }
     tb.innerHTML = u.map(x => `<tr>
       <td ${liTd}><span style="font-family:monospace;">${liEsc(x.ip)}</span>${x.returning?'<br><span style="color:var(--green);font-size:.6rem;">FIDÈLE</span>':'<br><span style="color:var(--amber);font-size:.6rem;">NOUVEAU</span>'}</td>
@@ -2508,7 +2508,7 @@ function toast(msg, type='ok') {
 
 // ─── Clock ───────────────────────────────────────────────────────────────────
 function updateClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB');
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('fr-FR');
 }
 setInterval(updateClock, 1000); updateClock();
 
@@ -2522,13 +2522,13 @@ async function updateStatus() {
     if (pill && dot) {
       if (d.process && d.process.running) {
         pill.className = 'status-pill online'; dot.className = 'status-dot online';
-        pill.querySelector('span').textContent = 'ONLINE';
-        document.getElementById('stat-status').textContent = 'RUNNING';
+        pill.querySelector('span').textContent = 'EN LIGNE';
+        document.getElementById('stat-status').textContent = 'EN MARCHE';
         document.getElementById('stat-status').style.color = 'var(--green)';
       } else {
         pill.className = 'status-pill offline'; dot.className = 'status-dot offline';
-        pill.querySelector('span').textContent = 'OFFLINE';
-        document.getElementById('stat-status').textContent = 'STOPPED';
+        pill.querySelector('span').textContent = 'HORS LIGNE';
+        document.getElementById('stat-status').textContent = 'ARRÊTÉ';
         document.getElementById('stat-status').style.color = 'var(--red)';
       }
     }
@@ -2570,7 +2570,7 @@ async function updateStatus() {
           tbody.appendChild(tr);
         });
       } else {
-        tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text3);text-align:center;">No data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text3);text-align:center;">Aucune donnée</td></tr>';
       }
     }
   } catch(e) { console.error('updateStatus:', e); }
@@ -2584,50 +2584,50 @@ async function updateThermal() {
     const sub  = document.getElementById('stat-temp-guard');
     if (!t.available) {
       if (card) card.style.display = 'none';
-      if (sub) sub.textContent = 'GUARD: unavailable';
+      if (sub) sub.textContent = 'GARDE : indisponible';
       return;
     }
     if (card) card.style.display = '';
     const th = t.thresholds || {};
     let state, color;
-    if (!t.enabled)      { state = 'DISABLED'; color = 'var(--text3)'; }
-    else if (t.locked)   { state = 'LOCKED OUT'; color = 'var(--red)'; }
-    else if (!t.armed)   { state = 'NOT ARMED'; color = 'var(--amber)'; }
-    else if (t.stage === 'stopped')  { state = 'STOP LEVEL'; color = 'var(--red)'; }
-    else if (t.stage === 'throttle') { state = 'THROTTLING'; color = 'var(--amber)'; }
-    else if (t.stage === 'warn')     { state = 'WARM'; color = 'var(--amber)'; }
-    else                 { state = 'ARMED'; color = 'var(--green)'; }
+    if (!t.enabled)      { state = 'DÉSACTIVÉE'; color = 'var(--text3)'; }
+    else if (t.locked)   { state = 'BLOQUÉE'; color = 'var(--red)'; }
+    else if (!t.armed)   { state = 'NON ARMÉE'; color = 'var(--amber)'; }
+    else if (t.stage === 'stopped')  { state = 'NIVEAU ARRÊT'; color = 'var(--red)'; }
+    else if (t.stage === 'throttle') { state = 'BRIDAGE'; color = 'var(--amber)'; }
+    else if (t.stage === 'warn')     { state = 'CHAUD'; color = 'var(--amber)'; }
+    else                 { state = 'ARMÉE'; color = 'var(--green)'; }
     const set = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
     set('tg-state', state);
     const st = document.getElementById('tg-state'); if (st) st.style.color = color;
     const dot = document.getElementById('tg-dot');
     if (dot) { dot.style.background = color; dot.style.boxShadow = '0 0 6px ' + color; }
-    set('tg-mode', t.mode + (t.mode === 'log' ? ' (no action)' : ''));
+    set('tg-mode', t.mode + (t.mode === 'log' ? ' (aucune action)' : ''));
     set('tg-stop',   th.stop   !== undefined ? th.stop + '°C' : '--');
     set('tg-resume', th.resume !== undefined ? th.resume + '°C' : '--');
-    set('tg-sensor', (t.sensor || 'no sensor') +
+    set('tg-sensor', (t.sensor || 'aucun capteur') +
         (t.crit ? '  crit ' + t.crit + '°C' : '') +
         (t.throttle_supported ? '' : '  cpufreq: n/a'));
     let reason = t.reason || '';
     if (t.test_temp !== null && t.test_temp !== undefined)
-      reason += '   [TEST MODE: reading forced to ' + t.test_temp + '°C]';
-    if (t.giveup) reason += '   [rate limit hit: auto-restart disabled]';
+      reason += '   [MODE TEST : mesure forcée à ' + t.test_temp + '°C]';
+    if (t.giveup) reason += '   [limite atteinte : redémarrage auto désactivé]';
     set('tg-reason', reason);
     set('tg-last', t.last_event || '');
-    if (sub) sub.textContent = 'GUARD: ' + state +
-      (th.stop !== undefined && t.enabled ? ' · stop ' + th.stop + '°C' : '');
+    if (sub) sub.textContent = 'GARDE : ' + state +
+      (th.stop !== undefined && t.enabled ? ' · arrêt ' + th.stop + '°C' : '');
   } catch(e) { console.error('updateThermal:', e); }
 }
 
 async function thermalReset() {
-  if (!confirm('Clear the thermal lockout and rate limit?' +
+  if (!confirm('Lever le blocage thermique et la limite de redémarrages ?' +
                String.fromCharCode(10) +
-               'If the CPU is still too hot the guard will simply stop the server again.')) return;
+               'Si le CPU est encore trop chaud, la garde arrêtera simplement le serveur à nouveau.')) return;
   const d = await fetch('/admin/api/thermal', {
     method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({action: 'reset'})
   }).then(r => r.json());
-  toast(d.msg || (d.ok ? 'Cleared' : 'Failed'), d.ok ? '' : 'err');
+  toast(d.msg || (d.ok ? 'Levé' : 'Échec'), d.ok ? '' : 'err');
   updateThermal();
 }
 
@@ -2643,7 +2643,7 @@ async function updateRelay() {
     card.style.display = '';
 
     const set = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
-    const state = d.running ? 'RUNNING' : 'STOPPED';
+    const state = d.running ? 'EN MARCHE' : 'ARRÊTÉ';
     const color = d.running ? 'var(--green)' : 'var(--red)';
     set('rl-state', state);
     const st = document.getElementById('rl-state'); if (st) st.style.color = color;
@@ -2664,7 +2664,7 @@ async function updateRelay() {
     const hosts = document.getElementById('rl-hosts');
     if (hosts) {
       if (!d.running) hosts.textContent = '';
-      else if (!names.length) hosts.textContent = 'No active sessions.';
+      else if (!names.length) hosts.textContent = 'Aucune session active.';
       else hosts.textContent = names.map(h => h + '  \u00d7' + sess[h]).join('     ');
     }
 
@@ -2757,7 +2757,7 @@ function termSetRunning(on) {
   if (run)  run.style.display  = on ? 'none' : '';
   if (inp)  inp.placeholder = on
     ? 'commande en cours : tapez une réponse + Entrée, Ctrl+C pour interrompre'
-    : 'type command and press Enter';
+    : 'tapez une commande puis Entrée';
 }
 
 function termAppend(text) {
@@ -2851,7 +2851,7 @@ async function termRun() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({cmd: cmd.trim(), cwd: _termCwd})
     });
-    if (!r.ok) { termPrint('HTTP error: ' + r.status, 'err'); return; }
+    if (!r.ok) { termPrint('Erreur HTTP : ' + r.status, 'err'); return; }
     const d = await r.json();
     if (d.cwd && d.cwd !== _termCwd) {
       _termCwd = d.cwd;
@@ -2930,10 +2930,10 @@ async function loadConfigList(notify) {
     const after  = Object.keys(nextFiles);
     const added   = after.filter(f => !before.includes(f)).length;
     const removed = before.filter(f => !after.includes(f)).length;
-    toast('Rescanned: ' + after.length + ' files (+' + added + ' / -' + removed + ')');
+    toast('Rescan : ' + after.length + ' fichiers (+' + added + ' / -' + removed + ')');
   }
   configFiles = nextFiles;
-  sel.innerHTML = '<option value="">-- Select file --</option>';
+  sel.innerHTML = '<option value="">-- Choisir un fichier --</option>';
   // Group by extension
   const groups = {};
   Object.keys(configFiles).forEach(rel => {
@@ -2977,7 +2977,7 @@ async function saveConfigFile() {
   });
   const d = await r.json();
   const msg = document.getElementById('config-save-msg');
-  if (d.ok) { toast('Config saved'); msg.textContent = '✓ Saved at ' + new Date().toLocaleTimeString(); msg.style.color = 'var(--green)'; }
+  if (d.ok) { toast('Configuration enregistrée'); msg.textContent = '✓ Enregistré à ' + new Date().toLocaleTimeString('fr-FR'); msg.style.color = 'var(--green)'; }
   else { toast(d.msg, 'err'); msg.textContent = '✗ ' + d.msg; msg.style.color = 'var(--red)'; }
 }
 
@@ -3012,7 +3012,7 @@ async function loadJsonFile() {
     currentJsonData = JSON.parse(raw);
     renderJsonForm(currentJsonData);
   } catch(e) {
-    document.getElementById('json-form-fields').innerHTML = '<p style="color:var(--red)">Invalid JSON: ' + e.message + '</p>';
+    document.getElementById('json-form-fields').innerHTML = '<p style="color:var(--red)">JSON invalide : ' + e.message + '</p>';
   }
 }
 
@@ -3092,13 +3092,13 @@ async function saveJsonForm() {
   });
   const d = await r.json();
   const msg = document.getElementById('json-save-msg');
-  if (d.ok) { toast('JSON saved'); msg.textContent = '✓ Saved'; msg.style.color = 'var(--green)'; }
+  if (d.ok) { toast('JSON enregistré'); msg.textContent = '✓ Enregistré'; msg.style.color = 'var(--green)'; }
   else { toast(d.msg, 'err'); msg.textContent = '✗ ' + d.msg; msg.style.color = 'var(--red)'; }
 }
 
 async function saveJsonRaw() {
   const content = document.getElementById('json-raw-editor').value;
-  try { JSON.parse(content); } catch(e) { toast('Invalid JSON: ' + e.message, 'err'); return; }
+  try { JSON.parse(content); } catch(e) { toast('JSON invalide : ' + e.message, 'err'); return; }
   const r = await fetch('/admin/api/write-file', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -3147,7 +3147,7 @@ function renderMarkersTable() {
 }
 
 function addMarker() {
-  markersData.push({frequency: 0, name: "New Marker", mode: "AM", color: "#00ff41"});
+  markersData.push({frequency: 0, name: "Nouveau marqueur", mode: "AM", color: "#00ff41"});
   renderMarkersTable();
 }
 
@@ -3164,7 +3164,7 @@ async function saveMarkers() {
   });
   const d = await r.json();
   const msg = document.getElementById('markers-save-msg');
-  if (d.ok) { toast('Markers saved'); msg.textContent = '✓ Saved'; msg.style.color = 'var(--green)'; }
+  if (d.ok) { toast('Marqueurs enregistrés'); msg.textContent = '✓ Enregistré'; msg.style.color = 'var(--green)'; }
   else { toast(d.msg, 'err'); msg.textContent = '✗ ' + d.msg; msg.style.color = 'var(--red)'; }
 }
 
@@ -3185,14 +3185,14 @@ async function autorunLoad() {
     autorunBuildMatrix(enabled);
     autorunPoll();
     if (!AR_POLL) AR_POLL = setInterval(autorunPoll, 5000);
-  } catch (e) { toast('load failed: ' + e.message, 'err'); }
+  } catch (e) { toast('échec du chargement : ' + e.message, 'err'); }
 }
 
 function autorunBuildMatrix(enabledSet) {
   const modes = Object.keys(AR_MODES);
   // The badge is filled by autorunPoll; it is empty (and hidden) until the
   // daemon reports a count, so a rebuild never shows a stale number.
-  let h = '<thead><tr><th>BAND</th>' + modes.map(m =>
+  let h = '<thead><tr><th>BANDE</th>' + modes.map(m =>
     '<th>' + m.toUpperCase() + '<span class="ar-hdr-badge" id="ar-hdr-' + m + '"></span></th>').join('') +
     '</tr></thead><tbody>';
   for (const band of AR_BANDS) {
@@ -3226,7 +3226,7 @@ function autorunCount() {
   const n = document.querySelectorAll('#ar-matrix input:checked').length;
   const max = parseInt(document.getElementById('ar-max').value || '12', 10);
   const el = document.getElementById('ar-count');
-  el.textContent = n + ' slot(s) enabled (cap ' + max + ')';
+  el.textContent = n + ' slot(s) activé(s) (limite ' + max + ')';
   el.style.color = n > max ? 'var(--red)' : 'var(--text3)';
 }
 
@@ -3238,8 +3238,8 @@ async function autorunSave() {
     slots: autorunGatherSlots(),
   };
   const d = await fetch('/admin/api/autorun/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json());
-  toast(d.ok ? 'Config saved' : d.msg, d.ok ? 'ok' : 'err');
-  document.getElementById('ar-msg').textContent = d.ok ? '✓ saved' : '✗ ' + d.msg;
+  toast(d.ok ? 'Configuration enregistrée' : d.msg, d.ok ? 'ok' : 'err');
+  document.getElementById('ar-msg').textContent = d.ok ? '✓ enregistré' : '✗ ' + d.msg;
   return d.ok;
 }
 
@@ -3255,9 +3255,9 @@ async function autorunStop() {
 async function autorunFreeAll() {
   // Spell out the counter loss: the all-time totals are the one thing here
   // that a restart cannot bring back.
-  if (!confirm('Clear all enabled bands/modes, stop the daemon, and erase the ' +
-               'all-time spot counters next to every band?\\n\\n' +
-               'The counters cannot be recovered.')) return;
+  if (!confirm('Décocher toutes les bandes/modes, arrêter le démon et effacer les ' +
+               'compteurs cumulés de spots de chaque bande ?\\n\\n' +
+               'Les compteurs ne pourront pas être récupérés.')) return;
   document.querySelectorAll('#ar-matrix input:checked').forEach(cb => cb.checked = false);
   document.getElementById('ar-psk').checked = false;
   document.getElementById('ar-wspr').checked = false;
@@ -3267,7 +3267,7 @@ async function autorunFreeAll() {
   // deleting, because the daemon rewrites its totals on the way out.
   const d = await fetch('/admin/api/autorun/totals/reset', { method: 'POST' })
                     .then(r => r.json()).catch(e => ({ok: false, msg: e.message}));
-  toast(d.ok ? 'Slots freed, counters cleared' : d.msg, d.ok ? 'ok' : 'err');
+  toast(d.ok ? 'Slots libérés, compteurs remis à zéro' : d.msg, d.ok ? 'ok' : 'err');
   autorunRenderSlotTotals({});          // clear the numbers without waiting for a poll
   setTimeout(autorunPoll, 600);
 }
@@ -3278,16 +3278,16 @@ async function autorunPoll() {
     const dot = document.getElementById('ar-dot');
     if (!dot) return;
     dot.style.background = d.running ? 'var(--green)' : 'var(--text3)';
-    document.getElementById('ar-state').textContent = d.running ? ('RUNNING (PID ' + (d.pids || []).join(',') + ')') : 'STOPPED';
+    document.getElementById('ar-state').textContent = d.running ? ('EN MARCHE (PID ' + (d.pids || []).join(',') + ')') : 'ARRÊTÉ';
     const s = d.status || {}, cn = s.counts || {}, rep = s.reporting || {};
-    const fmt = t => t ? new Date(t * 1000).toLocaleTimeString('en-GB') : '—';
+    const fmt = t => t ? new Date(t * 1000).toLocaleTimeString('fr-FR') : '—';
     const pending = (q, sent) => Math.max(0, (q || 0) - (sent || 0));
     document.getElementById('ar-status').innerHTML =
-      'Reporting: PSK Reporter <b>' + (rep.pskreporter ? 'ON' : 'off') + '</b> &#183; wsprnet <b>' + (rep.wsprnet ? 'ON' : 'off') + '</b>' + (s.dryRun ? ' &#183; <span style="color:var(--amber)">DRY RUN</span>' : '') + '<br>' +
-      'Decodes: ' + (cn.decodes || 0) + '<br>' +
-      'PSK Reporter: <b>' + (cn.pskSent || 0) + '</b> sent, ' + pending(cn.pskQueued, cn.pskSent) + ' pending <span style="color:var(--text3)">(uploads every 5 min)</span><br>' +
-      'wsprnet: <b>' + (cn.wsprSent || 0) + '</b> sent, ' + pending(cn.wsprQueued, cn.wsprSent) + ' pending <span style="color:var(--text3)">(every 2 min)</span><br>' +
-      'Last decode: ' + fmt(s.lastDecodeAt) + ' &#183; Last upload: ' + fmt(s.lastUploadAt) + ' ' + (s.lastUploadMsg || '');
+      'Envoi : PSK Reporter <b>' + (rep.pskreporter ? 'ACTIF' : 'inactif') + '</b> &#183; wsprnet <b>' + (rep.wsprnet ? 'ACTIF' : 'inactif') + '</b>' + (s.dryRun ? ' &#183; <span style="color:var(--amber)">SIMULATION</span>' : '') + '<br>' +
+      'Décodages : ' + (cn.decodes || 0) + '<br>' +
+      'PSK Reporter : <b>' + (cn.pskSent || 0) + '</b> envoyés, ' + pending(cn.pskQueued, cn.pskSent) + ' en attente <span style="color:var(--text3)">(envoi toutes les 5 min)</span><br>' +
+      'wsprnet : <b>' + (cn.wsprSent || 0) + '</b> envoyés, ' + pending(cn.wsprQueued, cn.wsprSent) + ' en attente <span style="color:var(--text3)">(toutes les 2 min)</span><br>' +
+      'Dernier décodage : ' + fmt(s.lastDecodeAt) + ' &#183; Dernier envoi : ' + fmt(s.lastUploadAt) + ' ' + (s.lastUploadMsg || '');
     autorunRenderSpots(s, d.running, rep);
     autorunRenderSlotTotals(d.totals || {});
   } catch (e) { /* ignore */ }
@@ -3313,16 +3313,16 @@ function autorunRenderSlotTotals(totals) {
     if (!up && !dec) {
       el.textContent = '0';
       el.classList.add('none');
-      el.title = 'Enabled, nothing decoded yet — WSPR in particular can take ' +
-                 'several minutes, since it transmits on a 2-minute cycle.';
+      el.title = 'Activé, rien décodé pour l’instant — le WSPR en particulier peut prendre ' +
+                 'plusieurs minutes, il émet sur un cycle de 2 minutes.';
       return;
     }
     // Uploaded is the headline; decodes explain a slot that hears plenty but
     // uploads nothing because its destination is off.
     el.textContent = up ? String(up) : '·' + dec;
     el.classList.toggle('none', !up);
-    el.title = up + ' spots uploaded, ' + dec + ' decodes — all time for this band and mode' +
-               (t.lastSpotAt ? '\\nlast upload ' + new Date(t.lastSpotAt * 1000).toLocaleString('en-GB') : '');
+    el.title = up + ' spots envoyés, ' + dec + ' décodages — cumul pour cette bande et ce mode' +
+               (t.lastSpotAt ? '\\ndernier envoi ' + new Date(t.lastSpotAt * 1000).toLocaleString('fr-FR') : '');
   });
   var note = document.getElementById('ar-slot-note');
   if (note) note.style.display = any ? 'block' : 'none';
@@ -3349,15 +3349,15 @@ function autorunRenderSpots(s, running, rep) {
     el.textContent = t ? up : '—';
     el.classList.toggle('idle', !t || up === 0);
     if (sub) {
-      if (!t)              sub.textContent = running ? 'no slot enabled' : 'daemon stopped';
-      else if (!on)        sub.innerHTML = dec + ' decodes · <span style="color:var(--amber)">reporting off</span>';
-      else                 sub.textContent = dec + ' decodes · ' + pending + ' pending';
+      if (!t)              sub.textContent = running ? 'aucun slot activé' : 'démon arrêté';
+      else if (!on)        sub.innerHTML = dec + ' décodages · <span style="color:var(--amber)">envoi désactivé</span>';
+      else                 sub.textContent = dec + ' décodages · ' + pending + ' en attente';
     }
     // Badge shows uploads only, and only once there are some — an empty badge
     // is hidden by CSS, keeping the header clean before the first upload.
     if (hdr) {
       hdr.textContent = (t && up) ? String(up) : '';
-      hdr.title = (t && up) ? (up + ' spots uploaded since the daemon started') : '';
+      hdr.title = (t && up) ? (up + ' spots envoyés depuis le démarrage du démon') : '';
     }
   });
 }
@@ -3385,7 +3385,7 @@ async function loadLogs(targetId, logName) {
   });
   if (!(d.lines || []).length) {
     const div = document.createElement('div');
-    div.textContent = 'No log output found.';
+    div.textContent = 'Aucune ligne dans ce journal.';
     el.appendChild(div);
   }
   el.scrollTop = el.scrollHeight;
@@ -3413,7 +3413,7 @@ async function clearLogView() {
     const r = await fetch('/admin/api/logs/clear', {method: 'POST'});
     d = await r.json();
   } catch (e) {
-    toast('Clear failed: ' + e, 'err');
+    toast('Échec du vidage : ' + e, 'err');
     return;
   }
   const failed  = d.failed  || [];
@@ -3434,7 +3434,7 @@ async function clearLogView() {
   // Say which files were actually emptied: a silent "Logs cleared" over a pane
   // that still has lines in it is what made this look broken.
   if (failed.length) {
-    toast('Could not clear ' + failed.map(f => f.name + ' (' + f.error + ')').join(', '), 'err');
+    toast('Impossible de vider ' + failed.map(f => f.name + ' (' + f.error + ')').join(', '), 'err');
   } else {
     let msg = 'Cleared ' + (cleared.length ? cleared.join(', ') : 'nothing');
     if (skipped.length) msg += ' — kept ' + skipped.join(', ') + ' (excluded)';
@@ -3446,11 +3446,11 @@ function toggleAutoRefresh() {
   autoRefresh = !autoRefresh;
   const btn = document.getElementById('auto-refresh-btn');
   if (autoRefresh) {
-    btn.textContent = '⏸ STOP AUTO';
+    btn.textContent = '⏸ ARRÊTER AUTO';
     btn.className = 'btn btn-red';
     autoRefreshTimer = setInterval(() => loadCurrentLogTab(), 3000);
   } else {
-    btn.textContent = '⏵ AUTO REFRESH';
+    btn.textContent = '⏵ ACTUALISATION AUTO';
     btn.className = 'btn btn-green';
     clearInterval(autoRefreshTimer);
   }
@@ -3473,10 +3473,10 @@ async function loadChat() {
 
     const delBtn = document.createElement('button');
     delBtn.className = 'chat-del-btn';
-    delBtn.title = 'Delete this message';
-    delBtn.textContent = '✕ DEL';
+    delBtn.title = 'Supprimer ce message';
+    delBtn.textContent = '✕ SUPPR.';
     delBtn.onclick = async function() {
-      if (!confirm('Delete this message?\\n\\n' + (m.time ? '[' + m.time + '] ' : '') + '<' + m.nick + '> ' + m.msg)) return;
+      if (!confirm('Supprimer ce message ?\\n\\n' + (m.time ? '[' + m.time + '] ' : '') + '<' + m.nick + '> ' + m.msg)) return;
       try {
         const res = await fetch('/admin/api/chat/delete', {
           method: 'POST',
@@ -3484,8 +3484,8 @@ async function loadChat() {
           body: JSON.stringify({line: m.raw, rx: m.rx || ''})
         });
         const rd = await res.json();
-        if (rd.ok) { div.remove(); toast('Message deleted'); }
-        else toast(rd.msg || 'Delete failed', 'err');
+        if (rd.ok) { div.remove(); toast('Message supprimé'); }
+        else toast(rd.msg || 'Échec de la suppression', 'err');
       } catch(e) { toast('Network error: ' + e.message, 'err'); }
     };
 
@@ -3493,15 +3493,15 @@ async function loadChat() {
     div.appendChild(delBtn);
     el.appendChild(div);
   });
-  if (!d.messages?.length) el.textContent = 'No chat history found.';
+  if (!d.messages?.length) el.textContent = 'Aucun historique de chat.';
   el.scrollTop = el.scrollHeight;
 }
 
 async function clearChat() {
-  if (!confirm('Clear chat history?')) return;
+  if (!confirm('Effacer l’historique du chat ?')) return;
   const r = await fetch('/admin/api/chat/clear', {method:'POST'});
   const d = await r.json();
-  if (d.ok) { toast('Chat cleared'); loadChat(); } else toast(d.msg, 'err');
+  if (d.ok) { toast('Chat effacé'); loadChat(); } else toast(d.msg, 'err');
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
@@ -3517,7 +3517,7 @@ async function loadSettingsPage() {
   ['default-start-sel','default-stop-sel'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
-    sel.innerHTML = '<option value="">-- None --</option>';
+    sel.innerHTML = '<option value="">-- Aucun --</option>';
     all.forEach(s => {
       const o = document.createElement('option');
       o.value = s; o.textContent = s;
@@ -3558,10 +3558,10 @@ function loadThermalSettings(d) {
   fetch('/admin/api/thermal').then(r => r.json()).then(t => {
     const c = document.getElementById('tg-cfg-crit');
     if (!c) return;
-    if (!t.available)   { c.textContent = 'guard not loaded'; return; }
-    if (!t.sensor)      { c.textContent = 'no trusted CPU sensor found'; return; }
+    if (!t.available)   { c.textContent = 'garde non chargée'; return; }
+    if (!t.sensor)      { c.textContent = 'aucun capteur CPU fiable trouvé'; return; }
     c.textContent = t.crit ? (t.sensor + ', crit ' + t.crit + '°C')
-                           : (t.sensor + ', no crit published — set STOP manually');
+                           : (t.sensor + ', pas de seuil critique publié — réglez ARRÊT à la main');
   }).catch(() => {});
 }
 
@@ -3581,12 +3581,12 @@ async function saveThermal() {
     body: JSON.stringify(body)
   }).then(r => r.json());
   if (d.ok) {
-    toast('Thermal settings saved');
+    toast('Garde thermique enregistrée');
     document.getElementById('tg-cfg-msg').textContent =
-      'Saved — applied on the next sample (within a few seconds), no restart needed';
+      'Enregistré — appliqué à la prochaine mesure (sous quelques secondes), sans redémarrage';
     loadSettingsPage();
     updateThermal();
-  } else toast(d.msg || 'Failed', 'err');
+  } else toast(d.msg || 'Échec', 'err');
 }
 
 async function saveSettings() {
@@ -3601,8 +3601,8 @@ async function saveSettings() {
   });
   const d = await r.json();
   if (d.ok) {
-    toast('Settings saved');
-    document.getElementById('settings-msg').textContent = 'Saved';
+    toast('Réglages enregistrés');
+    document.getElementById('settings-msg').textContent = 'Enregistré';
   } else toast(d.msg, 'err');
 }
 
@@ -3611,15 +3611,15 @@ async function changePassword(e) {
   const old = document.getElementById('old-pwd').value;
   const n = document.getElementById('new-pwd').value;
   const n2 = document.getElementById('new-pwd2').value;
-  if (n !== n2) { toast('Passwords do not match', 'err'); return; }
-  if (n.length < 12) { toast('Password too short (min 12)', 'err'); return; }
+  if (n !== n2) { toast('Les mots de passe ne correspondent pas', 'err'); return; }
+  if (n.length < 12) { toast('Mot de passe trop court (12 min.)', 'err'); return; }
   const r = await fetch('/admin/api/change-password', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({old, new_pwd: n})
   });
   const d = await r.json();
-  if (d.ok) { toast('Password changed'); document.getElementById('old-pwd').value=''; document.getElementById('new-pwd').value=''; document.getElementById('new-pwd2').value=''; }
+  if (d.ok) { toast('Mot de passe modifié'); document.getElementById('old-pwd').value=''; document.getElementById('new-pwd').value=''; document.getElementById('new-pwd2').value=''; }
   else toast(d.msg, 'err');
 }
 function escHtml(s) {
@@ -3676,10 +3676,10 @@ var _gTimer    = null;
 var _gHover    = null;    // index under the pointer, or null
 
 var GRAPH_PANELS = [
-  {key:'f', title:'CPU FREQUENCY', unit:'GHz', dec:2},
-  {key:'l', title:'CPU LOAD',      unit:'%',   dec:0},
-  {key:'c', title:'CPU TEMPERATURE', unit:'°C', dec:1},
-  {key:'u', title:'USERS ONLINE',  unit:'',    dec:0, step:true}
+  {key:'f', title:'FRÉQUENCE CPU', unit:'GHz', dec:2},
+  {key:'l', title:'CHARGE CPU',      unit:'%',   dec:0},
+  {key:'c', title:'TEMPÉRATURE CPU', unit:'°C', dec:1},
+  {key:'u', title:'AUDITEURS EN LIGNE',  unit:'',    dec:0, step:true}
 ];
 
 // One hue for every panel: each panel holds a single series that its own title
@@ -3781,8 +3781,8 @@ function drawGraphs() {
   if (info) {
     // Say plainly when a view is averaged: a 30s mean and a 2s reading are not
     // the same measurement, and the peaks differ between them.
-    info.textContent = (_gMeta.coarse ? _gMeta.interval + 's averages' : 'sampling every ' + _gMeta.interval + 's') +
-      ' · ' + pts.length + ' points shown' + (_gMeta.cores ? ' · ' + _gMeta.cores + ' cores' : '');
+    info.textContent = (_gMeta.coarse ? _gMeta.interval + 's de moyenne' : 'mesure toutes les ' + _gMeta.interval + 's') +
+      ' · ' + pts.length + ' points affichés' + (_gMeta.cores ? ' · ' + _gMeta.cores + ' cœurs' : '');
   }
 
   // Current-value tiles always reflect the newest sample, not the hover.
@@ -3798,11 +3798,11 @@ function drawGraphs() {
   var tempEl = document.getElementById('g-cur-temp');
   if (tempEl && last) tempEl.style.color = graphTempColor(last.c);
   var fsub = document.getElementById('g-sub-freq');
-  if (fsub) fsub.textContent = 'GHz average' + (last && last.fm ? ' · peak core ' + last.fm.toFixed(2) : '');
+  if (fsub) fsub.textContent = 'GHz en moyenne' + (last && last.fm ? ' · cœur max ' + last.fm.toFixed(2) : '');
   var tsub = document.getElementById('g-sub-temp');
   if (tsub && last && last.c !== null && last.c !== undefined) {
-    tsub.textContent = last.c >= TEMP_CRIT ? 'degrees C · CRITICAL'
-                     : last.c >= TEMP_WARN ? 'degrees C · WARM' : 'degrees C';
+    tsub.textContent = last.c >= TEMP_CRIT ? 'degrés C · CRITIQUE'
+                     : last.c >= TEMP_WARN ? 'degrés C · CHAUD' : 'degrés C';
   }
 
   if (pts.length < 2) {
@@ -3810,8 +3810,8 @@ function drawGraphs() {
     if (empty) {
       empty.style.display = 'block';
       empty.textContent = _gMeta.coarse
-        ? 'Collecting data — this view plots ' + _gMeta.interval + 's averages, so it fills in as the panel keeps running.'
-        : 'Collecting data — a sample is taken every ' + _gMeta.interval + 's, so the first curve appears within a few seconds.';
+        ? 'Collecte en cours — cette vue trace des moyennes sur ' + _gMeta.interval + ' s, elle se remplit tant que le panneau tourne.'
+        : 'Collecte en cours — une mesure toutes les ' + _gMeta.interval + ' s, la première courbe apparaît sous quelques secondes.';
     }
     return;
   }
@@ -3896,7 +3896,7 @@ function drawGraphs() {
       ctx.font = F_AXIS;
       ctx.fillStyle = '#4a8a4a';
       ctx.textAlign = 'center';
-      ctx.fillText('not available on this system', PAD_L + plotW / 2, top + PANEL_H / 2);
+      ctx.fillText('non disponible sur ce système', PAD_L + plotW / 2, top + PANEL_H / 2);
       return;
     }
 
@@ -4049,7 +4049,7 @@ function graphHover(ev) {
            graphFmt(v === undefined ? null : v, pl) + '</span></div>';
   }).join('');
   tip.innerHTML = '<div style="color:var(--green);margin-bottom:.25rem;">' +
-    new Date(p.t * 1000).toLocaleTimeString('en-GB') + '</div>' + rows;
+    new Date(p.t * 1000).toLocaleTimeString('fr-FR') + '</div>' + rows;
   tip.style.display = 'block';
   // Flip the tooltip to the other side near the right edge so it never
   // overflows the card it lives in.
@@ -4095,14 +4095,14 @@ async function loadUsers() {
     td.style.cssText = 'color:' + (color||'var(--text3)') + ';text-align:center;padding:.8rem;';
     td.textContent = msg; tr.appendChild(td); tbody.appendChild(tr);
   }
-  if (tbody) msgRow('Loading...', 'var(--text3)');
+  if (tbody) msgRow('Chargement…', 'var(--text3)');
   try {
     // Through the admin API, not /users: proxy.py would route that by the rx
     // cookie and show only the receiver last opened with ?rx=.
     var r = await fetch('/admin/api/sdr-users', {cache: 'no-store'});
     if (!r.ok) throw new Error('HTTP ' + r.status);
     var data = await r.json();
-    if (!data.ok) throw new Error(data.error || 'no receiver answered');
+    if (!data.ok) throw new Error(data.error || 'aucun récepteur n’a répondu');
     var users = data.users || [];
     var multi = !!data.multi;
     var rxTh = document.getElementById('users-rx-th');
@@ -4110,7 +4110,7 @@ async function loadUsers() {
     if (errEl) errEl.style.display = 'none';
     if (info)  info.textContent = users.length + ' connected';
     if (!tbody) return;
-    if (!users.length) { msgRow('No users currently connected', ''); return; }
+    if (!users.length) { msgRow('Aucun auditeur connecté', ''); return; }
     var now = Date.now();
     tbody.innerHTML = '';
     users.forEach(function(u) {
@@ -4161,7 +4161,7 @@ async function loadUsers() {
         var btn = document.createElement('button');
         btn.className = 'btn btn-red';
         btn.style.cssText = 'padding:.25rem .6rem;font-size:.65rem;';
-        btn.textContent = '⚡ KICK';
+        btn.textContent = '⚡ EXPULSER';
         btn.onclick = (function(ip){ return function(){ kickUser(ip); }; })(rawIp);
         tdK.appendChild(btn);
       }
@@ -4173,13 +4173,13 @@ async function loadUsers() {
       if (!liveIds.has(id)) delete _uConnTimes[id];
     });
   } catch(e) {
-    if (errEl) { errEl.textContent = 'Cannot read the users list: ' + e.message; errEl.style.display = 'block'; }
-    if (tbody)  msgRow('Error: ' + e.message, 'var(--red)');
+    if (errEl) { errEl.textContent = 'Impossible de lire la liste des auditeurs : ' + e.message; errEl.style.display = 'block'; }
+    if (tbody)  msgRow('Erreur : ' + e.message, 'var(--red)');
   }
 }
 
 async function kickUser(ip) {
-  if (!confirm('Kick ' + ip + '? This will disconnect all their connections.')) return;
+  if (!confirm('Expulser ' + ip + ' ? Toutes ses connexions seront coupées.')) return;
   try {
     var r = await fetch('/admin/api/kick', {
       method: 'POST',
@@ -4188,9 +4188,9 @@ async function kickUser(ip) {
     });
     var d = await r.json();
     if (d.ok) { toast('Kicked ' + ip); setTimeout(loadUsers, 1800); }
-    else toast(d.msg || 'Kick failed', 'err');
+    else toast(d.msg || 'Échec de l’expulsion', 'err');
   } catch(e) {
-    toast('Kick sent — refreshing...', 'ok');
+    toast('Expulsion envoyée — actualisation…', 'ok');
     setTimeout(loadUsers, 2000);
   }
 }
@@ -4206,7 +4206,7 @@ function toggleUsersAutoRefresh() {
       if (currentPage === 'users') loadUsers();
       else { clearInterval(_usersAutoTimer); _usersAutoTimer = null; }
     }, 5000);
-    if (btn) { btn.textContent = '⏸ AUTO ON'; btn.classList.replace('btn-green','btn-amber'); }
+    if (btn) { btn.textContent = '⏸ AUTO ACTIF'; btn.classList.replace('btn-green','btn-amber'); }
   }
 }
 
@@ -4235,8 +4235,8 @@ async function sendWfMsg() {
   var text  = (document.getElementById('wfmsg-text')?.value || '').trim();
   var color = document.getElementById('wfmsg-color')?.value || '#ffffff';
   var el    = document.getElementById('wfmsg-status');
-  if (!text) { el.textContent = '⚠ Message cannot be empty.'; el.style.color = 'var(--red)'; return; }
-  el.textContent = 'Broadcasting…'; el.style.color = 'var(--text3)';
+  if (!text) { el.textContent = '⚠ Le message ne peut pas être vide.'; el.style.color = 'var(--red)'; return; }
+  el.textContent = 'Diffusion…'; el.style.color = 'var(--text3)';
   try {
     var r = await fetch('/admin/api/wf-message', {
       method: 'POST',
@@ -4245,28 +4245,28 @@ async function sendWfMsg() {
     });
     var d = await r.json();
     if (d.ok) {
-      el.textContent = '✓ Live! All users will see it within 10 s.';
+      el.textContent = '✓ En ligne ! Tous les auditeurs le verront sous 10 s.';
       el.style.color = 'var(--green)';
       var a = document.getElementById('wfmsg-active');
       if (a) { a.textContent = text + wfUntilText(wfUntil()); a.style.color = 'var(--green)'; }
-      toast('WF message broadcast');
+      toast('Message waterfall diffusé');
     } else {
-      el.textContent = '✗ ' + (d.msg || 'Error'); el.style.color = 'var(--red)';
+      el.textContent = '✗ ' + (d.msg || 'Erreur'); el.style.color = 'var(--red)';
     }
-  } catch(e) { el.textContent = '✗ Network error: ' + e.message; el.style.color = 'var(--red)'; }
+  } catch(e) { el.textContent = '✗ Erreur réseau : ' + e.message; el.style.color = 'var(--red)'; }
 }
 
 async function clearWfMsg() {
   var el = document.getElementById('wfmsg-status');
-  el.textContent = 'Clearing…'; el.style.color = 'var(--text3)';
+  el.textContent = 'Effacement…'; el.style.color = 'var(--text3)';
   try {
     await fetch('/admin/api/wf-message', {method: 'DELETE'});
-    el.textContent = '✓ Cleared. Banner disappears within 10 s.';
+    el.textContent = '✓ Effacé. Le bandeau disparaît sous 10 s.';
     el.style.color = 'var(--text3)';
     var a = document.getElementById('wfmsg-active');
     if (a) { a.textContent = '—'; a.style.color = 'var(--text3)'; }
-    toast('WF message cleared');
-  } catch(e) { el.textContent = '✗ Network error'; el.style.color = 'var(--red)'; }
+    toast('Message waterfall effacé');
+  } catch(e) { el.textContent = '✗ Erreur réseau'; el.style.color = 'var(--red)'; }
 }
 
 async function loadWfMsgStatus() {
@@ -4306,7 +4306,7 @@ def login_post():
         if is_first_run():
             return redirect(url_for("setup"))
         return redirect(url_for("dashboard"))
-    return render_template_string(LOGIN_HTML, error="Invalid access code. Try again.")
+    return render_template_string(LOGIN_HTML, error="Code d'accès invalide. Réessayez.")
 
 @app.route("/admin/dashboard")
 @login_required
@@ -4343,9 +4343,9 @@ def api_autodetect():
 @app.route("/admin/api/setup", methods=["POST"])
 def api_setup():
     if not session.get("authenticated"):
-        return jsonify({"ok": False, "msg": "Not authenticated"}), 403
+        return jsonify({"ok": False, "msg": "Non authentifié"}), 403
     if not is_first_run():
-        return jsonify({"ok": False, "msg": "Setup already complete"})
+        return jsonify({"ok": False, "msg": "Configuration déjà effectuée"})
     data = request.get_json(silent=True) or {}
     sdr_dir   = data.get("sdr_base_dir", "").strip()
     proc_name = (data.get("sdr_process_name", "spectrumserver") or "spectrumserver").strip()
@@ -4355,13 +4355,13 @@ def api_setup():
         public_port = 8900
     new_password = data.get("new_password", "")
     if not sdr_dir:
-        return jsonify({"ok": False, "msg": "SDR base directory is required"})
+        return jsonify({"ok": False, "msg": "Le répertoire de base SDR est obligatoire"})
     if len(new_password) < MIN_PASSWORD_LEN or new_password.lower() == "admin":
-        return jsonify({"ok": False, "msg": f"Password must be at least {MIN_PASSWORD_LEN} characters"})
+        return jsonify({"ok": False, "msg": f"Le mot de passe doit contenir au moins {MIN_PASSWORD_LEN} caractères"})
     cfg = load_admin_config()
     if cfg.get("proxy_port") and public_port == int(cfg["proxy_port"]):
-        return jsonify({"ok": False, "msg": f"Port {public_port} is the proxy's public port. "
-                        "Enter spectrumserver's own port ([server] port in its config)."})
+        return jsonify({"ok": False, "msg": f"Port {public_port} est le port public du proxy. "
+                        "Indiquez le port propre à spectrumserver (port de [server] dans sa config)."})
     cfg["sdr_base_dir"]     = sdr_dir
     cfg["sdr_process_name"] = proc_name
     cfg["public_port"]      = public_port
@@ -4639,7 +4639,7 @@ def api_read_file():
         p = Path(path).resolve()
         p.relative_to(base)  # raises if outside
     except (ValueError, Exception):
-        return jsonify({"error": "Access denied"}), 403
+        return jsonify({"error": "Accès refusé"}), 403
     content = read_file_safe(path)
     return jsonify({"content": content})
 
@@ -4654,7 +4654,7 @@ def api_write_file():
         p = Path(path).resolve()
         p.relative_to(base)
     except (ValueError, Exception):
-        return jsonify({"ok": False, "msg": "Access denied"}), 403
+        return jsonify({"ok": False, "msg": "Accès refusé"}), 403
     ok, msg = write_file_safe(path, content)
     return jsonify({"ok": ok, "msg": msg})
 
@@ -4796,17 +4796,17 @@ def api_autorun_config():
         max_slots = 12
     enabled_count = sum(1 for s in slots if s["enabled"])
     if enabled_count > max_slots:
-        return jsonify({"ok": False, "msg": f"{enabled_count} slots enabled exceeds cap of {max_slots}"})
+        return jsonify({"ok": False, "msg": f"{enabled_count} slots activés dépassent la limite de {max_slots}"})
     ident = req.get("identity") or {}
     call = (ident.get("callsign") or "").strip().upper()
     grid_in = (ident.get("grid") or "").strip()
     grid = _reporter_grid(grid_in)
     if not re.match(r'^[A-Z0-9/]{3,12}$', call):
-        return jsonify({"ok": False, "msg": "invalid callsign format"})
+        return jsonify({"ok": False, "msg": "format d'indicatif invalide"})
     # The reporters refuse spots with any other locator, so it is 4 or 6
     # characters (KM17 or KM17VX) or nothing.
     if grid_in and not grid:
-        return jsonify({"ok": False, "msg": "grid must be a 4 or 6 character locator, e.g. KM17 or KM17VX"})
+        return jsonify({"ok": False, "msg": "le locator doit faire 4 ou 6 caractères, ex. IN93 ou IN93KS"})
     rep = req.get("reporting") or {}
     out = {
         "identity": {"callsign": call, "grid": grid},
@@ -4833,7 +4833,7 @@ def api_autorun_config():
             out["cores"] = cores
         # anything else: silently omit (invalid)
     ok, msg = write_file_safe(cfg_path, json.dumps(out, indent=2))
-    return jsonify({"ok": ok, "msg": msg if not ok else "saved"})
+    return jsonify({"ok": ok, "msg": msg if not ok else "enregistré"})
 
 @app.route("/admin/api/autorun/status")
 @login_required
@@ -4907,18 +4907,18 @@ def api_autorun_start():
     base, cfg_path, _, log_path = _autorun_paths()
     running, _ = _autorun_running()
     if running:
-        return jsonify({"ok": False, "msg": "already running"})
+        return jsonify({"ok": False, "msg": "déjà en marche"})
     if not cfg_path.exists():
-        return jsonify({"ok": False, "msg": "save config first"})
+        return jsonify({"ok": False, "msg": "enregistrez d'abord la configuration"})
     try:
         cfg = json.loads(read_file_safe(cfg_path))
         if not any(s.get("enabled") for s in cfg.get("slots", [])):
-            return jsonify({"ok": False, "msg": "no bands/modes enabled"})
+            return jsonify({"ok": False, "msg": "aucune bande/mode activé"})
     except Exception as e:
-        return jsonify({"ok": False, "msg": f"bad config: {e}"})
+        return jsonify({"ok": False, "msg": f"configuration invalide : {e}"})
     index_js = base / "autorun" / "index.js"
     if not index_js.exists():
-        return jsonify({"ok": False, "msg": "autorun/index.js missing"})
+        return jsonify({"ok": False, "msg": "autorun/index.js introuvable"})
     node = _resolve_node()
     # Pin the daemon to the top CPU cores so decode bursts stay off the lower
     # cores spectrumserver prefers (xgo.sh pins it to 0-7). Config-aware: on a
@@ -4930,7 +4930,7 @@ def api_autorun_start():
         logf = open(log_path, "a")
         proc = subprocess.Popen(cmd, cwd=str(base), stdout=logf,
                                 stderr=subprocess.STDOUT, start_new_session=True)
-        return jsonify({"ok": True, "msg": f"started (PID {proc.pid})", "pid": proc.pid})
+        return jsonify({"ok": True, "msg": f"démarré (PID {proc.pid})", "pid": proc.pid})
     except Exception as e:
         return jsonify({"ok": False, "msg": str(e)})
 
@@ -4957,15 +4957,15 @@ def api_autorun_totals_reset():
             if not _autorun_running()[0]:
                 break
         else:
-            return jsonify({"ok": False, "msg": "daemon did not stop; totals kept"})
+            return jsonify({"ok": False, "msg": "le démon ne s'est pas arrêté ; compteurs conservés"})
 
     path = get_sdr_dir() / "autorun-totals.json"
     try:
         if path.exists():
             path.unlink()
-        return jsonify({"ok": True, "msg": "counters cleared", "was_running": running})
+        return jsonify({"ok": True, "msg": "compteurs remis à zéro", "was_running": running})
     except Exception as e:
-        return jsonify({"ok": False, "msg": f"could not clear totals: {e}"})
+        return jsonify({"ok": False, "msg": f"impossible de remettre les compteurs à zéro : {e}"})
 
 
 @app.route("/admin/api/autorun/stop", methods=["POST"])
@@ -4973,7 +4973,7 @@ def api_autorun_totals_reset():
 def api_autorun_stop():
     running, pids = _autorun_running()
     if not running:
-        return jsonify({"ok": False, "msg": "not running"})
+        return jsonify({"ok": False, "msg": "pas en marche"})
     killed = []
     for pid in pids:
         try:
@@ -4981,7 +4981,7 @@ def api_autorun_stop():
             killed.append(pid)
         except Exception:
             pass
-    return jsonify({"ok": True, "msg": f"stopped PID(s) {','.join(killed)}"})
+    return jsonify({"ok": True, "msg": f"PID arrêté(s) : {','.join(killed)}"})
 
 # ── API: Logs ─────────────────────────────────────────────────────────────────
 @app.route("/admin/api/logs")
@@ -4989,7 +4989,7 @@ def api_autorun_stop():
 def api_logs():
     log_name = request.args.get("name", "logwebsdr.txt")
     if log_name not in LOG_FILES:
-        return jsonify({"ok": False, "msg": "Unknown log", "available": list(LOG_FILES.keys()), "lines": []}), 400
+        return jsonify({"ok": False, "msg": "Journal inconnu", "available": list(LOG_FILES.keys()), "lines": []}), 400
     lines = tail_log(150, log_name)
     return jsonify({"ok": True, "name": log_name, "available": list(LOG_FILES.keys()), "lines": lines})
 
@@ -5045,9 +5045,9 @@ def _send_chat_admin_cmd(cmd: str, sock_path: str = CHAT_ADMIN_SOCK):
             s.sendall((cmd + "\n").encode())
         return True, "ok"
     except FileNotFoundError:
-        return False, "Chat admin socket not found — is spectrumserver running?"
+        return False, "Socket admin du chat introuvable — spectrumserver est-il lancé ?"
     except _socket.timeout:
-        return False, "Timed out connecting to chat admin socket"
+        return False, "Délai dépassé en se connectant au socket admin du chat"
     except Exception as e:
         return False, str(e)
 
@@ -5121,11 +5121,11 @@ def api_chat_clear():
     data = request.get_json(silent=True) or {}
     src = _chat_source(data.get("rx", ""))
     if not src:
-        return jsonify({"ok": False, "msg": "Unknown receiver"})
+        return jsonify({"ok": False, "msg": "Récepteur inconnu"})
     try:
         with open(src[1], "w") as f:
             f.write("")
-        return jsonify({"ok": True, "msg": "Chat history cleared"})
+        return jsonify({"ok": True, "msg": "Historique du chat effacé"})
     except Exception as e:
         return jsonify({"ok": False, "msg": str(e)})
 
@@ -5146,11 +5146,11 @@ def api_chat_delete():
     data = request.get_json(silent=True) or {}
     line = data.get("line", "").strip()
     if not line:
-        return jsonify({"ok": False, "msg": "No line specified"})
+        return jsonify({"ok": False, "msg": "Aucune ligne indiquée"})
     # Each receiver has its own spectrumserver and its own admin socket.
     src = _chat_source(data.get("rx", ""))
     if not src:
-        return jsonify({"ok": False, "msg": "Unknown receiver"})
+        return jsonify({"ok": False, "msg": "Récepteur inconnu"})
     ok, msg = _send_chat_admin_cmd("DELETE:" + line, src[2])
     return jsonify({"ok": ok, "msg": msg})
 
@@ -5245,7 +5245,7 @@ def api_wf_message_post():
     text  = (data.get("text") or "").strip()[:200]
     color = data.get("color", "#ffffff")
     if not text:
-        return jsonify({"ok": False, "msg": "Empty message"})
+        return jsonify({"ok": False, "msg": "Message vide"})
     try:
         until = float(data.get("until") or 0)
     except (TypeError, ValueError):
@@ -5321,8 +5321,8 @@ def api_settings():
             pp = None
         if pp is not None:
             if cfg.get("proxy_port") and pp == int(cfg["proxy_port"]):
-                return jsonify({"ok": False, "msg": f"Port {pp} is the proxy's public port. "
-                                "Enter spectrumserver's own port ([server] port in its config)."})
+                return jsonify({"ok": False, "msg": f"Port {pp} est le port public du proxy. "
+                                "Indiquez le port propre à spectrumserver (port de [server] dans sa config)."})
             cfg["public_port"] = pp
     save_admin_config(cfg)
     return jsonify({"ok": True})
@@ -5384,8 +5384,8 @@ def api_thermal():
         act = (request.get_json(silent=True) or {}).get("action")
         if act == "reset":
             thermal_guard.reset()
-            return jsonify({"ok": True, "msg": "Thermal lockout cleared"})
-        return jsonify({"ok": False, "msg": "Unknown action"})
+            return jsonify({"ok": True, "msg": "Blocage thermique levé"})
+        return jsonify({"ok": False, "msg": "Action inconnue"})
     st = thermal_guard.status()
     st["available"] = True
     return jsonify(st)
@@ -5398,9 +5398,9 @@ def api_change_password():
     old = data.get("old", "")
     new_pwd = data.get("new_pwd", "")
     if not check_password(old):
-        return jsonify({"ok": False, "msg": "Current password incorrect"})
+        return jsonify({"ok": False, "msg": "Mot de passe actuel incorrect"})
     if len(new_pwd) < MIN_PASSWORD_LEN or new_pwd.lower() == "admin":
-        return jsonify({"ok": False, "msg": f"Password too short (minimum {MIN_PASSWORD_LEN} characters)"})
+        return jsonify({"ok": False, "msg": f"Mot de passe trop court (minimum {MIN_PASSWORD_LEN} caractères)"})
     cfg = load_admin_config()
     cfg["password_hash"] = hash_password(new_pwd)
     save_admin_config(cfg)
@@ -5491,7 +5491,7 @@ def api_sdr_users():
             u["id"] = "%d:%s" % (port, u.get("id", ""))
             users.append(u)
     if not seen:
-        return jsonify({"ok": False, "users": [], "error": "; ".join(errors) or "no receiver"})
+        return jsonify({"ok": False, "users": [], "error": "; ".join(errors) or "aucun récepteur"})
     return jsonify({"ok": True, "users": users, "multi": len(labels) > 1, "errors": errors})
 
 @app.route("/admin/api/users")
@@ -5856,7 +5856,7 @@ def api_kick():
     data = request.get_json(silent=True) or {}
     ip = data.get("ip", "").strip()
     if not re.match(r'^[\d.a-fA-F:]+$', ip) or ip in ("127.0.0.1", "::1", ""):
-        return jsonify({"ok": False, "msg": "Invalid or disallowed IP"})
+        return jsonify({"ok": False, "msg": "IP invalide ou non autorisée"})
     if ip.startswith("::ffff:"):
         ip = ip[7:]  # normalize IPv4-mapped IPv6 so it matches ss / proxy keys
 
@@ -5873,8 +5873,8 @@ def api_kick():
         total = server_count + proxy_count
         return jsonify({
             "ok": True,
-            "msg": "Kicked %s — %d connection%s closed" % (
-                ip, total, "s" if total != 1 else ""),
+            "msg": "%s expulsé — %d connexion%s fermée%s" % (
+                ip, total, *(("s", "s") if total != 1 else ("", ""))),
         })
 
     import shutil as _shutil
@@ -5887,7 +5887,7 @@ def api_kick():
 
         if count_before == 0 and proxy_count == 0:
             return jsonify({"ok": False,
-                            "msg": "No active connections from %s" % ip})
+                            "msg": "Aucune connexion active depuis %s" % ip})
 
         # 'ss -K' (SOCK_DESTROY) needs CAP_NET_ADMIN. Without it the kernel
         # replies "Operation not permitted" but ss still exits 0, so the kick
@@ -5911,18 +5911,18 @@ def api_kick():
             if proxy_count:
                 return jsonify({
                     "ok": True,
-                    "msg": ("Closed %d proxy stream%s from %s. Direct "
-                            "connections still need: sudo setcap "
+                    "msg": ("%d flux proxy fermé%s pour %s. Les connexions "
+                            "directes nécessitent encore : sudo setcap "
                             "cap_net_admin+ep %s" % (
                                 proxy_count, "s" if proxy_count != 1 else "",
                                 ip, os.path.realpath(ss_bin))),
                 })
             return jsonify({
                 "ok": False,
-                "msg": ("Kick has no effect — these users connect directly to "
-                        "spectrumserver and closing those sockets needs "
-                        "CAP_NET_ADMIN. Run once: sudo setcap cap_net_admin+ep "
-                        "%s  (then restart nothing — takes effect immediately)"
+                "msg": ("Expulsion sans effet — ces auditeurs sont connectés directement à "
+                        "spectrumserver et fermer ces sockets exige "
+                        "CAP_NET_ADMIN. À lancer une fois : sudo setcap cap_net_admin+ep "
+                        "%s  (aucun redémarrage nécessaire — effet immédiat)"
                         % os.path.realpath(ss_bin)),
             })
 
@@ -5941,8 +5941,8 @@ def api_kick():
         total = max(count_before, proxy_count)
         return jsonify({
             "ok":  True,
-            "msg": "Kicked %s — %d connection%s terminated" % (
-                ip, total, "s" if total != 1 else ""),
+            "msg": "%s expulsé — %d connexion%s coupée%s" % (
+                ip, total, *(("s", "s") if total != 1 else ("", ""))),
         })
     except Exception as e:
         return jsonify({"ok": False, "msg": str(e)})
