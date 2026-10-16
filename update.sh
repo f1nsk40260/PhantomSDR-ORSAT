@@ -74,7 +74,7 @@ PHANTOM_DIR_REAL="$(cd "$PHANTOM_DIR" 2>/dev/null && pwd -P)" || PHANTOM_DIR_REA
 
 # Version française (F1NSK) : les mises à jour viennent de ce dépôt. Pour
 # reprendre l'original anglais de SV1BTL : UPDATE_REPO=sv1btl/PhantomSDR-Plus
-REPO_SLUG="${UPDATE_REPO:-f1nsk40260/PhantomSDR-Plus}"
+REPO_SLUG="${UPDATE_REPO:-f1nsk40260/PhantomSDR-ORSAT}"
 REF="${UPDATE_REF:-main}"
 
 STATE_DIR="$PHANTOM_DIR/.update-state"

@@ -5,7 +5,7 @@
 
 > [!IMPORTANT]
 > **Ceci est une version modifiée, en français, de PhantomSDR-Plus, maintenue par F1NSK** sur
-> **https://github.com/f1nsk40260/PhantomSDR-Plus**. Ce n'est pas le projet original.
+> **https://github.com/f1nsk40260/PhantomSDR-ORSAT**. Ce n'est pas le projet original.
 >
 > **L'original est maintenu par SV1BTL** : **https://github.com/sv1btl/PhantomSDR-Plus**. Version
 > actuelle : 5.1.0. C'est là qu'il faut signaler les problèmes qui ne concernent pas la traduction.
@@ -139,7 +139,7 @@ Le WebSDR de SV1BTL : http://phantomsdr.no-ip.org:8900/
 Tout est installé par un seul script, et toutes les questions sont posées au début :
 
 ```
-git clone https://github.com/f1nsk40260/PhantomSDR-Plus
+git clone https://github.com/f1nsk40260/PhantomSDR-ORSAT PhantomSDR-Plus
 cd PhantomSDR-Plus
 bash install.sh
 ```
@@ -163,7 +163,7 @@ Il n'y a pas d'étape `chmod` ni de terminal à redémarrer : une copie téléch
 > **PhantomSDR-Plus tourne déjà chez vous ? Ne le réinstallez pas.** Récupérez une fois l'outil de mise à jour, puis lancez-le. Il montre ce qui changerait et demande avant d'écrire quoi que ce soit ; votre configuration `.toml`, vos repères, votre mot de passe d'administration, votre liste de fréquences et l'historique du chat ne sont jamais touchés, et aucun port de votre station ne bascule vers les nouveaux : <br />
 > ```
 > cd ~/PhantomSDR-Plus
-> curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-Plus/main/update.sh
+> curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-ORSAT/main/update.sh
 > bash update.sh
 > ```
 > Tous les détails dans **[L'outil de mise à jour](#loutil-de-mise-à-jour)**. Relancer `install.sh` sur un site qui fonctionne n'est utile que si une reconstruction échoue faute de paquets système.
@@ -452,13 +452,13 @@ bash update.sh --restore LAST     remet en place ce que la dernière exécution 
 
 > [!NOTE]
 > **Pour cette version française :** `update.sh` récupère les mises à jour depuis ce dépôt
-> (github.com/f1nsk40260/PhantomSDR-Plus) ; l'outil le signale comme un fork, c'est normal.
+> (github.com/f1nsk40260/PhantomSDR-ORSAT) ; l'outil le signale comme un fork, c'est normal.
 > Pour revenir à l'original anglais de SV1BTL : `UPDATE_REPO=sv1btl/PhantomSDR-Plus bash update.sh`.
 
 **Si votre installation n'a pas encore `update.sh`**, récupérez-le une fois — c'est la seule étape de cette procédure à faire à la main : <br />
 ```
 cd ~/PhantomSDR-Plus
-curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-Plus/main/update.sh
+curl -fLO https://raw.githubusercontent.com/f1nsk40260/PhantomSDR-ORSAT/main/update.sh
 ```
 Ensuite, tout, `update.sh` compris, est apporté par l'outil. <br />
 
@@ -796,7 +796,7 @@ La documentation dans les autres langues (anglais, grec, allemand, espagnol, cro
 - **Site web** : https://phantomsdr.psychomed.gr
 - **Démonstration en direct** : http://phantomsdr.no-ip.org:8900/
 - **Annuaire de WebSDR** : https://sdr-list.xyz
-- **Signaler un problème** : sur la traduction, dans [cette version française](https://github.com/f1nsk40260/PhantomSDR-Plus/issues) ; sur le logiciel lui-même, dans [le projet original](https://github.com/sv1btl/PhantomSDR-Plus/issues)
+- **Signaler un problème** : sur la traduction, dans [cette version française](https://github.com/f1nsk40260/PhantomSDR-ORSAT/issues) ; sur le logiciel lui-même, dans [le projet original](https://github.com/sv1btl/PhantomSDR-Plus/issues)
 
 ---
 

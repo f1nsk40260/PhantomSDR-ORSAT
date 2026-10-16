@@ -11,4 +11,4 @@ export const ORIGIN_URL = "https://github.com/sv1btl/PhantomSDR-Plus";
 // Version modifiée : ADDITIONAL_TERMS.md demande que les versions modifiées
 // soient signalées comme différentes de l'original, à côté de l'attribution.
 export const MODIFIED_NOTE = "version ORSAT modifiée par F1NSK";
-export const MODIFIED_URL = "https://github.com/f1nsk40260/PhantomSDR-Plus";
+export const MODIFIED_URL = "https://github.com/f1nsk40260/PhantomSDR-ORSAT";
