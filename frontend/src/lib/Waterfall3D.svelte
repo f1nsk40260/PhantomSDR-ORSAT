@@ -212,6 +212,10 @@
   const line = new Uint8Array(W);
   const hist256 = new Uint32Array(256);
   let floorE = -1, spanE = -1;
+  const times = new Float64Array(H);   // instant d'arrivée de chaque trace
+  let dbPerRaw = 0.55;                 // dB par pas de niveau (0-255), d'après min/max du waterfall
+  // Graduations superposées à la vue (recalculées 4 fois par seconde).
+  let dbMarks = [], timeMarks = [], lastMarks = 0;
   const norm = new Float32Array(W), prev = new Float32Array(W);
   let havePrev = false, prevL = 0, prevR = 0;
   const rng = new Float32Array(2);
@@ -252,6 +256,9 @@
     }
     havePrev = true;
     head = (head + 1) % H;
+    times[head] = performance.now();
+    if (waterfall && Number.isFinite(waterfall.maxWaterfall) && Number.isFinite(waterfall.minWaterfall))
+      dbPerRaw = (waterfall.maxWaterfall - waterfall.minWaterfall) / 255;
     gl.bindTexture(gl.TEXTURE_2D, histTex);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, head, W, 1, gl.RED_INTEGER, gl.UNSIGNED_BYTE, line);
     rng[0] = l; rng[1] = r;
@@ -269,8 +276,52 @@
 
   function schedule() { if (!raf) raf = requestAnimationFrame(render); }
 
+  // ── Graduations : mêmes formules que le vertex shader, côté JavaScript ──
+  const fl = Math.pow(Number(FLOORV), Number(HPOW));
+  const sOf = (d) => 1 / (1 + K * d);
+  const sBack = 1 / (1 + K);
+  const groundOf = (d) => -1 - fl * AMP + RISE * (1 - sOf(d)) / (1 - sBack);
+  const pct = (y) => ((1 - y) / 2) * 100;          // y écran (-1..1) → % depuis le haut
+
+  function updateMarks() {
+    // Échelle en dB au-dessus du bruit, sur la trace la plus récente (devant, à droite).
+    const db = [];
+    if (spanE > 0 && dbPerRaw > 0) {
+      const base = floorE - spanE * 0.10;
+      for (let k = 10; k <= 80; k += 10) {
+        const raw = floorE + k / dbPerRaw;
+        const v = (raw - base) / (spanE * 1.15);
+        if (v >= 1) break;
+        const y = groundOf(0) + Math.pow(Math.max(v, 0), Number(HPOW)) * AMP;
+        if (y > 0.92) break;
+        db.push({ k, top: pct(y) });
+      }
+    }
+    dbMarks = db;
+
+    // Repères de temps en profondeur (−5 s, −10 s…), à gauche.
+    const tm = [];
+    const now = times[head];
+    let oldest = 0;
+    for (let a = H - 1; a > 0; a--) { const t = times[(head - a + H) % H]; if (t > 0) { oldest = a; break; } }
+    if (now > 0 && oldest > 4) {
+      const total = (now - times[(head - oldest + H) % H]) / 1000;
+      const step = [1, 2, 5, 10, 15, 30, 60, 120].find((st) => total / st <= 5) || 300;
+      let a = 1;
+      for (let sec = step; sec < total; sec += step) {
+        while (a < oldest && (now - times[(head - a + H) % H]) / 1000 < sec) a++;
+        const d = a / (H - 1);
+        const y = groundOf(d) + fl * AMP * sOf(d);
+        tm.push({ sec, top: pct(y) });
+      }
+    }
+    timeMarks = tm;
+  }
+
   function render() {
     raf = 0;
+    const tnow = performance.now();
+    if (tnow - lastMarks > 250) { lastMarks = tnow; updateMarks(); }
     if (!gl) return;
     const w = canvas.width, h = canvas.height;
     gl.viewport(0, 0, w, h);
@@ -332,6 +383,13 @@
 <div class="w3d">
   <canvas bind:this={canvas} class="w3d-canvas"></canvas>
   {#if failed}<div class="w3d-msg">{failed}</div>{/if}
+  <!-- Graduations : temps en profondeur (à gauche), dB au-dessus du bruit (à droite) -->
+  {#each timeMarks as m (m.sec)}
+    <div class="w3d-tline" style="top:{m.top}%"><span data-no-i18n>−{m.sec} s</span></div>
+  {/each}
+  {#each dbMarks as m (m.k)}
+    <div class="w3d-db" style="top:{m.top}%"><span data-no-i18n>+{m.k} dB</span></div>
+  {/each}
   <div class="w3d-tools">
     <button on:click={onClose} title="Revenir au spectre classique">✕ 2D</button>
   </div>
@@ -347,6 +405,22 @@
     border: 1px solid rgba(207, 181, 59, 0.55);
   }
   .w3d-tools button:hover { background: rgba(207, 181, 59, 0.18); }
+  .w3d-tline {
+    position: absolute; left: 0; right: 0; height: 0; pointer-events: none;
+    border-top: 1px dashed rgba(207, 181, 59, 0.28);
+  }
+  .w3d-tline span {
+    position: absolute; left: 6px; top: -8px; font-size: 10px; line-height: 1;
+    color: rgba(243, 231, 166, 0.85); background: rgba(2, 4, 15, 0.6); padding: 1px 3px; border-radius: 3px;
+  }
+  .w3d-db {
+    position: absolute; right: 0; width: 46px; height: 0; pointer-events: none;
+    border-top: 1px solid rgba(207, 181, 59, 0.45);
+  }
+  .w3d-db span {
+    position: absolute; right: 4px; top: -13px; font-size: 10px; line-height: 1;
+    color: rgba(243, 231, 166, 0.9); text-shadow: 0 0 3px #000;
+  }
   .w3d-msg {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: rgb(207, 181, 59); font-size: 13px;
