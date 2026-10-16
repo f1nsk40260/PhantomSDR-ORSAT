@@ -21,6 +21,9 @@
 * **Un thème « vieil or »** homogène pour les boutons, les titres de sections et les liens, avec des infobulles sur chaque bouton.
 * **Analyse des signaux numériques** — le module tente de reconnaître le mode du signal écouté (FT8, RTTY, CW, PSK…) et propose le décodeur adapté. L'*Analyse automatique* est désactivée par défaut et ne consomme du processeur que lorsqu'elle tourne. *Expérimental.*
 * **Identifier un signal** — une fenêtre flottante, déplaçable et redimensionnable, qui cherche dans **583 signaux de référence** ([Artemis](https://github.com/AresValley/Artemis) / [Signal Identification Wiki](https://www.sigidwiki.com)) ce qui correspond à la fréquence, à la largeur et à la démodulation en cours. Elle propose un filtre par catégorie (radioamateur, militaire, maritime, aviation…) et, pour chaque fiche, le spectre, le son de référence et la description.
+* **Spectre 3D** — d'un clic, le spectre passe en relief : les dernières traces s'empilent en perspective au-dessus du waterfall, calculées par la carte graphique (WebGL2), sans aucune charge pour le serveur.
+* **Commandes du waterfall repensées** — réglage automatique actif par défaut, réglage manuel explicite (fond / signaux forts), menu de palettes avec aperçu.
+* **Infobulles de l'AGC** indiquant l'usage conseillé selon le mode (CW, SSB, AM, numériques).
 * **Un décodeur HFDL** (messages ACARS des avions en ondes courtes), à partir de dumphfdl compilé en WebAssembly.
 * **Un mode d'emploi en PDF** en français, en anglais et en espagnol, accessible depuis le menu.
 
@@ -155,6 +158,10 @@ Le WebSDR ORSAT de F1NSK : **[https://orsat.ddns.net](https://orsat.ddns.net)**
 ![Analyse des signaux numériques et fenêtre « Identifier un signal »](docs/websdr2.png)
 
 *Analyse des signaux numériques et fenêtre flottante « Identifier un signal » (base Artemis / SigIDWiki).*
+
+![Spectre 3D](docs/spectre3d.png)
+
+*Spectre 3D au-dessus du waterfall : la nappe de bruit et les signaux en relief.*
 
 ![Panneau hamdash, liens et manuels](docs/websdr3.png)
 

@@ -18,6 +18,14 @@ décrites dans le README et dans le projet original.
 - Module **Analyse des signaux numériques** : tente de reconnaître le mode écouté (FT8, RTTY, CW, PSK…) et propose le décodeur adapté. Analyse automatique désactivée par défaut. Expérimental.
 - Fenêtre **Identifier un signal** : flottante, déplaçable et redimensionnable, avec ascenseurs larges ; recherche dans 583 signaux de référence d'[Artemis](https://github.com/AresValley/Artemis) / [Signal Identification Wiki](https://www.sigidwiki.com), filtre par catégorie, spectre, son de référence et description.
 
+### Spectre et waterfall
+- **Spectre 3D** (WebGL2) : les 128 dernières traces du spectre empilées en perspective douce, nappe de bruit éclairée, crêtes lissées ; suit zoom et glissement. Désactivé par défaut, masqué si le navigateur n'a pas WebGL2.
+- Commandes du waterfall repensées : grand bouton « Réglage automatique » actif au démarrage, réglage manuel « Fond (bruit) / Signaux forts », menu déroulant des palettes avec aperçu, curseur de zoom retiré.
+- Infobulles de l'AGC : usage conseillé selon le mode (CW, SSB, AM, numériques).
+
+### Interface desktop
+- Copie de l'interface mobile retirée d'App.svelte (−4 400 lignes) : ORSAT vise les PC et tablettes ; les téléphones sont dirigés vers /mobile.
+
 ### Décodeurs
 - Décodeur **HFDL** (messages ACARS des avions en ondes courtes), à partir de dumphfdl compilé en WebAssembly.
 
