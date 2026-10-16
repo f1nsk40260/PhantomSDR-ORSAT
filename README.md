@@ -1,14 +1,29 @@
-# PhantomSDR-Plus WebSDR — version française (5.1.0)
+# PhantomSDR-ORSAT — WebSDR francophone de F1NSK
 
 [![Licence : GPL v3](https://img.shields.io/badge/Licence-GPLv3-cyan.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Version](https://img.shields.io/badge/version-5.1.0-cyan.svg)](https://github.com/sv1btl/PhantomSDR-Plus)
+[![Base](https://img.shields.io/badge/base-PhantomSDR--Plus%205.1.0-cyan.svg)](https://github.com/sv1btl/PhantomSDR-Plus)
+[![Langues](https://img.shields.io/badge/interface-FR%20%C2%B7%20EN%20%C2%B7%20ES-cfb53b.svg)](#ce-quapporte-phantomsdr-orsat)
+[![En ligne](https://img.shields.io/badge/en%20ligne-orsat.ddns.net-cfb53b.svg)](https://orsat.ddns.net)
 
 > [!IMPORTANT]
-> **Ceci est une version modifiée, en français, de PhantomSDR-Plus, maintenue par F1NSK** sur
+> **PhantomSDR-ORSAT est un fork de PhantomSDR-Plus, maintenu par F1NSK** sur
 > **https://github.com/f1nsk40260/PhantomSDR-ORSAT**. Ce n'est pas le projet original.
 >
-> **L'original est maintenu par SV1BTL** : **https://github.com/sv1btl/PhantomSDR-Plus**. Version
-> actuelle : 5.1.0. C'est là qu'il faut signaler les problèmes qui ne concernent pas la traduction.
+> **L'original est maintenu par SV1BTL** : **https://github.com/sv1btl/PhantomSDR-Plus** (version de base : 5.1.0).
+> Merci à lui pour tout le travail sur lequel repose ce projet.
+
+📻 **Récepteur en service : [orsat.ddns.net](https://orsat.ddns.net)** (aussi en http sur le port 8080).
+
+## Ce qu'apporte PhantomSDR-ORSAT
+
+* **Une interface en trois langues** — français, anglais et espagnol, choisis d'un clic sur les drapeaux de l'en-tête.
+* **Un thème « vieil or »** homogène pour les boutons, les titres de sections et les liens, avec des infobulles sur chaque bouton.
+* **Analyse des signaux numériques** — le module tente de reconnaître le mode du signal écouté (FT8, RTTY, CW, PSK…) et propose le décodeur adapté. L'*Analyse automatique* est désactivée par défaut et ne consomme du processeur que lorsqu'elle tourne. *Expérimental.*
+* **Identifier un signal** — une fenêtre flottante, déplaçable et redimensionnable, qui cherche dans **583 signaux de référence** ([Artemis](https://github.com/AresValley/Artemis) / [Signal Identification Wiki](https://www.sigidwiki.com)) ce qui correspond à la fréquence, à la largeur et à la démodulation en cours. Elle propose un filtre par catégorie (radioamateur, militaire, maritime, aviation…) et, pour chaque fiche, le spectre, le son de référence et la description.
+* **Un décodeur HFDL** (messages ACARS des avions en ondes courtes), à partir de dumphfdl compilé en WebAssembly.
+* **Un mode d'emploi en PDF** en français, en anglais et en espagnol, accessible depuis le menu.
+
+Le reste de ce document décrit la base PhantomSDR-Plus de SV1BTL, que ce fork conserve.
 
 PhantomSDR-Plus est distribué sous licence GPL v3, avec les [conditions supplémentaires](ADDITIONAL_TERMS.md) que permet son article 7 : toute copie ou tout fork doit garder visible la mention « original from github.com/sv1btl/PhantomSDR-Plus » sur la page du récepteur et sur /mobile. Cette version française la conserve.
 
@@ -16,7 +31,7 @@ PhantomSDR-Plus est distribué sous licence GPL v3, avec les [conditions supplé
 
 ## Remarque : testé sur Debian 12 (Bookworm), Debian 13 (Trixie), Ubuntu 22.04 et Ubuntu 24.04.
 
-**Nouveautés de la version 5.1.0**
+**Nouveautés de la base PhantomSDR-Plus 5.1.0 (SV1BTL)**
 
 * **Une fenêtre FLDIGI avec cinq modes de plus.** Le décodeur appelé auparavant RTTY s'appelle désormais **FLDIGI** (bouton et entrée de la liste déroulante). En plus du RTTY, du SITOR, du PSK31, de l'Olivia, du Packet et de l'APRS, il décode le **DominoEX**, le **THOR**, le **THROB / THROBX**, le **Hellschreiber** et le **MT63**, le tout dans le navigateur de l'auditeur, sans qu'aucun fldigi ne soit installé nulle part. Les modes **MFSK16/32/64** ont leur propre entrée, juste après l'Olivia. Chaque nouveau mode est un portage du récepteur de fldigi lui-même, vérifié sur de vrais enregistrements fldigi de chaque sous-mode (DominoEX 4 à 22, THOR 4 à 100 y compris les modes K=15, THROB et THROBX 1/2/4, les sept modes Hell, MT63-500/1000/2000 court et long). Le Hellschreiber s'affiche comme l'image qu'il est — deux copies de chaque ligne, comme le dessine fldigi — et peut être enregistré en PNG ; chaque autre nouveau mode a sa propre liste de modes et un squelch réglé pour n'imprimer rien sur deux minutes de bruit. Voir **[docs/DECODERS.md](docs/DECODERS.md)**.
 * **Packet (AX.25) et APRS**, avec une carte en direct. Packet VHF/UHF à 1200 Bd (le récepteur passe en FM sur le canal) et packet HF à 300 Bd ; chaque trame est vérifiée avant d'être affichée. Positions, météo, messages, objets et télémesures APRS apparaissent en texte clair, et chaque station entendue avec une position s'affiche sur une carte OpenStreetMap sous le texte, avec sa trace, sa distance et son azimut depuis le récepteur. La molette de la souris gagne un pas de **12,5 kHz** pour la grille des canaux VHF.
@@ -648,7 +663,7 @@ Il trouve chaque emplacement par motif et non par numéro de ligne, si bien qu'i
 
 
 ## Signaux de référence : Artemis et Signal Identification Wiki
-La version française embarque la base de signaux d'**[Artemis](https://github.com/AresValley/Artemis)** (585 signaux : fiche, spectre et enregistrement de référence), dans `frontend/src/assets/references/`. Elle servira à un menu d'identification des signaux.
+La version française embarque la base de signaux d'**[Artemis](https://github.com/AresValley/Artemis)** (585 signaux : fiche, spectre et enregistrement de référence), dans `frontend/src/assets/references/`. Elle alimente la fenêtre « Identifier un signal » du module d'analyse des signaux.
 
 Tout le mérite de ce contenu revient aux contributeurs du **[Signal Identification Wiki](https://www.sigidwiki.com)** (SigIDWiki), d'où proviennent les données d'Artemis. Merci à l'équipe d'Artemis, qui a autorisé sa redistribution ici. Chaque fiche renvoie à sa page d'origine sur SigIDWiki. Voir aussi le fichier [NOTICE](NOTICE).
 
