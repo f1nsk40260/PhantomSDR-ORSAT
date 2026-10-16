@@ -143,7 +143,7 @@ Nous proposons aussi un large éventail de **fonctions** supplémentaires :
 
 ## Captures d'écran
 
-Le WebSDR de SV1BTL : http://phantomsdr.no-ip.org:8900/
+Le WebSDR ORSAT de F1NSK : **[https://orsat.ddns.net](https://orsat.ddns.net)**
 
 ![Capture d'écran](docs/websdr.png) ![Capture d'écran](docs/websdr2.png) ![Capture d'écran](docs/websdr3.png)
 
@@ -809,7 +809,8 @@ La documentation dans les autres langues (anglais, grec, allemand, espagnol, cro
 ### 🎯 Liens utiles :
 
 - **Site web** : https://phantomsdr.psychomed.gr
-- **Démonstration en direct** : http://phantomsdr.no-ip.org:8900/
+- **Démonstration en direct (PhantomSDR-ORSAT)** : https://orsat.ddns.net
+- **WebSDR de SV1BTL (version originale)** : http://phantomsdr.no-ip.org:8900/
 - **Annuaire de WebSDR** : https://sdr-list.xyz
 - **Signaler un problème** : sur la traduction, dans [cette version française](https://github.com/f1nsk40260/PhantomSDR-ORSAT/issues) ; sur le logiciel lui-même, dans [le projet original](https://github.com/sv1btl/PhantomSDR-Plus/issues)
 
