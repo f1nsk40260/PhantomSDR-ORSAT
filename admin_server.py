@@ -4416,6 +4416,14 @@ def api_scripts_debug():
 
 # ── API: Server control ───────────────────────────────────────────────────────
 @app.route("/admin/api/terminal/exec", methods=["POST"])
+def _is_plain_cd(cmd):
+    """Un « cd » seul est géré par le panneau (le dossier courant est mémorisé) ;
+    « cd X && commande », « cd X; commande »… part au shell tel quel."""
+    if not (cmd == "cd" or cmd.startswith("cd ") or cmd == "cd~"):
+        return False
+    return not any(op in cmd for op in ("&", ";", "|", ">", "<", "`", "$("))
+
+
 @login_required
 def api_terminal_exec():
     data = request.get_json(silent=True) or {}
@@ -4427,7 +4435,7 @@ def api_terminal_exec():
         cwd = default_cwd
     if not cmd:
         return jsonify({"ok": True, "output": "", "cwd": cwd})
-    if cmd == "cd" or cmd.startswith("cd ") or cmd == "cd~":
+    if _is_plain_cd(cmd):
         target = cmd[2:].strip() or "~"
         # Expand ~ and env vars
         target = os.path.expanduser(target)
@@ -4510,7 +4518,7 @@ def api_terminal_start():
     if not os.path.isdir(cwd):
         cwd = default_cwd
     # cd, clear et commande vide : réponse immédiate, comme /terminal/exec
-    if not cmd or cmd in ("clear", "cls") or cmd == "cd" or cmd.startswith("cd ") or cmd == "cd~":
+    if not cmd or cmd in ("clear", "cls") or _is_plain_cd(cmd):
         return api_terminal_exec()
     _term_gc()
     env = {**os.environ, "TERM": "dumb", "PYTHONUNBUFFERED": "1", "NO_COLOR": "1",
