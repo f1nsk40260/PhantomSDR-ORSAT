@@ -14308,6 +14308,41 @@ Cliquez à nouveau pour désactiver"
                     </div>
                   </div>
 
+                  <!-- ORSAT : choix de la palette du waterfall — menu déroulant compact,
+                       avec un fin aperçu du dégradé de chaque palette. -->
+                  <div class="wf-pal mb-4" id="colormap-select">
+                    <button
+                      class="wf-pal-btn"
+                      on:click|stopPropagation={() => (paletteOpen = !paletteOpen)}
+                      aria-haspopup="listbox"
+                      aria-expanded={paletteOpen}
+                      title="Choisir la palette de couleurs du waterfall"
+                    >
+                      <span class="wf-pal-lbl">Couleurs</span>
+                      <span class="wf-pal-bar" style="background:{colormapGradient(currentColormap)}"></span>
+                      <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[currentColormap] || currentColormap}</span>
+                      <span class="wf-pal-chev" aria-hidden="true">{paletteOpen ? "▴" : "▾"}</span>
+                    </button>
+                    {#if paletteOpen}
+                      <ul class="wf-pal-list" role="listbox">
+                        {#each availableColormaps as cm}
+                          <li>
+                            <button
+                              class="wf-pal-opt {currentColormap === cm ? 'is-on' : ''}"
+                              role="option"
+                              aria-selected={currentColormap === cm}
+                              on:click|stopPropagation={() => { handleWaterfallColormapSelect({ target: { value: cm } }); paletteOpen = false; }}
+                            >
+                              <span class="wf-pal-bar" style="background:{colormapGradient(cm)}"></span>
+                              <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[cm] || cm}</span>
+                              <span class="wf-pal-tick" aria-hidden="true">{currentColormap === cm ? "✓" : ""}</span>
+                            </button>
+                          </li>
+                        {/each}
+                      </ul>
+                    {/if}
+                  </div>
+
                   <MagicEyeIndicator dbm={eyeDbm} />
 
                   <div class="w-full mt-6 mb-5">
@@ -14365,41 +14400,6 @@ Cliquez à nouveau pour désactiver"
                   <!-- Version française : boutons Waterfall / Spectrum / Height (+)
                        supprimés de la colonne de droite — cascade et spectre
                        toujours affichés, hauteur standard. -->
-
-                  <!-- ORSAT : choix de la palette du waterfall — menu déroulant compact,
-                       avec un fin aperçu du dégradé de chaque palette. -->
-                  <div class="wf-pal mb-4" id="colormap-select">
-                    <button
-                      class="wf-pal-btn"
-                      on:click|stopPropagation={() => (paletteOpen = !paletteOpen)}
-                      aria-haspopup="listbox"
-                      aria-expanded={paletteOpen}
-                      title="Choisir la palette de couleurs du waterfall"
-                    >
-                      <span class="wf-pal-lbl">Couleurs</span>
-                      <span class="wf-pal-bar" style="background:{colormapGradient(currentColormap)}"></span>
-                      <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[currentColormap] || currentColormap}</span>
-                      <span class="wf-pal-chev" aria-hidden="true">{paletteOpen ? "▴" : "▾"}</span>
-                    </button>
-                    {#if paletteOpen}
-                      <ul class="wf-pal-list" role="listbox">
-                        {#each availableColormaps as cm}
-                          <li>
-                            <button
-                              class="wf-pal-opt {currentColormap === cm ? 'is-on' : ''}"
-                              role="option"
-                              aria-selected={currentColormap === cm}
-                              on:click|stopPropagation={() => { handleWaterfallColormapSelect({ target: { value: cm } }); paletteOpen = false; }}
-                            >
-                              <span class="wf-pal-bar" style="background:{colormapGradient(cm)}"></span>
-                              <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[cm] || cm}</span>
-                              <span class="wf-pal-tick" aria-hidden="true">{currentColormap === cm ? "✓" : ""}</span>
-                            </button>
-                          </li>
-                        {/each}
-                      </ul>
-                    {/if}
-                  </div>
 
                   <!-- SPECTROGRAMME -->
                   <div class="w-full mb-4">
