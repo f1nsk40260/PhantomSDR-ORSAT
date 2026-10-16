@@ -16,6 +16,7 @@
 
   // Carte des avions : la liste des positions est gardée même carte fermée.
   const acMap = new AprsMap(homeLocator);
+  acMap.planeIcons = true;   // petits avions orientés, clic → FlightAware
   let showMap = false;
   let mapError = "";
   let planeCount = 0;
@@ -74,7 +75,10 @@
     const call = m.aircraft || m.acName || "Avion";
     const parts = [m.time + " UTC", m.gsName, m.kind];
     if (m.msgText) parts.push(m.msgText);
-    acMap.add({ call, lat: m.pos.lat, lon: m.pos.lon, text: parts.filter(Boolean).join(" · "), time: Date.now() });
+    // Lien FlightAware : le vol de préférence, sinon l'immatriculation, sinon le code ICAO.
+    const fa = m.fa || [];
+    const pick = fa.find((x) => x.title === "Fiche du vol sur FlightAware") || fa[0];
+    acMap.add({ call, lat: m.pos.lat, lon: m.pos.lon, text: parts.filter(Boolean).join(" · "), time: Date.now(), link: pick ? pick.url : "" });
   }
 
   const MAX_ROWS = 300;
