@@ -15351,7 +15351,11 @@ Cliquez à nouveau pour désactiver"
     @apply bg-blue-600 text-white;
   }
 
-  /* ORSAT : commandes du waterfall */
+  /* ORSAT : commandes du waterfall.
+     contain: inline-size — ces blocs suivent la largeur de la colonne sans
+     jamais l'élargir (sinon la rangée des colonnes dépasse header et waterfall). */
+  .wf-auto-btn, .wf-manual { contain: inline-size; min-width: 0; box-sizing: border-box; }
+  .wf-manual-head { flex-wrap: wrap; gap: 0 0.5rem; }
   .wf-auto-btn {
     width: 100%; display: flex; align-items: center; gap: 0.75rem;
     padding: 0.65rem 0.9rem; margin-bottom: 1rem; border-radius: 0.6rem;
