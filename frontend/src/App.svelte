@@ -4574,6 +4574,8 @@
     turbo: "Turbo", gqrx: "Gqrx", twente: "Twente", twentev2: "Twente v2",
     SpectraVU: "SpectraVU", jet: "Jet", custom: "Perso", PhantomSDR: "PhantomSDR",
   };
+  let paletteOpen = false;
+  function closePalette() { paletteOpen = false; }
   const _gradCache = {};
   function colormapGradient(name) {
     if (_gradCache[name]) return _gradCache[name];
@@ -9248,6 +9250,8 @@
   on:mouseup={handleWindowMouseUp}
   on:pointerdown={handleCTCSSPickerOutside}
   on:keydown={handleCTCSSPickerKey}
+  on:click={closePalette}
+  on:keydown={(e) => e.key === "Escape" && closePalette()}
 />
 
 {#if showCTCSSPicker}
@@ -14362,22 +14366,39 @@ Cliquez à nouveau pour désactiver"
                        supprimés de la colonne de droite — cascade et spectre
                        toujours affichés, hauteur standard. -->
 
-                  <!-- ORSAT : choix de la palette du waterfall sous forme de nuanciers. -->
-                  <div class="wf-pal mb-4">
-                    <h3 class="text-white text-base font-semibold text-center mb-2">Couleurs du waterfall</h3>
-                    <div class="wf-pal-grid" id="colormap-select">
-                      {#each availableColormaps as cm}
-                        <button
-                          class="wf-pal-item {currentColormap === cm ? 'is-on' : ''}"
-                          on:click={() => handleWaterfallColormapSelect({ target: { value: cm } })}
-                          aria-pressed={currentColormap === cm}
-                          title="Appliquer la palette {COLORMAP_NAMES[cm] || cm} au waterfall"
-                        >
-                          <span class="wf-pal-bar" style="background:{colormapGradient(cm)}"></span>
-                          <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[cm] || cm}</span>
-                        </button>
-                      {/each}
-                    </div>
+                  <!-- ORSAT : choix de la palette du waterfall — menu déroulant compact,
+                       avec un fin aperçu du dégradé de chaque palette. -->
+                  <div class="wf-pal mb-4" id="colormap-select">
+                    <button
+                      class="wf-pal-btn"
+                      on:click|stopPropagation={() => (paletteOpen = !paletteOpen)}
+                      aria-haspopup="listbox"
+                      aria-expanded={paletteOpen}
+                      title="Choisir la palette de couleurs du waterfall"
+                    >
+                      <span class="wf-pal-lbl">Couleurs</span>
+                      <span class="wf-pal-bar" style="background:{colormapGradient(currentColormap)}"></span>
+                      <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[currentColormap] || currentColormap}</span>
+                      <span class="wf-pal-chev" aria-hidden="true">{paletteOpen ? "▴" : "▾"}</span>
+                    </button>
+                    {#if paletteOpen}
+                      <ul class="wf-pal-list" role="listbox">
+                        {#each availableColormaps as cm}
+                          <li>
+                            <button
+                              class="wf-pal-opt {currentColormap === cm ? 'is-on' : ''}"
+                              role="option"
+                              aria-selected={currentColormap === cm}
+                              on:click|stopPropagation={() => { handleWaterfallColormapSelect({ target: { value: cm } }); paletteOpen = false; }}
+                            >
+                              <span class="wf-pal-bar" style="background:{colormapGradient(cm)}"></span>
+                              <span class="wf-pal-name" data-no-i18n>{COLORMAP_NAMES[cm] || cm}</span>
+                              <span class="wf-pal-tick" aria-hidden="true">{currentColormap === cm ? "✓" : ""}</span>
+                            </button>
+                          </li>
+                        {/each}
+                      </ul>
+                    {/if}
                   </div>
 
                   <!-- SPECTROGRAMME -->
@@ -15363,23 +15384,36 @@ Cliquez à nouveau pour désactiver"
     @apply bg-blue-600 text-white;
   }
 
-  /* ORSAT : nuanciers de palettes du waterfall (18rem : ne pas élargir la colonne). */
-  .wf-pal { width: 18rem; max-width: 100%; }
-  .wf-pal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
-  .wf-pal-item {
-    display: flex; flex-direction: column; gap: 0.25rem; padding: 0.35rem 0.4rem;
-    border-radius: 0.45rem; cursor: pointer; transition: all 0.15s;
-    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(207, 181, 59, 0.25);
+  /* ORSAT : menu déroulant des palettes du waterfall (18rem : ne pas élargir la colonne). */
+  .wf-pal { width: 18rem; max-width: 100%; position: relative; }
+  .wf-pal-btn {
+    width: 100%; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 0.6rem; border-radius: 0.45rem; cursor: pointer;
+    color: rgb(207, 181, 59); background: rgba(207, 181, 59, 0.06);
+    border: 1px solid rgba(207, 181, 59, 0.45); transition: background 0.15s;
   }
-  .wf-pal-item:hover { border-color: rgba(207, 181, 59, 0.6); background: rgba(207, 181, 59, 0.08); }
-  .wf-pal-item.is-on {
-    border-color: rgba(207, 181, 59, 0.9);
-    background: linear-gradient(180deg, rgba(207, 181, 59, 0.22), rgba(120, 100, 30, 0.22));
-    box-shadow: 0 0 6px rgba(207, 181, 59, 0.2);
+  .wf-pal-btn:hover { background: rgba(207, 181, 59, 0.14); }
+  .wf-pal-lbl { font-size: 0.8rem; font-weight: 600; flex: none; }
+  .wf-pal-bar {
+    display: block; flex: 1; height: 5px; border-radius: 3px; opacity: 0.8;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
   }
-  .wf-pal-bar { display: block; height: 0.7rem; border-radius: 0.2rem; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4); }
-  .wf-pal-name { font-size: 0.72rem; color: rgb(209, 213, 219); text-align: center; line-height: 1.1; }
-  .wf-pal-item.is-on .wf-pal-name { color: #f3e7a6; font-weight: 700; }
+  .wf-pal-name { font-size: 0.78rem; color: rgb(209, 213, 219); flex: none; min-width: 4.8rem; text-align: right; }
+  .wf-pal-chev { font-size: 0.75rem; flex: none; }
+  .wf-pal-list {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 50;
+    margin: 0; padding: 0.25rem; list-style: none; border-radius: 0.45rem;
+    background: rgb(23, 28, 38); border: 1px solid rgba(207, 181, 59, 0.45);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  }
+  .wf-pal-opt {
+    width: 100%; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.3rem 0.5rem; border-radius: 0.3rem; cursor: pointer; background: transparent;
+  }
+  .wf-pal-opt:hover { background: rgba(207, 181, 59, 0.1); }
+  .wf-pal-opt.is-on { background: rgba(207, 181, 59, 0.16); }
+  .wf-pal-opt.is-on .wf-pal-name { color: #f3e7a6; font-weight: 700; }
+  .wf-pal-tick { width: 0.9rem; flex: none; color: rgb(207, 181, 59); font-size: 0.75rem; }
 
   /* ORSAT : commandes du waterfall.
      Largeur fixe de 18rem = largeur des anciennes lignes de curseurs

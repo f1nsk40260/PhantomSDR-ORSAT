@@ -613,6 +613,8 @@ const D = [
   // Colonne 3 : waterfall
   ["Commandes du waterfall", "Waterfall Controls", "Controles de la cascada"],
   ["Couleurs du waterfall", "Waterfall colours", "Colores de la cascada"],
+  ["Couleurs", "Colours", "Colores"],
+  ["Choisir la palette de couleurs du waterfall", "Choose the waterfall colour palette", "Elegir la paleta de colores de la cascada"],
   ["Réglage automatique", "Automatic adjustment", "Ajuste automático"],
   ["Actif · mode normal recommandé", "On · recommended normal mode", "Activo · modo normal recomendado"],
   ["Revenir au réglage automatique", "Back to automatic adjustment", "Volver al ajuste automático"],
