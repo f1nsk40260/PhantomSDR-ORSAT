@@ -541,9 +541,11 @@
     catch (e) { $('x-leaflet').innerHTML = '<div style="padding:1rem;" class="x-bad">' + esc(e.message) + '</div>'; return; }
     if (!map) {
       map = L.map('x-leaflet', { worldCopyJump: true, attributionControl: true }).setView([46.5, 2.5], 3);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd', maxZoom: 18,
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
+      // CARTO renvoie désormais des tuiles « API KEY REQUIRED » : même fond
+      // sombre Esri sans clé que users.html et stats.html (tuiles natives jusqu'à z16).
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18, maxNativeZoom: 16,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; Esri, HERE, Garmin',
       }).addTo(map);
       visitLayer = L.layerGroup().addTo(map);
       liveLayer = L.layerGroup().addTo(map);
