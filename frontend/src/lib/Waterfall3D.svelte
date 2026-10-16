@@ -32,8 +32,8 @@
   let ro, raf = 0, failed = "";
 
   // Rendu : montée du passé et hauteur du relief (en unités écran, -1..1).
-  const RISE = 0.9;
-  const AMP = 0.75;
+  const RISE = 1.55;
+  const AMP = 0.5;
 
   const VS = `#version 300 es
   in vec2 aUV;
@@ -45,37 +45,79 @@
   uniform float uAmp;               // hauteur du relief
   out float vVal;
   out float vAge;
-  void main() {
-    int age = int(aUV.y * float(${H - 1}) + 0.5);
+  out float vRow;
+  out float vLight;
+
+  // Niveau (0-1) d'une trace à la position u de la fenêtre affichée.
+  float sampleAt(float u, int age) {
     int row = (uHead - age + ${H}) % ${H};
     vec2 rr = texelFetch(uRange, ivec2(row, 0), 0).rg;
-    float idx = uView.x + aUV.x * (uView.y - uView.x);
+    float idx = uView.x + u * (uView.y - uView.x);
     float t = (idx - rr.x) / max(rr.y - rr.x, 1e-6);
-    float val = 0.0;
-    if (t >= 0.0 && t < 1.0) {
-      int x = int(t * float(${W}));
-      val = float(texelFetch(uHist, ivec2(min(x, ${W - 1}), row), 0).r) / 255.0;
-    }
-    vVal = val;
-    vAge = aUV.y;
-    // Projection cavalière : pas de perspective. Chaque trace plus ancienne
-    // est décalée vers le haut ; x reste celui de la fréquence, donc le relief
-    // reste aligné sur le waterfall et rien ne converge ni ne penche.
-    float x = aUV.x * 2.0 - 1.0;
-    float y = -0.96 + aUV.y * uRise + pow(val, 1.3) * uAmp;
-    gl_Position = vec4(x, y, aUV.y * 0.98, 1.0);
+    if (t < 0.0 || t >= 1.0) return 0.0;
+    int x = int(t * float(${W}));
+    return float(texelFetch(uHist, ivec2(min(x, ${W - 1}), row), 0).r) / 255.0;
+  }
+
+  void main() {
+    int age = int(aUV.y * float(${H - 1}) + 0.5);
+    float v = sampleAt(aUV.x, age);
+    float du = 1.0 / float(${GX - 1});
+    float vl = sampleAt(aUV.x - du, age);
+    float vr = sampleAt(aUV.x + du, age);
+    float vf = sampleAt(aUV.x, max(age - 1, 0));
+    float vb = sampleAt(aUV.x, min(age + 1, ${H - 1}));
+
+    float d = aUV.y;                              // 0 = trace la plus récente (devant)
+    // Profondeur : les traces se resserrent vers le fond (effet de recul),
+    // sans aucune convergence horizontale : x reste celui de la fréquence,
+    // donc rien ne penche et le relief reste aligné sur le waterfall.
+    float depth = 1.0 - pow(1.0 - d, 1.6);
+    float amp = uAmp * (1.0 - 0.45 * d);
+    float y = -1.0 + depth * uRise + pow(v, 1.15) * amp;
+
+    // Éclairage : normale estimée à partir des pentes voisines.
+    vec3 n = normalize(vec3((vl - vr) * amp * 45.0, 1.0, (vf - vb) * amp * 25.0));
+    vLight = 0.5 + 0.5 * max(dot(n, normalize(vec3(-0.35, 0.8, 0.5))), 0.0);
+
+    vVal = v;
+    vAge = d;
+    vRow = aUV.y * float(${GY - 1});
+    gl_Position = vec4(aUV.x * 2.0 - 1.0, y, d * 0.98, 1.0);
   }`;
 
   const FS = `#version 300 es
   precision mediump float;
   in float vVal;
   in float vAge;
-  uniform sampler2D uCmap;
+  in float vRow;
+  in float vLight;
   out vec4 frag;
+
+  // Dégradé façon AetherSDR : nappe de bruit bleue, signaux du cyan au vert puis au jaune.
+  vec3 ramp(float v) {
+    vec3 c0 = vec3(0.03, 0.10, 0.42);
+    vec3 c1 = vec3(0.06, 0.38, 0.92);
+    vec3 c2 = vec3(0.25, 0.80, 1.00);
+    vec3 c3 = vec3(0.30, 0.95, 0.45);
+    vec3 c4 = vec3(0.95, 0.95, 0.30);
+    vec3 c5 = vec3(1.00, 0.45, 0.15);
+    if (v < 0.25) return mix(c0, c1, v / 0.25);
+    if (v < 0.45) return mix(c1, c2, (v - 0.25) / 0.20);
+    if (v < 0.65) return mix(c2, c3, (v - 0.45) / 0.20);
+    if (v < 0.85) return mix(c3, c4, (v - 0.65) / 0.20);
+    return mix(c4, c5, (v - 0.85) / 0.15);
+  }
+
   void main() {
-    vec3 c = texture(uCmap, vec2(vVal, 0.5)).rgb;
-    float fog = 1.0 - 0.7 * vAge;
-    frag = vec4(c * fog, 1.0);
+    vec3 c = ramp(vVal) * vLight;
+    // Une fine ligne claire par trace (une sur deux) : l'aspect « fil de fer ».
+    float r = vRow * 0.5;
+    float g = min(fract(r), 1.0 - fract(r));
+    float line = 1.0 - smoothstep(0.0, fwidth(r) * 1.2, g);
+    c += line * 0.22 * vec3(0.7, 0.85, 1.0);
+    c *= 1.0 - 0.35 * vAge;                 // le passé s'estompe doucement
+    frag = vec4(c, 1.0);
   }`;
 
   function sh(type, src) {
@@ -137,7 +179,7 @@
     setColormap(waterfall && waterfall.colormap);
 
     gl.enable(gl.DEPTH_TEST);
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(0.01, 0.02, 0.07, 1);
   }
 
   /** Palette du waterfall : 256 couleurs RGBA. */
@@ -253,7 +295,7 @@
 </div>
 
 <style>
-  .w3d { position: absolute; inset: 0; z-index: 20; background: #000; }
+  .w3d { position: absolute; inset: 0; z-index: 20; background: #02040f; }
   .w3d-canvas { width: 100%; height: 100%; display: block; }
   .w3d-tools { position: absolute; top: 6px; right: 8px; display: flex; gap: 6px; }
   .w3d-tools button {
