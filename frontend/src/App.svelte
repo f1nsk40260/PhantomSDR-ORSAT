@@ -15352,9 +15352,10 @@ Cliquez à nouveau pour désactiver"
   }
 
   /* ORSAT : commandes du waterfall.
-     contain: inline-size — ces blocs suivent la largeur de la colonne sans
-     jamais l'élargir (sinon la rangée des colonnes dépasse header et waterfall). */
-  .wf-auto-btn, .wf-manual { contain: inline-size; min-width: 0; box-sizing: border-box; }
+     Largeur fixe de 18rem = largeur des anciennes lignes de curseurs
+     (w-10 + w-48 + w-10 + marges) : la colonne garde exactement sa taille
+     d'origine, donc la rangée des colonnes reste alignée sur header et waterfall. */
+  .wf-auto-btn, .wf-manual { width: 18rem; max-width: 100%; box-sizing: border-box; }
   .wf-manual-head { flex-wrap: wrap; gap: 0 0.5rem; }
   .wf-auto-btn {
     width: 100%; display: flex; align-items: center; gap: 0.75rem;
