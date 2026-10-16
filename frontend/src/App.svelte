@@ -2,7 +2,7 @@
   // The release version and the "original from" attribution live in
   // lib/version.js, shared with the /mobile page.  The attribution is a GPL v3
   // section 7(b) author attribution — see ADDITIONAL_TERMS.md.
-  import { VERSION, ORIGIN_URL, MODIFIED_NOTE, MODIFIED_URL } from "./lib/version.js";
+  import { VERSION, ORIGIN_URL, MODIFIED_NOTE, MODIFIED_URL, ORSAT_VERSION } from "./lib/version.js";
   import { reportDecoder, reportHello } from "./lib/usageBeacon.js";
   // Manuels utilisateur PDF (version française F1NSK)
   import manualFRUrl from "./assets/docs/manualFR.pdf";
@@ -9773,9 +9773,16 @@
                     <ul style="font-size: 0.91rem; text-align: left;">
                     <b>Setup &amp; Configuration:</b>
                       <img
-                        src="https://img.shields.io/badge/version- 5.1.0-cyan?logo=github"
-                        alt="Version"
+                        src={`https://img.shields.io/badge/ORSAT-${ORSAT_VERSION}-cfb53b?logo=github`}
+                        alt={`ORSAT ${ORSAT_VERSION}`}
+                        title="Version de PhantomSDR-ORSAT (F1NSK)"
                         class="inline-block align-middle ml-2"
+                      />
+                      <img
+                        src={`https://img.shields.io/badge/base-${VERSION}-cyan`}
+                        alt={`base ${VERSION}`}
+                        title="Version de PhantomSDR-Plus (SV1BTL) sur laquelle repose ORSAT"
+                        class="inline-block align-middle ml-1"
                       />
                      with <a href="https://catsyncsdr.wordpress.com/" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)">CAT sync ®</a> and <a href="https://www.aethersdr.com/" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)">AetherSDR ® - TCI</a>
                     <br>

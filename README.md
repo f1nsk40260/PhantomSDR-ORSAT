@@ -1,6 +1,7 @@
 # PhantomSDR-ORSAT — WebSDR francophone de F1NSK
 
 [![Licence : GPL v3](https://img.shields.io/badge/Licence-GPLv3-cyan.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![ORSAT](https://img.shields.io/badge/ORSAT-1.0-cfb53b.svg)](CHANGELOG-ORSAT.md)
 [![Base](https://img.shields.io/badge/base-PhantomSDR--Plus%205.1.0-cyan.svg)](https://github.com/sv1btl/PhantomSDR-Plus)
 [![Langues](https://img.shields.io/badge/interface-FR%20%C2%B7%20EN%20%C2%B7%20ES-cfb53b.svg)](#ce-quapporte-phantomsdr-orsat)
 [![En ligne](https://img.shields.io/badge/en%20ligne-orsat.ddns.net-cfb53b.svg)](https://orsat.ddns.net)
@@ -22,6 +23,8 @@
 * **Identifier un signal** — une fenêtre flottante, déplaçable et redimensionnable, qui cherche dans **583 signaux de référence** ([Artemis](https://github.com/AresValley/Artemis) / [Signal Identification Wiki](https://www.sigidwiki.com)) ce qui correspond à la fréquence, à la largeur et à la démodulation en cours. Elle propose un filtre par catégorie (radioamateur, militaire, maritime, aviation…) et, pour chaque fiche, le spectre, le son de référence et la description.
 * **Un décodeur HFDL** (messages ACARS des avions en ondes courtes), à partir de dumphfdl compilé en WebAssembly.
 * **Un mode d'emploi en PDF** en français, en anglais et en espagnol, accessible depuis le menu.
+
+Le détail des versions ORSAT est dans **[CHANGELOG-ORSAT.md](CHANGELOG-ORSAT.md)**.
 
 Le reste de ce document décrit la base PhantomSDR-Plus de SV1BTL, que ce fork conserve.
 

@@ -6,3 +6,8 @@ logs/
 
 # Sauvegardes et historique de configuration (panneau admin)
 backups/
+
+# Sorties de build et résultats locaux (ORSAT)
+frontend/stats.html
+frontend/stats-*.html
+rade_loadtest.csv

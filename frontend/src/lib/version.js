@@ -12,3 +12,6 @@ export const ORIGIN_URL = "https://github.com/sv1btl/PhantomSDR-Plus";
 // soient signalées comme différentes de l'original, à côté de l'attribution.
 export const MODIFIED_NOTE = "version ORSAT modifiée par F1NSK";
 export const MODIFIED_URL = "https://github.com/f1nsk40260/PhantomSDR-ORSAT";
+
+// Numéro de version propre à PhantomSDR-ORSAT (F1NSK), distinct de la base.
+export const ORSAT_VERSION = "1.0";

@@ -8,7 +8,7 @@
 	"siteSoftware": "Software you are using",
 	"siteReceiver": "Receiver model",
 	"siteAntenna": "Receiving Antenna.",
-	"siteNote": "This is a bright new open source WebSDR project, which is dynamicaly developing.",
+	"siteNote": "WebSDR PhantomSDR-ORSAT. Bonne écoute à tous !",
 	"siteIP": "http://Your site IP:port",
 	"siteStats": "http://Your site IP:3001",
 	"siteSDRBaseFrequency": 0,
