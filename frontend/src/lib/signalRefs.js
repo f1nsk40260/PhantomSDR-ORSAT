@@ -74,10 +74,11 @@ function modeScore(demod, modes) {
  * démodulation, et un filtre texte facultatif. Renvoie les meilleures, avec
  * un score 0..1 et le détail de ce qui colle.
  */
-export function searchRefs(index, { freqHz, bwHz, demod, text } = {}, limit = 40) {
+export function searchRefs(index, { freqHz, bwHz, demod, text, cat } = {}, limit = 40) {
   const t = (text || '').trim().toLowerCase();
   const out = [];
   for (const s of index) {
+    if (cat && !(s.cat || []).includes(cat)) continue;
     if (t && !(`${s.title} ${(s.cat || []).join(' ')} ${(s.mod || []).join(' ')}`.toLowerCase().includes(t))) continue;
 
     // Fréquence : dans la plage de la fiche → 1 ; en dehors → décroît vite.
@@ -89,7 +90,7 @@ export function searchRefs(index, { freqHz, bwHz, demod, text } = {}, limit = 40
         fs = Math.max(0, 1 - Math.log(r) / Math.log(1.5));
       }
     }
-    if (freqHz > 0 && fs === 0 && !t) continue;
+    if (freqHz > 0 && fs === 0 && !t && !cat) continue;
 
     // Largeur : à ×4 près, au mieux à l'identique.
     let bs = 0.3;

@@ -11,6 +11,7 @@
   import {
     loadIndex, loadRef, refImage, refSound, searchRefs, mdToHtml, fmtHz,
   } from "./signalRefs.js";
+  import WideScroll from "./WideScroll.svelte";
 
   export let refId = null;          // fiche à ouvrir directement (ou null)
   export let freqHz = 0;            // fréquence du récepteur
@@ -93,8 +94,54 @@
   let bw = bwHz > 0 ? Math.round(bwHz) : "";
   let dm = demod;
   let text = "";
+  let cat = "";
+
+  // Catégories de la base, libellé français ; la valeur reste celle de la base.
+  const CAT_FR = {
+    "Digital": "Numérique", "Military": "Militaire", "Commercial": "Commercial",
+    "Amateur Radio": "Radioamateur", "Utility": "Utilitaire", "Analogue": "Analogique",
+    "Satellite": "Satellite", "Marine": "Maritime", "Aviation": "Aviation",
+    "Radar": "Radar", "Navigation": "Navigation", "Time": "Signaux horaires",
+    "Interfering": "Brouillage / interférences", "Trunked Radio": "Radio à ressources partagées",
+    "Numbers Stations": "Stations de nombres",
+  };
+  $: cats = [...new Set(index.flatMap((s) => s.cat || []))]
+    .map((c) => ({ v: c, l: CAT_FR[c] || c }))
+    .sort((a, b) => a.l.localeCompare(b.l, "fr"));
+
+  // ── Fenêtre flottante déplaçable ────────────────────────────────────────
+  // Elle ne masque plus le waterfall : ouverte en bas de l'écran, sans voile,
+  // déplaçable par sa barre de titre et redimensionnable par son coin.
+  let win;
+  let px = null, py = null;          // position (null = pas encore placée)
+  let drag = null;
+  function place() {
+    if (!win || px !== null) return;
+    const r = win.getBoundingClientRect();
+    px = Math.max(8, (window.innerWidth - r.width) / 2);
+    py = Math.max(8, window.innerHeight - r.height - 12);
+  }
+  function clampPos() {
+    if (!win) return;
+    const r = win.getBoundingClientRect();
+    px = Math.min(Math.max(px, 40 - r.width), window.innerWidth - 40);
+    py = Math.min(Math.max(py, 0), window.innerHeight - 36);
+  }
+  function headDown(ev) {
+    if (ev.button !== 0 || ev.target.closest("button")) return;
+    drag = { x: ev.clientX - px, y: ev.clientY - py };
+    ev.currentTarget.setPointerCapture(ev.pointerId);
+  }
+  function headMove(ev) {
+    if (!drag) return;
+    px = ev.clientX - drag.x;
+    py = ev.clientY - drag.y;
+    clampPos();
+  }
+  function headUp() { drag = null; }
 
   onMount(async () => {
+    place();
     index = await loadIndex();
     loading = false;
     if (refId) {
@@ -104,7 +151,7 @@
   });
 
   $: results = index.length
-    ? searchRefs(index, { freqHz: Number(fKhz) * 1e3, bwHz: Number(bw), demod: dm, text })
+    ? searchRefs(index, { freqHz: Number(fKhz) * 1e3, bwHz: Number(bw), demod: dm, text, cat })
     : [];
 
   async function select(e) {
@@ -122,12 +169,18 @@
   const list = (a) => (a && a.length ? a.join(", ") : "—");
 </script>
 
-<svelte:window on:keydown={onKey} />
+<svelte:window on:keydown={onKey} on:resize={() => px !== null && clampPos()} />
 
-<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-<div class="sigref-overlay" on:click|self={close}>
-  <div class="sigref glass-window" role="dialog" aria-label="Signaux de référence">
-    <div class="sigref-head">
+<div
+  class="sigref glass-window" role="dialog" aria-label="Signaux de référence"
+  bind:this={win}
+  style={px === null ? "visibility:hidden" : `left:${px}px; top:${py}px`}
+>
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div class="sigref-head" class:dragging={drag}
+      on:pointerdown={headDown} on:pointermove={headMove} on:pointerup={headUp} on:pointercancel={headUp}
+      title="Glisser pour déplacer la fenêtre">
+      <span class="sigref-grip" aria-hidden="true">⠿</span>
       <span class="font-semibold text-white">Identifier un signal</span>
       <span class="text-gray-500 text-[11px] hidden sm:inline">Base Artemis / Signal Identification Wiki</span>
       <span class="flex-1"></span>
@@ -142,11 +195,17 @@
           {#each ["USB", "LSB", "CW", "AM", "FM"] as d}<option value={d}>{d}</option>{/each}
         </select>
       </label>
-      <label class="grow">Filtre<input type="text" placeholder="nom, catégorie, modulation…" bind:value={text} /></label>
+      <label>Filtre
+        <select class="sigref-cat" bind:value={cat}>
+          <option value="">Toutes les catégories</option>
+          {#each cats as c (c.v)}<option value={c.v}>{c.l}</option>{/each}
+        </select>
+      </label>
+      <label class="grow">Recherche<input type="text" placeholder="nom, modulation…" bind:value={text} /></label>
     </div>
 
     <div class="sigref-body">
-      <div class="sigref-list">
+      <WideScroll class="sigref-list" width={22}>
         {#if loading}
           <div class="text-gray-400 p-2">Chargement…</div>
         {:else if !results.length}
@@ -165,9 +224,9 @@
             </button>
           {/each}
         {/if}
-      </div>
+      </WideScroll>
 
-      <div class="sigref-detail">
+      <WideScroll class="sigref-detail" width={22}><div class="sigref-detail-in">
         {#if !selected}
           <div class="text-gray-400 p-3">
             Choisissez une fiche dans la liste. Le classement compare la fréquence,
@@ -198,7 +257,7 @@
             {#if detail && detail.freqs && detail.freqs.length > 2}
               <tr><td>Fréquences connues</td><td data-no-i18n>{detail.freqs.slice(0, 12).map(fmtHz).join(", ")}{detail.freqs.length > 12 ? "…" : ""}</td></tr>
             {/if}
-            <tr><td>Catégorie</td><td data-no-i18n>{list(selected.cat)}</td></tr>
+            <tr><td>Catégorie</td><td>{#if selected.cat && selected.cat.length}{#each selected.cat as c, i}{#if i}<span data-no-i18n>, </span>{/if}<span>{CAT_FR[c] || c}</span>{/each}{:else}—{/if}</td></tr>
             {#if detail && detail.loc && detail.loc.length}
               <tr><td>Zone</td><td data-no-i18n>{list(detail.loc)}</td></tr>
             {/if}
@@ -210,25 +269,29 @@
             <a class="sigref-link" href={detail.page} target="_blank" rel="noopener noreferrer">Fiche complète sur sigidwiki.com ↗</a>
           {/if}
         {/if}
-      </div>
+      </div></WideScroll>
     </div>
-  </div>
 </div>
 
 <style>
-  .sigref-overlay {
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(0, 0, 0, 0.55);
-    display: flex; align-items: center; justify-content: center;
-    padding: 16px;
-  }
   .sigref {
-    width: min(980px, 100%); max-height: min(88vh, 900px);
+    position: fixed; z-index: 1000;
+    width: min(980px, calc(100vw - 16px)); height: min(55vh, 640px);
+    min-width: 520px; min-height: 260px;
+    max-width: calc(100vw - 8px); max-height: calc(100vh - 8px);
+    resize: both;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(207, 181, 59, 0.45);
     display: flex; flex-direction: column; overflow: hidden;
     border-radius: 8px; font-size: 12px; color: #d1d5db;
     background: rgba(17, 24, 39, 0.96);
   }
-  .sigref-head { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #374151; }
+  .sigref-head {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #374151;
+    cursor: grab; user-select: none; touch-action: none;
+    background: rgba(207, 181, 59, 0.10);
+  }
+  .sigref-head.dragging { cursor: grabbing; }
+  .sigref-grip { color: rgb(207, 181, 59); font-size: 15px; line-height: 1; }
   .sigref-x { color: #9ca3af; padding: 0 6px; font-size: 14px; background: transparent; border: 0; }
   .sigref-x:hover { color: #fff; }
   .sigref-player { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
@@ -246,9 +309,10 @@
     color: #e5e7eb; padding: 3px 6px; font-size: 12px; width: 110px;
   }
   .sigref-form label.grow input { width: 100%; }
+  .sigref-form select.sigref-cat { width: 210px; }
   .sigref-form input, .sigref-form select, .sigref-form label { box-sizing: border-box; min-width: 0; }
   .sigref-body { display: flex; min-height: 0; flex: 1; }
-  .sigref-list { width: 42%; overflow-y: auto; border-right: 1px solid #374151; }
+  .sigref-body :global(.sigref-list) { width: 42%; border-right: 1px solid #374151; }
   .sigref-item {
     display: flex; flex-direction: column; width: 100%; text-align: left;
     padding: 5px 10px; border: 0; border-bottom: 1px solid #1f2937;
@@ -259,7 +323,8 @@
   .sigref-item .t { color: #e5e7eb; }
   .sigref-item .m { display: flex; gap: 8px; color: #9ca3af; font-size: 11px; }
   .sigref-item .s { margin-left: auto; color: #93c5fd; }
-  .sigref-detail { flex: 1; overflow-y: auto; padding: 10px 12px; min-width: 0; }
+  .sigref-body :global(.sigref-detail) { flex: 1; min-width: 0; }
+  .sigref-detail-in { padding: 10px 12px; }
   .sigref-img { width: 100%; max-height: 260px; object-fit: contain; background: #000; border-radius: 4px; }
   .sigref-tab { margin: 8px 0; border-collapse: collapse; }
   .sigref-tab td { padding: 2px 10px 2px 0; vertical-align: top; }
@@ -268,10 +333,8 @@
   .sigref-desc :global(p) { margin: 0 0 6px; }
   .sigref-desc :global(a), .sigref-link { color: #93c5fd; text-decoration: underline; }
   @media (max-width: 640px) {
-    .sigref-overlay { padding: 0; }
-    .sigref { max-height: 100vh; height: 100%; border-radius: 0; }
-    .sigref-body { flex-direction: column; overflow-y: auto; }
-    .sigref-list { width: 100%; max-height: 35vh; flex-shrink: 0; border-right: 0; border-bottom: 1px solid #374151; }
-    .sigref-detail { overflow: visible; }
+    .sigref { min-width: 0; width: calc(100vw - 8px); }
+    .sigref-body { flex-direction: column; }
+    .sigref-body :global(.sigref-list) { width: 100%; height: 35%; flex-shrink: 0; border-right: 0; border-bottom: 1px solid #374151; }
   }
 </style>

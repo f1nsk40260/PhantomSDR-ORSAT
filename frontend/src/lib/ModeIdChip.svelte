@@ -124,8 +124,8 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
     <span class="modeid-icon" aria-hidden="true">📡</span>
     <div class="flex flex-col leading-tight min-w-0">
-      <span class="modeid-title">Qu'est-ce que j'entends ?</span>
-      <span class="text-gray-400 text-[11px]">Reconnaît le mode du signal écouté (FT8, RTTY, CW, PSK…) et propose le bon décodeur</span>
+      <span class="modeid-title">ANALYSE DES SIGNAUX NUMÉRIQUES</span>
+      <span class="text-gray-400 text-[11px]">Tente de reconnaître le signal</span>
     </div>
     <span class="flex-1"></span>
     <button
@@ -135,7 +135,7 @@
       aria-pressed={on}
     >
       <span class="modeid-knob" aria-hidden="true"></span>
-      <span>{on ? "Analyse : ON" : "Analyse : OFF"}</span>
+      <span>{on ? "Analyse automatique : ON" : "Analyse automatique : OFF"}</span>
     </button>
     <button
       class="modeid-lookup"
