@@ -57,6 +57,7 @@ export default class SpectrumWaterfall {
     this.minWaterfall = -30
     this.maxWaterfall = 110
     // https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
+    this.view3d = null   // ORSAT : vue 3D branchée par lib/Waterfall3D.svelte
     this.colormap = []
 
     this.setColormap('gqrx')
@@ -623,6 +624,8 @@ export default class SpectrumWaterfall {
 
       const { data: waterfallArray, l: curL, r: curR } = this.waterfallQueue.pop();
       const [arr, pxL, pxR] = this.calculateOffsets(waterfallArray, curL, curR, true);
+      // ORSAT : vue 3D (lib/Waterfall3D.svelte), seulement si elle est ouverte.
+      if (this.view3d) this.view3d.pushLine(arr, pxL, pxR, this.canvasWidth);
 
       if (this.waterfall) {
         this.drawWaterfall(arr, pxL, pxR, curL, curR);
@@ -1396,6 +1399,8 @@ export default class SpectrumWaterfall {
     const newCanvasWidth = newCanvasX2 - newCanvasX1
 
     this.ctx.drawImage(this.canvasElem, 0, 0, this.canvasWidth, this.canvasHeight, newCanvasX1, 0, newCanvasWidth, this.canvasHeight)
+    // ORSAT : la vue 3D étire son historique de la même façon.
+    if (this.view3d) this.view3d.remap(newCanvasX1, newCanvasWidth, this.canvasWidth)
 
 
     // Special case for zoom out or panning, blank the borders
@@ -1464,6 +1469,7 @@ export default class SpectrumWaterfall {
   setColormapArray(colormap) {
     this.colormap = computeColormapArray(colormap)
     this.autoLevel.setColormap(this.colormap)
+    if (this.view3d) this.view3d.setColormap(this.colormap)
   }
 
   setColormap(name) {

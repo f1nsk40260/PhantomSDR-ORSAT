@@ -96,6 +96,7 @@
   // DominoEX, THOR, THROB, Hell, MT63). fsk.js is in this bundle already.
   import { FLDIGI_MODEMS } from "./fsk.js";
   import SignalRefPanel from "./lib/SignalRefPanel.svelte";
+  import Waterfall3D from "./lib/Waterfall3D.svelte";
   import HeaderClock from "./lib/HeaderClock.svelte";
   import { meterGated } from "./lib/sUnits.js";
   import { loadReceivers } from "./lib/receivers";
@@ -4574,6 +4575,11 @@
     turbo: "Turbo", gqrx: "Gqrx", twente: "Twente", twentev2: "Twente v2",
     SpectraVU: "SpectraVU", jet: "Jet", custom: "Perso", PhantomSDR: "PhantomSDR",
   };
+  // ORSAT : vue 3D du waterfall (désactivée par défaut).
+  let view3D = false;
+  const has3D = (() => {
+    try { return !!document.createElement("canvas").getContext("webgl2"); } catch (e) { return false; }
+  })();
   let paletteOpen = false;
   function closePalette() { paletteOpen = false; }
   const _gradCache = {};
@@ -10207,6 +10213,9 @@ Shift + Wheel = 0.1 KHz
 Ctrl + Wheel = 0.01 KHz
 Shift + Ctrl + Wheel = snap to .00 KHz"
                       ></canvas>
+                      {#if view3D}
+                        <Waterfall3D {waterfall} onClose={() => (view3D = false)} />
+                      {/if}
 
                       <!-- Cursor Frequency Display -->
                       {#if showCursorFreq && cursorFrequency !== null}
@@ -14348,6 +14357,18 @@ Cliquez à nouveau pour désactiver"
                     {/if}
                   </div>
 
+                  {#if has3D}
+                    <button
+                      class="wf-3d-btn {view3D ? 'is-on' : ''}"
+                      on:click={() => (view3D = !view3D)}
+                      aria-pressed={view3D}
+                      title="Afficher le waterfall en relief (3D). Glisser pour tourner, molette pour rapprocher, double-clic pour la vue d'origine."
+                    >
+                      <span aria-hidden="true">🧊</span>
+                      <span>{view3D ? "Vue 3D : ON" : "Vue 3D : OFF"}</span>
+                    </button>
+                  {/if}
+
                   <MagicEyeIndicator dbm={eyeDbm} />
 
                   <div class="w-full mt-6 mb-5">
@@ -15387,6 +15408,20 @@ Cliquez à nouveau pour désactiver"
   }
   .click-button:active {
     @apply bg-blue-600 text-white;
+  }
+
+  /* ORSAT : bouton de la vue 3D */
+  .wf-3d-btn {
+    width: 18rem; max-width: 100%; box-sizing: border-box; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.4rem 0.6rem; border-radius: 0.45rem; font-size: 0.85rem; font-weight: 600;
+    color: rgb(207, 181, 59); background: rgba(207, 181, 59, 0.06);
+    border: 1px solid rgba(207, 181, 59, 0.45); transition: all 0.15s;
+  }
+  .wf-3d-btn:hover { background: rgba(207, 181, 59, 0.14); }
+  .wf-3d-btn.is-on {
+    color: #f3e7a6; border-color: rgba(207, 181, 59, 0.75);
+    background: linear-gradient(180deg, rgba(207, 181, 59, 0.30), rgba(120, 100, 30, 0.30));
   }
 
   /* ORSAT : menu déroulant des palettes du waterfall (18rem : ne pas élargir la colonne). */
