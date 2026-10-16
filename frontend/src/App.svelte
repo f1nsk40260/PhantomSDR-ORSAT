@@ -14362,7 +14362,7 @@ Cliquez à nouveau pour désactiver"
                       class="wf-3d-btn {view3D ? 'is-on' : ''}"
                       on:click={() => (view3D = !view3D)}
                       aria-pressed={view3D}
-                      title="Afficher le spectre en relief (3D). Glisser pour tourner, molette pour rapprocher, double-clic pour la vue d'origine."
+                      title="Afficher le spectre en relief (3D)"
                     >
                       <span aria-hidden="true">🧊</span>
                       <span>{view3D ? "Spectre 3D : ON" : "Spectre 3D : OFF"}</span>

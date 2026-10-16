@@ -624,7 +624,7 @@ const D = [
   ["✕ 2D", "✕ 2D", "✕ 2D"],
   ["Revenir à la vue d'origine", "Back to the default view", "Volver a la vista inicial"],
   ["Revenir au spectre classique", "Back to the classic spectrum", "Volver al espectro clásico"],
-  ["Afficher le spectre en relief (3D). Glisser pour tourner, molette pour rapprocher, double-clic pour la vue d'origine.", "Show the spectrum in relief (3D). Drag to rotate, wheel to zoom, double-click for the default view.", "Mostrar el espectro en relieve (3D). Arrastrar para girar, rueda para acercar, doble clic para la vista inicial."],
+  ["Afficher le spectre en relief (3D)", "Show the spectrum in relief (3D)", "Mostrar el espectro en relieve (3D)"],
   ["Spectre 3D — glisser : tourner / incliner · molette : rapprocher / éloigner · double-clic : vue d'origine", "3D spectrum — drag: rotate / tilt · wheel: closer / further · double-click: default view", "Espectro 3D — arrastrar: girar / inclinar · rueda: acercar / alejar · doble clic: vista inicial"],
   ["La vue 3D nécessite WebGL2, indisponible dans ce navigateur.", "The 3D view needs WebGL2, which this browser lacks.", "La vista 3D necesita WebGL2, no disponible en este navegador."],
   ["Choisir la palette de couleurs du waterfall", "Choose the waterfall colour palette", "Elegir la paleta de colores de la cascada"],

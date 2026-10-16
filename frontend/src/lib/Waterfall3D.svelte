@@ -26,10 +26,8 @@
   let head = 0;                  // ligne la plus récente
   let ro, raf = 0, failed = "";
 
-  // Caméra
-  const DEF = { yaw: 0, pitch: 0.5, dist: 2.7 };
-  let yaw = DEF.yaw, pitch = DEF.pitch, dist = DEF.dist;
-  let drag = null;
+  // Caméra fixe (pas de réglage d'inclinaison : vue de face, légèrement plongeante).
+  const yaw = 0, pitch = 0.5, dist = 2.7;
 
   const VS = `#version 300 es
   in vec2 aUV;
@@ -223,27 +221,6 @@
     schedule();
   }
 
-  // ── Souris : glisser = tourner / incliner, molette = distance, double-clic = vue d'origine
-  function down(e) {
-    if (e.button !== 0) return;
-    drag = { x: e.clientX, y: e.clientY, yaw, pitch };
-    canvas.setPointerCapture(e.pointerId);
-  }
-  function move(e) {
-    if (!drag) return;
-    yaw = drag.yaw + (e.clientX - drag.x) * 0.006;
-    pitch = Math.max(0.08, Math.min(1.45, drag.pitch + (e.clientY - drag.y) * 0.005));
-    schedule();
-  }
-  function up() { drag = null; }
-  function wheel(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dist = Math.max(1.4, Math.min(8, dist * (e.deltaY > 0 ? 1.08 : 1 / 1.08)));
-    schedule();
-  }
-  function reset() { yaw = DEF.yaw; pitch = DEF.pitch; dist = DEF.dist; schedule(); }
-
   onMount(() => {
     try {
       initGL();
@@ -269,28 +246,16 @@
 </script>
 
 <div class="w3d">
-  <canvas
-    bind:this={canvas}
-    class="w3d-canvas"
-    on:pointerdown={down}
-    on:pointermove={move}
-    on:pointerup={up}
-    on:pointercancel={up}
-    on:wheel={wheel}
-    on:dblclick={reset}
-    title="Spectre 3D — glisser : tourner / incliner · molette : rapprocher / éloigner · double-clic : vue d'origine"
-  ></canvas>
+  <canvas bind:this={canvas} class="w3d-canvas"></canvas>
   {#if failed}<div class="w3d-msg">{failed}</div>{/if}
   <div class="w3d-tools">
-    <button on:click={reset} title="Revenir à la vue d'origine">⟲ Vue d'origine</button>
     <button on:click={onClose} title="Revenir au spectre classique">✕ 2D</button>
   </div>
 </div>
 
 <style>
   .w3d { position: absolute; inset: 0; z-index: 20; background: #000; }
-  .w3d-canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
-  .w3d-canvas:active { cursor: grabbing; }
+  .w3d-canvas { width: 100%; height: 100%; display: block; }
   .w3d-tools { position: absolute; top: 6px; right: 8px; display: flex; gap: 6px; }
   .w3d-tools button {
     padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600;
