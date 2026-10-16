@@ -8,7 +8,11 @@
    * et le vertex shader y lit la hauteur de chaque point du maillage. Le
    * processeur ne fait que rééchantillonner la ligne reçue sur W points.
    *
-   * Branchement : waterfall.view3d = { pushLine, setColormap, remap } —
+   * Chaque trace garde sa propre plage de fréquences (indices FFT absolus) dans
+   * une petite texture : le shader la replace exactement dans la fenêtre
+   * affichée, donc zoom et glissement sont suivis sans approximation.
+   *
+   * Branchement : waterfall.view3d = { pushLine, setColormap, setView } —
    * waterfall.js appelle ces fonctions s'il trouve l'objet (voir drawSpectrogram,
    * setColormapArray et setWaterfallRange). Désactivée, la vue ne coûte rien.
    */
@@ -21,8 +25,9 @@
   const H = 128;                 // profondeur de l'historique (traces)
   const GX = 1024, GY = 128;     // maillage affiché
 
-  let canvas, gl, prog, vao, histTex, cmapTex, nIdx = 0;
-  let hist = new Uint8Array(W * H);
+  let canvas, gl, prog, vao, histTex, rangeTex, cmapTex, nIdx = 0;
+  let viewL = 0, viewR = 1;      // fenêtre affichée (indices FFT)
+  const hist = new Uint8Array(W * H);
   let head = 0;                  // ligne la plus récente
   let ro, raf = 0, failed = "";
 
@@ -32,15 +37,23 @@
   const VS = `#version 300 es
   in vec2 aUV;
   uniform highp usampler2D uHist;
+  uniform highp sampler2D uRange;   // par trace : plage [L, R] en indices FFT
   uniform int uHead;
+  uniform vec2 uView;               // fenêtre affichée [L, R]
   uniform mat4 uMVP;
   out float vVal;
   out float vAge;
   void main() {
-    int x = int(aUV.x * float(${W - 1}) + 0.5);
     int age = int(aUV.y * float(${H - 1}) + 0.5);
     int row = (uHead - age + ${H}) % ${H};
-    float val = float(texelFetch(uHist, ivec2(x, row), 0).r) / 255.0;
+    vec2 rr = texelFetch(uRange, ivec2(row, 0), 0).rg;
+    float idx = uView.x + aUV.x * (uView.y - uView.x);
+    float t = (idx - rr.x) / max(rr.y - rr.x, 1e-6);
+    float val = 0.0;
+    if (t >= 0.0 && t < 1.0) {
+      int x = int(t * float(${W}));
+      val = float(texelFetch(uHist, ivec2(min(x, ${W - 1}), row), 0).r) / 255.0;
+    }
     vVal = val;
     vAge = aUV.y;
     float y = pow(val, 1.25) * 0.9;
@@ -108,6 +121,12 @@
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
+    rangeTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, rangeTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG32F, H, 1, 0, gl.RG, gl.FLOAT, new Float32Array(H * 2));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
     cmapTex = gl.createTexture();
     setColormap(waterfall && waterfall.colormap);
 
@@ -128,41 +147,32 @@
     schedule();
   }
 
-  /** Nouvelle ligne (indices de palette 0-255), placée entre pxL et pxR sur un canevas de largeur cw. */
+  /** Nouvelle trace : indices de palette 0-255 couvrant les indices FFT [l, r]. */
   const line = new Uint8Array(W);
-  function pushLine(arr, pxL, pxR, cw) {
-    if (!gl || !arr || !arr.length || !(cw > 0)) return;
-    const span = pxR - pxL;
+  const rng = new Float32Array(2);
+  function pushLine(arr, l, r) {
+    if (!gl || !arr || !arr.length || !(r > l)) return;
+    const n = arr.length;
     for (let x = 0; x < W; x++) {
-      const p0 = (x / W) * cw, p1 = ((x + 1) / W) * cw;
-      if (p1 <= pxL || p0 >= pxR || span <= 0) { line[x] = 0; continue; }
-      let i0 = Math.floor(((p0 - pxL) / span) * arr.length);
-      let i1 = Math.ceil(((p1 - pxL) / span) * arr.length);
-      i0 = Math.max(0, i0); i1 = Math.min(arr.length, Math.max(i1, i0 + 1));
+      const i0 = Math.floor((x * n) / W);
+      const i1 = Math.max(i0 + 1, Math.floor(((x + 1) * n) / W));
       let m = 0;
-      for (let i = i0; i < i1; i++) if (arr[i] > m) m = arr[i];   // max : garde les porteuses fines
+      for (let i = i0; i < i1 && i < n; i++) if (arr[i] > m) m = arr[i];   // max : garde les porteuses fines
       line[x] = m;
     }
     head = (head + 1) % H;
-    hist.set(line, head * W);
     gl.bindTexture(gl.TEXTURE_2D, histTex);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, head, W, 1, gl.RED_INTEGER, gl.UNSIGNED_BYTE, line);
+    rng[0] = l; rng[1] = r;
+    gl.bindTexture(gl.TEXTURE_2D, rangeTex);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, head, 0, 1, 1, gl.RG, gl.FLOAT, rng);
     schedule();
   }
 
-  /** Zoom / défilement : l'ancienne fenêtre [x1, x1+w] (en px du canevas cw) est étirée sur la nouvelle, comme en 2D. */
-  function remap(x1, w, cw) {
-    if (!gl || !(w > 0) || !(cw > 0)) return;
-    const out = new Uint8Array(W * H);
-    for (let x = 0; x < W; x++) {
-      const px = ((x + 0.5) / W) * cw;
-      const src = Math.floor(((px - x1) / w) * W);
-      if (src < 0 || src >= W) continue;
-      for (let r = 0; r < H; r++) out[r * W + x] = hist[r * W + src];
-    }
-    hist = out;
-    gl.bindTexture(gl.TEXTURE_2D, histTex);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, H, gl.RED_INTEGER, gl.UNSIGNED_BYTE, hist);
+  /** Zoom / glissement : nouvelle fenêtre affichée (indices FFT). */
+  function setView(l, r) {
+    if (!(r > l)) return;
+    viewL = l; viewR = r;
     schedule();
   }
 
@@ -207,6 +217,10 @@
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, cmapTex);
     gl.uniform1i(gl.getUniformLocation(prog, "uCmap"), 1);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, rangeTex);
+    gl.uniform1i(gl.getUniformLocation(prog, "uRange"), 2);
+    gl.uniform2f(gl.getUniformLocation(prog, "uView"), viewL, viewR);
     gl.uniform1i(gl.getUniformLocation(prog, "uHead"), head);
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "uMVP"), false, mvp);
     gl.drawElements(gl.TRIANGLES, nIdx, gl.UNSIGNED_INT, 0);
@@ -232,7 +246,10 @@
     ro = new ResizeObserver(resize);
     ro.observe(canvas);
     resize();
-    if (waterfall) waterfall.view3d = { pushLine, setColormap, remap };
+    if (waterfall) {
+      viewL = waterfall.waterfallL; viewR = waterfall.waterfallR;
+      waterfall.view3d = { pushLine, setColormap, setView };
+    }
   });
 
   onDestroy(() => {

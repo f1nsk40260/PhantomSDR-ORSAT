@@ -632,7 +632,7 @@ export default class SpectrumWaterfall {
           a3 = new Uint8Array(waterfallArray.length)
           for (let i = 0; i < a3.length; i++) a3[i] = this.transformValue(waterfallArray[i])
         }
-        this.view3d.pushLine(a3, pxL, pxR, this.canvasWidth);
+        this.view3d.pushLine(a3, curL, curR);
       }
 
       if (this.waterfall) {
@@ -1407,8 +1407,8 @@ export default class SpectrumWaterfall {
     const newCanvasWidth = newCanvasX2 - newCanvasX1
 
     this.ctx.drawImage(this.canvasElem, 0, 0, this.canvasWidth, this.canvasHeight, newCanvasX1, 0, newCanvasWidth, this.canvasHeight)
-    // ORSAT : le spectre 3D étire son historique de la même façon.
-    if (this.view3d) this.view3d.remap(newCanvasX1, newCanvasWidth, this.canvasWidth)
+    // ORSAT : le spectre 3D suit la nouvelle fenêtre (chaque trace garde sa propre plage).
+    if (this.view3d) this.view3d.setView(this.waterfallL, this.waterfallR)
 
 
     // Special case for zoom out or panning, blank the borders
