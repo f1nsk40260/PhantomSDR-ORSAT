@@ -32,10 +32,11 @@
   let ro, raf = 0, failed = "";
 
   // Rendu : montée du passé et hauteur du relief (en unités écran, -1..1).
-  const RISE = 1.25;   // remontée du sol, de l'avant au fond
+  const RISE = 1.5;    // remontée du sol, de l'avant au fond
   const AMP = 0.85;    // hauteur des crêtes (devant)
-  const K = 0.28;      // perspective : au fond, les signaux se rapprochent du centre d'un facteur 1/(1+K)
-  const FLOORV = "0.07";  // niveau attribué hors des traces (≈ bruit de fond), en littéral GLSL
+  const K = 0.16;      // perspective : au fond, les signaux se rapprochent du centre d'un facteur 1/(1+K)
+  const FLOORV = "0.10";  // niveau attribué hors des traces (≈ bruit de fond), en littéral GLSL
+  const HPOW = "0.55";    // courbe de hauteur (< 1 : relève le bruit, comprime les forts)
 
   const VS = `#version 300 es
   in vec2 aUV;
@@ -81,14 +82,15 @@
     // sont réduites du facteur s (point de fuite au centre). Devant, s = 1 :
     // la trace la plus récente est exactement alignée sur le waterfall.
     float sBack = 1.0 / (1.0 + ${K});
-    float ground = -0.97 + uRise * (1.0 - s) / (1.0 - sBack);
+    // Le bruit de fond (≈ FLOORV) est posé au ras du bord bas : pas de vide noir dessous.
+    float ground = -1.0 - pow(${FLOORV}, ${HPOW}) * uAmp + uRise * (1.0 - s) / (1.0 - sBack);
     float amp = uAmp * s;
     // Courbe de hauteur : relève le moutonnement du bruit, comprime les signaux forts.
-    float y = ground + pow(v, 0.65) * amp;
+    float y = ground + pow(v, ${HPOW}) * amp;
     float x = sx;
 
     // Éclairage : normale estimée à partir des pentes voisines.
-    vec3 n = normalize(vec3((pow(vl, 0.65) - pow(vr, 0.65)) * amp * 45.0, 1.0, (pow(vf, 0.65) - pow(vb, 0.65)) * amp * 25.0));
+    vec3 n = normalize(vec3((pow(vl, ${HPOW}) - pow(vr, ${HPOW})) * amp * 45.0, 1.0, (pow(vf, ${HPOW}) - pow(vb, ${HPOW})) * amp * 25.0));
     vLight = 0.5 + 0.5 * max(dot(n, normalize(vec3(-0.35, 0.8, 0.5))), 0.0);
 
     vVal = v;
@@ -234,7 +236,7 @@
     for (let i = 255; i >= 0; i--) { acc += hist256[i]; if (acc >= W * 0.005) { p995 = i; break; } }
     floorE = floorE < 0 ? p20 : floorE * 0.9 + p20 * 0.1;
     spanE = spanE < 0 ? Math.max(40, p995 - p20) : spanE * 0.95 + Math.max(40, p995 - p20) * 0.05;
-    const base = floorE - spanE * 0.08;
+    const base = floorE - spanE * 0.10;
     for (let x = 0; x < W; x++) {
       const v = (line[x] - base) / (spanE * 1.15);
       norm[x] = v <= 0 ? 0 : v >= 1 ? 1 : v;
