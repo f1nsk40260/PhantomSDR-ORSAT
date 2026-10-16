@@ -22,6 +22,19 @@
 
          Deliberately scoped to this one query parameter — without ?desktop=1
          nothing below executes and detection is completely untouched. -->
+    <!-- ORSAT : la page principale est desktop uniquement. Un téléphone
+         (hors ?desktop=1) est envoyé sur la page légère /mobile. -->
+    <script>
+    (function () {
+      try {
+        if (/(^|[?&])desktop=1(&|$)/.test(window.location.search)) return;
+        var uad = navigator.userAgentData;
+        var phone = (uad && typeof uad.mobile === 'boolean') ? uad.mobile
+          : /Android.+Mobile|iPhone|iPod|Windows Phone|Mobile Safari|Opera Mini/i.test(navigator.userAgent);
+        if (phone) window.location.replace('/mobile/' + window.location.search + window.location.hash);
+      } catch (e) {}
+    })();
+    </script>
     <script>
     (function () {
       try {
