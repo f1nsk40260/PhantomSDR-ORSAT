@@ -155,7 +155,7 @@ Le WebSDR ORSAT de F1NSK : **[https://orsat.ddns.net](https://orsat.ddns.net)**
 
 ![Panneau hamdash, liens et manuels](docs/websdr3.png)
 
-*Panneau hamdash : propagation, DX cluster, liens GitHub et manuels utilisateur en trois langues.*
+*Panneau hamdash : propagation, DX cluster, liens GitHub, liens externes et manuels utilisateur en trois langues.*
 
 (https://sdr-list.xyz)
 
