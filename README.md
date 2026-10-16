@@ -145,7 +145,17 @@ Nous proposons aussi un large éventail de **fonctions** supplémentaires :
 
 Le WebSDR ORSAT de F1NSK : **[https://orsat.ddns.net](https://orsat.ddns.net)**
 
-![Capture d'écran](docs/websdr.png) ![Capture d'écran](docs/websdr2.png) ![Capture d'écran](docs/websdr3.png)
+![Vue générale du WebSDR ORSAT](docs/websdr.png)
+
+*Vue générale : en-tête, choix de la langue, waterfall, S-mètre et commandes.*
+
+![Analyse des signaux numériques et fenêtre « Identifier un signal »](docs/websdr2.png)
+
+*Analyse des signaux numériques et fenêtre flottante « Identifier un signal » (base Artemis / SigIDWiki).*
+
+![Panneau hamdash, liens et manuels](docs/websdr3.png)
+
+*Panneau hamdash : propagation, DX cluster, liens GitHub et manuels utilisateur en trois langues.*
 
 (https://sdr-list.xyz)
 
