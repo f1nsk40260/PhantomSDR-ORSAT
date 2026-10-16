@@ -3,3 +3,6 @@
 .listener_geo_cache.json
 .listener_geo_cache.tmp
 logs/
+
+# Sauvegardes et historique de configuration (panneau admin)
+backups/

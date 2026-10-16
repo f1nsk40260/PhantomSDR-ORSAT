@@ -1191,7 +1191,10 @@
           return;
         }
         const d = await r.json();
-        adminMessage = (d.text || "").trim();
+        // Date de fin facultative : le bandeau disparaît même si le panneau
+        // d'administration n'a pas encore effacé le fichier.
+        const expired = d.until && Date.now() / 1000 >= d.until;
+        adminMessage = expired ? "" : (d.text || "").trim();
         adminMsgColor = d.color || "#ffffff";
         if (adminMessage) {
           console.log("[WF-MSG] Message active:", adminMessage);

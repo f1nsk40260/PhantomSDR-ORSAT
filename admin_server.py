@@ -1520,9 +1520,24 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <a class="nav-item" onclick="showPage('wfmsg',this)" href="#">
         <span class="icon">📢</span><span>WF Message</span>
       </a>
+      <a class="nav-item" onclick="showPage('map',this)" href="#">
+        <span class="icon">🗺</span><span>Carte auditeurs</span>
+      </a>
+      <a class="nav-item" onclick="showPage('signal',this)" href="#">
+        <span class="icon">📡</span><span>Qualité du signal</span>
+      </a>
+      <a class="nav-item" onclick="showPage('health',this)" href="#">
+        <span class="icon">🩺</span><span>Santé du serveur</span>
+      </a>
     </div>
     <div class="nav-section">
       <div class="nav-label">SYSTEM</div>
+      <a class="nav-item" onclick="showPage('update',this)" href="#">
+        <span class="icon">🔄</span><span>Mise à jour</span>
+      </a>
+      <a class="nav-item" onclick="showPage('backup',this)" href="#">
+        <span class="icon">💾</span><span>Sauvegardes</span>
+      </a>
       <a class="nav-item" onclick="showPage('settings',this)" href="#">
         <span class="icon">◧</span><span>Settings</span>
       </a>
@@ -1649,7 +1664,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <div class="dot" style="background:var(--green);box-shadow:0 0 6px var(--green)"></div>
             TERMINAL
             <span style="margin-left:.4rem;font-size:.6rem;color:var(--text3);" id="term-cwd">~</span>
-            <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="termCopy()" title="Copier la sélection, ou toute la sortie si rien n'est sélectionné">&#10697; COPIER</span>
+            <span style="margin-left:auto;font-size:.6rem;color:var(--text3);cursor:pointer;" onmousedown="event.preventDefault()" onclick="termCopy()" title="Copier la sélection, ou toute la sortie si rien n'est sélectionné">&#10697; COPIER</span>
             <span style="margin-left:.8rem;font-size:.6rem;color:var(--text3);cursor:pointer;" onclick="termClear()">&#10005; CLEAR</span>
           </div>
           <div id="term-output"
@@ -1900,6 +1915,13 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       </div>
 
       <!-- ══════ SETTINGS PAGE ══════ -->
+      <!-- Pages ajoutées par admin_extras (contenu rendu par /admin/extras.js) -->
+      <div class="page" id="page-map"><div id="x-map"></div></div>
+      <div class="page" id="page-signal"><div id="x-signal"></div></div>
+      <div class="page" id="page-health"><div id="x-health"></div></div>
+      <div class="page" id="page-update"><div id="x-update"></div></div>
+      <div class="page" id="page-backup"><div id="x-backup"></div></div>
+
       <div class="page" id="page-settings">
         <div class="section-head">ADMIN SETTINGS</div>
         <div class="grid grid-2" style="margin-bottom:1rem;">
@@ -2178,6 +2200,26 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
               </select>
             </div>
 
+            <div style="margin-bottom:.8rem;">
+              <label style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">DURÉE D'AFFICHAGE</label>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                <select id="wfmsg-dur" onchange="document.getElementById('wfmsg-until').style.display = this.value==='custom' ? '' : 'none'"
+                  style="flex:1;min-width:10rem;background:#071207;border:1px solid var(--border);
+                         color:var(--text);font-family:'Share Tech Mono',monospace;
+                         font-size:.8rem;padding:.4rem .6rem;border-radius:2px;outline:none;">
+                  <option value="0">Jusqu'à effacement manuel</option>
+                  <option value="1800">30 minutes</option>
+                  <option value="3600">1 heure</option>
+                  <option value="7200">2 heures</option>
+                  <option value="21600">6 heures</option>
+                  <option value="86400">24 heures</option>
+                  <option value="custom">Jusqu'au… (date et heure)</option>
+                </select>
+                <input type="datetime-local" id="wfmsg-until" style="display:none;flex:1;min-width:12rem;background:#071207;border:1px solid var(--border);
+                       color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.8rem;padding:.35rem .5rem;border-radius:2px;color-scheme:dark;">
+              </div>
+            </div>
+
             <div style="display:flex;gap:.5rem;">
               <button class="btn btn-amber" onclick="sendWfMsg()" style="flex:1;">📢 BROADCAST</button>
               <button class="btn btn-red" onclick="clearWfMsg()">✕ CLEAR</button>
@@ -2190,7 +2232,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <div style="font-size:.75rem;color:var(--text2);line-height:2;">
               <p>The message appears as a <span style="color:var(--green)">fixed dark banner at the top of the waterfall</span> for all connected users.</p>
               <br>
-              <p>&#9679; Stays visible until you click <strong style="color:var(--red)">CLEAR</strong>.</p>
+              <p>&#9679; Stays visible until you click <strong style="color:var(--red)">CLEAR</strong>, or until the end time you chose (DURÉE D'AFFICHAGE).</p>
               <p>&#9679; Browsers poll every 10 s — message appears within 10 s of BROADCAST.</p>
               <p>&#9679; Disappears within 10 s of CLEAR.</p>
               <p>&#9679; Users who connect after CLEAR never see it.</p>
@@ -2450,6 +2492,7 @@ function showPage(name, el) {
   if (name === 'users')    { loadUsers(); }
   if (name === 'listeners') { liLoadAll(); }
   if (name === 'wfmsg')    { loadWfMsgStatus(); }
+  if (window.extrasShow) { window.extrasShow(name); }
   return false;
 }
 
@@ -4174,6 +4217,20 @@ document.getElementById('wfmsg-text')?.addEventListener('input', function() {
   if (el) { el.textContent = n + ' / 200'; el.style.color = n > 180 ? 'var(--amber)' : 'var(--text3)'; }
 });
 
+function wfUntil() {
+  var v = document.getElementById('wfmsg-dur')?.value || '0';
+  if (v === 'custom') {
+    var dt = document.getElementById('wfmsg-until')?.value;
+    return dt ? Math.floor(new Date(dt).getTime() / 1000) : 0;
+  }
+  var sec = parseInt(v, 10) || 0;
+  return sec ? Math.floor(Date.now() / 1000) + sec : 0;
+}
+function wfUntilText(u) {
+  if (!u) return '';
+  var d = new Date(u * 1000);
+  return " (jusqu'au " + d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + ')';
+}
 async function sendWfMsg() {
   var text  = (document.getElementById('wfmsg-text')?.value || '').trim();
   var color = document.getElementById('wfmsg-color')?.value || '#ffffff';
@@ -4184,14 +4241,14 @@ async function sendWfMsg() {
     var r = await fetch('/admin/api/wf-message', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({text: text, color: color})
+      body: JSON.stringify({text: text, color: color, until: wfUntil()})
     });
     var d = await r.json();
     if (d.ok) {
       el.textContent = '✓ Live! All users will see it within 10 s.';
       el.style.color = 'var(--green)';
       var a = document.getElementById('wfmsg-active');
-      if (a) { a.textContent = text; a.style.color = 'var(--green)'; }
+      if (a) { a.textContent = text + wfUntilText(wfUntil()); a.style.color = 'var(--green)'; }
       toast('WF message broadcast');
     } else {
       el.textContent = '✗ ' + (d.msg || 'Error'); el.style.color = 'var(--red)';
@@ -4218,7 +4275,7 @@ async function loadWfMsgStatus() {
     var d = await r.json();
     var a = document.getElementById('wfmsg-active');
     if (!a) return;
-    a.textContent = d.text || '—';
+    a.textContent = d.text ? d.text + wfUntilText(d.until) : '—';
     a.style.color  = d.text ? 'var(--green)' : 'var(--text3)';
   } catch(_) {}
 }
@@ -4226,6 +4283,7 @@ async function loadWfMsgStatus() {
 // ─── Init ────────────────────────────────────────────────────────────────────
 loadDashboard();
 </script>
+<script src="/admin/extras.js"></script>
 </body>
 </html>"""
 
@@ -5102,12 +5160,15 @@ def api_chat_delete():
 # The browser fetches /wf-message.json directly from spectrumserver — no proxy,
 # no auth, no routing issues whatsoever.
 
-def _wf_write_file(text: str, color: str) -> str:
+def _wf_write_file(text: str, color: str, until: float = 0) -> str:
     """Write wf-message.json to every likely web-root location.
     Returns a summary string of files written (for logging).
     """
     import json as _json
-    payload = _json.dumps({"text": text, "color": color})
+    obj = {"text": text, "color": color}
+    if until:
+        obj["until"] = int(until)        # epoch (s) : le message disparaît seul
+    payload = _json.dumps(obj)
     candidates = [
         BASE_DIR / "frontend" / "dist",
         BASE_DIR / "frontend" / "public",
@@ -5133,6 +5194,35 @@ def _wf_write_file(text: str, color: str) -> str:
     return ", ".join(written) if written else "nowhere (no candidate dir found)"
 
 
+def _wf_expiry_loop():
+    """Efface le message à sa date de fin, y compris après un redémarrage du
+    panneau (la date est relue dans wf-message.json)."""
+    import json as _json
+    while True:
+        time.sleep(20)
+        try:
+            with _wf_message_lock:
+                until = _wf_message.get("until", 0)
+            if not until:
+                f = BASE_DIR / "frontend" / "dist" / "wf-message.json"
+                if f.is_file():
+                    d = _json.loads(f.read_text(encoding="utf-8") or "{}")
+                    if d.get("text") and d.get("until"):
+                        until = d["until"]
+                        with _wf_message_lock:
+                            _wf_message.update({"text": d["text"], "color": d.get("color", "#ffffff"),
+                                                "until": until})
+            if until and time.time() >= until:
+                with _wf_message_lock:
+                    _wf_message.update({"text": "", "color": "#ffffff", "until": 0})
+                print(f"[wf-msg] EXPIRED → {_wf_write_file('', '#ffffff')}")
+        except Exception as e:
+            print(f"[wf-msg] expiry check: {e}")
+
+
+threading.Thread(target=_wf_expiry_loop, daemon=True, name="wf-expiry").start()
+
+
 # ── API: Waterfall Message ─────────────────────────────────────────────────────
 @app.route("/admin/api/wf-message", methods=["GET"])
 def api_wf_message_get():
@@ -5141,7 +5231,8 @@ def api_wf_message_get():
     """
     with _wf_message_lock:
         m = dict(_wf_message)
-    return jsonify({"text": m.get("text", ""), "color": m.get("color", "#ffffff")})
+    return jsonify({"text": m.get("text", ""), "color": m.get("color", "#ffffff"),
+                    "until": m.get("until", 0)})
 
 
 @app.route("/admin/api/wf-message", methods=["POST"])
@@ -5155,9 +5246,15 @@ def api_wf_message_post():
     color = data.get("color", "#ffffff")
     if not text:
         return jsonify({"ok": False, "msg": "Empty message"})
+    try:
+        until = float(data.get("until") or 0)
+    except (TypeError, ValueError):
+        until = 0
+    if until and until <= time.time():
+        return jsonify({"ok": False, "msg": "La date de fin est déjà passée"})
     with _wf_message_lock:
-        _wf_message.update({"text": text, "color": color})
-    written = _wf_write_file(text, color)
+        _wf_message.update({"text": text, "color": color, "until": until})
+    written = _wf_write_file(text, color, until)
     print(f"[wf-msg] SET '{text}' → {written}")
     return jsonify({"ok": True, "written": written})
 
@@ -5167,7 +5264,7 @@ def api_wf_message_post():
 def api_wf_message_delete():
     """Clear the waterfall message (admin only)."""
     with _wf_message_lock:
-        _wf_message.update({"text": "", "color": "#ffffff"})
+        _wf_message.update({"text": "", "color": "#ffffff", "until": 0})
     written = _wf_write_file("", "#ffffff")
     print(f"[wf-msg] CLEARED → {written}")
     return jsonify({"ok": True})
@@ -5877,6 +5974,13 @@ class QuietPollFilter(logging.Filter):
 
 
 # ─── Startup ───────────────────────────────────────────────────────────────────
+# ── Fonctions supplémentaires (mise à jour, sauvegardes, santé, signal, carte)
+try:
+    import admin_extras as _extras
+    _extras.init(app, globals())
+except Exception as _e:
+    print(f"[WARN] admin_extras indisponible : {_e}")
+
 if __name__ == "__main__":
     if not ADMIN_CONFIG_FILE.exists():
         save_admin_config(DEFAULT_CONFIG)
