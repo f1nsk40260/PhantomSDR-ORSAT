@@ -510,9 +510,7 @@
       <div class="spg-tip" class:flip={hover.flip} style="left:{hover.px}px">{#if hover.rf}<b>{hover.rf}</b><br />{/if}{hover.audio}</div>
     {/if}
   </div>
-  {#if occupied && occupied.text}
-    <div class="spg-obw {occupied.status}">{occupied.text}</div>
-  {/if}
+  <div class="spg-obw {occupied && occupied.text ? occupied.status : 'empty'}">{occupied && occupied.text ? occupied.text : "\u00a0"}</div>
 </div>
 
 <style>
@@ -533,7 +531,7 @@
   }
   .spg-tip.flip { transform: translateX(calc(-100% - 8px)); }
   .spg-tip b { color: #f3e7a6; }
-  .spg-obw { margin-top: 4px; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; }
+  .spg-obw { margin-top: 4px; font-size: 0.72rem; line-height: 1.1rem; height: calc(1.1rem + 6px); padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .spg-obw.ok { color: #86efac; border-color: rgba(134, 239, 172, 0.35); background: rgba(22, 101, 52, 0.15); }
   .spg-obw.wide { color: #fcd34d; border-color: rgba(252, 211, 77, 0.4); background: rgba(146, 64, 14, 0.18); }
   .spg-obw.splatter { color: #fecaca; font-weight: 700; border-color: rgba(248, 113, 113, 0.6); background: rgba(153, 27, 27, 0.35); }

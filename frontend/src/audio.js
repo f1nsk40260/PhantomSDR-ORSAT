@@ -6122,6 +6122,14 @@ js8Pending() {
 
     // Speaker-audio gate starts here. Decoder feeds above must still run.
     if (this.mute || (this.squelchMute && this.squelch) || this.ctcssMute) {
+      // ORSAT : le spectrogramme et le bilan audio continuent quand le
+      // récepteur est muet — un opérateur qui analyse sa propre modulation
+      // coupe le son pour ne pas le renvoyer dans son micro (signal brut,
+      // sans le traitement d'écoute qui n'est pas appliqué en muet).
+      if (this.mute && this.spectrogramEnabled && this.spectrogramCallback) {
+        try { this.spectrogramCallback(this._monoForDisplay(pcmArray)); }
+        catch (error) { console.error('Spectrogram feed error:', error); }
+      }
       return
     }
     if (this.audioCtx.state !== 'running') {

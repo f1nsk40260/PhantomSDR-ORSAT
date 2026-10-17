@@ -35,6 +35,18 @@
     essb: { name: "ESSB / hi-fi", bass: -3,  pres: -12 },
   };
   let refKey = "std";
+  const ROWS = [
+    { key: "bass", label: "Graves 100–300 Hz" },
+    { key: "pres", label: "Présence 1,5–2,7 kHz" },
+    { key: "comp", label: "Compression" },
+    { key: "hum", label: "Ronflette secteur" },
+    { key: "car", label: "Porteuse résiduelle" },
+    { key: "opp", label: "Bande opposée" },
+    { key: "obw", label: "Largeur occupée" },
+  ];
+  // Dernier verdict de chaque ligne, gardé tant qu'une nouvelle mesure ne le
+  // remplace pas : le panneau garde sa taille et ne clignote pas.
+  let held = {};
 
   $: m = String(mode || "").toUpperCase();
   $: active = enabled && (m === "USB" || m === "LSB");
@@ -59,7 +71,7 @@
   }
 
   export function reset() {
-    aud = []; rf = []; nb = { b: null, m: null, p: null }; rep = null; ltas = null;
+    aud = []; rf = []; nb = { b: null, m: null, p: null }; rep = null; ltas = null; held = {};
   }
 
   const db = (p) => 10 * Math.log10(Math.max(p, 1e-20));
@@ -228,6 +240,9 @@
         txt: occupied.status === "ok" ? "conforme" : occupied.status === "wide" ? "un peu large" : "splatter" });
     }
     rep = out;
+    const h = { ...held };
+    for (const r of out.rows) h[r.key] = r;
+    held = h;
   }
 
   function memorize() {
@@ -246,7 +261,7 @@
     if (!rep) return;
     const parts = [`${fmtKhz(baseKhz)} kHz ${m}`];
     if (rep.ready) parts.push(`réf. ${REFS[refKey].name}`);
-    for (const r of rep.rows) if (r.lvl !== "na") parts.push(`${r.label} : ${r.txt}${r.val ? " (" + r.val + ")" : ""}`);
+    for (const row of ROWS) { const r = held[row.key]; if (r && r.lvl !== "na") parts.push(`${r.label} : ${r.txt}${r.val ? " (" + r.val + ")" : ""}`); }
     const txt = "Bilan audio ORSAT — " + parts.join(" · ");
     try { await navigator.clipboard.writeText(txt); }
     catch (e) { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
@@ -267,44 +282,38 @@
       <span style="flex:1"></span>
       <button class="sr-btn" on:click={memorize} disabled={!rep || !ltas}
         title="Mémoriser la courbe actuelle (pointillés) pour la comparer après un réglage du correspondant">Mémoriser A</button>
-      {#if A}<button class="sr-btn" on:click={forgetA} title="Effacer la courbe A">Effacer A</button>{/if}
+      <button class="sr-btn" on:click={forgetA} disabled={!A} title="Effacer la courbe A">Effacer A</button>
       <button class="sr-btn" on:click={reset} title="Recommencer l'analyse (fenêtre de 20 s)">↺ Recommencer</button>
-      <button class="sr-btn gold" on:click={copy} disabled={!rep || !rep.rows.length}
+      <button class="sr-btn gold copy" on:click={copy} disabled={!Object.keys(held).length}
         title="Copier le bilan en une ligne, à envoyer au correspondant">{copied ? "✓ Copié" : "📋 Copier le rapport"}</button>
     </div>
 
-    {#if !rep || !rep.ready}
-      <div class="sr-wait">
+    <table class="sr-tab">
+      <colgroup><col style="width:18px" /><col style="width:11.5rem" /><col style="width:12rem" /><col /></colgroup>
+      {#each ROWS as row (row.key)}
+        {@const r = held[row.key]}
+        <tr class={r ? r.lvl : "wait"}>
+          <td class="dot"><span></span></td>
+          <td class="lbl">{row.label}</td>
+          <td class="val" data-no-i18n>{r && r.val ? r.val : "—"}</td>
+          <td class="txt">{r ? r.txt : "en attente"}</td>
+        </tr>
+      {/each}
+    </table>
+    <div class="sr-line" title="Mesure indicative sur 20 s glissantes, pendant la parole uniquement. Le fading, le filtre et l'AGC du récepteur influent : préférez l'AGC lente.">
+      {#if !rep || !rep.ready}
         <span>En attente de modulation…</span>
         <span class="num" data-no-i18n>{rep ? rep.speechSec.toFixed(1).replace(".", ",") : "0,0"} s / 3 s</span>
         <span>de voix analysées</span>
-      </div>
-    {/if}
-    {#if rep && rep.rows.length}
-      <table class="sr-tab">
-        {#each rep.rows as r (r.key)}
-          <tr class={r.lvl}>
-            <td class="dot"><span></span></td>
-            <td class="lbl">{r.label}</td>
-            <td class="val" data-no-i18n>{r.val}</td>
-            <td class="txt">{r.txt}</td>
-          </tr>
-        {/each}
-      </table>
-    {/if}
-    {#if A && rep && rep.ready}
-      <div class="sr-ab">
+      {:else if A}
         <span>Courbe A</span><span class="num" data-no-i18n>({A.when})</span>
         <span>graves</span><span class="num" data-no-i18n>{A.bass != null ? sgn(A.bass) + " dB" : "—"} → {rep.bass != null ? sgn(rep.bass) + " dB" : "—"}</span>
         <span>présence</span><span class="num" data-no-i18n>{A.pres != null ? sgn(A.pres) + " dB" : "—"} → {rep.pres != null ? sgn(rep.pres) + " dB" : "—"}</span>
-      </div>
-    {/if}
-    {#if rep && rep.ready}
-      <div class="sr-note">
+      {:else}
         <span>Mesure indicative sur 20 s glissantes, pendant la parole uniquement. Le fading, le filtre et l'AGC du récepteur influent : préférez l'AGC lente.</span>
-        {#if rep.snr != null && rep.snr < 15}<span class="weak">Signal faible : fiabilité réduite.</span>{/if}
-      </div>
-    {/if}
+      {/if}
+      {#if rep && rep.snr != null && rep.snr < 15 && rep.ready}<span class="weak">Signal faible : fiabilité réduite.</span>{/if}
+    </div>
   </div>
 {/if}
 
@@ -321,10 +330,16 @@
   .sr-btn.gold { color: rgb(207, 181, 59); border-color: rgba(207, 181, 59, 0.55); }
   .sr-btn:hover:not(:disabled) { background: rgba(207, 181, 59, 0.18); color: #f3e7a6; }
   .sr-btn:disabled { opacity: 0.4; cursor: default; }
-  .sr-wait { font-size: 0.72rem; color: #9ca3af; font-style: italic; display: flex; gap: 0.35rem; padding: 2px 0; }
+  .sr-line {
+    font-size: 0.66rem; color: #9ca3af; font-style: italic; display: flex; gap: 0.35rem; align-items: center;
+    height: 1.4rem; margin-top: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .sr-line .weak { color: #fcd34d; margin-left: auto; }
+  .sr-btn.copy { min-width: 9.5rem; }
   .num { font-family: monospace; font-style: normal; color: #d1d5db; }
-  .sr-tab { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
-  .sr-tab td { padding: 2px 6px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .sr-tab { width: 100%; border-collapse: collapse; font-size: 0.74rem; table-layout: fixed; }
+  .sr-tab td { padding: 2px 6px; height: 1.35rem; border-top: 1px solid rgba(255, 255, 255, 0.06); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sr-tab .wait .txt, .sr-tab .wait .val { color: #4b5563; font-style: italic; }
   .sr-tab .dot { width: 14px; }
   .sr-tab .dot span { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #6b7280; }
   .sr-tab .ok .dot span { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
@@ -337,7 +352,4 @@
   .sr-tab .warn .txt { color: #fcd34d; }
   .sr-tab .bad .txt { color: #fca5a5; font-weight: 600; }
   .sr-tab .na .txt { color: #9ca3af; font-style: italic; }
-  .sr-ab { margin-top: 4px; font-size: 0.7rem; color: #9ca3af; display: flex; gap: 0.35rem; flex-wrap: wrap; }
-  .sr-note { margin-top: 4px; font-size: 0.64rem; color: #6b7280; font-style: italic; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .sr-note .weak { color: #fcd34d; }
 </style>
