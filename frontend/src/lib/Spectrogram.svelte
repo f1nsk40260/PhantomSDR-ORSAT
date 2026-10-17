@@ -696,11 +696,12 @@
   }
   .spg-tip.flip { transform: translateX(calc(-100% - 8px)); }
   .spg-tip b { color: #f3e7a6; }
-  .spg-obw { margin-top: 4px; font-size: 0.72rem; line-height: 1.1rem; height: calc(1.1rem + 6px); padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .spg-obw.ok { color: #86efac; border-color: rgba(134, 239, 172, 0.35); background: rgba(22, 101, 52, 0.15); }
-  .spg-obw.wide { color: #fcd34d; border-color: rgba(252, 211, 77, 0.4); background: rgba(146, 64, 14, 0.18); }
-  .spg-obw.splatter { color: #fecaca; font-weight: 700; border-color: rgba(248, 113, 113, 0.6); background: rgba(153, 27, 27, 0.35); }
-  .spg-obw.info { color: #9ca3af; font-style: italic; }
+  .spg-obw { background: #111827; margin-top: 4px; font-size: 0.72rem; line-height: 1.1rem; height: calc(1.1rem + 6px); padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .spg-obw.ok { color: #86efac; border-color: rgba(134, 239, 172, 0.35); background: linear-gradient(rgba(22, 101, 52, 0.15), rgba(22, 101, 52, 0.15)), #111827; }
+  .spg-obw.wide { color: #fcd34d; border-color: rgba(252, 211, 77, 0.4); background: linear-gradient(rgba(146, 64, 14, 0.18), rgba(146, 64, 14, 0.18)), #111827; }
+  .spg-obw.splatter { color: #fecaca; font-weight: 700; border-color: rgba(248, 113, 113, 0.6); background: linear-gradient(rgba(153, 27, 27, 0.35), rgba(153, 27, 27, 0.35)), #111827; }
+  .spg-obw.info { color: #d1d5db; font-style: italic; border-color: rgba(207, 181, 59, 0.35); }
+  .spg-obw.empty { background: transparent; }
   canvas {
     width: 100%;
     display: block;
