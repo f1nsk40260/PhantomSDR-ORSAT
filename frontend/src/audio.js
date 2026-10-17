@@ -1212,7 +1212,7 @@ export default class SpectrumAudio {
 
 
     if (this.audioCtx && this.audioCtx.state == 'running') {
-      startaudio = document.getElementById('startaudio')
+      const startaudio = document.getElementById('startaudio')
       if (startaudio) {
         startaudio.remove()
       }

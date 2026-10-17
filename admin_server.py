@@ -5988,7 +5988,7 @@ def api_security_banlist_export():
             continue
         lines.append("%s  # %s%s" % (k, v.get("reason") or "", "" if not v.get("until") else
                      " (jusqu'au %s UTC)" % datetime.utcfromtimestamp(v["until"]).strftime("%Y-%m-%d %H:%M")))
-    resp = make_response("\n".join(lines) + "\n")
+    resp = Response("\n".join(lines) + "\n")
     resp.headers["Content-Type"] = "text/plain; charset=utf-8"
     resp.headers["Content-Disposition"] = "attachment; filename=orsat-banlist.txt"
     return resp
