@@ -520,18 +520,32 @@
     if (!hasBase) { msg("Fréquence inconnue"); return; }
     const sl = rfSlice(base * 1000, half);
     if (!sl || !sl.v) { msg("Pas de données de la cascade"); return; }
-    if (sl.hzPerBin > half / 10) { msg("Zoomez sur la station dans la cascade pour la vue RF"); rfAvg = null; return; }
+    // Il faut au moins ~50 points sur la largeur affichée (≤ 240 Hz par point
+    // en AM) pour distinguer porteuse et bandes latérales.
+    if (sl.hzPerBin > (2 * half) / 50) {
+      msg(`Zoomez sur la station dans la cascade pour la vue RF (${Math.round(sl.hzPerBin)} Hz par point, il en faut ≤ ${Math.round((2 * half) / 50)})`);
+      rfAvg = null; return;
+    }
     const xOff = (off) => left + ((off + half) / (2 * half)) * pw;
 
     // Valeur (dB cascade) par colonne : maximum des cases couvertes
     const cols = new Float32Array(pw);
     let mx = -Infinity;
+    const hzPx = (2 * half) / pw, last = sl.v.length - 1;
     for (let x = 0; x < pw; x++) {
-      const f0 = base * 1000 - half + (x / pw) * 2 * half, f1 = f0 + (2 * half) / pw;
-      let i0 = Math.floor((f0 - sl.lo) / sl.hzPerBin), i1 = Math.max(i0, Math.floor((f1 - sl.lo) / sl.hzPerBin));
-      i0 = Math.max(0, i0); i1 = Math.min(sl.v.length - 1, i1);
-      let m = -Infinity;
-      for (let i = i0; i <= i1; i++) if (sl.v[i] > m) m = sl.v[i];
+      const f0 = base * 1000 - half + x * hzPx;
+      let m;
+      if (sl.hzPerBin < hzPx) {
+        // Plusieurs cases par pixel : on garde la plus forte.
+        let i0 = Math.max(0, Math.floor((f0 - sl.lo) / sl.hzPerBin)), i1 = Math.min(last, Math.floor((f0 + hzPx - sl.lo) / sl.hzPerBin));
+        m = -Infinity;
+        for (let i = i0; i <= Math.max(i0, i1); i++) if (sl.v[i] > m) m = sl.v[i];
+      } else {
+        // Cases plus larges qu'un pixel : interpolation linéaire, courbe lisse au lieu de marches.
+        const p = Math.max(0, Math.min(last, (f0 + hzPx / 2 - sl.lo) / sl.hzPerBin));
+        const i = Math.min(last - 1, Math.floor(p)), t = p - i;
+        m = sl.v[i] * (1 - t) + sl.v[i + 1] * t;
+      }
       cols[x] = m; if (m > mx) mx = m;
     }
     if (!rfAvg || rfAvg.length !== pw) { rfAvg = Float32Array.from(cols); rfPeak = Float32Array.from(cols); }
@@ -621,12 +635,16 @@
     ctx.fillStyle = "#0b0f17"; ctx.fillRect(0, 0, W, top);
     ctx.font = `${Math.round(10 * s)}px monospace`; ctx.textAlign = "center"; ctx.textBaseline = "top";
     const step = half > 50000 ? 20000 : half > 7000 ? 2000 : 1000;
-    for (let off = -Math.floor(half / step) * step; off <= half; off += step) {
-      const x = xOff(off);
+    const nk = Math.floor(half / step);
+    for (let k = -nk; k <= nk; k++) {
+      const off = k * step, x = xOff(off);
       ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + specH); ctx.stroke();
-      ctx.fillStyle = off === 0 ? "rgb(207,181,59)" : "#aab2c0";
-      ctx.fillText(off === 0 ? "0" : (off > 0 ? "+" : "−") + Math.abs(off / 1000) + "k", x, 3 * s);
+      const kh = Math.abs(k * step) / 1000;
+      const txt = k === 0 ? "0" : (k > 0 ? "+" : "-") + kh + "k";
+      ctx.fillStyle = k === 0 ? "rgb(207,181,59)" : "#aab2c0";
+      ctx.textAlign = k === -nk ? "left" : k === nk ? "right" : "center";
+      ctx.fillText(txt, k === -nk ? Math.max(x, left) : k === nk ? Math.min(x, left + pw) : x, 3 * s);
     }
     ctx.textAlign = "left"; ctx.fillStyle = "#8b93a3"; ctx.fillText("dB", 4 * s, 3 * s);
   }
