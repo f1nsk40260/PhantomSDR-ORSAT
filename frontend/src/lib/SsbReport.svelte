@@ -309,7 +309,7 @@
 {/if}
 
 <style>
-  .sr { margin-top: 6px; padding: 6px 8px; border-radius: 5px; border: 1px solid rgba(207, 181, 59, 0.45); background: rgba(207, 181, 59, 0.05); }
+  .sr { margin-top: 6px; padding: 6px 8px; border-radius: 5px; border: 1px solid rgba(207, 181, 59, 0.45); background: #111827; background-image: linear-gradient(rgba(207, 181, 59, 0.06), rgba(207, 181, 59, 0.06)); position: relative; z-index: 1; }
   .sr-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 4px; }
   .sr-title { font-size: 0.78rem; font-weight: 700; color: rgb(207, 181, 59); text-transform: uppercase; letter-spacing: 0.05em; }
   .sr-ref { display: flex; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: #9ca3af; }

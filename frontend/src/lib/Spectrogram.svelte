@@ -519,7 +519,7 @@
   .spg { width: 100%; }
   .spg-base {
     display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 4px;
-    padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(207, 181, 59, 0.45); background: rgba(207, 181, 59, 0.08);
+    padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(207, 181, 59, 0.45); background: #111827; background-image: linear-gradient(rgba(207, 181, 59, 0.08), rgba(207, 181, 59, 0.08));
   }
   .spg-base .lbl { font-size: 0.72rem; color: rgb(207, 181, 59); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
   .spg-base .val { font-family: monospace; font-size: 1.05rem; font-weight: 700; color: #f3e7a6; }
