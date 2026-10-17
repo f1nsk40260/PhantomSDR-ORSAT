@@ -169,15 +169,16 @@
     let top = m.startsWith("CW") ? 2000 : m === "AM" || m === "QUAM" || m === "FM" || m === "WBFM" ? 5500 : 4500;
     return [0, Math.min(top, nyq)];
   }
+  // LSB : l'axe est inversé (aigus à gauche) pour suivre le sens du spectre RF.
+  $: mirrored = ["LSB", "RADEL", "CW-L"].includes(String(mode || "").toUpperCase());
   function xOf(f, lo, hi, x0, w) {
-    if (scale === "log") {
-      const a = Math.log(Math.max(f, lo) / lo) / Math.log(hi / lo);
-      return x0 + a * w;
-    }
-    return x0 + ((f - lo) / (hi - lo)) * w;
+    let a = scale === "log" ? Math.log(Math.max(f, lo) / lo) / Math.log(hi / lo) : (f - lo) / (hi - lo);
+    if (mirrored) a = 1 - a;
+    return x0 + a * w;
   }
   function fOf(x, lo, hi, x0, w) {
-    const a = (x - x0) / w;
+    let a = (x - x0) / w;
+    if (mirrored) a = 1 - a;
     return scale === "log" ? lo * Math.pow(hi / lo, a) : lo + a * (hi - lo);
   }
 
@@ -221,7 +222,8 @@
     // Valeur 0..1 par colonne (maximum des cases couvertes)
     const cols = new Float32Array(pw);
     for (let x = 0; x < pw; x++) {
-      const f0 = fOf(left + x, lo, hi, left, pw), f1 = fOf(left + x + 1, lo, hi, left, pw);
+      const fa = fOf(left + x, lo, hi, left, pw), fb = fOf(left + x + 1, lo, hi, left, pw);
+      const f0 = Math.min(fa, fb), f1 = Math.max(fa, fb);
       let i0 = Math.floor(f0 / binHz), i1 = Math.max(i0, Math.floor(f1 / binHz));
       i0 = Math.max(0, i0); i1 = Math.min(fdata.length - 1, i1);
       let m = -Infinity;
@@ -281,7 +283,8 @@
     if (showMarkers) {
       let ly = top + Math.round(3 * s);
       for (const mk of markersFor(mode)) {
-        const x0 = xOf(mk.lo, lo, hi, left, pw), x1 = xOf(mk.hi, lo, hi, left, pw);
+        const xa = xOf(mk.lo, lo, hi, left, pw), xb = xOf(mk.hi, lo, hi, left, pw);
+        const x0 = Math.min(xa, xb), x1 = Math.max(xa, xb);
         if (x1 < left || x0 > left + pw) continue;
         const a = Math.max(left, x0), b = Math.min(left + pw, x1);
         ctx.fillStyle = `rgba(${mk.color},0.07)`;
@@ -306,7 +309,8 @@
       }
     }
     if (passband && passband.length === 2 && passband[1] > passband[0]) {
-      const x0 = xOf(passband[0], lo, hi, left, pw), x1 = xOf(passband[1], lo, hi, left, pw);
+      const xa = xOf(passband[0], lo, hi, left, pw), xb = xOf(passband[1], lo, hi, left, pw);
+      const x0 = Math.min(xa, xb), x1 = Math.max(xa, xb);
       ctx.strokeStyle = "rgba(255,255,255,0.75)";
       ctx.lineWidth = 1 * s;
       ctx.setLineDash([2 * s, 3 * s]);
@@ -326,7 +330,8 @@
       if (occupied.normHi != null) segs.push([occupied.normHi, occupied.ahi]);
       else segs.push([occupied.alo, occupied.ahi]);
       for (const [f0, f1] of segs) {
-        const x0 = Math.max(left, xOf(f0, lo, hi, left, pw)), x1 = Math.min(left + pw, xOf(f1, lo, hi, left, pw));
+        const xa = xOf(f0, lo, hi, left, pw), xb = xOf(f1, lo, hi, left, pw);
+        const x0 = Math.max(left, Math.min(xa, xb)), x1 = Math.min(left + pw, Math.max(xa, xb));
         if (x1 <= x0) continue;
         ctx.fillStyle = `rgba(${col},0.18)`;
         ctx.fillRect(x0, top, x1 - x0, specH);
@@ -360,6 +365,12 @@
       ctx.textAlign = "left";
       ctx.fillStyle = "#8b93a3";
       ctx.fillText("dB", 4 * s, 3 * s);
+      if (mirrored) {
+        ctx.font = `bold ${Math.round(9 * s)}px sans-serif`;
+        ctx.textBaseline = "bottom";
+        ctx.fillStyle = "rgb(207,181,59)";
+        ctx.fillText("◂ LSB : axe inversé", left + 4 * s, top + specH - 2 * s);
+      }
     }
   }
 
