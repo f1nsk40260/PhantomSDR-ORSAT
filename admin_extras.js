@@ -92,7 +92,7 @@
       const d = await api('/admin/api/update/status');
       $('x-upd-cur').innerHTML = '<b style="color:var(--green)">' + esc(d.commit) + '</b> — ' + esc(d.subject) +
         '<br><span class="x-dim">' + fmtDate(d.date) + ' · branche ' + esc(d.branch) + ' · ' + esc(d.remote) + '</span>';
-      if (d.has_log || d.running) { updPos = 0; $('x-upd-log').textContent = ''; updWatch(); }
+      if (d.has_log || d.running) { updPos = 0; $('x-upd-log').textContent = ''; updWatch(!!d.running); }
     } catch (e) { $('x-upd-cur').textContent = 'Erreur : ' + e.message; }
   }
   let updHasNew = false;
@@ -125,11 +125,14 @@
       const d = await post('/admin/api/update/run', { force_build: $('x-upd-force').checked });
       if (!d.ok) { notify(d.msg, 'err'); $('x-upd-run').disabled = false; return; }
       updPos = 0; $('x-upd-log').textContent = '';
-      updWatch();
+      updWatch(true);
     } catch (e) { notify(e.message, 'err'); $('x-upd-run').disabled = false; }
   }
 
-  function updWatch() {
+  // live = une mise à jour est en cours (lancée ou suivie maintenant). Hors de ce cas,
+  // on se contente de réafficher l'ancien journal : sa ligne « redémarrage du panneau »
+  // ne doit pas recharger la page (sinon l'onglet renvoie aussitôt au tableau de bord).
+  function updWatch(live) {
     if (updWatching) return;
     updWatching = true;
     let fails = 0, restarting = false;
@@ -142,7 +145,7 @@
           const el = $('x-upd-log');
           if (el) { el.textContent += d.text; el.scrollTop = el.scrollHeight; }
           updPos = d.pos;
-          if (/### FIN rc=0 \(redémarrage du panneau\)/.test(el ? el.textContent : '')) restarting = true;
+          if (live && /### FIN rc=0 \(redémarrage du panneau\)/.test(el ? el.textContent : '')) restarting = true;
         }
         if (!d.running && !restarting) {
           updWatching = false;
