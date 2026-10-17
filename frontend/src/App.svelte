@@ -211,6 +211,7 @@
   // Version française : sélecteur de version masqué (voir <main>).
   // import VersionSelector from "./lib/VersionSelector.svelte";
   import Spectrogram from "./lib/Spectrogram.svelte";
+  import SsbReport from "./lib/SsbReport.svelte";
   import QrssPanel from "./lib/QrssPanel.svelte";
   import VideoAreaSelector from "./lib/VideoAreaSelector.svelte";
   import { connectCatSyncAny, buildDefaultSources } from "./lib/catsync.js";
@@ -661,6 +662,7 @@
   $: if (spectrogramEnabled && !_obwTimer) { _obwTimer = setInterval(_obwTick, 250); }
   $: if (!spectrogramEnabled && _obwTimer) { clearInterval(_obwTimer); _obwTimer = null; spectroOccupied = null; _obwHist = []; }
   let spectrogramGain = 1.0;
+  let spectroLtas = null, spectroLtasRef = null;   // ORSAT : bilan audio SSB
   let spectrogramColorScheme = "rainbow";
 
   // QRSS grabber variables
@@ -9872,6 +9874,19 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         showHistory={spectrogramHistory}
                         baseKhz={frequency}
                         height={spectrogramHistory ? 280 : 200}
+                        ltas={spectroLtas}
+                        ltasRef={spectroLtasRef}
+                      />
+                      <SsbReport
+                        spectro={spectrogramComponent}
+                        rfMeasure={(d, md) => waterfall && typeof waterfall.measureSsb === "function" ? waterfall.measureSsb(d, md) : null}
+                        mode={demodulation}
+                        baseKhz={frequency}
+                        passband={spectroPassband}
+                        occupied={spectroOccupied}
+                        enabled={spectrogramEnabled}
+                        bind:ltas={spectroLtas}
+                        bind:ltasRef={spectroLtasRef}
                       />
                     </div>
 

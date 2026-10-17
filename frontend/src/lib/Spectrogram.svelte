@@ -41,6 +41,19 @@
   export let showHistory = false;
   /** ORSAT : fréquence de base du récepteur (kHz), affichée en clair. */
   export let baseKhz = null;
+  /** ORSAT : spectre moyen de la voix { step, db[] } et courbe A mémorisée. */
+  export let ltas = null;
+  export let ltasRef = null;
+
+  /** ORSAT : échantillon audio pour le bilan SSB (spectre + forme d'onde). */
+  export function sampleAudio() {
+    if (!analyser || !isRunning || !audioContext) return null;
+    const f = new Float32Array(analyser.frequencyBinCount);
+    analyser.getFloatFrequencyData(f);
+    const t = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(t);
+    return { f, t, binHz: (audioContext.sampleRate / analyser.fftSize) * frequencyCalibration, sr: audioContext.sampleRate };
+  }
 
   // Fréquence de base et correspondance audio → RF.
   $: base = Number(baseKhz);
@@ -385,6 +398,31 @@
         ctx.fillStyle = `rgba(${col},0.95)`;
         ctx.fillRect(x0, top + specH - 3 * s, x1 - x0, 3 * s);
       }
+    }
+
+    // ── Spectre moyen de la voix (bilan SSB) et courbe A mémorisée ──
+    const curve = (c, style, dash) => {
+      if (!c || !c.db) return;
+      ctx.strokeStyle = style; ctx.lineWidth = 1.6 * s; ctx.setLineDash(dash);
+      ctx.beginPath();
+      let on = false;
+      for (let i = 0; i < c.db.length; i++) {
+        const f = (i + 0.5) * c.step, v = c.db[i];
+        if (f < lo || f > hi || !Number.isFinite(v)) { on = false; continue; }
+        const x = xOf(f, lo, hi, left, pw);
+        const y = top + specH - Math.max(0, Math.min(1, (v - DB_MIN) / (DB_MAX - DB_MIN))) * specH;
+        on ? ctx.lineTo(x, y) : ctx.moveTo(x, y); on = true;
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+    };
+    curve(ltasRef, "rgba(255,255,255,0.8)", [4 * s, 3 * s]);
+    curve(ltas, "rgba(56,189,248,0.95)", []);
+    if (ltas || ltasRef) {
+      ctx.font = `bold ${Math.round(9 * s)}px sans-serif`;
+      ctx.textAlign = "right"; ctx.textBaseline = "top";
+      let ly = top + Math.round(3 * s);
+      if (ltas) { ctx.fillStyle = "rgb(56,189,248)"; ctx.fillText("— voix moyenne", left + pw - 4 * s, ly); ly += 12 * s; }
+      if (ltasRef) { ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.fillText("- - courbe A", left + pw - 4 * s, ly); }
     }
 
     // ── Fréquence de base : trait or à sa position audio ──

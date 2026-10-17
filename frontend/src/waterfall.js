@@ -448,6 +448,46 @@ export default class SpectrumWaterfall {
     } catch (e) { return { ok: false, reason: 'error' } }
   }
 
+  /**
+   * ORSAT — mesures RF d'une émission SSB pour le bilan audio, sur la dernière
+   * trace : niveau moyen (puissance) de la bande latérale utile 300–2700 Hz et
+   * de la bande opposée, crête utile, raie de porteuse à ±60 Hz du cadran.
+   */
+  measureSsb(dialHz, mode) {
+    try {
+      const frame = this._lastFrame
+      if (!frame || !frame.data) return { ok: false, reason: 'nodata' }
+      const { data, l } = frame
+      const n = data.length, span = frame.r - l
+      if (n < 8 || !(span > 0)) return { ok: false, reason: 'nodata' }
+      const hzPerBin = (this.totalBandwidth / this.waterfallMaxSize) * (span / n)
+      if (!(hzPerBin > 0) || hzPerBin > 300) return { ok: false, reason: 'zoom' }
+      const noise = Number.isFinite(this.snrNoiseDb) ? this.snrNoiseDb : null
+      if (noise == null) return { ok: false, reason: 'nodata' }
+      const idx = (hz) => Math.max(0, Math.min(n - 1, Math.round((this.freqToIdx(hz) - l) / span * n)))
+      const sgn = String(mode || '').toUpperCase() === 'LSB' ? -1 : 1
+      const band = (f0, f1) => {
+        let a = idx(dialHz + sgn * f0), b = idx(dialHz + sgn * f1)
+        if (b < a) { const t = a; a = b; b = t }
+        let sum = 0, pk = -Infinity, k = 0
+        for (let i = a; i <= b; i++) { const v = data[i]; if (!Number.isFinite(v)) continue; sum += Math.pow(10, v / 10); if (v > pk) pk = v; k++ }
+        return k ? { mean: 10 * Math.log10(sum / k), pk, k } : null
+      }
+      const want = band(300, 2700), opp = band(-2700, -300)
+      if (!want || !opp || want.k < 3) return { ok: false, reason: 'zoom' }
+      let car = null
+      if (hzPerBin <= 60) {
+        const w = Math.max(60, hzPerBin * 1.5)
+        let a = idx(dialHz - w), b = idx(dialHz + w)
+        if (b < a) { const t = a; a = b; b = t }
+        car = -Infinity
+        for (let i = a; i <= b; i++) if (Number.isFinite(data[i]) && data[i] > car) car = data[i]
+        if (!Number.isFinite(car)) car = null
+      }
+      return { ok: true, want: want.mean, wantPk: want.pk, opp: opp.mean, car, noise, hzPerBin }
+    } catch (e) { return { ok: false, reason: 'error' } }
+  }
+
   getPeakFreq(centerHz, halfSpanHz) {
     try {
       const frame = this._lastFrame
