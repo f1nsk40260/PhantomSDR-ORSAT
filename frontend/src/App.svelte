@@ -13832,6 +13832,7 @@ Cliquez à nouveau pour désactiver"
                        les curseurs ne servent qu'en mode manuel. Curseur de zoom retiré. -->
                   <h3 class="text-white text-base font-semibold mb-3">Commandes du waterfall</h3>
 
+                  <div class="wf-top-row">
                   <button
                     class="wf-auto-btn {autoAdjustEnabled ? 'is-on' : ''}"
                     on:click={() => handleAutoAdjust()}
@@ -13851,6 +13852,18 @@ Cliquez à nouveau pour désactiver"
                       {/if}
                     </span>
                   </button>
+                  {#if has3D}
+                    <button
+                      class="wf-3d-btn {view3D ? 'is-on' : ''}"
+                      on:click={() => (view3D = !view3D)}
+                      aria-pressed={view3D}
+                      title={view3D ? "Masquer le spectre en relief (3D)" : "Afficher le spectre en relief (3D)"}
+                    >
+                      <span class="wf-3d-ico" aria-hidden="true">▲</span>
+                      <span class="wf-3d-lbl">3D</span>
+                    </button>
+                  {/if}
+                  </div>
 
                   <div class="wf-manual w-full mb-5 {autoAdjustEnabled ? 'is-locked' : ''}">
                     <div class="wf-manual-head">
@@ -13927,18 +13940,6 @@ Cliquez à nouveau pour désactiver"
                       </ul>
                     {/if}
                   </div>
-
-                  {#if has3D}
-                    <button
-                      class="wf-3d-btn {view3D ? 'is-on' : ''}"
-                      on:click={() => (view3D = !view3D)}
-                      aria-pressed={view3D}
-                      title="Afficher le spectre en relief (3D)"
-                    >
-                      <span aria-hidden="true">🧊</span>
-                      <span>{view3D ? "Spectre 3D : ON" : "Spectre 3D : OFF"}</span>
-                    </button>
-                  {/if}
 
                   <MagicEyeIndicator dbm={eyeDbm} />
 
@@ -14952,14 +14953,19 @@ Cliquez à nouveau pour désactiver"
   }
 
   /* ORSAT : bouton de la vue 3D */
+  /* Rangée « Réglage automatique » + bouton 3D compact : 18rem au total. */
+  .wf-top-row { width: 18rem; max-width: 100%; display: flex; gap: 0.4rem; align-items: stretch; margin-bottom: 1rem; }
+  .wf-top-row .wf-auto-btn { flex: 1; min-width: 0; width: auto; margin-bottom: 0; padding: 0.6rem 0.7rem; gap: 0.6rem; }
   .wf-3d-btn {
-    width: 18rem; max-width: 100%; box-sizing: border-box; margin-bottom: 1rem;
-    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-    padding: 0.4rem 0.6rem; border-radius: 0.45rem; font-size: 0.85rem; font-weight: 600;
+    flex: none; width: 3.4rem; box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem;
+    padding: 0.3rem 0.2rem; border-radius: 0.6rem; font-size: 0.85rem; font-weight: 700;
     color: rgb(207, 181, 59); background: rgba(207, 181, 59, 0.06);
     border: 1px solid rgba(207, 181, 59, 0.45); transition: all 0.15s;
   }
   .wf-3d-btn:hover { background: rgba(207, 181, 59, 0.14); }
+  .wf-3d-ico { font-size: 1rem; line-height: 1; transform: perspective(40px) rotateX(35deg); }
+  .wf-3d-lbl { font-size: 0.8rem; line-height: 1; letter-spacing: 0.05em; }
   .wf-3d-btn.is-on {
     color: #f3e7a6; border-color: rgba(207, 181, 59, 0.75);
     background: linear-gradient(180deg, rgba(207, 181, 59, 0.30), rgba(120, 100, 30, 0.30));

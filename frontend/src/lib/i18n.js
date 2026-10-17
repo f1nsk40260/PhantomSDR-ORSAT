@@ -749,6 +749,7 @@ const D = [
   ["Hauteur (+)", "Height (+)", "Altura (+)"],
   ["Spectrogramme audio", "Audio Spectrogram", "Espectrograma de audio"],
   ["Analyseur audio", "Audio analyser", "Analizador de audio"],
+  ["Masquer le spectre en relief (3D)", "Hide the 3D relief spectrum", "Ocultar el espectro en relieve (3D)"],
   ["Affiche/masque l'analyseur audio : spectre, bilan de modulation SSB et largeur occupée", "Show/hide the audio analyser: spectrum, SSB modulation report and occupied bandwidth", "Mostrar/ocultar el analizador de audio: espectro, informe de modulación SSB y ancho ocupado"],
   ["📊 Ouvrir l'analyseur audio", "📊 Open the audio analyser", "📊 Abrir el analizador de audio"],
   ["Ouvrir l'analyseur audio pour voir la structure du signal (tons, espacement, rythme)", "Open the audio analyser to see the signal structure (tones, spacing, rhythm)", "Abrir el analizador de audio para ver la estructura de la señal (tonos, separación, ritmo)"],
