@@ -19,6 +19,7 @@ import subprocess
 import threading
 import time
 import signal
+import ipaddress
 import re
 import glob
 import logging
@@ -2145,14 +2146,32 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <button class="btn" onclick="secLoad(30,this)">30 J</button>
           <button class="btn" onclick="secLoad(90,this)">90 J</button>
           <span style="flex:1"></span>
-          <input id="sec-ban-ip" placeholder="IP à bannir" style="width:11rem;">
-          <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="secBan(document.getElementById('sec-ban-ip').value,24)">BANNIR 24 H</button>
+          <button class="btn" onclick="secClear()" title="Efface tout le journal des tentatives ; les IP bannies restent bannies">🗑 VIDER LE JOURNAL</button>
+        </div>
+        <div class="card" style="margin-bottom:.8rem;">
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem;">
+            <span style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;">LISTE DE BANNISSEMENT</span>
+            <span id="sec-ban-count" style="font-size:.65rem;color:var(--text2);"></span>
+            <span style="flex:1"></span>
+            <input id="sec-ban-filter" placeholder="Filtrer…" style="width:9rem;" oninput="secRenderBans()">
+            <a class="btn" href="/admin/api/security/banlist.txt" title="Télécharger la liste (réimportable)">⬇ EXPORTER</a>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:start;margin-bottom:.5rem;">
+            <textarea id="sec-ban-bulk" rows="3" placeholder="Une IP ou une plage par ligne (ex. 203.0.113.7 ou 198.51.100.0/24) — # pour un commentaire. On peut coller une liste entière." style="width:100%;font-family:monospace;font-size:.68rem;"></textarea>
+            <div style="display:flex;flex-direction:column;gap:.3rem;">
+              <input id="sec-ban-reason" placeholder="Motif (facultatif)" style="width:11rem;">
+              <div style="display:flex;gap:.3rem;">
+                <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="secBanBulk(24)">BANNIR 24 H</button>
+                <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="secBanBulk(0)">DÉFINITIF</button>
+              </div>
+            </div>
+          </div>
+          <div id="sec-bans" style="max-height:16rem;overflow-y:auto;"></div>
         </div>
         <div id="sec-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.5rem;margin-bottom:.8rem;"></div>
-        <div id="sec-bans" style="margin-bottom:.8rem;"></div>
         <div class="card" style="overflow-x:auto;padding:0;margin-bottom:.8rem;">
           <table style="width:100%;border-collapse:collapse;font-size:.7rem;">
-            <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">REVERSE DNS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">LIEU / FAI</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">TYPE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ÉVÉNEMENTS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CATÉGORIES</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">EXEMPLES DE CHEMINS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DERNIER</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ACTION</th></tr></thead>
+            <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DANGER</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">REVERSE DNS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">LIEU / FAI</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">TYPE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ÉVÉNEMENTS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CATÉGORIES</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">EXEMPLES DE CHEMINS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DERNIER</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ACTION</th></tr></thead>
             <tbody id="sec-ips-tbody"></tbody>
           </table>
         </div>
@@ -2430,11 +2449,11 @@ async function secLoad(days, btn){
     const L = d.labels || {};
     const order = ['admin_login_fail','admin_locked','admin_global_lock','admin_country','scan','traversal','forbidden','method','burst404','blocked','admin_login_ok'];
     document.getElementById('sec-kpis').innerHTML = order.map(c => `<div class="card" style="padding:.55rem;" title="${liEsc(L[c]||c)}"><div style="font-size:.58rem;color:var(--text3);">${liEsc(L[c]||c)}</div><div style="font-size:1.15rem;color:${(d.cats||{})[c]?(SEC_COL[c]||'var(--green)'):'var(--text3)'};">${(d.cats||{})[c]||0}</div></div>`).join('');
-    const bans = d.bans || [];
-    document.getElementById('sec-bans').innerHTML = bans.length ? `<div class="card"><div style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.3rem;">IP BANNIES</div>` +
-      bans.map(b => `<div style="font-size:.7rem;margin:.15rem 0;"><span style="font-family:monospace;">${liEsc(b.ip)}</span> — ${b.until?'jusqu’au '+new Date(b.until*1000).toLocaleString():'définitivement'} <button class="btn" style="font-size:.6rem;padding:0 .4rem;" onclick="secUnban('${liEsc(b.ip)}')">DÉBANNIR</button></div>`).join('') + '</div>' : '';
+    secBans = d.bans || [];
+    secRenderBans();
     const ips = d.ips || [];
     document.getElementById('sec-ips-tbody').innerHTML = ips.length ? ips.map(x => `<tr>
+      <td ${liTd} style="min-width:15rem;">${secDanger(x)}</td>
       <td ${liTd} style="font-family:monospace;">${liEsc(x.ip)}</td>
       <td ${liTd} style="font-family:monospace;color:var(--blue);font-size:.62rem;">${liEsc(x.rdns||'—')}</td>
       <td ${liTd}>${liFlag(x.countryCode)} ${liEsc(x.city||'')}${x.country?', '+liEsc(x.country):''}<br><span style="color:var(--text3);">${liEsc(x.isp||'')} ${liEsc(x.as||'')}</span></td>
@@ -2444,7 +2463,7 @@ async function secLoad(days, btn){
       <td ${liTd} style="font-family:monospace;font-size:.6rem;color:var(--text2);">${x.paths.map(liEsc).join('<br>')}</td>
       <td ${liTd}>${liEsc((x.last||'').replace('T',' ').replace('Z',''))}</td>
       <td ${liTd}>${x.banned?`<button class="btn" style="font-size:.6rem;" onclick="secUnban('${liEsc(x.ip)}')">DÉBANNIR</button>`:`<button class="btn" style="font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',24)">24 H</button> <button class="btn" style="font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',0)">DÉFINITIF</button>`}</td></tr>`).join('')
-      : `<tr><td colspan="9" ${liTd} style="text-align:center;color:var(--text3);">Aucune tentative anormale sur la période</td></tr>`;
+      : `<tr><td colspan="10" ${liTd} style="text-align:center;color:var(--text3);">Aucune tentative anormale sur la période</td></tr>`;
     const ev = d.events || [];
     document.getElementById('sec-ev-tbody').innerHTML = ev.length ? ev.slice(0,200).map(e => `<tr>
       <td ${liTd}>${liEsc((e.ts||'').replace('T',' ').replace('Z',''))}</td>
@@ -2455,6 +2474,43 @@ async function secLoad(days, btn){
       <td ${liTd} style="font-size:.6rem;color:var(--text3);">${liEsc((e.ua||'').slice(0,90))}</td></tr>`).join('')
       : `<tr><td colspan="6" ${liTd} style="text-align:center;color:var(--text3);">—</td></tr>`;
   } catch(e){ document.getElementById('sec-kpis').innerHTML = `<div style="color:var(--red);">Erreur : ${liEsc(e.message)}</div>`; }
+}
+const SEC_LVL = {'faible':'var(--green)', 'moyen':'var(--amber)', 'élevé':'var(--red)', 'critique':'#ff2a2a'};
+function secDanger(x){
+  const c = SEC_LVL[x.level] || 'var(--text3)';
+  const why = (x.why || []).map(w => `<li>${liEsc(w)}</li>`).join('');
+  return `<div><span style="border:1px solid ${c};color:${c};border-radius:3px;padding:0 .35rem;font-size:.62rem;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;">${liEsc(x.level||'?')}</span> <span style="color:var(--text3);font-size:.6rem;">score ${x.score||0}</span></div>` +
+    (why ? `<ul style="margin:.25rem 0 .2rem 1rem;padding:0;font-size:.62rem;color:var(--text2);">${why}</ul>` : '') +
+    `<div style="font-size:.6rem;color:${c};">${liEsc(x.advice||'')}</div>`;
+}
+let secBans = [];
+function secRenderBans(){
+  const box = document.getElementById('sec-bans');
+  const q = ((document.getElementById('sec-ban-filter')||{}).value || '').trim().toLowerCase();
+  const list = secBans.filter(b => !q || (b.ip + ' ' + (b.reason||'')).toLowerCase().includes(q));
+  document.getElementById('sec-ban-count').textContent = secBans.length ? `${secBans.length} entrée${secBans.length>1?'s':''}` : 'vide';
+  box.innerHTML = list.length ? `<table style="width:100%;border-collapse:collapse;font-size:.68rem;">` + list.map(b => `<tr>
+      <td ${liTd} style="font-family:monospace;">${liEsc(b.ip)}</td>
+      <td ${liTd} style="color:var(--text2);">${liEsc(b.reason||'')}</td>
+      <td ${liTd} style="color:var(--text3);white-space:nowrap;">${b.since?new Date(b.since*1000).toLocaleDateString():''}</td>
+      <td ${liTd} style="white-space:nowrap;">${b.until?'jusqu’au '+new Date(b.until*1000).toLocaleString():'définitif'}</td>
+      <td ${liTd}><button class="btn" style="font-size:.6rem;padding:0 .4rem;" onclick="secUnban('${liEsc(b.ip)}')">DÉBANNIR</button></td></tr>`).join('') + '</table>'
+    : `<div style="font-size:.68rem;color:var(--text3);padding:.3rem;">${secBans.length ? 'Aucune entrée ne correspond.' : 'Aucune IP bannie.'}</div>`;
+}
+async function secBanBulk(hours){
+  const ta = document.getElementById('sec-ban-bulk');
+  const text = (ta.value || '').trim(); if (!text) return;
+  const reason = document.getElementById('sec-ban-reason').value || 'liste';
+  if (!confirm(`Bannir ${hours ? hours + ' h' : 'définitivement'} les adresses saisies ?`)) return;
+  const d = await (await fetch('/admin/api/security/ban_bulk', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text, hours, reason})})).json();
+  toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err');
+  if (d.ok) ta.value = '';
+  secLoad(secDays);
+}
+async function secClear(){
+  if (!confirm('Vider tout le journal des tentatives anormales ? Les IP bannies restent bannies.')) return;
+  const d = await (await fetch('/admin/api/security/clear', {method:'POST'})).json();
+  toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err'); secLoad(secDays);
 }
 async function secBan(ip, hours){
   ip = (ip||'').trim(); if (!ip) return;
@@ -5721,6 +5777,163 @@ def api_listeners_sessions():
     return jsonify({"ok": True, "sessions": rows})
 
 
+# ── Analyse du danger d'une IP (ORSAT) ────────────────────────────────────────
+# Poids par catégorie d'événement (plafonnés par IP), puis signatures reconnues
+# dans les chemins demandés : chaque élément retenu donne une explication en clair.
+_SEC_WEIGHT = {"traversal": (30, 45), "admin_login_fail": (12, 50), "admin_locked": (40, 40),
+               "admin_global_lock": (40, 40), "forbidden": (12, 30), "scan": (4, 25),
+               "method": (6, 15), "burst404": (5, 15), "admin_country": (8, 20), "blocked": (1, 5)}
+_SEC_WHY = {
+    "traversal": "a tenté de sortir du site pour lire d'autres fichiers du serveur (../)",
+    "admin_login_fail": "a essayé des mots de passe sur le panneau d'administration",
+    "admin_locked": "a fait verrouiller le panneau après des échecs répétés",
+    "admin_global_lock": "fait partie d'une attaque qui a suspendu le panneau pour tous",
+    "forbidden": "a demandé des actions réservées (kick, contrôle du proxy…)",
+    "scan": "a demandé des pages typiques de logiciels vulnérables",
+    "method": "a utilisé des méthodes HTTP inhabituelles (PUT, DELETE, CONNECT…)",
+    "burst404": "a balayé le site en rafale (beaucoup de pages introuvables)",
+    "admin_country": "a voulu ouvrir le panneau depuis un pays non autorisé",
+    "blocked": "est déjà bannie et continue d'insister",
+}
+_SEC_SIGS = [
+    (re.compile(r"phpunit|eval-stdin|/cgi-bin/|/bin/sh|cmd=|shell|\$\{jndi", re.I), 25,
+     "tente d'exécuter du code sur le serveur via une faille connue"),
+    (re.compile(r"/etc/passwd|/proc/self|win\.ini", re.I), 25, "tente de lire des fichiers système"),
+    (re.compile(r"\.env|\.git|\.aws|config\.json|credentials|\.htpasswd|id_rsa", re.I), 15,
+     "cherche des fichiers de configuration contenant mots de passe ou clés"),
+    (re.compile(r"containers/json|api/v1/pods|/docker", re.I), 15, "cherche un Docker ou un Kubernetes exposé"),
+    (re.compile(r"phpmyadmin|/pma|adminer|mysql|\.sql", re.I), 10, "cherche une base de données ou son interface d'administration"),
+    (re.compile(r"/remote/login|sslvpn|dana-na|global-protect|/owa/|/ecp/|autodiscover", re.I), 10,
+     "cherche un VPN ou une messagerie d'entreprise vulnérable"),
+    (re.compile(r"/actuator|/solr|jenkins|druid|geoserver|telescope|/console|/debug", re.I), 10,
+     "cherche une application serveur exposée (Java, Jenkins…)"),
+    (re.compile(r"backup|\.bak|\.zip|\.tar", re.I), 8, "cherche des sauvegardes à télécharger"),
+    (re.compile(r"wp-login|wp-admin|xmlrpc|wordpress|wp-content", re.I), 3,
+     "robot qui cherche un site WordPress à pirater (sans effet ici)"),
+]
+_SEC_RESEARCH = re.compile(r"shodan|censys|shadowserver|binaryedge|internet-measurement|stretchoid|"
+                           r"recyber|onyphe|criminalip|leakix|netcraft|rapid7|internettl|projectdiscovery", re.I)
+_SEC_LEVELS = [(15, "faible", "Aucune action nécessaire : le proxy a déjà refusé ces requêtes."),
+               (40, "moyen", "À surveiller ; bannir 24 h si cela continue."),
+               (80, "élevé", "Bannissement conseillé."),
+               (10 ** 9, "critique", "Bannir définitivement.")]
+
+
+def _sec_assess(x: dict) -> None:
+    score, why = 0, []
+    for c, n in sorted(x["cats"].items(), key=lambda kv: -kv[1]):
+        w, cap = _SEC_WEIGHT.get(c, (0, 0))
+        score += min(cap, w * n)
+        if c in _SEC_WHY:
+            why.append(_SEC_WHY[c] + (" (%d fois)" % n if n > 1 else ""))
+    seen = set()
+    for pth in x.get("paths", []):
+        for rx, bonus, txt in _SEC_SIGS:
+            if txt not in seen and rx.search(pth):
+                seen.add(txt)
+                score += bonus
+                why.append(txt)
+    if x["count"] >= 200:
+        score += 20
+        why.append("volume très élevé : %d requêtes suspectes" % x["count"])
+    elif x["count"] >= 50:
+        score += 10
+        why.append("volume élevé : %d requêtes suspectes" % x["count"])
+    if x.get("net") in ("datacenter", "vpn"):
+        score += 5
+        why.append("vient d'un hébergeur ou d'un VPN, pas d'un particulier : typique des robots")
+    research = bool(_SEC_RESEARCH.search(x.get("rdns") or ""))
+    if research:
+        score = min(score, 14)
+        why.insert(0, "scanner de recherche connu (il recense Internet) : en général inoffensif")
+    for limit, lvl, advice in _SEC_LEVELS:
+        if score < limit:
+            x["level"], x["advice"] = lvl, advice
+            break
+    x["score"], x["why"], x["research"] = int(score), why, research
+
+
+@app.route("/admin/api/security/clear", methods=["POST"])
+@login_required
+def api_security_clear():
+    """Vide le journal des tentatives anormales (la liste des IP bannies est conservée)."""
+    n = 0
+    for f in LI.LOGS.glob("security_*.jsonl"):
+        try:
+            f.unlink()
+            n += 1
+        except OSError:
+            pass
+    return jsonify({"ok": True, "msg": "Journal vidé (%d fichier%s). Les bannissements sont conservés." % (n, "s" if n > 1 else "")})
+
+
+def _sec_norm_target(raw: str):
+    """IP ou plage CIDR publique, normalisée ; None si invalide ou locale."""
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    try:
+        if "/" in raw:
+            net = ipaddress.ip_network(raw, strict=False)
+            if net.is_private or net.is_loopback or net.prefixlen < (8 if net.version == 4 else 24):
+                return None
+            return str(net)
+        ip = LI.norm_ip(raw)
+        a = ipaddress.ip_address(ip)
+        if LI.is_private(ip) or a.is_loopback:
+            return None
+        return str(a)
+    except ValueError:
+        return None
+
+
+@app.route("/admin/api/security/ban_bulk", methods=["POST"])
+@login_required
+def api_security_ban_bulk():
+    """Ajoute une liste d'IP / plages CIDR (une par ligne, # pour commenter)."""
+    data = request.get_json(silent=True) or {}
+    try:
+        hours = float(data.get("hours", 0))
+    except (TypeError, ValueError):
+        hours = 0
+    reason = str(data.get("reason", "liste"))[:120]
+    until = None if hours <= 0 else time.time() + hours * 3600
+    bl = dict(LI.load_blocklist())
+    added, bad = 0, []
+    for line in str(data.get("text", "")).splitlines()[:5000]:
+        tok = line.split("#", 1)[0].replace(",", " ").replace(";", " ").split()
+        for t in tok:
+            k = _sec_norm_target(t)
+            if not k:
+                bad.append(t)
+                continue
+            if k not in bl:
+                added += 1
+            bl[k] = {"until": until, "since": time.time(), "reason": reason}
+    LI.save_blocklist(bl)
+    msg = "%d entrée%s ajoutée%s" % (added, "s" if added > 1 else "", "s" if added > 1 else "")
+    if bad:
+        msg += " — %d ignorée%s (invalide ou locale) : %s" % (len(bad), "s" if len(bad) > 1 else "", ", ".join(bad[:5]))
+    return jsonify({"ok": True, "msg": msg, "added": added})
+
+
+@app.route("/admin/api/security/banlist.txt")
+@login_required
+def api_security_banlist_export():
+    """Liste des bannissements, au format texte réimportable."""
+    now = time.time()
+    lines = ["# Liste de bannissement ORSAT — %s" % datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")]
+    for k, v in sorted(LI.load_blocklist().items()):
+        if v.get("until") and v["until"] <= now:
+            continue
+        lines.append("%s  # %s%s" % (k, v.get("reason") or "", "" if not v.get("until") else
+                     " (jusqu'au %s UTC)" % datetime.utcfromtimestamp(v["until"]).strftime("%Y-%m-%d %H:%M")))
+    resp = make_response("\n".join(lines) + "\n")
+    resp.headers["Content-Type"] = "text/plain; charset=utf-8"
+    resp.headers["Content-Disposition"] = "attachment; filename=orsat-banlist.txt"
+    return resp
+
+
 @app.route("/admin/api/security")
 @login_required
 def api_security():
@@ -5755,8 +5968,11 @@ def api_security():
         b = bl.get(x["ip"])
         x["banned_until"] = b.get("until") if b and (not b.get("until") or b["until"] > now) else None
         x["banned"] = bool(b) and (not b.get("until") or b["until"] > now)
-    ips = sorted(per_ip.values(), key=lambda x: x["count"], reverse=True)[:100]
-    bans = [{"ip": k, **v} for k, v in bl.items() if not v.get("until") or v["until"] > now]
+    for x in per_ip.values():
+        _sec_assess(x)
+    ips = sorted(per_ip.values(), key=lambda x: (x["score"], x["count"]), reverse=True)[:100]
+    bans = sorted(({"ip": k, **v} for k, v in bl.items() if not v.get("until") or v["until"] > now),
+                  key=lambda b: b.get("since") or 0, reverse=True)
     LI.flush()
     return jsonify({"ok": True, "days": days, "cats": cats, "labels": LI.SEC_LABELS,
                     "ips": ips, "events": events[-300:][::-1], "bans": bans})
@@ -5766,14 +5982,16 @@ def api_security():
 @login_required
 def api_security_ban():
     data = request.get_json(silent=True) or {}
-    ip = LI.norm_ip(str(data.get("ip", "")))
-    if not re.match(r'^[\d.a-fA-F:]+$', ip) or LI.is_private(ip):
-        return jsonify({"ok": False, "msg": "IP invalide ou locale"})
+    raw = str(data.get("ip", "")).strip()
     bl = dict(LI.load_blocklist())
     if data.get("unban"):
-        bl.pop(ip, None)
+        bl.pop(raw, None)
+        bl.pop(LI.norm_ip(raw), None)
         LI.save_blocklist(bl)
-        return jsonify({"ok": True, "msg": "%s débannie" % ip})
+        return jsonify({"ok": True, "msg": "%s débannie" % raw})
+    ip = _sec_norm_target(raw)
+    if not ip:
+        return jsonify({"ok": False, "msg": "IP ou plage invalide, ou locale"})
     try:
         hours = float(data.get("hours", 24))
     except (TypeError, ValueError):
@@ -5783,8 +6001,9 @@ def api_security_ban():
     LI.save_blocklist(bl)
     # Coupe aussi l'audio en cours, et bannit côté spectrumserver pour la même durée.
     try:
-        _proxy_kick(ip)
-        _server_kick(ip, ban_s=int(hours * 3600) if hours > 0 else 10 * 365 * 86400)
+        if "/" not in ip:
+            _proxy_kick(ip)
+            _server_kick(ip, ban_s=int(hours * 3600) if hours > 0 else 10 * 365 * 86400)
     except Exception:
         pass
     return jsonify({"ok": True, "msg": "%s bannie %s" % (ip, "définitivement" if until is None else "%g h" % hours)})

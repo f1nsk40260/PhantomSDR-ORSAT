@@ -348,7 +348,19 @@ def append_security(event: dict) -> None:
             f.write(line + "\n")
 
 
-_block_cache = {"mtime": None, "data": {}}
+_block_cache = {"mtime": None, "data": {}, "nets": []}
+
+
+def _build_nets(data: dict) -> list:
+    """Plages CIDR de la liste (clés contenant « / »), prêtes à comparer."""
+    nets = []
+    for k, v in data.items():
+        if "/" in k:
+            try:
+                nets.append((ipaddress.ip_network(k, strict=False), v))
+            except ValueError:
+                pass
+    return nets
 
 
 def load_blocklist() -> dict:
@@ -356,11 +368,12 @@ def load_blocklist() -> dict:
     try:
         mt = BLOCK_FILE.stat().st_mtime
     except FileNotFoundError:
-        _block_cache.update(mtime=None, data={})
+        _block_cache.update(mtime=None, data={}, nets=[])
         return {}
     if mt != _block_cache["mtime"]:
         try:
-            _block_cache.update(mtime=mt, data=json.loads(BLOCK_FILE.read_text()))
+            d = json.loads(BLOCK_FILE.read_text())
+            _block_cache.update(mtime=mt, data=d, nets=_build_nets(d))
         except Exception:
             pass
     return _block_cache["data"]
@@ -368,8 +381,20 @@ def load_blocklist() -> dict:
 
 def is_blocked(ip: str) -> bool:
     ip = norm_ip(ip)
+    now = time.time()
     b = load_blocklist().get(ip)
-    return bool(b) and (not b.get("until") or b["until"] > time.time())
+    if b and (not b.get("until") or b["until"] > now):
+        return True
+    nets = _block_cache.get("nets") or []
+    if nets:
+        try:
+            a = ipaddress.ip_address(ip)
+        except ValueError:
+            return False
+        for net, v in nets:
+            if a.version == net.version and a in net and (not v.get("until") or v["until"] > now):
+                return True
+    return False
 
 
 def save_blocklist(data: dict) -> None:
