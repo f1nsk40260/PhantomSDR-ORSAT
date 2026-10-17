@@ -35,6 +35,8 @@
   export let scale = "lin";
   /** ORSAT : afficher les balises de largeur de bande. */
   export let showMarkers = true;
+  /** ORSAT : mesure RF de la largeur occupée { status, text, alo, ahi, normHi }. */
+  export let occupied = null;
 
   let canvas, ctx, wrap;
   let audioContext, analyser, gainNode;
@@ -317,6 +319,22 @@
         Math.min(left + pw - 2 * s, Math.max(left + 140 * s, x1 - 2 * s)), top + specH - 2 * s);
     }
 
+    // ── Largeur occupée mesurée : débordement en rouge (ou ambre si « large ») ──
+    if (occupied && (occupied.status === "wide" || occupied.status === "splatter") && Number.isFinite(occupied.ahi)) {
+      const col = occupied.status === "splatter" ? "255,60,60" : "245,158,11";
+      const segs = [];
+      if (occupied.normHi != null) segs.push([occupied.normHi, occupied.ahi]);
+      else segs.push([occupied.alo, occupied.ahi]);
+      for (const [f0, f1] of segs) {
+        const x0 = Math.max(left, xOf(f0, lo, hi, left, pw)), x1 = Math.min(left + pw, xOf(f1, lo, hi, left, pw));
+        if (x1 <= x0) continue;
+        ctx.fillStyle = `rgba(${col},0.18)`;
+        ctx.fillRect(x0, top, x1 - x0, specH);
+        ctx.fillStyle = `rgba(${col},0.95)`;
+        ctx.fillRect(x0, top + specH - 3 * s, x1 - x0, 3 * s);
+      }
+    }
+
     // ── Graduations de fréquence ──
     if (showLabels) {
       ctx.fillStyle = "#0b0f17";
@@ -358,10 +376,18 @@
 
 <div class="spg" bind:this={wrap}>
   <canvas bind:this={canvas}></canvas>
+  {#if occupied && occupied.text}
+    <div class="spg-obw {occupied.status}">{occupied.text}</div>
+  {/if}
 </div>
 
 <style>
   .spg { width: 100%; }
+  .spg-obw { margin-top: 4px; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; }
+  .spg-obw.ok { color: #86efac; border-color: rgba(134, 239, 172, 0.35); background: rgba(22, 101, 52, 0.15); }
+  .spg-obw.wide { color: #fcd34d; border-color: rgba(252, 211, 77, 0.4); background: rgba(146, 64, 14, 0.18); }
+  .spg-obw.splatter { color: #fecaca; font-weight: 700; border-color: rgba(248, 113, 113, 0.6); background: rgba(153, 27, 27, 0.35); }
+  .spg-obw.info { color: #9ca3af; font-style: italic; }
   canvas {
     width: 100%;
     display: block;

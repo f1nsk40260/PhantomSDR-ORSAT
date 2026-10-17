@@ -613,6 +613,52 @@
   let spectrogramScale = "lin";
   let spectrogramMarkers = true;
   let spectroPassband = null;
+  // ORSAT : largeur occupée de la station accordée (mesure RF −26 dB) → splatter.
+  let spectroOccupied = null;
+  let _obwHist = [], _obwTimer = null;
+  const OBW_NORMS = {
+    SSB: { ok: 3000, wide: 4500, name: "SSB", wideTxt: "large (ESSB ?)", badTxt: "splatter probable" },
+    AM: { ok: 10000, wide: 12000, name: "AM", wideTxt: "large", badTxt: "splatter probable" },
+    CW: { ok: 300, wide: 600, name: "CW", wideTxt: "large", badTxt: "clics de manipulation probables" },
+  };
+  const _khz = (hz) => (hz / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  function _obwTick() {
+    const m = String(demodulation || "").toUpperCase();
+    const kind = m === "USB" || m === "LSB" || m.startsWith("RADE") ? "SSB" : m.startsWith("CW") ? "CW" : m === "AM" || m === "QUAM" ? "AM" : null;
+    const dial = Number(frequency) * 1000;
+    if (!kind || !Number.isFinite(dial) || !waterfall || typeof waterfall.measureOccupied !== "function") {
+      spectroOccupied = null; _obwHist = []; return;
+    }
+    const r = waterfall.measureOccupied(dial, m);
+    if (!r.ok) {
+      _obwHist = [];
+      spectroOccupied = r.reason === "zoom"
+        ? { status: "info", text: "Zoomez sur la station dans la cascade pour mesurer sa largeur occupée." }
+        : r.reason === "weak" ? { status: "info", text: "Signal trop faible pour mesurer la largeur occupée." } : null;
+      return;
+    }
+    _obwHist.push(r);
+    if (_obwHist.length > 12) _obwHist.shift();          // ~3 s de maintien (voix)
+    const best = _obwHist.reduce((a, b) => (b.width > a.width ? b : a));
+    const N = OBW_NORMS[kind];
+    const status = best.width <= N.ok ? "ok" : best.width <= N.wide ? "wide" : "splatter";
+    // Bords en fréquences audio, pour le dessin.
+    let alo, ahi;
+    if (m === "LSB" || m === "RADEL") { alo = dial - best.hi; ahi = dial - best.lo; }
+    else if (kind === "CW") { alo = 750 + (best.lo - dial); ahi = 750 + (best.hi - dial); }
+    else if (kind === "AM") { alo = 0; ahi = Math.max(Math.abs(best.lo - dial), Math.abs(best.hi - dial)); }
+    else { alo = best.lo - dial; ahi = best.hi - dial; }
+    const norm = kind === "AM" ? N.ok / 2 : kind === "CW" ? null : N.ok;
+    const txt = `Largeur occupée (−26 dB) : ${_khz(best.width)} kHz`;
+    spectroOccupied = {
+      status, alo, ahi, normHi: norm, kind,
+      text: status === "ok" ? `${txt} — conforme ${N.name} (≤ ${_khz(N.ok)} kHz)`
+        : status === "wide" ? `${txt} — ${N.wideTxt} (${N.name} ≤ ${_khz(N.ok)} kHz)`
+        : `⚠ ${N.badTxt[0].toUpperCase() + N.badTxt.slice(1)} : ${_khz(best.width)} kHz occupés (${N.name} ≤ ${_khz(N.ok)} kHz)`,
+    };
+  }
+  $: if (spectrogramEnabled && !_obwTimer) { _obwTimer = setInterval(_obwTick, 250); }
+  $: if (!spectrogramEnabled && _obwTimer) { clearInterval(_obwTimer); _obwTimer = null; spectroOccupied = null; _obwHist = []; }
   let spectrogramGain = 1.0;
   let spectrogramColorScheme = "rainbow";
 
@@ -9820,6 +9866,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         on:initialized={initSpectrogram}
                         mode={demodulation}
                         passband={spectroPassband}
+                        occupied={spectroOccupied}
                         scale={spectrogramScale}
                         showMarkers={spectrogramMarkers}
                       />

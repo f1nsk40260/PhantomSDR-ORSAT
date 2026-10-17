@@ -403,6 +403,51 @@ export default class SpectrumWaterfall {
   // last frame, or null when the frame is too coarse there to mean anything.
   // This is a POSITIONING aid only — it says where a signal sits, never how
   // strong it is, so it needs no calibration against any other measurement.
+  /**
+   * ORSAT — largeur de bande occupée par la station accordée (méthode « −26 dB »),
+   * mesurée sur le spectre RF : tout ce qui dépasse (crête − 26 dB) et au moins
+   * 6 dB au-dessus du bruit, de proche en proche autour de la crête (trous de
+   * moins de 300 Hz tolérés, la voix n'est pas continue).
+   * Renvoie { ok, lo, hi, width, snr } en Hz absolus, ou { ok:false, reason }.
+   */
+  measureOccupied(dialHz, mode) {
+    try {
+      const frame = this._lastFrame
+      if (!frame || !frame.data) return { ok: false, reason: 'nodata' }
+      const { data, l } = frame
+      const n = data.length, span = frame.r - l
+      if (n < 8 || !(span > 0)) return { ok: false, reason: 'nodata' }
+      const hzPerBin = (this.totalBandwidth / this.waterfallMaxSize) * (span / n)
+      if (!(hzPerBin > 0) || hzPerBin > 400) return { ok: false, reason: 'zoom' }
+      const idx = (hz) => Math.round((this.freqToIdx(hz) - l) / span * n)
+      const hzOf = (i) => this.idxToFreq(l + (i / n) * span)
+      const m = String(mode || '').toUpperCase()
+      let pk0, pk1, w0, w1
+      if (m === 'LSB' || m === 'RADEL') { pk0 = dialHz - 3000; pk1 = dialHz; w0 = dialHz - 9000; w1 = dialHz + 1500 }
+      else if (m.startsWith('CW')) { pk0 = dialHz - 400; pk1 = dialHz + 400; w0 = dialHz - 3000; w1 = dialHz + 3000 }
+      else if (m === 'AM' || m === 'QUAM' || m === 'FM') { pk0 = dialHz - 5000; pk1 = dialHz + 5000; w0 = dialHz - 15000; w1 = dialHz + 15000 }
+      else { pk0 = dialHz; pk1 = dialHz + 3000; w0 = dialHz - 1500; w1 = dialHz + 9000 }
+      const clamp = (i) => Math.max(0, Math.min(n - 1, i))
+      let a = clamp(idx(Math.min(pk0, pk1))), b = clamp(idx(Math.max(pk0, pk1)))
+      const wa = clamp(idx(w0)), wb = clamp(idx(w1))
+      if (b - a < 2) return { ok: false, reason: 'zoom' }
+      let peak = -Infinity, pi = -1
+      for (let i = a; i <= b; i++) { const v = data[i]; if (Number.isFinite(v) && v > peak) { peak = v; pi = i } }
+      const noise = Number.isFinite(this.snrNoiseDb) ? this.snrNoiseDb : null
+      if (pi < 0 || noise == null) return { ok: false, reason: 'nodata' }
+      const snr = peak - noise
+      if (snr < 15) return { ok: false, reason: 'weak', snr }
+      const thr = Math.max(peak - 26, noise + 6)
+      const gap = Math.max(1, Math.round(300 / hzPerBin))
+      let lo = pi, hi = pi, miss = 0
+      for (let i = pi + 1; i <= wb; i++) { if (data[i] >= thr) { hi = i; miss = 0 } else if (++miss > gap) break }
+      miss = 0
+      for (let i = pi - 1; i >= wa; i--) { if (data[i] >= thr) { lo = i; miss = 0 } else if (++miss > gap) break }
+      const loHz = hzOf(lo) - hzPerBin / 2, hiHz = hzOf(hi) + hzPerBin / 2
+      return { ok: true, lo: loHz, hi: hiHz, width: hiHz - loHz, snr, hzPerBin }
+    } catch (e) { return { ok: false, reason: 'error' } }
+  }
+
   getPeakFreq(centerHz, halfSpanHz) {
     try {
       const frame = this._lastFrame
