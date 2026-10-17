@@ -220,7 +220,7 @@
               <button class="modeid-lookup" on:click={() => dispatch("identify")}
                 title="Comparer la forme du signal avec les spectrogrammes et les sons de la base de signaux">📚 Comparer avec la base de signaux</button>
               <button class="modeid-lookup" on:click={() => dispatch("spectro")}
-                title="Afficher le spectrogramme audio pour voir la structure du signal (tons, espacement, rythme)">📊 Voir le spectrogramme audio</button>
+                title="Ouvrir l'analyseur audio pour voir la structure du signal (tons, espacement, rythme)">📊 Ouvrir l'analyseur audio</button>
             </div>
             <span class="text-gray-500 text-[11px] block mt-1.5">Astuce : centrez le signal dans la bande passante et élargissez le filtre s'il est coupé.</span>
           </div>

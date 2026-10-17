@@ -13998,11 +13998,11 @@ Cliquez à nouveau pour désactiver"
                     <h3
                       class="text-white text-base font-semibold text-center mb-2"
                     >
-                      Audio Spectrogram
+                      Analyseur audio
                     </h3>
                     <div class="flex items-center justify-center gap-3 flex-wrap">
                       <button
-                        title="Affiche/masque le spectre audio de votre correspondant"
+                        title="Affiche/masque l'analyseur audio : spectre, bilan de modulation SSB et largeur occupée"
                         class="retro-button px-4 py-2 text-white text-sm rounded-md border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {spectrogramEnabled
                           ? 'bg-blue-600 pressed scale-95'
                           : 'bg-gray-700 hover:bg-gray-600'}"
