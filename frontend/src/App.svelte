@@ -611,6 +611,9 @@
   let spectrogramEnabled = false;
   let spectrogramHeight = 280;
   // ORSAT : échelle et balises du spectrogramme audio, filtre actuel en Hz audio.
+  let spectrogramScale = "lin";
+  let spectrogramMarkers = true;
+  let spectrogramHistory = false;
   let spectroPassband = null;
   // ORSAT : largeur occupée de la station accordée (mesure RF −26 dB) → splatter.
   let spectroOccupied = null;
@@ -665,6 +668,7 @@
   $: if (!spectrogramEnabled && _obwTimer) { clearInterval(_obwTimer); _obwTimer = null; spectroOccupied = null; _obwHist = []; }
   let spectrogramGain = 1.0;
   let spectroLtas = null, spectroLtasRef = null;   // ORSAT : bilan audio SSB
+  let spectrogramColorScheme = "rainbow";
 
   // QRSS grabber variables
   let qrssComponent;
@@ -9863,15 +9867,18 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         maxHzLimit={10000}
                         fftSize={4096}
                         displayGain={spectrogramGain}
+                        colorScheme={spectrogramColorScheme}
                         showLabels={true}
                         enabled={spectrogramEnabled}
                         on:initialized={initSpectrogram}
                         mode={demodulation}
                         passband={spectroPassband}
                         occupied={spectroOccupied}
+                        scale={spectrogramScale}
+                        showMarkers={spectrogramMarkers}
+                        showHistory={spectrogramHistory}
                         baseKhz={frequency}
-                        height={200}
-                        rfSlice={(c, h) => waterfall && typeof waterfall.getRfSlice === "function" ? waterfall.getRfSlice(c, h) : null}
+                        height={spectrogramHistory ? 280 : 200}
                         ltas={spectroLtas}
                         ltasRef={spectroLtasRef}
                       />
@@ -14040,6 +14047,42 @@ Cliquez à nouveau pour désactiver"
                           >
                         </div>
 
+                        <div class="flex items-center gap-2">
+                          <label class="text-sm text-gray-300">Color:</label>
+                          <select
+                            bind:value={spectrogramColorScheme}
+                            class="glass-select px-2 py-1 text-sm text-white"
+                          >
+                            <option value="rainbow">Rainbow</option>
+                            <option value="blue">Blue</option>
+                            <option value="green">Green</option>
+                            <option value="white">Grayscale</option>
+                          </select>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <label class="text-sm text-gray-300">Échelle :</label>
+                          <select
+                            bind:value={spectrogramScale}
+                            class="glass-select px-2 py-1 text-sm text-white"
+                            title="Linéaire : plage adaptée au mode (lecture directe des largeurs de bande). Logarithmique : 40 Hz à 6 kHz."
+                          >
+                            <option value="lin">Linéaire</option>
+                            <option value="log">Logarithmique</option>
+                          </select>
+                        </div>
+
+                        <label class="flex items-center gap-2 text-sm text-gray-300"
+                          title="Afficher les largeurs de bande préconisées pour le mode en cours (SSB standard, ESSB, CW, AM…) et le filtre actuel">
+                          <input type="checkbox" bind:checked={spectrogramMarkers} />
+                          Balises de largeur de bande
+                        </label>
+
+                        <label class="flex items-center gap-2 text-sm text-gray-300"
+                          title="Afficher sous le spectre l'historique défilant des dernières secondes (temps-fréquence)">
+                          <input type="checkbox" bind:checked={spectrogramHistory} />
+                          Historique défilant
+                        </label>
                       {/if}
                     </div>
                   </div>
