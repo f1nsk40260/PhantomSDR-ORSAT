@@ -969,7 +969,9 @@ def _sec_after(request: web.Request, ip: str, status: int) -> None:
 async def handle(request: web.Request) -> web.StreamResponse:
     ip = _client(request)
     local = _is_local(request)
-    if not local and LI.is_blocked(ip):
+    # Liste blanche (dans LI.is_blocked) et IP déjà connectées au panneau admin
+    # (90 j) : jamais bloquées, pour que l'administrateur ne s'auto-bannisse pas.
+    if not local and not _is_trusted(ip) and LI.is_blocked(ip):
         now = time.monotonic()
         if now - _sec_blocked_logged.get(ip, 0) > 600:
             _sec_blocked_logged[ip] = now

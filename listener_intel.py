@@ -379,8 +379,56 @@ def load_blocklist() -> dict:
     return _block_cache["data"]
 
 
+# logs/allowlist.json — liste blanche : IP / plages jamais bloquées, même si
+# elles tombent dans une plage bannie (l'administrateur, des OM de confiance…).
+ALLOW_FILE = LOGS / "allowlist.json"
+_allow_cache = {"mtime": None, "data": {}, "nets": []}
+
+
+def load_allowlist() -> dict:
+    """{ip ou plage: {"since": epoch, "note": str}} — relu si modifié."""
+    try:
+        mt = ALLOW_FILE.stat().st_mtime
+    except FileNotFoundError:
+        _allow_cache.update(mtime=None, data={}, nets=[])
+        return {}
+    if mt != _allow_cache["mtime"]:
+        try:
+            d = json.loads(ALLOW_FILE.read_text())
+            _allow_cache.update(mtime=mt, data=d, nets=_build_nets(d))
+        except Exception:
+            pass
+    return _allow_cache["data"]
+
+
+def is_allowed(ip: str) -> bool:
+    ip = norm_ip(ip)
+    if ip in load_allowlist():
+        return True
+    nets = _allow_cache.get("nets") or []
+    if nets:
+        try:
+            a = ipaddress.ip_address(ip)
+        except ValueError:
+            return False
+        for net, _ in nets:
+            if a.version == net.version and a in net:
+                return True
+    return False
+
+
+def save_allowlist(data: dict) -> None:
+    with _lock:
+        LOGS.mkdir(exist_ok=True)
+        tmp = ALLOW_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=1))
+        tmp.replace(ALLOW_FILE)
+
+
 def is_blocked(ip: str) -> bool:
     ip = norm_ip(ip)
+    if is_allowed(ip):
+        return False
     now = time.time()
     b = load_blocklist().get(ip)
     if b and (not b.get("until") or b["until"] > now):

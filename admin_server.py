@@ -2170,6 +2170,24 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           </div>
           <div id="sec-bans" style="max-height:16rem;overflow-y:auto;"></div>
         </div>
+        <div class="card" style="margin-bottom:.8rem;">
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem;">
+            <span style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;">LISTE BLANCHE</span>
+            <span id="sec-allow-count" style="font-size:.65rem;color:var(--text2);"></span>
+            <span style="flex:1"></span>
+            <span style="font-size:.65rem;color:var(--text2);">Votre IP actuelle : <b id="sec-myip" style="font-family:monospace;color:var(--green);">—</b></span>
+            <button class="btn btn-blue" onclick="secAllowMe()" title="Ajouter votre IP actuelle à la liste blanche">+ MON IP</button>
+          </div>
+          <div style="font-size:.62rem;color:var(--text3);margin-bottom:.4rem;">Ces adresses ne sont jamais bloquées, même si elles tombent dans une plage bannie (une liste importée, par exemple). Sont aussi protégés automatiquement : le réseau local et toute IP qui s'est connectée avec succès au panneau d'administration dans les 90 derniers jours. Le panneau refuse de bannir une plage qui contient votre propre IP.</div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:start;margin-bottom:.5rem;">
+            <textarea id="sec-allow-bulk" rows="2" placeholder="Une IP ou une plage par ligne — # pour un commentaire" style="width:100%;font-family:monospace;font-size:.68rem;"></textarea>
+            <div style="display:flex;flex-direction:column;gap:.3rem;">
+              <input id="sec-allow-note" placeholder="Note (ex. indicatif)" style="width:11rem;">
+              <button class="btn" style="color:var(--green);border-color:var(--green);" onclick="secAllowBulk()">AJOUTER</button>
+            </div>
+          </div>
+          <div id="sec-allow" style="max-height:10rem;overflow-y:auto;"></div>
+        </div>
         <div id="sec-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.5rem;margin-bottom:.8rem;"></div>
         <div class="card" style="overflow-x:auto;padding:0;margin-bottom:.8rem;">
           <table style="width:100%;border-collapse:collapse;font-size:.7rem;">
@@ -2453,6 +2471,8 @@ async function secLoad(days, btn){
     document.getElementById('sec-kpis').innerHTML = order.map(c => `<div class="card" style="padding:.55rem;" title="${liEsc(L[c]||c)}"><div style="font-size:.58rem;color:var(--text3);">${liEsc(L[c]||c)}</div><div style="font-size:1.15rem;color:${(d.cats||{})[c]?(SEC_COL[c]||'var(--green)'):'var(--text3)'};">${(d.cats||{})[c]||0}</div></div>`).join('');
     secBans = d.bans || [];
     secRenderBans();
+    secAllow = d.allow || []; secMyIp = d.myip || '';
+    secRenderAllow();
     const ips = d.ips || [];
     document.getElementById('sec-ips-tbody').innerHTML = ips.length ? ips.map(x => `<tr>
       <td ${liTd} style="min-width:15rem;">${secDanger(x)}</td>
@@ -2485,6 +2505,31 @@ function secDanger(x){
     (why ? `<ul style="margin:.25rem 0 .2rem 1rem;padding:0;font-size:.62rem;color:var(--text2);">${why}</ul>` : '') +
     `<div style="font-size:.6rem;color:${c};">${liEsc(x.advice||'')}</div>`;
 }
+let secAllow = [], secMyIp = '';
+function secRenderAllow(){
+  document.getElementById('sec-myip').textContent = secMyIp || '—';
+  document.getElementById('sec-allow-count').textContent = secAllow.length ? `${secAllow.length} entrée${secAllow.length>1?'s':''}` : 'vide';
+  document.getElementById('sec-allow').innerHTML = secAllow.length ? `<table style="width:100%;border-collapse:collapse;font-size:.68rem;">` + secAllow.map(b => `<tr>
+      <td ${liTd} style="font-family:monospace;color:var(--green);">${liEsc(b.ip)}${b.ip===secMyIp?' <span style="color:var(--text3);">(vous)</span>':''}</td>
+      <td ${liTd} style="color:var(--text2);">${liEsc(b.note||'')}</td>
+      <td ${liTd} style="color:var(--text3);white-space:nowrap;">${b.since?new Date(b.since*1000).toLocaleDateString():''}</td>
+      <td ${liTd}><button class="btn" style="font-size:.6rem;padding:0 .4rem;" onclick="secAllowRemove('${liEsc(b.ip)}')">RETIRER</button></td></tr>`).join('') + '</table>'
+    : `<div style="font-size:.68rem;color:var(--text3);padding:.3rem;">Aucune entrée.</div>`;
+}
+async function secAllowPost(body){
+  const d = await (await fetch('/admin/api/security/allow', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})).json();
+  toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err');
+  secLoad(secDays);
+  return d;
+}
+function secAllowMe(){ if (secMyIp) secAllowPost({text: secMyIp, note: 'administrateur'}); }
+async function secAllowBulk(){
+  const ta = document.getElementById('sec-allow-bulk');
+  const text = (ta.value || '').trim(); if (!text) return;
+  const d = await secAllowPost({text, note: document.getElementById('sec-allow-note').value || ''});
+  if (d.ok) ta.value = '';
+}
+function secAllowRemove(ip){ if (confirm(`Retirer ${ip} de la liste blanche ?`)) secAllowPost({ip, remove: true}); }
 let secBans = [];
 function secRenderBans(){
   const box = document.getElementById('sec-bans');
@@ -5901,7 +5946,7 @@ def api_security_ban_bulk():
     reason = str(data.get("reason", "liste"))[:120]
     until = None if hours <= 0 else time.time() + hours * 3600
     bl = dict(LI.load_blocklist())
-    added, bad = 0, []
+    added, bad, skipped = 0, [], []
     for line in str(data.get("text", "")).splitlines()[:5000]:
         tok = line.split("#", 1)[0].replace(",", " ").replace(";", " ").split()
         for t in tok:
@@ -5909,11 +5954,17 @@ def api_security_ban_bulk():
             if not k:
                 bad.append(t)
                 continue
+            why = _sec_protected(k)
+            if why:
+                skipped.append("%s (%s)" % (k, why))
+                continue
             if k not in bl:
                 added += 1
             bl[k] = {"until": until, "since": time.time(), "reason": reason}
     LI.save_blocklist(bl)
     msg = "%d entrée%s ajoutée%s" % (added, "s" if added > 1 else "", "s" if added > 1 else "")
+    if skipped:
+        msg += " — %d non bannie%s : %s" % (len(skipped), "s" if len(skipped) > 1 else "", ", ".join(skipped[:3]))
     if bad:
         msg += " — %d ignorée%s (invalide ou locale) : %s" % (len(bad), "s" if len(bad) > 1 else "", ", ".join(bad[:5]))
     return jsonify({"ok": True, "msg": msg, "added": added})
@@ -5975,9 +6026,56 @@ def api_security():
     ips = sorted(per_ip.values(), key=lambda x: (x["score"], x["count"]), reverse=True)[:100]
     bans = sorted(({"ip": k, **v} for k, v in bl.items() if not v.get("until") or v["until"] > now),
                   key=lambda b: b.get("since") or 0, reverse=True)
+    allow = sorted(({"ip": k, **v} for k, v in LI.load_allowlist().items()),
+                   key=lambda b: b.get("since") or 0, reverse=True)
     LI.flush()
     return jsonify({"ok": True, "days": days, "cats": cats, "labels": LI.SEC_LABELS,
-                    "ips": ips, "events": events[-300:][::-1], "bans": bans})
+                    "ips": ips, "events": events[-300:][::-1], "bans": bans,
+                    "allow": allow, "myip": LI.norm_ip(request.remote_addr or "")})
+
+
+def _sec_protected(target: str):
+    """Raison pour laquelle une IP / plage ne doit pas être bannie, ou None."""
+    me = LI.norm_ip(request.remote_addr or "")
+    try:
+        net = ipaddress.ip_network(target, strict=False)
+        if me and ipaddress.ip_address(me) in net:
+            return "contient votre propre IP (%s)" % me
+    except ValueError:
+        return None
+    if "/" not in target and LI.is_allowed(target):
+        return "en liste blanche"
+    return None
+
+
+@app.route("/admin/api/security/allow", methods=["POST"])
+@login_required
+def api_security_allow():
+    """Liste blanche : ajout (texte, une IP / plage par ligne) ou retrait ({ip, remove})."""
+    data = request.get_json(silent=True) or {}
+    al = dict(LI.load_allowlist())
+    if data.get("remove"):
+        raw = str(data.get("ip", "")).strip()
+        al.pop(raw, None)
+        al.pop(LI.norm_ip(raw), None)
+        LI.save_allowlist(al)
+        return jsonify({"ok": True, "msg": "%s retirée de la liste blanche" % raw})
+    note = str(data.get("note", ""))[:120]
+    added, bad = 0, []
+    for line in str(data.get("text", "")).splitlines()[:2000]:
+        for t in line.split("#", 1)[0].replace(",", " ").replace(";", " ").split():
+            k = _sec_norm_target(t)
+            if not k:
+                bad.append(t)
+                continue
+            if k not in al:
+                added += 1
+            al[k] = {"since": time.time(), "note": note}
+    LI.save_allowlist(al)
+    msg = "%d entrée%s ajoutée%s à la liste blanche" % (added, "s" if added > 1 else "", "s" if added > 1 else "")
+    if bad:
+        msg += " — %d ignorée%s (invalide ou locale) : %s" % (len(bad), "s" if len(bad) > 1 else "", ", ".join(bad[:5]))
+    return jsonify({"ok": True, "msg": msg, "added": added})
 
 
 @app.route("/admin/api/security/ban", methods=["POST"])
@@ -5994,6 +6092,9 @@ def api_security_ban():
     ip = _sec_norm_target(raw)
     if not ip:
         return jsonify({"ok": False, "msg": "IP ou plage invalide, ou locale"})
+    why = _sec_protected(ip)
+    if why:
+        return jsonify({"ok": False, "msg": "%s non bannie : %s" % (ip, why)})
     try:
         hours = float(data.get("hours", 24))
     except (TypeError, ValueError):
