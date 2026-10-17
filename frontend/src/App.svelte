@@ -203,8 +203,6 @@
   import { sideServiceWhere } from "./lib/sideService.js";
   // End of Information Area import //
 
-  // Import to detect mobile devices //
-  import Device from "svelte-device-info";
 
   // Version française : sélecteur de version masqué (voir <main>).
   // import VersionSelector from "./lib/VersionSelector.svelte";
@@ -661,8 +659,6 @@
   // does — see _decoderOwnsReceiver().
   let qrssHoldsReceiver = false;
 
-  let autoAdjust; // added after C&P of the original App.svelte //
-
   let link;
   var chatContentDiv;
 
@@ -694,51 +690,6 @@
     adaptationInterval: 1000, // Check noise level every X milliseconds
   };
 
-  // Preset configurations for different scenarios
-  const autoAdjustPresets = {
-    default: {
-      noiseFloorPercentile: 10,
-      noiseSuppressionFactor: 0.15,
-      brightnessFactor: 0.3,
-      smoothingFrames: 8,
-      adaptiveEnabled: true,
-      adaptationSpeed: 0.3,
-    },
-    darkBackground: {
-      noiseFloorPercentile: 5, // Very aggressive noise suppression
-      noiseSuppressionFactor: 0.2, // Push noise down more
-      brightnessFactor: 0.25,
-      smoothingFrames: 10,
-      adaptiveEnabled: true,
-      adaptationSpeed: 0.3,
-    },
-    weakSignals: {
-      noiseFloorPercentile: 15, // Gentler on noise
-      noiseSuppressionFactor: 0.1,
-      brightnessFactor: 0.35, // Boost weak signals more
-      smoothingFrames: 6,
-      adaptiveEnabled: true,
-      adaptationSpeed: 0.3,
-    },
-    highContrast: {
-      noiseFloorPercentile: 3, // Maximum noise suppression
-      noiseSuppressionFactor: 0.25,
-      brightnessFactor: 0.2,
-      smoothingFrames: 12,
-      adaptiveEnabled: true,
-      adaptationSpeed: 0.3,
-    },
-    static: {
-      noiseFloorPercentile: 10,
-      noiseSuppressionFactor: 0.15,
-      brightnessFactor: 0.3,
-      smoothingFrames: 8,
-      adaptiveEnabled: false, // No adaptation, static settings
-      adaptationSpeed: 0,
-    },
-  };
-
-  let currentAutoAdjustPreset = "default";
   let adaptiveStatus = { condition: "WAITING", avgSNR: "0.0" };
 
   // Definitions for handleBandChange function //
@@ -782,17 +733,10 @@
   // Begin Wheel Tuning Steps declarations
   let defaultStep,
     currentTuneStep = 1000; // Default step value / Track current step
-  let tuningsteps = [
-    "10", "50", "100", "500", "1000", "5000", "9000", "10000", "12500",
-  ];
 
   // buttons = true for Buttons for Waterfall controls //
   // buttons = false for toggle switches for Waterfall controls //
   let buttons = true;
-
-  // Added to create a fineTune function to use //
-  // buttons to click on for mobile users //
-  let fineTuneAmount = 0;
 
   // Set default AGC (0 = Off) //
   let currentAGC = 0;
@@ -926,7 +870,7 @@
   // more than a 20 ms cushion, so handsets start at x2 (0.5 s / 0.1 s) — the
   // same value /mobile defaults to. The ladder itself is identical on both, so
   // a listener can still move anywhere on it.
-  let audioBufferDelay = Device.isMobile ? 2 : 1;
+  let audioBufferDelay = 1;
 
   // by sv2amkzoom
   // Added to allow adjustment of the zoom //
@@ -948,9 +892,6 @@
   // to the default bandwidth for thr chosen mode //
   let currentBandwidth = 0;
   let staticBandwidthEnabled = false;
-
-  // Getting The Current Date & Time And Setting It
-  let currentDateTime = new Date();
 
   // SMeter Clock
   // Spectrogram functions
@@ -1144,20 +1085,6 @@
     }
   }
 
-  // Update spectrogram frequency range - Fixed 50-10000 Hz for all modes
-  function updateSpectrogramRange() {
-    if (!spectrogramComponent || !spectrogramEnabled) return;
-
-    // Fixed range: 50-10000 Hz for all modes
-    const minFreq = 50;
-    const maxFreq = 10000;
-
-    spectrogramComponent.setFrequencyRange(minFreq, maxFreq);
-    console.log(
-      `Spectrogram range: ${minFreq}-${maxFreq} Hz (fixed for all modes)`,
-    );
-  }
-
   onMount(() => {
     // Adopt the stored sync offset and let the auto-sync loop drive the slider.
     bindFtxSync();
@@ -1343,10 +1270,6 @@
 
   function dxSpotKey(spot) {
     return `${spot.dx_call}|${spot.frequency}|${spot.time}`;
-  }
-
-  function onDxClusterKey(e) {
-    if (showDxCluster && e.key === "Escape") closeDxCluster();
   }
 
   // La fenêtre se déplace en tirant sur son en-tête.
@@ -2222,32 +2145,6 @@
       passbandTunerComponent.updatePassbandLimits();
       updatePassband();
       frequencyMarkerComponent.updateFrequencyMarkerPositions();
-    }
-  }
-
-  function handleBandPlanClick(event) {
-    const rect = event.target.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-
-    // First, check if a marker was clicked
-    const markerClicked = waterfall.handleMarkerClick(x);
-
-    // If no marker was clicked, handle the passband click
-    if (!markerClicked) {
-      passbandTunerComponent.handlePassbandClick(event);
-    }
-  }
-
-  function handleBandPlanMouseMove(event) {
-    const rect = event.target.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    if (waterfall.handleMarkerHover(x, y)) {
-      event.target.style.cursor = "pointer";
-    } else {
-      event.target.style.cursor = "default";
-      waterfall.updateBandPlan(); // Clear previous hover effects
     }
   }
 
@@ -4375,12 +4272,6 @@
 
   // ── Digital mode decoder state ───────────────────────────────────────────
 
-  // Shared text output for digital decoders
-  let digiMessages = [];
-  let digiCurrentLine = "";
-  let digiMode = "";
-  let digiScrollEl;
-
   // ── Decoder pane auto-scroll ──────────────────────────────────────────────
   // Follow the text as it is decoded, but only while the operator is already at
   // the bottom. Scrolling up to read back must not be yanked away by the next
@@ -4516,26 +4407,16 @@
     }
   }
 
-  // bysv2amkMobile
-
   // Sidebar controls for waterfall and spectrum analyzer
   let waterfallDisplay = true;
   let spectrumDisplay = true;
-  let biggerWaterfall = false;
 
   function handleSpectrumChange() {
     spectrumDisplay = !spectrumDisplay;
-    waterfall.setSpectrum(spectrumDisplay, Device.isMobile);
+    waterfall.setSpectrum(spectrumDisplay);
     // Spectrum on -> reverse waterfall on; off -> back to normal
     waterfallReverse = spectrumDisplay;
   }
-
-  function handleWaterfallSizeChange() {
-    biggerWaterfall = !biggerWaterfall;
-    waterfall.setWaterfallBig(biggerWaterfall, Device.isMobile);
-  }
-
-  // bysv2amkMobile end
 
   // Declaration for the VFO A/B system //
   let vfo = "VFO A";
@@ -4557,7 +4438,6 @@
 
   // Waterfall drawing
   let currentColormap = "PhantomSDR"; //select any of "turbo, gqrx, twente, twentev2, SpectraVU, custom, PhantomSDR"
-  let alpha = 0.5;
   let brightness = 130;
   let min_waterfall = -30;
   let max_waterfall = 110;
@@ -4606,10 +4486,6 @@
     localStorage.setItem("selectedColormap", currentColormap);
   }
 
-  // Waterfall slider controls
-  function handleAlphaMove() {
-    waterfall.setAlpha(1 - alpha);
-  }
   function handleBrightnessMove() {
     waterfall.setOffset(brightness);
   }
@@ -4693,60 +4569,6 @@
     if (btn) btn.classList.toggle("active", autoAdjustEnabled);
   }
 
-  // Helper function to change auto-adjust preset on the fly
-  function setAutoAdjustPreset(presetName) {
-    if (autoAdjustPresets[presetName]) {
-      currentAutoAdjustPreset = presetName;
-      autoAdjustConfig = { ...autoAdjustPresets[presetName] };
-
-      // If auto-adjust is currently enabled, reapply with new config
-      if (
-        autoAdjustEnabled &&
-        typeof waterfall.setAutoAdjustConfig === "function"
-      ) {
-        waterfall.setAutoAdjustConfig(autoAdjustConfig);
-      }
-
-      console.log(
-        `Auto-adjust preset changed to: ${presetName}`,
-        autoAdjustConfig,
-      );
-    }
-  }
-
-  // Helper function to update individual auto-adjust parameters
-  function updateAutoAdjustParameter(paramName, value) {
-    if (autoAdjustConfig.hasOwnProperty(paramName)) {
-      autoAdjustConfig[paramName] = value;
-
-      // If auto-adjust is currently enabled, reapply
-      if (
-        autoAdjustEnabled &&
-        typeof waterfall.setAutoAdjustConfig === "function"
-      ) {
-        waterfall.setAutoAdjustConfig(autoAdjustConfig);
-      }
-
-      console.log(`Auto-adjust ${paramName} updated to: ${value}`);
-    }
-  }
-
-  // Toggle adaptive mode on/off
-  function toggleAdaptiveMode() {
-    autoAdjustConfig.adaptiveEnabled = !autoAdjustConfig.adaptiveEnabled;
-
-    if (
-      autoAdjustEnabled &&
-      typeof waterfall.setAutoAdjustConfig === "function"
-    ) {
-      waterfall.setAutoAdjustConfig(autoAdjustConfig);
-    }
-
-    console.log(
-      `Adaptive mode: ${autoAdjustConfig.adaptiveEnabled ? "ENABLED" : "DISABLED"}`,
-    );
-  }
-
   // Get current adaptive status
   function getAdaptiveStatus() {
     if (typeof waterfall.getAutoAdjustStatus === "function") {
@@ -4786,10 +4608,6 @@
       clearInterval(statusInterval);
       statusInterval = null;
     }
-  }
-
-  function checkColor(color) {
-    console.log("C = " + color);
   }
 
   // This function checks the region inside waterfall.js and compares //
@@ -4851,10 +4669,6 @@
   let cquamPilotDetected = false; // C-QUAM 25 Hz stereo pilot present -> QUAM button turns green
   let samLocked = false; // mono SAM (AM) PLL locked -> AM button shows "SAM" in red
   let samEnabled = false; // AM detector: false = envelope (default), true = SAM (synchronous)
-  function roundAudioOffsets(offsets) {
-    const [l, m, r] = offsets;
-    return [Math.floor(l), m, Math.floor(r)];
-  }
 
   // CATsync: a mode name from the CATsync Tool (Kiwi, WebSDR or rig
   // spelling) as one of this receiver's modes, or null if it has none.
@@ -5196,64 +5010,6 @@
     // Digital
   }
 
-  /** Build a callback that feeds the shared digi text window */
-  function _makeDigiCallback(modeName) {
-    digiMessages = [];
-    digiCurrentLine = "";
-    digiMode = modeName;
-    return (event) => {
-      if (event.type === "char") {
-        const ch = event.char;
-        if (ch === "\r") return;
-        if (ch === "\n") {
-          if (digiCurrentLine.trim()) {
-            digiMessages = [...digiMessages, digiCurrentLine].slice(-200);
-            digiCurrentLine = "";
-          }
-          return;
-        }
-        digiCurrentLine += ch;
-        if (digiCurrentLine.length >= 80) {
-          digiMessages = [...digiMessages, digiCurrentLine].slice(-200);
-          digiCurrentLine = "";
-        }
-      } else if (event.type === "navstart") {
-        digiMessages = [
-          ...digiMessages,
-          event.headerless
-            ? "── (header missed) ──"
-            : `── ZCZC ${event.station}${event.subject}${event.seq} ──`,
-        ].slice(-200);
-        digiCurrentLine = "";
-      } else if (event.type === "navend") {
-        if (digiCurrentLine.trim()) {
-          digiMessages = [...digiMessages, digiCurrentLine].slice(-200);
-          digiCurrentLine = "";
-        }
-        if (event.reason === "lost")
-          digiMessages = [...digiMessages, "── (signal lost) ──"].slice(-200);
-        else if (event.reason !== "next")
-          digiMessages = [...digiMessages, "── NNNN ──"].slice(-200);
-      } else if (event.type === "frame") {
-        const via =
-          event.via && event.via.length ? ` via ${event.via.join(",")}` : "";
-        digiMessages = [
-          ...digiMessages,
-          `${event.from}→${event.to}${via}: ${event.payload}`,
-        ].slice(-200);
-        digiCurrentLine = "";
-      } else if (event.type === "dsc") {
-        digiMessages = [
-          ...digiMessages,
-          `[${event.format}] MMSI:${event.mmsi} ${event.category} ${event.msgType}`,
-        ].slice(-200);
-        digiCurrentLine = "";
-      }
-      digiMessages = digiMessages;
-      digiCurrentLine = digiCurrentLine;
-    };
-  }
-
   /** Activate the decoder named by selectedDecoder */
   function activateSelectedDecoder() {
     _deactivateAll();
@@ -5403,22 +5159,6 @@
       audio.setRADEDecoding(true, sideband);
     }
     // 'none' → everything already off from _deactivateAll()
-  }
-
-  /** Master Off/On toggle */
-  function toggleDecoder() {
-    decoderOn = !decoderOn;
-    if (decoderOn) {
-      activateSelectedDecoder();
-    } else {
-      _deactivateAll();
-      selectedDecoder = "none";
-    }
-  }
-
-  /** Called when the dropdown changes while decoder is ON */
-  function handleDecoderChange() {
-    if (decoderOn) activateSelectedDecoder();
   }
 
   /**
@@ -5745,39 +5485,6 @@
     },
   ];
 
-  // Legacy shims — keep for any remaining call sites in the file
-  function handleFt8Decoder(e, value) {
-    selectedDecoder = "ft8";
-    decoderOn = !!value;
-    if (decoderOn) activateSelectedDecoder();
-    else _deactivateAll();
-  }
-  function handleFt4Decoder(e, value) {
-    selectedDecoder = "ft4";
-    decoderOn = !!value;
-    if (decoderOn) activateSelectedDecoder();
-    else _deactivateAll();
-  }
-  function handleFt2Decoder(e, value) {
-    selectedDecoder = "ft2";
-    decoderOn = !!value;
-    if (decoderOn) activateSelectedDecoder();
-    else _deactivateAll();
-  }
-  function handleCwDecoder(e, value) {
-    selectedDecoder = "cw";
-    decoderOn = !!value;
-    if (decoderOn) activateSelectedDecoder();
-    else _deactivateAll();
-  }
-
-  // Normalizes dB values to a 0-100 scale for visualization
-  function normalizeDb(dbValue) {
-    const minDb = -100; // Minimum expected dB value
-    const maxDb = 0; // Maximum dB value (best signal)
-    return ((dbValue - minDb) / (maxDb - minDb)) * 100;
-  }
-
   function handlePassbandChange(passband) {
     let [l, m, r] = passband.detail.map(waterfallOffsetToFrequency);
 
@@ -6047,57 +5754,6 @@
 
   // S-meter drawing now lives in lib/SMeterAnalog.svelte.
 
-  function handleWheel(node) {
-    function onWheel(event) {
-      event.preventDefault();
-      const delta = event.deltaY > 0 ? -1 : 1;
-      const isShiftPressed = event.shiftKey;
-      const isAltPressed = event.altKey;
-
-      // Convert frequency to Hz for calculations
-      let frequencyHz = Math.round(parseFloat(frequency) * 1e3);
-
-      function adjustFrequency(freq, direction, shiftPressed, altPressed) {
-        const step =
-          currentTuneStep ||
-          (altPressed ? 10000 : shiftPressed ? 1000 : defaultStep);
-        const lastDigits = freq % step;
-
-        if (lastDigits === 0) {
-          return freq + direction * step;
-        } else if (direction > 0) {
-          return Math.ceil(freq / step) * step;
-        } else {
-          return Math.floor(freq / step) * step;
-        }
-      }
-
-      frequencyHz = adjustFrequency(
-        frequencyHz,
-        delta,
-        isShiftPressed,
-        isAltPressed,
-      );
-
-      // Convert back to kHz and ensure 2 decimal places
-      frequency = (frequencyHz / 1e3).toFixed(3);
-
-      // Ensure frequency is not negative
-      frequency = Math.max(0, parseFloat(frequency));
-
-      frequencyInputComponent.setFrequency(frequencyHz);
-      handleFrequencyChange({ detail: frequencyHz });
-    }
-
-    node.addEventListener("wheel", onWheel);
-
-    return {
-      destroy() {
-        node.removeEventListener("wheel", onWheel);
-      },
-    };
-  }
-
   // Auto-focus helper action used by the frequency manual input
   function focusOnMount(node) {
     node.focus();
@@ -6157,52 +5813,6 @@
       return { ch: ch, idx: i, dim: i < firstNZ };
     });
   })();
-
-  function handleDigitClick(idx) {
-    selectedDigitIdx = idx;
-  }
-
-  // Mobile frequency box — same tap behaviour as the /mobile page: the whole
-  // reading is selected on focus so the first digit typed replaces it, and a
-  // decimal keypad comes up. text + inputmode="decimal" is what gets that pad
-  // on both iOS and Android; type="number" opens a pad that has no decimal
-  // point on some Android keyboards and does not survive select() reliably.
-  // The box always reads two decimals, but it must not reformat under the
-  // user's fingers, so while it has focus it echoes exactly what was typed.
-  // That also keeps it off `frequency`, which other code assigns bare numbers
-  // to (applyStep, initBandButton) and which would otherwise show as "14200".
-  var mobileFreqFocused = false;
-  var mobileFreqTyped = "";
-  $: mobileFreqValue = mobileFreqFocused
-    ? mobileFreqTyped
-    : (parseFloat(frequency) || 0).toFixed(2);
-
-  function selectMobileFreq(e) {
-    var el = e.currentTarget;
-    mobileFreqTyped = (parseFloat(frequency) || 0).toFixed(2);
-    mobileFreqFocused = true;
-    // Deferred: iOS Safari moves the caret after its own focus handling, which
-    // would undo an immediate select().
-    setTimeout(function () {
-      try {
-        el.select();
-      } catch (err) {}
-    }, 0);
-  }
-
-  function commitMobileFreq() {
-    mobileFreqFocused = false;
-    var val = parseFloat(String(mobileFreqTyped).replace(",", "."));
-    if (!isNaN(val) && val >= 0) {
-      var hz = Math.round(val * 1e3);
-      frequency = (hz / 1e3).toFixed(3);
-      frequencyInputComponent.setFrequency(hz);
-      handleFrequencyChange({ detail: hz });
-    } else {
-      // Restore the readout when the box is left empty or unparseable.
-      frequency = (frequencyInputComponent.getFrequency() / 1e3).toFixed(3);
-    }
-  }
 
   var showFreqInput = false;
   var freqInputValue = "";
@@ -6264,57 +5874,6 @@
       frequencyInputComponent.setFrequency(hz);
       handleFrequencyChange({ detail: hz });
     }, 50);
-  }
-
-  function handleDigitKeydown(e) {
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-      if (selectedDigitIdx < 0) {
-        return;
-      }
-      var delta = e.key === "ArrowUp" ? 1 : -1;
-      var step = DIGIT_POWERS_HZ[selectedDigitIdx];
-      var frequencyHz = Math.round(parseFloat(frequency) * 1e3);
-      frequencyHz = frequencyHz + delta * step;
-      frequencyHz = Math.max(0, frequencyHz);
-      frequency = (frequencyHz / 1e3).toFixed(3);
-      dispatchFrequencyDebounced(frequencyHz); // FIX [2]
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      if (selectedDigitIdx > 0) {
-        selectedDigitIdx = selectedDigitIdx - 1;
-      } else {
-        selectedDigitIdx = 0;
-      }
-    } else if (e.key === "ArrowRight") {
-      e.preventDefault();
-      if (selectedDigitIdx < 7) {
-        selectedDigitIdx = selectedDigitIdx + 1;
-      } else {
-        selectedDigitIdx = 7;
-      }
-    } else if (e.key >= "0" && e.key <= "9") {
-      e.preventDefault();
-      if (selectedDigitIdx < 0) {
-        return;
-      }
-      var tenHz = Math.round((parseFloat(frequency) || 0) * 100);
-      var s = String(tenHz);
-      while (s.length < DIGIT_COUNT) {
-        s = "0" + s;
-      }
-      if (s.length > DIGIT_COUNT) {
-        s = s.slice(0, DIGIT_COUNT);
-      }
-      s = s.slice(0, selectedDigitIdx) + e.key + s.slice(selectedDigitIdx + 1);
-      var newHz = parseInt(s, 10) * 10;
-      newHz = Math.max(0, newHz);
-      frequency = (newHz / 1e3).toFixed(3);
-      dispatchFrequencyDebounced(newHz); // FIX [2]
-      if (selectedDigitIdx < 7) {
-        selectedDigitIdx = selectedDigitIdx + 1;
-      }
-    }
   }
 
   function handleDigitWheel(node) {
@@ -6487,11 +6046,6 @@
       ctcssHeard = null;
     }
   }
-  $: ctcssLabel = CTCSSSupressEnabled
-    ? CTCSSToneHz
-      ? CTCSSToneHz.toFixed(1)
-      : "ANY"
-    : "CTCSS";
 
   // Backend Noise Gate Control
   let noiseGatePreset = "balanced";
@@ -6649,31 +6203,6 @@
   function handleANChange() {
     ANEnabled = !ANEnabled;
     applyAutoNotch(ANEnabled);
-  }
-
-  // Off -> open the tone picker next to the button; on -> switch CTCSS off.
-  function handleCTCSSChange(event) {
-    if (CTCSSSupressEnabled) {
-      CTCSSSupressEnabled = false;
-      showCTCSSPicker = false;
-      audio.setCTCSSFilter(false);
-      return;
-    }
-    if (showCTCSSPicker) {
-      showCTCSSPicker = false;
-      return;
-    }
-    const r = event.currentTarget.getBoundingClientRect();
-    const h = 330;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    let left = r.right + 8;
-    if (left + CTCSS_PICKER_W > vw - 8) left = r.left - CTCSS_PICKER_W - 8;
-    if (left < 8) left = Math.max(8, vw - CTCSS_PICKER_W - 8);
-    let top = r.top + r.height / 2 - h / 2;
-    top = Math.max(8, Math.min(top, vh - h - 8));
-    ctcssPickerPos = { left, top };
-    showCTCSSPicker = true;
   }
 
   function pickCTCSSTone(toneHz) {
@@ -7027,17 +6556,6 @@
     }
   }
 
-  // Link to the simplified /mobile page, carrying the current tuning so that
-  // page opens where this one is tuned.  Reactive on frequency (a kHz string
-  // refreshed by updateLink) and demodulation, so the href never goes stale.
-  $: mobilePageHref = (() => {
-    const hz = Math.round(parseFloat(frequency) * 1000);
-    if (!Number.isFinite(hz)) return withRx("/mobile");
-    // AM + samEnabled is what that page calls SAM; sending plain "AM" would
-    // silently drop the synchronous detector on the way over.
-    const m = demodulation === "AM" && samEnabled ? "SAM" : demodulation;
-    return withRx(`/mobile?frequency=${hz}&modulation=${encodeURIComponent(m)}`);
-  })();
   function handleLinkCopyClick() {
     copy(link);
   }
@@ -7113,11 +6631,6 @@
   function editUsername() {
     showUsernameInput = true;
   }
-
-  const formatMessage = (text) => {
-    const now = new Date();
-    return `${username}: ${text.substring(0, 500)}`; // Ensure message is capped at 25 chars
-  };
 
   function addBookmark() {
     const [currentWaterfallL, currentWaterfallR] =
@@ -7272,16 +6785,6 @@
 
     // Update the link
     updateLink();
-  }
-
-  function copyToClipboard(text) {
-    try {
-      navigator.clipboard.writeText(text).then(() => {
-        console.log("Text copied to clipboard!");
-      });
-    } catch (err) {
-      console.error("Clipboard write failed", err);
-    }
   }
 
   function deleteBookmark(index) {
@@ -7598,7 +7101,7 @@
     });
 
     // Apply initial spectrum state so waterfall height matches (50% when spectrum on)
-    waterfall.setSpectrum(spectrumDisplay, Device.isMobile);
+    waterfall.setSpectrum(spectrumDisplay);
     // Spectrum on -> reverse waterfall on; off -> normal
     waterfallReverse = spectrumDisplay;
 
@@ -7718,7 +7221,7 @@
     // Apply the spectrum default WITHOUT toggling, so a hard refresh honors the
     // default "spectrum on" state (handleSpectrumChange would invert it).
     // Height (50%) and reverse-waterfall follow from setSpectrum + this flag.
-    waterfall.setSpectrum(spectrumDisplay, Device.isMobile);
+    waterfall.setSpectrum(spectrumDisplay);
     waterfallReverse = spectrumDisplay;
     handleVolumeChange();
     // Push the buffer setting into the engine too. Without this the control
@@ -8080,30 +7583,11 @@
     }
   }
 
-  function stripText(s) {
-    let badStrings = ["777", "chmod", ".sh", "chown", "tftp"];
-    let fixedStrings = new RegExp("\\b(" + badStrings.join("|") + ")\\b", "g");
-    return (s || "").replace(fixedStrings, "").replace(/[ ]{2,}/, " ");
-  }
-
   function pasteFrequency() {
     const frequency = frequencyInputComponent.getFrequency();
     const currentDemodulation = demodulation;
     const frequencyText = `[FREQ:${Math.round(frequency)}:${currentDemodulation}]`;
     newMessage = newMessage + " " + frequencyText; // Append the frequency to the current message
-  }
-
-  function shareFrequency() {
-    const frequency = frequencyInputComponent.getFrequency();
-    const currentDemodulation = demodulation;
-    const shareMessage = `[FREQ:${Math.round(frequency)}:${currentDemodulation}] Check out this frequency!`;
-    const messageObject = {
-      cmd: "chat",
-      message: shareMessage,
-      username: username,
-    };
-    socket.send(JSON.stringify(messageObject));
-    scrollToBottom();
   }
 
   let chatMessages;
@@ -8716,18 +8200,6 @@
     refreshIFSlider();
   }
 
-  // Begin Fine Tuning Steps Function
-  //Function created to create a fine tune button and modified by sv2amk //
-  // for mobile users first Column top //
-  let mobiletopfinetuningsteps = [
-    "-1",
-    "-0.1",
-    "-0.01",
-    "0",
-    "+0.01",
-    "+0.1",
-    "+1",
-  ];
   // For desktop users
   let finetuningsteps = [
     "-5",
@@ -8926,8 +8398,7 @@
   }
   // End Tuning Steps Function //
 
-  // Mobile gestures
-  // Pinch = Mousewheel = Zoom
+  // Gestes tactiles (tablettes) : pincer = molette = zoom
   let pinchX = 0;
   function handleWaterfallPinchStart(e) {
     pinchX = 0;
@@ -8994,35 +8465,6 @@
   let dxLoading = false;
   let dxError = null;
   let dxRefreshInterval = null;
-
-  const DX_BAND_LIST = [
-    "ALL",
-    "160",
-    "80",
-    "60",
-    "40",
-    "30",
-    "20",
-    "17",
-    "15",
-    "12",
-    "10",
-    "6",
-  ];
-
-  const DX_BAND_FREQ = {
-    "160": "1.8MHz",
-    "80": "3.5MHz",
-    "60": "5MHz",
-    "40": "7MHz",
-    "30": "10MHz",
-    "20": "14MHz",
-    "17": "18MHz",
-    "15": "21MHz",
-    "12": "24MHz",
-    "10": "28MHz",
-    "6": "50MHz",
-  };
 
   // DX spots are fetched from the local backend endpoint.
   function buildDXUrl() {
@@ -9201,29 +8643,6 @@
     }
   }
 
-  function dxSelectBand(band) {
-    dxBandFilter = band;
-    fetchDXSpots();
-  }
-
-  function formatDXTime(t, hhmm) {
-    const hhmmStr = String(hhmm || "").trim();
-    if (/^\d{4}$/.test(hhmmStr)) return `${hhmmStr}Z`;
-    if (!t) return "";
-    try {
-      // DX Summit may return ISO-like UTC timestamps without explicit timezone.
-      const d = new Date(t.includes("Z") ? t : t + "Z");
-      if (!Number.isNaN(d.getTime())) {
-        const h = d.getUTCHours().toString().padStart(2, "0");
-        const m = d.getUTCMinutes().toString().padStart(2, "0");
-        return `${h}${m}Z`;
-      }
-    } catch (e) {}
-    const m = String(t).match(/(?:^|\D)(\d{2}):(\d{2})(?::\d{2})?(?:\D|$)/);
-    if (m) return `${m[1]}${m[2]}Z`;
-    return "";
-  }
-
   function startDXCluster() {
     fetchDXSpots();
     // Refresh every 20s — fast enough to catch short DX openings,
@@ -9328,11 +8747,6 @@
 {/if}
 
 <main class="custom-scrollbar">
-  <!-- Version française : sélecteur de version masqué, Analog S-Meter uniquement.
-  {#if !Device.isMobile}
-    <VersionSelector {smeter} {layout} onSelect={handleVariantChange} />
-  {/if}
-  -->
 
   <div class="h-screen overflow-hidden flex flex-col min-h-screen">
     <!-- ORSAT : interface desktop uniquement (copie mobile retirée ; les téléphones vont sur /mobile). -->
@@ -15164,11 +14578,6 @@ Cliquez à nouveau pour désactiver"
     position: relative;
     z-index: 5;
   }
-  .lang-switch-inline {
-    align-self: flex-end;
-    margin-right: 0;
-    margin-bottom: 6px;
-  }
   .lang-globe {
     display: inline-flex;
     align-items: center;
@@ -15277,18 +14686,6 @@ Cliquez à nouveau pour désactiver"
     padding: 0 20px;
   }
 
-  #hero {
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    padding: 100px 0;
-    text-align: center;
-  }
-
-  #tagline {
-    font-size: 2rem;
-    margin-bottom: 2rem;
-  }
-
   .btn {
     display: inline-block;
     padding: 12px 24px;
@@ -15337,35 +14734,6 @@ Cliquez à nouveau pour désactiver"
     padding-top: 3px;
   }
 
-  .full-screen-container {
-    display: flex;
-    flex-direction: row;
-    height: 100vh;
-  }
-
-  .side-nav {
-    flex-basis: 250px;
-    overflow-y: auto;
-    background-color: #333;
-    color: #fff;
-  }
-
-  .main-content {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 20px;
-    max-width: 1380px;
-    margin: auto;
-  }
-
-  .tab-content {
-    display: none;
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-
   .cursor-frequency-tooltip {
     background-color: rgba(0, 0, 0, 0.85);
     color: #00ff00;
@@ -15377,11 +14745,6 @@ Cliquez à nouveau pour désactiver"
     border: 1px solid #00ff00;
     box-shadow: 0 2px 8px rgba(0, 255, 0, 0.3);
     white-space: nowrap;
-  }
-
-  :global(body.light-mode) {
-    background-color: #a9a9a9;
-    transition: background-color 0.3s;
   }
   :global(body) {
     background-color: #212121;
@@ -15401,13 +14764,6 @@ Cliquez à nouveau pour désactiver"
   }
   .basic-button:hover {
     @apply border-blue-400 text-white;
-  }
-
-  .click-button {
-    @apply text-blue-500 border border-blue-500 font-bold uppercase transition-all duration-100 text-center text-xs px-2 py-1;
-  }
-  .click-button:active {
-    @apply bg-blue-600 text-white;
   }
 
   /* ORSAT : bouton de la vue 3D */
@@ -15528,11 +14884,6 @@ Cliquez à nouveau pour désactiver"
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
-  }
-
-  .scrollbar-container {
-    padding-right: 12px;
-    box-sizing: content-box;
   }
 
   /* Image de fond : le fichier doit être dans le dossier assets. */
@@ -15705,23 +15056,6 @@ Cliquez à nouveau pour désactiver"
     transition:
       transform 0.1s ease,
       box-shadow 0.1s ease;
-  }
-
-  .smeter-container {
-    background-color: black;
-    padding: 10px;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 310px;
-    padding: 15px;
-    background: #111;
-    border-radius: 5px;
-    position: relative;
-    margin: 0 auto;
-    box-shadow: 0 0 10px rgb(83 83 83 / 30%);
-    font-family: "VT323", monospace;
   }
 
   .glass-slider::-moz-range-thumb {
@@ -15901,25 +15235,6 @@ Cliquez à nouveau pour désactiver"
     background-color: #2a2c3e;
   }
 
-  .glass-toggle-button {
-    background: rgba(207, 181, 59, 0.05);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(207, 181, 59, 0.1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    min-width: 48px;
-  }
-
-  .glass-toggle-button:hover {
-    background: rgba(207, 181, 59, 0.1);
-    border-color: rgba(207, 181, 59, 0.2);
-  }
-
-  .glass-toggle-button.active {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: rgba(16, 185, 129, 0.4);
-  }
-
   /* Unifies every .retro-button (AGC, scan, EQ, band controls…) on the
      same old-gold glass look as .glass-button, overriding the inline
      Tailwind bg-gray-700 / bg-blue-600 / border-gray-600 utilities that
@@ -16019,11 +15334,6 @@ Cliquez à nouveau pour désactiver"
       inset 0 1px 0 rgba(255, 255, 255, 0.08),
       0 1px 0 rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.28);
-  }
-
-  .slide-transition {
-    transition: max-height 300ms cubic-bezier(0.23, 1, 0.32, 1);
-    overflow: hidden;
   }
 
   .toggle-switch {
@@ -17274,9 +16584,8 @@ Cliquez à nouveau pour désactiver"
       -2px 3px 4px rgba(0, 0, 0, 0.85);
   }
 
-  /* PETITS ÉCRANS (TABLETTES, IPAD, MOBILES)
-     iPadOS reçoit le layout desktop (Safari s'annonce Mac, Device.isMobile = false), comme
-     les téléphones via « vue desktop » de /mobile. Utilisable dès ~360px, sans effet en desktop. */
+  /* PETITS ÉCRANS (TABLETTES) : ORSAT vise PC et tablettes ; ces règles
+     adaptent la mise en page aux écrans étroits, sans effet en desktop. */
 
   /* Viewport units that account for the browser's collapsing toolbars.
      Plain 100vh leaves the bottom of the app unreachable on iOS Safari
@@ -17315,10 +16624,6 @@ Cliquez à nouveau pour désactiver"
     }
 
     /* Fixed 310px meter box, in a column that can be narrower than that. */
-    .smeter-container {
-      width: 100%;
-      max-width: 310px;
-    }
 
     /* Sliders keep their 400px group / 200px track on a 360px screen. */
     .control-group {

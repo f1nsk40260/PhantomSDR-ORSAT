@@ -1496,30 +1496,25 @@ export default class SpectrumWaterfall {
   // Compute waterfall canvas height from BOTH flags (spectrum + big) so the
   // two toggles no longer clobber each other. Priority: "big" wins; otherwise
   // spectrum-on halves the normal height.
-  _applyWaterfallHeight(mobile) {
+  // ORSAT : interface desktop / tablette uniquement (hauteurs « mobile » retirées).
+  _applyWaterfallHeight() {
     const dpr = window.devicePixelRatio;
-    let base;
-    if (mobile) {
-      base = this.big ? 150 : (this.spectrum ? 25 : 50);
-    } else {
-      base = this.big ? 300 : (this.spectrum ? 100 : 200);
-    }
+    const base = this.big ? 300 : (this.spectrum ? 100 : 200);
     this.wfheight = base * dpr;
     if (typeof this.resizeCallback == 'function') {
       this.resizeCallback();
     }
   }
 
-  setSpectrum(spectrum,mobile) {
+  setSpectrum(spectrum) {
     this.spectrum = spectrum
-    this._applyWaterfallHeight(mobile)
+    this._applyWaterfallHeight()
   }
 
-  setWaterfallBig(big,mobile) {
+  setWaterfallBig(big) {
     this.big = big
-    this._applyWaterfallHeight(mobile)
+    this._applyWaterfallHeight()
   }
- // bysv2amkMobile end
    setWaterfall(waterfall) {
      this.waterfall = waterfall
    }
