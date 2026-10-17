@@ -13859,7 +13859,12 @@ Cliquez à nouveau pour désactiver"
                       aria-pressed={view3D}
                       title={view3D ? "Masquer le spectre en relief (3D)" : "Afficher le spectre en relief (3D)"}
                     >
-                      <span class="wf-3d-ico" aria-hidden="true">▲</span>
+                      <svg class="wf-3d-ico" viewBox="0 0 24 24" aria-hidden="true">
+                        <!-- pyramide en perspective : arêtes cachées en pointillés, deux faces ombrées -->
+                        <path d="M3 18.5 L10 14.5 L21 16.5 M10 14.5 L12 2.5" fill="none" stroke="currentColor" stroke-width="0.9" stroke-dasharray="1.6 1.4" opacity="0.55" />
+                        <path d="M12 2.5 L3 18.5 L15 21.5 Z" fill="currentColor" fill-opacity="0.55" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
+                        <path d="M12 2.5 L15 21.5 L21 16.5 Z" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
+                      </svg>
                       <span class="wf-3d-lbl">3D</span>
                     </button>
                   {/if}
@@ -14964,7 +14969,7 @@ Cliquez à nouveau pour désactiver"
     border: 1px solid rgba(207, 181, 59, 0.45); transition: all 0.15s;
   }
   .wf-3d-btn:hover { background: rgba(207, 181, 59, 0.14); }
-  .wf-3d-ico { font-size: 1rem; line-height: 1; transform: perspective(40px) rotateX(35deg); }
+  .wf-3d-ico { width: 1.45rem; height: 1.45rem; }
   .wf-3d-lbl { font-size: 0.8rem; line-height: 1; letter-spacing: 0.05em; }
   .wf-3d-btn.is-on {
     color: #f3e7a6; border-color: rgba(207, 181, 59, 0.75);
