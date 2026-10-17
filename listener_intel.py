@@ -425,24 +425,30 @@ def save_allowlist(data: dict) -> None:
         tmp.replace(ALLOW_FILE)
 
 
-def is_blocked(ip: str) -> bool:
+def block_kind(ip: str):
+    """« ip » si l'adresse est bannie nommément, « range » si seulement par une
+    plage, None sinon (liste blanche prioritaire)."""
     ip = norm_ip(ip)
     if is_allowed(ip):
-        return False
+        return None
     now = time.time()
     b = load_blocklist().get(ip)
     if b and (not b.get("until") or b["until"] > now):
-        return True
+        return "ip"
     nets = _block_cache.get("nets") or []
     if nets:
         try:
             a = ipaddress.ip_address(ip)
         except ValueError:
-            return False
+            return None
         for net, v in nets:
             if a.version == net.version and a in net and (not v.get("until") or v["until"] > now):
-                return True
-    return False
+                return "range"
+    return None
+
+
+def is_blocked(ip: str) -> bool:
+    return block_kind(ip) is not None
 
 
 def save_blocklist(data: dict) -> None:

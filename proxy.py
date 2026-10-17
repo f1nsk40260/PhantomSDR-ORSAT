@@ -971,7 +971,13 @@ async def handle(request: web.Request) -> web.StreamResponse:
     local = _is_local(request)
     # Liste blanche (dans LI.is_blocked) et IP déjà connectées au panneau admin
     # (90 j) : jamais bloquées, pour que l'administrateur ne s'auto-bannisse pas.
-    if not local and not _is_trusted(ip) and LI.is_blocked(ip):
+    # Une IP prise seulement dans une PLAGE bannie (liste importée…) garde
+    # l'accès à la page de connexion du panneau : l'administrateur en
+    # déplacement peut se connecter, et devient alors une IP de confiance.
+    kind = None if (local or _is_trusted(ip)) else LI.block_kind(ip)
+    if kind == "range" and (request.path == "/admin" or request.path.startswith("/admin/")):
+        kind = None
+    if kind:
         now = time.monotonic()
         if now - _sec_blocked_logged.get(ip, 0) > 600:
             _sec_blocked_logged[ip] = now
