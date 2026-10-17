@@ -637,6 +637,7 @@ const D = [
   ["Fréquence de base", "Base frequency", "Frecuencia base"],
   ["Bilan audio SSB", "SSB audio report", "Informe de audio SSB"],
   ["en attente", "waiting", "en espera"],
+  ["Parasites écartés :", "Static crashes rejected:", "Parásitos descartados:"],
   ["Référence", "Reference", "Referencia"],
   ["Mémoriser A", "Store A", "Memorizar A"],
   ["Effacer A", "Clear A", "Borrar A"],

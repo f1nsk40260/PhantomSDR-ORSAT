@@ -6,7 +6,9 @@
    * glissante de 20 s, en ne retenant que les instants où elle parle :
    *   • équilibre tonal : graves 100–300 Hz et présence 1,5–2,7 kHz rapportés au
    *     médium 300–1500 Hz, comparés à une référence (SSB standard, DX, ESSB) ;
-   *   • compression : facteur de crête de la forme d'onde sur ~ 340 ms ;
+   *   • parasites statiques écartés (claquements brefs à spectre plat), rapports
+ *     pris en médiane trame par trame ;
+ *   • compression : facteur de crête de la forme d'onde sur ~ 340 ms ;
    *   • ronflette secteur : raies stables à 50/100/150 Hz (ou 60/120/180 Hz) ;
    *   • porteuse résiduelle et bande opposée : mesurées sur la cascade RF,
    *     car le filtre de réception les cache dans l'audio ;
@@ -54,6 +56,7 @@
   let aud = [], rf = [];
   let nb = { b: null, m: null, p: null };   // plancher de bruit audio par bande (dB)
   let rep = null, A = null;
+  let impHold = 0;
   let timer = null, tick = 0, lastBase = null, lastMode = "";
   let copied = false;
 
@@ -71,7 +74,7 @@
   }
 
   export function reset() {
-    aud = []; rf = []; nb = { b: null, m: null, p: null }; rep = null; ltas = null; held = {};
+    aud = []; rf = []; nb = { b: null, m: null, p: null }; rep = null; ltas = null; held = {}; impHold = 0;
   }
 
   const db = (p) => 10 * Math.log10(Math.max(p, 1e-20));
@@ -105,10 +108,23 @@
       const pb = bandPow(f, binHz, 100, 300), pm = bandPow(f, binHz, 300, 1500), pp = bandPow(f, binHz, 1500, 2700);
       const lb = db(pb), lm = db(pm), lp = db(pp);
       nb = { b: track(nb.b, lb), m: track(nb.m, lm), p: track(nb.p, lp) };
-      const speech = lm > nb.m + 9;
+      // Parasites statiques (claquements) : très brefs et à spectre plat.
+      // Fenêtre de l'analyseur découpée en tranches de 128 échantillons (~ 11 ms) :
+      // un claquement n'en occupe que quelques-unes, très au-dessus des autres,
+      // alors qu'une attaque de voix en occupe beaucoup. La voix a aussi bien
+      // moins d'énergie en présence qu'en médium ; un parasite presque autant.
+      const nbk = t.length >> 7, br = new Float32Array(nbk);
+      for (let k = 0; k < nbk; k++) { let e = 0; for (let i = k << 7; i < (k + 1) << 7; i++) e += t[i] * t[i]; br[k] = e / 128; }
+      const sorted = Array.from(br).sort((x, y) => x - y);
+      const bmed = Math.max(sorted[nbk >> 1], 1e-12), bmax = sorted[nbk - 1];
+      const burst = db(bmax / bmed), nHigh = sorted.filter((v) => v > bmed * 10).length;
+      const flat = lp - lm;
+      if ((burst > 12 && nHigh <= 4) || (flat > -4 && burst > 8)) impHold = 4;   // + traîne du lissage
+      const imp = impHold > 0; if (impHold > 0) impHold--;
+      const speech = !imp && lm > nb.m + 9;
       // Puissances débarrassées du bruit de fond
       const clean = (p, n) => Math.max(0, p - Math.pow(10, n / 10));
-      const fr = { sp: speech, snr: lm - nb.m };
+      const fr = { sp: speech, imp: imp && lm > nb.m + 9, snr: lm - nb.m };
       if (speech) {
         fr.b = clean(pb, nb.b); fr.m = clean(pm, nb.m); fr.p = clean(pp, nb.p);
         // Facteur de crête sur la fenêtre de l'analyseur (~ 340 ms : une syllabe ou deux)
@@ -157,11 +173,17 @@
     const lo = passband ? passband[0] : 0, hi = passband ? passband[1] : 3000;
     let B = 0, M = 0, P = 0;
     for (const a of sp) { B += a.b; M += a.m; P += a.p; }
+    // Rapports pris en médiane trame par trame : un parasite qui aurait échappé
+    // au tri ne déplace plus le résultat.
+    const rB = sp.filter((a) => a.m > 0 && a.b > 0).map((a) => db(a.b / a.m));
+    const rP = sp.filter((a) => a.m > 0 && a.p > 0).map((a) => db(a.p / a.m));
+    const nImp = aud.filter((a) => a.imp).length;
+    out.impPct = sp.length + nImp ? Math.round((100 * nImp) / (sp.length + nImp)) : 0;
     const snr = median(sp.map((a) => a.snr));
     out.snr = snr;
     if (out.ready && M > 0) {
-      const bass = lo <= 120 && B > 0 ? db(B / M) : null;
-      const pres = hi >= 2600 && P > 0 ? db(P / M) : null;
+      const bass = lo <= 120 && rB.length >= 10 ? median(rB) : null;
+      const pres = hi >= 2600 && rP.length >= 10 ? median(rP) : null;
       out.bass = bass; out.pres = pres;
       const vb = bass != null ? verdictTone(bass - ref.bass, "bass") : null;
       const vp = pres != null ? verdictTone(pres - ref.pres, "pres") : null;
@@ -312,6 +334,7 @@
       {:else}
         <span>Mesure indicative sur 20 s glissantes, pendant la parole uniquement. Le fading, le filtre et l'AGC du récepteur influent : préférez l'AGC lente.</span>
       {/if}
+      {#if rep && rep.impPct >= 10}<span class="imp">Parasites écartés :</span><span class="num" data-no-i18n>{rep.impPct} %</span>{/if}
       {#if rep && rep.snr != null && rep.snr < 15 && rep.ready}<span class="weak">Signal faible : fiabilité réduite.</span>{/if}
     </div>
   </div>
@@ -334,7 +357,8 @@
     font-size: 0.66rem; color: #9ca3af; font-style: italic; display: flex; gap: 0.35rem; align-items: center;
     height: 1.4rem; margin-top: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
   }
-  .sr-line .weak { color: #fcd34d; margin-left: auto; }
+  .sr-line .weak { color: #fcd34d; }
+  .sr-line .imp { color: #fcd34d; margin-left: auto; }
   .sr-btn.copy { min-width: 9.5rem; }
   .num { font-family: monospace; font-style: normal; color: #d1d5db; }
   .sr-tab { width: 100%; border-collapse: collapse; font-size: 0.74rem; table-layout: fixed; }
