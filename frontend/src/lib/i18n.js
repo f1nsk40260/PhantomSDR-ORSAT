@@ -694,7 +694,7 @@ const D = [
   ["0 Hz audio = porteuse", "0 Hz audio = carrier", "0 Hz audio = portadora"],
   ["0 Hz audio = porteuse, fréquences RF décroissantes vers la droite", "0 Hz audio = carrier, RF frequency decreasing to the right", "0 Hz audio = portadora, frecuencia RF decreciente hacia la derecha"],
   ["note CW à 750 Hz audio", "CW note at 750 Hz audio", "nota CW a 750 Hz audio"],
-  ["porteuse au centre, bandes latérales repliées", "carrier at centre, sidebands folded", "portadora en el centro, bandas laterales plegadas"],
+  ["après démodulation, la porteuse est à 0 Hz et les deux bandes latérales se superposent", "after demodulation the carrier sits at 0 Hz and both sidebands overlap", "tras la demodulación la portadora queda en 0 Hz y las dos bandas laterales se superponen"],
   ["Fréquence affichée par le récepteur ; le trait or la situe dans le spectre audio", "Frequency shown by the receiver; the gold line marks it in the audio spectrum", "Frecuencia mostrada por el receptor; la línea dorada la sitúa en el espectro de audio"],
   ["Afficher sous le spectre l'historique défilant des dernières secondes (temps-fréquence)", "Show the scrolling history of the last seconds below the spectrum (time-frequency)", "Mostrar bajo el espectro el historial desplazable de los últimos segundos (tiempo-frecuencia)"],
   ["Linéaire : plage adaptée au mode (lecture directe des largeurs de bande). Logarithmique : 40 Hz à 6 kHz.", "Linear: range suited to the mode (bandwidths read directly). Logarithmic: 40 Hz to 6 kHz.", "Lineal: rango adaptado al modo (lectura directa de los anchos de banda). Logarítmica: 40 Hz a 6 kHz."],

@@ -501,7 +501,7 @@
       <span class="lbl">Fréquence de base</span>
       <span class="val">{fmtKhz(base)} kHz</span>
       <span class="mode">{modeU}</span>
-      <span class="hint">{isCw ? "note CW à 750 Hz audio" : symmetric ? "porteuse au centre, bandes latérales repliées" : mirrored ? "0 Hz audio = porteuse, fréquences RF décroissantes vers la droite" : "0 Hz audio = porteuse"}</span>
+      <span class="hint">{isCw ? "note CW à 750 Hz audio" : symmetric ? "après démodulation, la porteuse est à 0 Hz et les deux bandes latérales se superposent" : mirrored ? "0 Hz audio = porteuse, fréquences RF décroissantes vers la droite" : "0 Hz audio = porteuse"}</span>
     </div>
   {/if}
   <div class="spg-cv">
