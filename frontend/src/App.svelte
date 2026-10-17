@@ -619,7 +619,7 @@
   let spectroOccupied = null;
   let _obwHist = [], _obwTimer = null;
   const OBW_NORMS = {
-    SSB: { ok: 3000, wide: 4500, name: "SSB", wideTxt: "large (ESSB ?)", badTxt: "splatter probable" },
+    SSB: { ok: 3300, wide: 5000, name: "SSB", wideTxt: "large (ESSB ?)", badTxt: "splatter probable" },
     AM: { ok: 10000, wide: 12000, name: "AM", wideTxt: "large", badTxt: "splatter probable" },
     CW: { ok: 300, wide: 600, name: "CW", wideTxt: "large", badTxt: "clics de manipulation probables" },
   };
@@ -632,6 +632,7 @@
       spectroOccupied = null; _obwHist = []; return;
     }
     const r = waterfall.measureOccupied(dial, m);
+    if (!r.ok && r.reason === "impulse") return;    // parasite : trace ignorée, sans tout effacer
     if (!r.ok) {
       _obwHist = [];
       spectroOccupied = r.reason === "zoom"
@@ -640,8 +641,12 @@
       return;
     }
     _obwHist.push(r);
-    if (_obwHist.length > 12) _obwHist.shift();          // ~3 s de maintien (voix)
-    const best = _obwHist.reduce((a, b) => (b.width > a.width ? b : a));
+    if (_obwHist.length > 24) _obwHist.shift();          // ~6 s de fenêtre (voix)
+    if (_obwHist.length < 8) return;                     // 2 s de mesures avant tout verdict
+    // 80e percentile plutôt que le maximum : un parasite isolé ou une trace
+    // aberrante ne suffit plus à déclarer un splatter, il faut qu'il dure.
+    const sortedW = [..._obwHist].sort((a, b) => a.width - b.width);
+    const best = sortedW[Math.min(sortedW.length - 1, Math.floor(sortedW.length * 0.8))];
     const N = OBW_NORMS[kind];
     const status = best.width <= N.ok ? "ok" : best.width <= N.wide ? "wide" : "splatter";
     // Bords en fréquences audio, pour le dessin.

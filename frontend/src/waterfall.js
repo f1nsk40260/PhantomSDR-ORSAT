@@ -447,13 +447,24 @@ export default class SpectrumWaterfall {
       if (pi < 0 || noise == null) return { ok: false, reason: 'nodata' }
       const snr = peak - noise
       if (snr < 15) return { ok: false, reason: 'weak', snr }
-      const thr = Math.max(peak - 26, noise + 6)
+      // ORSAT : parasite statique (QRN) — un claquement soulève toute la trace
+      // d'un coup. Si le milieu de la trace (médiane, échantillonnée) dépasse
+      // nettement le plancher de bruit, la trace est ignorée.
+      {
+        const st = Math.max(1, Math.floor(n / 256)), smp = []
+        for (let i = 0; i < n; i += st) if (Number.isFinite(data[i])) smp.push(data[i])
+        smp.sort((x, y) => x - y)
+        if (smp.length && smp[smp.length >> 1] > noise + 6) return { ok: false, reason: 'impulse' }
+      }
+      const thr = Math.max(peak - 26, noise + 10)
       const gap = Math.max(1, Math.round(300 / hzPerBin))
       let lo = pi, hi = pi, miss = 0
       for (let i = pi + 1; i <= wb; i++) { if (data[i] >= thr) { hi = i; miss = 0 } else if (++miss > gap) break }
       miss = 0
       for (let i = pi - 1; i >= wa; i--) { if (data[i] >= thr) { lo = i; miss = 0 } else if (++miss > gap) break }
-      const loHz = hzOf(lo) - hzPerBin / 2, hiHz = hzOf(hi) + hzPerBin / 2
+      // Bords au centre des cases extrêmes : sans la demi-case de chaque côté,
+      // qui gonflait la largeur d'une case entière en zoom moyen.
+      const loHz = hzOf(lo), hiHz = Math.max(hzOf(hi), loHz + hzPerBin)
       return { ok: true, lo: loHz, hi: hiHz, width: hiHz - loHz, snr, hzPerBin }
     } catch (e) { return { ok: false, reason: 'error' } }
   }
