@@ -37,6 +37,8 @@
   export let showMarkers = true;
   /** ORSAT : mesure RF de la largeur occupée { status, text, alo, ahi, normHi }. */
   export let occupied = null;
+  /** ORSAT : historique défilant sous le spectre (désactivé par défaut). */
+  export let showHistory = false;
 
   let canvas, ctx, wrap;
   let audioContext, analyser, gainNode;
@@ -211,7 +213,7 @@
     const left = showLabels ? Math.round(38 * s) : Math.round(4 * s);
     const top = showLabels ? Math.round(18 * s) : Math.round(4 * s);
     const pw = W - left - Math.round(4 * s);
-    const specH = Math.round((H - top) * 0.45);
+    const specH = showHistory ? Math.round((H - top) * 0.45) : H - top - Math.round(2 * s);
     const wfTop = top + specH + Math.round(2 * s);
     const wfH = H - wfTop;
     const [lo, hi] = range();
@@ -265,7 +267,9 @@
     }
     ctx.stroke();
 
-    // ── Spectrogramme défilant ──
+    // ── Spectrogramme défilant (optionnel) ──
+    if (!showHistory) { wfImg = null; }
+    else {
     if (!wfImg || wfImg.width !== pw || wfImg.height !== wfH) {
       wfImg = ctx.createImageData(pw, Math.max(1, wfH));
       for (let i = 3; i < wfImg.data.length; i += 4) wfImg.data[i] = 255;
@@ -277,9 +281,10 @@
       d[o] = lut[k]; d[o + 1] = lut[k + 1]; d[o + 2] = lut[k + 2]; d[o + 3] = 255;
     }
     ctx.putImageData(wfImg, left, wfTop);
+    }
 
     // ── Balises de largeur de bande et filtre actuel ──
-    const yTop = top, yBot = H;
+    const yTop = top, yBot = showHistory ? H : top + specH;
     if (showMarkers) {
       let ly = top + Math.round(3 * s);
       for (const mk of markersFor(mode)) {

@@ -612,6 +612,7 @@
   // ORSAT : échelle et balises du spectrogramme audio, filtre actuel en Hz audio.
   let spectrogramScale = "lin";
   let spectrogramMarkers = true;
+  let spectrogramHistory = false;
   let spectroPassband = null;
   // ORSAT : largeur occupée de la station accordée (mesure RF −26 dB) → splatter.
   let spectroOccupied = null;
@@ -9861,7 +9862,6 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         displayGain={spectrogramGain}
                         colorScheme={spectrogramColorScheme}
                         showLabels={true}
-                        height={spectrogramHeight}
                         enabled={spectrogramEnabled}
                         on:initialized={initSpectrogram}
                         mode={demodulation}
@@ -9869,6 +9869,8 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         occupied={spectroOccupied}
                         scale={spectrogramScale}
                         showMarkers={spectrogramMarkers}
+                        showHistory={spectrogramHistory}
+                        height={spectrogramHistory ? 280 : 200}
                       />
                     </div>
 
@@ -14047,6 +14049,12 @@ Cliquez à nouveau pour désactiver"
                           title="Afficher les largeurs de bande préconisées pour le mode en cours (SSB standard, ESSB, CW, AM…) et le filtre actuel">
                           <input type="checkbox" bind:checked={spectrogramMarkers} />
                           Balises de largeur de bande
+                        </label>
+
+                        <label class="flex items-center gap-2 text-sm text-gray-300"
+                          title="Afficher sous le spectre l'historique défilant des dernières secondes (temps-fréquence)">
+                          <input type="checkbox" bind:checked={spectrogramHistory} />
+                          Historique défilant
                         </label>
                       {/if}
                     </div>

@@ -633,6 +633,8 @@ const D = [
   ["Linéaire", "Linear", "Lineal"],
   ["Logarithmique", "Logarithmic", "Logarítmica"],
   ["Balises de largeur de bande", "Bandwidth markers", "Marcas de ancho de banda"],
+  ["Historique défilant", "Scrolling history", "Historial desplazable"],
+  ["Afficher sous le spectre l'historique défilant des dernières secondes (temps-fréquence)", "Show the scrolling history of the last seconds below the spectrum (time-frequency)", "Mostrar bajo el espectro el historial desplazable de los últimos segundos (tiempo-frecuencia)"],
   ["Linéaire : plage adaptée au mode (lecture directe des largeurs de bande). Logarithmique : 40 Hz à 6 kHz.", "Linear: range suited to the mode (bandwidths read directly). Logarithmic: 40 Hz to 6 kHz.", "Lineal: rango adaptado al modo (lectura directa de los anchos de banda). Logarítmica: 40 Hz a 6 kHz."],
   ["Afficher les largeurs de bande préconisées pour le mode en cours (SSB standard, ESSB, CW, AM…) et le filtre actuel", "Show the recommended bandwidths for the current mode (standard SSB, ESSB, CW, AM…) and the current filter", "Mostrar los anchos de banda recomendados para el modo actual (SSB estándar, ESSB, CW, AM…) y el filtro actual"],
   ["Fiche de l'avion (immatriculation) sur FlightAware", "Aircraft page (registration) on FlightAware", "Ficha del avión (matrícula) en FlightAware"],
