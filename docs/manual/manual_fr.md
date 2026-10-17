@@ -5,7 +5,7 @@ title: PhantomSDR-Plus « ORSAT »
 subtitle: Manuel Utilisateur – Interface Web
 url: https://orsat.ddns.net
 cover_caption: L'interface ORSAT telle qu'elle apparaît sur un écran de bureau.
-summary: Guide complet de l'interface de réception radio en ligne : bandes, modes, filtres, traitement audio, décodeurs numériques, analyse et identification des signaux, spectre 3D, réception en diversité, enregistrement, favoris, DX cluster et outils annexes.
+summary: Guide complet de l'interface de réception radio en ligne : bandes, modes, filtres, traitement audio, décodeurs numériques, analyse et identification des signaux, spectre 3D, analyseur audio et bilan de modulation SSB, réception en diversité, enregistrement, favoris, DX cluster et outils annexes.
 edition: Version française — Édition octobre 2026 — ORSAT 1.0 (base PhantomSDR-Plus v5.1.0)
 credits: Cette version est le fruit du travail collaboratif de **SV1BTL** et **F1NSK**.
 cover_note:
@@ -19,7 +19,7 @@ toc: Sommaire
 
 PhantomSDR-Plus est un récepteur radio défini par logiciel (SDR) accessible depuis un simple navigateur web, sans aucune installation. L'interface affiche en temps réel le spectre radiofréquence et la cascade (waterfall) du récepteur, et permet d'écouter, de régler et de décoder les signaux reçus directement depuis le navigateur. PhantomSDR se veut une alternative moderne au WebSDR de PA3FWM.
 
-La station **ORSAT** utilise la version 5.1.0 de PhantomSDR-Plus (projet original de SV1BTL), modifiée par F1NSK sous le nom **ORSAT 1.0** : thème « vieil or », interface entièrement traduite en français, anglais et espagnol, synchronisation avec le DX cluster, décodeurs supplémentaires (HFDL avec carte des avions, famille FLDIGI), analyse et identification des signaux, spectre 3D, réception en diversité et outils hamdash intégrés.
+La station **ORSAT** utilise la version 5.1.0 de PhantomSDR-Plus (projet original de SV1BTL), modifiée par F1NSK sous le nom **ORSAT 1.0** : thème « vieil or », interface entièrement traduite en français, anglais et espagnol, synchronisation avec le DX cluster, décodeurs supplémentaires (HFDL avec carte des avions, famille FLDIGI), analyse et identification des signaux, spectre 3D, analyseur audio et bilan de modulation SSB, réception en diversité et outils hamdash intégrés.
 
 Ce manuel décrit, zone par zone, l'ensemble des commandes visibles à l'écran : leur emplacement, leur fonction et la manière de les utiliser. Chaque fonction complexe est accompagnée d'une vignette montrant la fenêtre ou le panneau tel qu'il apparaît réellement dans l'interface.
 
@@ -31,7 +31,7 @@ Ce manuel décrit, zone par zone, l'ensemble des commandes visibles à l'écran 
 - **Zone centrale** — spectre, cascade, règle de fréquences et repères de bandes (section 3).
 - **Colonne de gauche** — audio, AGC, filtres de bruit, DSP, QRSS et enregistrement (sections 5 à 7).
 - **Colonne  centrale** — cadran de fréquence, S-mètre, diversité, accord fin, bandes/modes/filtres, scanner et décodeurs (sections 4, 8 et 9).
-- **Colonne de droite** — commandes du waterfall (réglage automatique, couleurs, spectre 3D), spectrogramme audio, favoris et indicateur de connexion (sections 10 à 12).
+- **Colonne de droite** — commandes du waterfall (réglage automatique, couleurs, spectre 3D), analyseur audio, favoris et indicateur de connexion (sections 10 à 12).
 
 ## 1.2 Choix de la langue
 
@@ -304,6 +304,10 @@ La rangée **Contrôle des décodeurs** propose onze décodeurs activables d'un 
 - **Tableau** — une ligne par décodage : MODE, DB (niveau), HZ (fréquence audio), DT (écart de synchro), MESSAGE, LOCATOR (grid Maidenhead) et DIST (distance estimée).
 > [Astuce] Les décodeurs FT8/FT4/WSPR exigent d'être accordé sur la fréquence du mode (par ex. 7074 kHz USB pour FT8 sur 40 m).
 
+**Fréquences connues.** Les panneaux FT8 / FT4 / FT2, JS8, WSPR et SSTV ont un menu **Fréquences connues** : choisir une bande accorde directement le récepteur sur la fréquence d'usage du mode, en USB.
+
+**Carte des stations.** Les panneaux FT8 / FT4 / FT2, WSPR et JS8 ont un bouton **🗺 Carte (n)** : chaque station entendue dont le message contient un locator y est placée (les appels CQ en contiennent presque toujours). **⤢ Grand format** ouvre la carte dans une fenêtre flottante, déplaçable et redimensionnable ; le survol d'un point montre l'indicatif et le message, un clic ouvre sa fiche QRZ.
+
 ## 9.3 Analyse des signaux numériques
 
 Le module **Analyse des signaux numériques**, sous la rangée des décodeurs, **tente de reconnaître le mode** du signal écouté (FT8, WSPR, RTTY, PSK, Olivia, CW…) et **propose le décodeur adapté**. Cette fonction est **expérimentale**.
@@ -380,14 +384,15 @@ Le menu déroulant **Couleurs** choisit la palette de la cascade ; un fin trait 
 
 ## 10.3 Spectre 3D
 
-Le bouton **🧊 Spectre 3D : OFF / ON** affiche le spectre **en relief** : les dernières traces s'empilent en perspective au-dessus de la cascade, la plus récente devant. La fréquence est en largeur, le temps en profondeur et l'intensité en hauteur et en couleur.
+Le petit bouton **3D** (pyramide), à droite de **Réglage automatique**, affiche le spectre **en relief** : les dernières traces s'empilent en perspective au-dessus de la cascade, la plus récente devant. La fréquence est en largeur, le temps en profondeur et l'intensité en hauteur et en couleur.
 
 ![Spectre 3D au-dessus de la cascade : nappe de bruit et signaux en relief.](images/new_spectre3d.jpg){w=482}
 
 - La vue suit le **zoom** et le **glissement** de la cascade ; on continue d'accorder en cliquant sur la cascade ou la règle de fréquences.
 - **Échelle en dB** à droite : hauteur des crêtes au-dessus du bruit de fond (+10, +20, +30 dB…).
 - **Repères de temps** en profondeur : −5 s, −10 s… selon la vitesse de défilement.
-- **✕ 2D** ramène le spectre classique.
+- Les couleurs suivent la **palette choisie pour la cascade** (menu **Couleurs**).
+- **✕ 2D** ou un nouveau clic sur **3D** ramène le spectre classique.
 
 > [Remarque] Le spectre 3D est calculé par la carte graphique de votre ordinateur (WebGL2) et ne sollicite pas le serveur. Il est désactivé par défaut ; le bouton n'apparaît pas si le navigateur ne gère pas WebGL2.
 
@@ -399,15 +404,57 @@ Le bouton **🧊 Spectre 3D : OFF / ON** affiche le spectre **en relief** : les 
 
 > [Astuce] Laissez le réglage automatique actif : il donne d'emblée une cascade lisible. Le réglage manuel ne sert que pour un besoin particulier, par exemple faire ressortir un signal très faible.
 
-# 11. Spectrogramme audio
+# 11. Analyseur audio
 
-Le bouton **Afficher** du « Spectrogramme audio » ouvre, au-dessus des panneaux, un analyseur du signal audio démodulé (le signal de votre correspondant) sur une échelle logarithmique d'environ 50 Hz à 5 kHz. Il devient **Masquer** pour le refermer.
+Le bouton **📊 Show / Hide** de l'**Analyseur audio**, dans la colonne de droite, ouvre au-dessus des panneaux un analyseur du signal de votre correspondant. Il travaille sur l'**audio brut** du récepteur : avant le muet, le squelch, l'AGC, la réduction de bruit, le notch et l'égaliseur. Il juge donc la modulation de la station, pas vos réglages d'écoute, et **continue de fonctionner quand le son est coupé**. Le réglage **Gain** n'agit que sur l'affichage.
 
-![Spectrogramme audio : amplitude par fréquence audio, échelle logarithmique.](images/fr_p23_1.jpg){w=482}
+L'affichage s'adapte tout seul au mode : spectre audio en USB, LSB et CW ; **vue RF** en AM et FM.
 
-- **Gain** — sensibilité de l'affichage.
-- **Couleur** — Arc-en-ciel, Bleu, Vert ou Niveaux de gris.
-- Idéal pour centrer précisément un signal numérique ou CW dans le filtre et visualiser la structure des modes numériques.
+## 11.1 Fréquence de base et lecture au survol
+
+- Un bandeau rappelle en clair la **fréquence de base** (celle du cadran) et le mode.
+- Un **trait or** la situe dans le spectre : à 0 Hz audio en SSB (la porteuse supprimée), sur la note à 750 Hz en CW.
+- Au **survol de la souris**, une bulle donne la **fréquence RF exacte** du point visé et sa fréquence audio.
+- En **LSB**, l'axe est **inversé** (aigus à gauche) pour suivre le sens du spectre RF ; la mention « LSB : axe inversé » le rappelle.
+
+## 11.2 Balises de largeur de bande et filtre
+
+- Des **balises** permanentes montrent la largeur préconisée pour le mode : **SSB standard 300–2700 Hz** et **ESSB 50–4000 Hz** ; **CW 500 Hz** et **250 Hz** ; en AM, **±4,5 kHz** (radiodiffusion) et **±3 kHz** (radioamateur) ; en FM étroite, **±5,5 kHz** (largeur de Carson).
+- Un cadre en pointillés blancs montre le **filtre actuel** du récepteur.
+
+## 11.3 Largeur occupée et splatter
+
+L'analyseur mesure sur la cascade la **largeur occupée** par la station accordée (méthode « −26 dB », sur 6 s, parasites statiques ignorés) et la compare aux normes du mode. Une ligne sous le spectre donne le verdict : conforme, un peu large, ou **splatter probable** ; le débordement est coloré en ambre ou en rouge sur le spectre.
+
+> [Astuce] La mesure a besoin d'une cascade assez fine : zoomez sur la station. Sinon, l'analyseur affiche « Zoomez sur la station dans la cascade… ».
+
+## 11.4 Vue RF en AM et FM
+
+En AM et FM, l'audio démodulé n'a plus de porteuse (elle passe à 0 Hz et les deux bandes latérales se superposent). L'analyseur montre donc automatiquement la station **telle qu'elle est en RF** : **porteuse au centre** (trait or), bandes latérales de part et d'autre, axe gradué en écart à la porteuse et niveau en dB au-dessus du bruit. La symétrie des bandes latérales et le niveau de porteuse se lisent d'un coup d'œil. Largeur affichée : ±6 kHz en AM, ±8 kHz en FM, ±120 kHz en FM large.
+
+## 11.5 Bilan audio SSB
+
+En **USB** et **LSB**, un encadré **Bilan audio SSB** analyse la modulation sur 20 s glissantes, uniquement pendant que la station parle. Les verdicts apparaissent après 3 s de voix ; chaque ligne a un voyant vert, orange ou rouge (gris : non mesurable, avec la raison).
+
+| Critère | Ce qui est mesuré |
+| Graves 100–300 Hz | Énergie des graves par rapport au médium, comparée à la référence choisie |
+| Présence 1,5–2,7 kHz | Énergie de la présence par rapport au médium : voix sourde ou criarde |
+| Compression | Rapport crête / moyenne de la voix : peu compressée, correcte, sur-compressée |
+| Ronflette secteur | Raies stables à 50/100/150 Hz (ou 60/120/180 Hz) |
+| Porteuse résiduelle | Niveau de la porteuse sous les crêtes de voix, mesuré sur la cascade |
+| Bande opposée | Énergie de l'autre bande latérale ; une autre station présente est signalée (QRM) |
+| Largeur occupée | Reprise de la mesure de splatter |
+
+- **Référence** — **SSB standard**, **DX / punch** (présence renforcée) ou **ESSB / hi-fi** (graves conservés) : l'équilibre est jugé par rapport à ce choix.
+- **Courbe bleue « voix moyenne »** — forme moyenne de la voix, tracée sur le spectre.
+- **Mémoriser A** — fige cette courbe en pointillés blancs : le correspondant modifie son réglage et l'on compare l'avant et l'après (écarts des graves et de la présence affichés). **Effacer A** la retire.
+- **↺ Recommencer** — repart de zéro (fait aussi automatiquement au changement de fréquence ou de mode).
+- **📋 Copier le rapport** — copie le bilan en une ligne, prête à envoyer au correspondant.
+- Les **parasites statiques** (claquements brefs à spectre plat) sont écartés ; leur proportion est indiquée lorsqu'elle dépasse 10 %.
+
+> [Astuce] Un opérateur peut analyser sa propre émission : il s'écoute sur ORSAT en coupant le son (bouton muet), pour ne pas renvoyer l'audio dans son micro, et lit son bilan.
+
+> [Remarque] Mesure indicative : le fading, le filtre du récepteur et la faiblesse du signal influent. Pour juger les graves, le filtre doit descendre vers 120 Hz ; pour la présence, monter vers 2,6 kHz.
 
 # 12. Favoris
 

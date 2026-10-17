@@ -5,7 +5,7 @@ title: PhantomSDR-Plus “ORSAT”
 subtitle: User Manual – Web Interface
 url: https://orsat.ddns.net
 cover_caption: The ORSAT interface as it appears on a desktop screen.
-summary: Complete guide to the online radio receiving interface: bands, modes, filters, audio processing, digital decoders, signal analysis and identification, 3D spectrum, receive diversity, recording, bookmarks, DX cluster and companion tools.
+summary: Complete guide to the online radio receiving interface: bands, modes, filters, audio processing, digital decoders, signal analysis and identification, 3D spectrum, audio analyser and SSB modulation report, receive diversity, recording, bookmarks, DX cluster and companion tools.
 edition: English version — October 2026 edition — ORSAT 1.0 (based on PhantomSDR-Plus v5.1.0)
 credits: This version is the result of the collaborative work of **SV1BTL** and **F1NSK**.
 cover_note: The screenshots show the interface in French; switch the interface to English with the EN button (section 1.2).
@@ -19,7 +19,7 @@ toc: Contents
 
 PhantomSDR-Plus is a software-defined radio (SDR) receiver that you use from an ordinary web browser, with nothing to install. The interface shows the receiver’s RF spectrum and waterfall in real time, and lets you listen to, tune and decode received signals straight from the browser. PhantomSDR aims to be a modern alternative to the PA3FWM WebSDR.
 
-The **ORSAT** station runs PhantomSDR-Plus version 5.1.0 (original project by SV1BTL), modified by F1NSK under the name **ORSAT 1.0**: “old gold” theme, interface fully translated into French, English and Spanish, DX cluster synchronisation, extra decoders (HFDL with an aircraft map, the FLDIGI family), signal analysis and identification, 3D spectrum, receive diversity and built-in hamdash tools.
+The **ORSAT** station runs PhantomSDR-Plus version 5.1.0 (original project by SV1BTL), modified by F1NSK under the name **ORSAT 1.0**: “old gold” theme, interface fully translated into French, English and Spanish, DX cluster synchronisation, extra decoders (HFDL with an aircraft map, the FLDIGI family), signal analysis and identification, 3D spectrum, audio analyser and SSB modulation report, receive diversity and built-in hamdash tools.
 
 This manual describes, area by area, every control visible on screen: where it is, what it does and how to use it. Each complex feature comes with a screenshot of the window or panel exactly as it appears in the interface.
 
@@ -31,7 +31,7 @@ This manual describes, area by area, every control visible on screen: where it i
 - **Central area** — spectrum, waterfall, frequency scale and band markers (section 3).
 - **Left column** — audio, AGC, noise filters, DSP, QRSS and recording (sections 5 to 7).
 - **Middle column** — frequency dial, S-meter, diversity, fine tuning, bands/modes/filters, scanner and decoders (sections 4, 8 and 9).
-- **Right column** — waterfall controls (automatic adjustment, colours, 3D spectrum), audio spectrogram, bookmarks and connection indicator (sections 10 to 12).
+- **Right column** — waterfall controls (automatic adjustment, colours, 3D spectrum), audio analyser, bookmarks and connection indicator (sections 10 to 12).
 
 ## 1.2 Choosing the language
 
@@ -304,6 +304,10 @@ The **Decoders Control** row offers eleven decoders, each started with one click
 - **Table** — one row per decode: MODE, DB (level), HZ (audio frequency), DT (timing offset), MESSAGE, LOCATOR (Maidenhead grid) and DIST (estimated distance).
 > [Tip] The FT8/FT4/WSPR decoders require tuning to the mode’s frequency (e.g. 7074 kHz USB for FT8 on 40 m).
 
+**Known frequencies.** The FT8 / FT4 / FT2, JS8, WSPR and SSTV panels have a **Known frequencies** menu: picking a band tunes the receiver straight to the mode's usual frequency, in USB.
+
+**Station map.** The FT8 / FT4 / FT2, WSPR and JS8 panels have a **🗺 Map (n)** button: every station heard whose message carries a locator is placed on it (CQ calls almost always do). **⤢ Large view** opens the map in a floating window that can be moved and resized; hovering a dot shows the callsign and message, a click opens its QRZ page.
+
 ## 9.3 Digital signal analysis
 
 The **Digital signal analysis** module, below the decoder row, **tries to recognise the mode** of the signal you are hearing (FT8, WSPR, RTTY, PSK, Olivia, CW…) and **offers the right decoder**. This feature is **experimental**.
@@ -380,14 +384,15 @@ The **Colours** drop-down chooses the waterfall palette; a thin strip previews e
 
 ## 10.3 3D spectrum
 
-The **🧊 3D spectrum: OFF / ON** button shows the spectrum **in relief**: the latest traces stack up in perspective above the waterfall, the newest at the front. Frequency runs across, time runs into the distance, and strength is shown by height and colour.
+The small **3D** button (pyramid), to the right of **Automatic adjustment**, shows the spectrum **in relief**: the latest traces stack up in perspective above the waterfall, the newest at the front. Frequency runs across, time runs into the distance, and strength is shown by height and colour.
 
 ![3D spectrum above the waterfall: noise floor and signals in relief.](images/new_spectre3d.jpg){w=482}
 
 - The view follows the waterfall's **zoom** and **panning**; you still tune by clicking the waterfall or the frequency scale.
 - **dB scale** on the right: height of the peaks above the noise floor (+10, +20, +30 dB…).
 - **Time markers** in depth: −5 s, −10 s… depending on the scrolling speed.
-- **✕ 2D** brings back the classic spectrum.
+- Colours follow the **palette chosen for the waterfall** (**Colours** menu).
+- **✕ 2D** or another click on **3D** brings back the classic spectrum.
 
 > [Note] The 3D spectrum is computed by your computer's graphics card (WebGL2) and puts no load on the server. It is off by default; the button does not appear if the browser lacks WebGL2.
 
@@ -399,15 +404,57 @@ The **🧊 3D spectrum: OFF / ON** button shows the spectrum **in relief**: the 
 
 > [Tip] Keep automatic adjustment on: it gives a readable waterfall straight away. Manual adjustment is only for special needs, such as bringing out a very faint signal.
 
-# 11. Audio spectrogram
+# 11. Audio analyser
 
-The **Show** button of the “Audio Spectrogram” opens, above the panels, an analyser of the demodulated audio (the station you are hearing) on a logarithmic scale from about 50 Hz to 5 kHz. It becomes **Hide** to close it.
+The **📊 Show / Hide** button of the **Audio analyser**, in the right-hand column, opens above the panels an analyser of the station you are hearing. It works on the receiver's **raw audio**: before mute, squelch, AGC, noise reduction, notch and equaliser. It therefore judges the station's modulation, not your listening settings, and **keeps working when the sound is muted**. The **Gain** control only affects the display.
 
-![Audio spectrogram: amplitude per audio frequency, logarithmic scale.](images/en_p21_1.jpg){w=482}
+The display adapts to the mode by itself: audio spectrum in USB, LSB and CW; **RF view** in AM and FM.
 
-- **Gain** — display sensitivity.
-- **Colour** — Rainbow, Blue, Green or Greyscale.
-- Ideal for centring a digital or CW signal precisely in the filter and for seeing the structure of digital modes.
+## 11.1 Base frequency and hover readout
+
+- A banner shows the **base frequency** (the dial frequency) and the mode in plain text.
+- A **gold line** marks it in the spectrum: at 0 Hz audio in SSB (the suppressed carrier), on the 750 Hz note in CW.
+- **Hovering with the mouse** shows the **exact RF frequency** of the point and its audio frequency.
+- In **LSB** the axis is **reversed** (treble on the left) to follow the RF spectrum; the note “LSB: axis reversed” recalls it.
+
+## 11.2 Bandwidth markers and filter
+
+- Permanent **markers** show the recommended width for the mode: **standard SSB 300–2700 Hz** and **ESSB 50–4000 Hz**; **CW 500 Hz** and **250 Hz**; in AM, **±4.5 kHz** (broadcast) and **±3 kHz** (amateur); in narrow FM, **±5.5 kHz** (Carson bandwidth).
+- A white dotted box shows the receiver's **current filter**.
+
+## 11.3 Occupied bandwidth and splatter
+
+The analyser measures on the waterfall the **occupied bandwidth** of the tuned station (“−26 dB” method, over 6 s, static crashes ignored) and compares it with the norms for the mode. A line under the spectrum gives the verdict: compliant, a little wide, or **probable splatter**; the overflow is coloured amber or red on the spectrum.
+
+> [Tip] The measurement needs a fine enough waterfall: zoom in on the station. Otherwise the analyser says “Zoom in on the station in the waterfall…”.
+
+## 11.4 RF view in AM and FM
+
+In AM and FM the demodulated audio no longer contains the carrier (it moves to 0 Hz and both sidebands overlap). The analyser therefore automatically shows the station **as it is on RF**: **carrier in the centre** (gold line), sidebands on either side, an axis graduated in offset from the carrier and the level in dB above the noise. Sideband symmetry and carrier level can be read at a glance. Displayed width: ±6 kHz in AM, ±8 kHz in FM, ±120 kHz in wide FM.
+
+## 11.5 SSB audio report
+
+In **USB** and **LSB**, an **SSB audio report** box analyses the modulation over a sliding 20 s, only while the station is talking. Verdicts appear after 3 s of voice; each line has a green, amber or red light (grey: cannot be measured, with the reason).
+
+| Criterion | What is measured |
+| Bass 100–300 Hz | Bass energy relative to the midrange, compared with the chosen reference |
+| Presence 1.5–2.7 kHz | Presence energy relative to the midrange: muffled or harsh voice |
+| Compression | Peak-to-average ratio of the voice: little, correct or excessive compression |
+| Mains hum | Stable lines at 50/100/150 Hz (or 60/120/180 Hz) |
+| Residual carrier | Carrier level below the voice peaks, measured on the waterfall |
+| Opposite sideband | Energy in the other sideband; another station there is reported (QRM) |
+| Occupied bandwidth | The splatter measurement |
+
+- **Reference** — **standard SSB**, **DX / punch** (boosted presence) or **ESSB / hi-fi** (bass kept): the balance is judged against this choice.
+- **Blue “average voice” curve** — the average shape of the voice, drawn on the spectrum.
+- **Store A** — freezes this curve as a white dotted line: the other station changes its settings and you compare before and after (bass and presence differences shown). **Clear A** removes it.
+- **↺ Restart** — starts again from scratch (also done automatically when frequency or mode changes).
+- **📋 Copy report** — copies the report as one line, ready to send to the other station.
+- **Static crashes** (short, flat-spectrum clicks) are discarded; their share is shown when it exceeds 10 %.
+
+> [Tip] An operator can analyse their own transmission: listen to yourself on ORSAT with the sound muted, so as not to feed the audio back into the microphone, and read the report.
+
+> [Note] Indicative measurement: fading, the receiver filter and weak signals affect it. To judge the bass, the filter must reach down to about 120 Hz; for presence, up to about 2.6 kHz.
 
 # 12. Bookmarks
 
