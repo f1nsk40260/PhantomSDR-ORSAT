@@ -509,6 +509,29 @@ export default class SpectrumWaterfall {
     } catch (e) { return { ok: false, reason: 'error' } }
   }
 
+  /**
+   * ORSAT — tranche RF de la dernière trace autour d'une fréquence, pour la
+   * vue RF de l'analyseur audio (AM / FM : porteuse au centre).
+   * Rend { lo, hzPerBin, v: Float32Array (unités dB de la cascade), noise }.
+   */
+  getRfSlice(centerHz, halfSpanHz) {
+    try {
+      const frame = this._lastFrame
+      if (!frame || !frame.data) return null
+      const { data, l } = frame
+      const n = data.length, span = frame.r - l
+      if (n < 8 || !(span > 0)) return null
+      const hzPerBin = (this.totalBandwidth / this.waterfallMaxSize) * (span / n)
+      const idx = (hz) => (this.freqToIdx(hz) - l) / span * n
+      let a = Math.floor(idx(centerHz - halfSpanHz)), b = Math.ceil(idx(centerHz + halfSpanHz))
+      a = Math.max(0, a); b = Math.min(n - 1, b)
+      if (b - a < 2) return { hzPerBin, v: null }
+      const v = new Float32Array(b - a + 1)
+      for (let i = a; i <= b; i++) v[i - a] = data[i]
+      return { lo: this.idxToFreq(l + (a / n) * span), hzPerBin, v, noise: this.snrNoiseDb }
+    } catch (e) { return null }
+  }
+
   getPeakFreq(centerHz, halfSpanHz) {
     try {
       const frame = this._lastFrame
