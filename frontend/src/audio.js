@@ -6120,16 +6120,18 @@ js8Pending() {
       this._ctcssDelayQ = null;
     }
 
+    // ORSAT : le spectrogramme et le bilan audio SSB travaillent sur l'audio
+    // BRUT, avant muet / squelch / AGC / NR / notch / égaliseur : ils jugent la
+    // modulation de la station, pas notre traitement d'écoute, et continuent
+    // quand le récepteur est muet (l'opérateur qui analyse sa propre émission
+    // coupe le son pour ne pas le renvoyer dans son micro).
+    if (this.spectrogramEnabled && this.spectrogramCallback) {
+      try { this.spectrogramCallback(this._monoForDisplay(rawPcm)); }
+      catch (error) { console.error('Spectrogram feed error:', error); }
+    }
+
     // Speaker-audio gate starts here. Decoder feeds above must still run.
     if (this.mute || (this.squelchMute && this.squelch) || this.ctcssMute) {
-      // ORSAT : le spectrogramme et le bilan audio continuent quand le
-      // récepteur est muet — un opérateur qui analyse sa propre modulation
-      // coupe le son pour ne pas le renvoyer dans son micro (signal brut,
-      // sans le traitement d'écoute qui n'est pas appliqué en muet).
-      if (this.mute && this.spectrogramEnabled && this.spectrogramCallback) {
-        try { this.spectrogramCallback(this._monoForDisplay(pcmArray)); }
-        catch (error) { console.error('Spectrogram feed error:', error); }
-      }
       return
     }
     if (this.audioCtx.state !== 'running') {
@@ -6210,16 +6212,7 @@ js8Pending() {
       this._updateAudioLevelControl(pcmArray);
     }
 
-    // Feed PCM data to the spectrogram (after all audio processing — unlike the
-    // QRSS grabber, this display is meant to show what you are hearing, filters
-    // included).
-    if (this.spectrogramEnabled && this.spectrogramCallback) {
-      try {
-        this.spectrogramCallback(this._monoForDisplay(pcmArray));
-      } catch (error) {
-        console.error('Spectrogram feed error:', error);
-      }
-    }
+    // (ORSAT : le spectrogramme est alimenté plus haut, en audio brut.)
 
     const currentTime = this.audioCtx.currentTime;
     let shedFromPlayback = false;
