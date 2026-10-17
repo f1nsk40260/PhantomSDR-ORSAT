@@ -9668,7 +9668,7 @@
                       on:select={handleAreaSelect}
                       on:cancel={handleAreaCancel}
                     />
-                    <div class="relative w-full" style:height={view3D ? "300px" : null}>
+                    <div class="relative w-full" style:height={view3D ? "150px" : null}>
                       {#if view3D}
                         <Waterfall3D {waterfall} onClose={() => (view3D = false)} />
                       {/if}

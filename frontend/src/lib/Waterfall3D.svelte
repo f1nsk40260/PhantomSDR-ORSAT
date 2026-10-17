@@ -105,25 +105,14 @@
   in float vAge;
   in float vRow;
   in float vLight;
+  uniform sampler2D uCmap;          // palette choisie pour le waterfall (256 couleurs)
   out vec4 frag;
 
-  // Dégradé façon AetherSDR : nappe de bruit bleue, signaux du cyan au vert puis au jaune.
-  vec3 ramp(float v) {
-    vec3 c0 = vec3(0.05, 0.22, 0.72);
-    vec3 c1 = vec3(0.10, 0.50, 1.00);
-    vec3 c2 = vec3(0.25, 0.80, 1.00);
-    vec3 c3 = vec3(0.30, 0.95, 0.45);
-    vec3 c4 = vec3(0.95, 0.95, 0.30);
-    vec3 c5 = vec3(1.00, 0.45, 0.15);
-    if (v < 0.25) return mix(c0, c1, v / 0.25);
-    if (v < 0.45) return mix(c1, c2, (v - 0.25) / 0.20);
-    if (v < 0.65) return mix(c2, c3, (v - 0.45) / 0.20);
-    if (v < 0.85) return mix(c3, c4, (v - 0.65) / 0.20);
-    return mix(c4, c5, (v - 0.85) / 0.15);
-  }
-
   void main() {
-    vec3 c = ramp(vVal) * vLight;
+    // Mêmes couleurs que le waterfall ; un léger plancher garde la nappe de
+    // bruit lisible avec les palettes dont le bas est noir.
+    vec3 pal = texture(uCmap, vec2(clamp(vVal, 0.0, 1.0) * (255.0 / 256.0) + 0.5 / 256.0, 0.5)).rgb;
+    vec3 c = max(pal, vec3(0.035, 0.045, 0.09)) * vLight;
     // Une ligne discrète toutes les quatre traces : l'aspect « fil de fer ».
     float r = vRow * 0.25;
     float g = min(fract(r), 1.0 - fract(r));
