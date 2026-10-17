@@ -44,6 +44,15 @@
   /** ORSAT : spectre moyen de la voix { step, db[] } et courbe A mémorisée. */
   export let ltas = null;
   export let ltasRef = null;
+  /** ORSAT : (centreHz, demiLargeurHz) => tranche RF de la cascade (vue RF AM/FM). */
+  export let rfSlice = null;
+
+  // Vue RF automatique en AM / FM : l'audio démodulé n'a plus de porteuse
+  // (elle passe à 0 Hz), on montre donc la station telle qu'elle est en RF,
+  // porteuse au centre et bandes latérales de part et d'autre.
+  $: rfMode = symmetric && typeof rfSlice === "function";
+  $: rfHalf = modeU === "WBFM" ? 120000 : modeU === "FM" ? 8000 : 6000;
+  let rfAvg = null, rfPeak = null, rfTop = null;
 
   /** ORSAT : échantillon audio pour le bilan SSB (spectre + forme d'onde). */
   export function sampleAudio() {
@@ -82,6 +91,15 @@
     const x = (e.clientX - r.left) * dpr;
     if (x < geo.left || x > geo.left + geo.pw) { onLeave(); return; }
     hoverX = x;
+    if (geo.rf) {
+      const off = ((x - geo.left) / geo.pw) * 2 * geo.rf - geo.rf;
+      hover = {
+        px: e.clientX - r.left, flip: e.clientX - r.left > r.width - 170,
+        rf: hasBase ? fmtKhz(base + off / 1000) + " kHz" : "",
+        audio: (off >= 0 ? "+" : "−") + Math.abs(Math.round(off)) + " Hz / porteuse",
+      };
+      return;
+    }
     const a = fOf(x, geo.lo, geo.hi, geo.left, geo.pw);
     const rf = rfOf(a);
     hover = {
@@ -262,6 +280,7 @@
     animationId = requestAnimationFrame(draw);
     if (!W || !H || !analyser) return;
     if (lutScheme !== colorScheme || !lut) buildLut();
+    if (rfMode) { drawRf(); return; }
 
     const s = dpr;
     const left = showLabels ? Math.round(38 * s) : Math.round(4 * s);
@@ -484,6 +503,134 @@
     }
   }
 
+  // ── Vue RF (AM / FM) ──
+  function drawRf() {
+    const s = dpr;
+    const left = Math.round(38 * s), top = Math.round(18 * s);
+    const pw = W - left - Math.round(4 * s), specH = H - top - Math.round(2 * s);
+    const half = rfHalf;
+    geo = { left, pw, rf: half };
+    ctx.fillStyle = "#0b0f17";
+    ctx.fillRect(0, 0, W, H);
+    const msg = (t) => {
+      ctx.fillStyle = "#9ca3af"; ctx.font = `italic ${Math.round(11 * s)}px sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(t, left + pw / 2, top + specH / 2);
+    };
+    if (!hasBase) { msg("Fréquence inconnue"); return; }
+    const sl = rfSlice(base * 1000, half);
+    if (!sl || !sl.v) { msg("Pas de données de la cascade"); return; }
+    if (sl.hzPerBin > half / 10) { msg("Zoomez sur la station dans la cascade pour la vue RF"); rfAvg = null; return; }
+    const xOff = (off) => left + ((off + half) / (2 * half)) * pw;
+
+    // Valeur (dB cascade) par colonne : maximum des cases couvertes
+    const cols = new Float32Array(pw);
+    let mx = -Infinity;
+    for (let x = 0; x < pw; x++) {
+      const f0 = base * 1000 - half + (x / pw) * 2 * half, f1 = f0 + (2 * half) / pw;
+      let i0 = Math.floor((f0 - sl.lo) / sl.hzPerBin), i1 = Math.max(i0, Math.floor((f1 - sl.lo) / sl.hzPerBin));
+      i0 = Math.max(0, i0); i1 = Math.min(sl.v.length - 1, i1);
+      let m = -Infinity;
+      for (let i = i0; i <= i1; i++) if (sl.v[i] > m) m = sl.v[i];
+      cols[x] = m; if (m > mx) mx = m;
+    }
+    if (!rfAvg || rfAvg.length !== pw) { rfAvg = Float32Array.from(cols); rfPeak = Float32Array.from(cols); }
+    for (let x = 0; x < pw; x++) {
+      rfAvg[x] = 0.55 * rfAvg[x] + 0.45 * cols[x];
+      rfPeak[x] = Math.max(rfAvg[x], rfPeak[x] - 0.25);
+    }
+    const floor = Number.isFinite(sl.noise) ? sl.noise - 6 : Math.min(...rfAvg);
+    rfTop = rfTop == null ? Math.max(floor + 30, mx + 4) : Math.max(floor + 30, rfTop + 0.08 * ((mx + 4) - rfTop));
+    const yOf = (v) => top + specH - Math.max(0, Math.min(1, (v - floor) / (rfTop - floor))) * specH;
+
+    // Grille : dB au-dessus du bruit
+    ctx.font = `${Math.round(9.5 * s)}px monospace`; ctx.textBaseline = "middle"; ctx.textAlign = "right";
+    for (let d = 10; floor + d < rfTop; d += 10) {
+      const y = yOf(floor + d);
+      ctx.strokeStyle = "rgba(255,255,255,0.07)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(left + pw, y); ctx.stroke();
+      ctx.fillStyle = "#8b93a3"; ctx.fillText("+" + (d - 6), left - 4 * s, y);
+    }
+
+    // Balises de largeur préconisée, symétriques autour de la porteuse
+    let ly = top + Math.round(3 * s);
+    const rfMk = modeU === "WBFM" ? [{ hi: 100000, label: "FM large ±100 kHz", color: "207,181,59" }]
+      : modeU === "FM" ? [{ hi: 5500, label: "FM étroite ±5,5 kHz (Carson)", color: "207,181,59" }]
+      : [{ hi: 4500, label: "AM radiodiffusion ±4,5 kHz", color: "207,181,59" },
+         { hi: 3000, label: "AM radioamateur ±3 kHz", color: "56,189,248", dash: true }];
+    for (const mk of rfMk) {
+      const x0 = xOff(-mk.hi), x1 = xOff(mk.hi);
+      ctx.fillStyle = `rgba(${mk.color},0.06)`; ctx.fillRect(x0, top, x1 - x0, specH);
+      ctx.strokeStyle = `rgba(${mk.color},0.9)`; ctx.lineWidth = 1.2 * s; ctx.setLineDash(mk.dash ? [5 * s, 4 * s] : []);
+      for (const xx of [x0, x1]) { ctx.beginPath(); ctx.moveTo(xx, top); ctx.lineTo(xx, top + specH); ctx.stroke(); }
+      ctx.setLineDash([]);
+      ctx.font = `bold ${Math.round(9.5 * s)}px sans-serif`; ctx.textAlign = "left"; ctx.textBaseline = "top";
+      const lbl = mk.label;
+      const tw = ctx.measureText(lbl).width + 6 * s;
+      ctx.fillStyle = "rgba(11,15,23,0.8)"; ctx.fillRect(left + 3 * s, ly - s, tw, 13 * s);
+      ctx.fillStyle = `rgb(${mk.color})`; ctx.fillText(lbl, left + 5 * s, ly);
+      ly += Math.round(14 * s);
+    }
+
+    // Spectre RF
+    for (let x = 0; x < pw; x++) {
+      const v = Math.max(0, Math.min(1, (rfAvg[x] - floor) / (rfTop - floor)));
+      const k = Math.min(255, Math.round(v * 255)) * 3;
+      ctx.fillStyle = `rgb(${lut[k]},${lut[k + 1]},${lut[k + 2]})`;
+      ctx.fillRect(left + x, top + specH - v * specH, 1, v * specH);
+    }
+    ctx.strokeStyle = "rgba(243,231,166,0.85)"; ctx.lineWidth = 1 * s;
+    ctx.beginPath();
+    for (let x = 0; x < pw; x++) { const y = yOf(rfPeak[x]); x ? ctx.lineTo(left + x, y) : ctx.moveTo(left + x, y); }
+    ctx.stroke();
+
+    // Filtre actuel (symétrique)
+    if (passband && passband.length === 2 && passband[1] > 0) {
+      const x0 = xOff(-passband[1]), x1 = xOff(passband[1]);
+      ctx.strokeStyle = "rgba(255,255,255,0.75)"; ctx.lineWidth = 1 * s; ctx.setLineDash([2 * s, 3 * s]);
+      ctx.strokeRect(Math.max(left, x0), top + 1, Math.min(left + pw, x1) - Math.max(left, x0), specH - 2);
+      ctx.setLineDash([]);
+    }
+    // Débordement mesuré (splatter) de part et d'autre
+    if (occupied && (occupied.status === "wide" || occupied.status === "splatter") && Number.isFinite(occupied.ahi) && occupied.normHi != null) {
+      const col = occupied.status === "splatter" ? "255,60,60" : "245,158,11";
+      for (const sg of [-1, 1]) {
+        const xa = xOff(sg * occupied.normHi), xb = xOff(sg * occupied.ahi);
+        const x0 = Math.max(left, Math.min(xa, xb)), x1 = Math.min(left + pw, Math.max(xa, xb));
+        if (x1 <= x0) continue;
+        ctx.fillStyle = `rgba(${col},0.18)`; ctx.fillRect(x0, top, x1 - x0, specH);
+        ctx.fillStyle = `rgba(${col},0.95)`; ctx.fillRect(x0, top + specH - 3 * s, x1 - x0, 3 * s);
+      }
+    }
+
+    // Porteuse au centre
+    const xc = xOff(0);
+    ctx.strokeStyle = "rgba(207,181,59,0.95)"; ctx.lineWidth = 2 * s;
+    ctx.beginPath(); ctx.moveTo(xc, top); ctx.lineTo(xc, top + specH); ctx.stroke();
+    const tag = "Porteuse " + fmtKhz(base);
+    ctx.font = `bold ${Math.round(10 * s)}px monospace`; ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+    const tw = ctx.measureText(tag).width + 8 * s, ty = top + Math.round(specH * 0.55);
+    ctx.fillStyle = "rgba(11,15,23,0.85)"; ctx.fillRect(xc + 3 * s, ty - 13 * s, tw, 13 * s);
+    ctx.fillStyle = "rgb(243,231,166)"; ctx.fillText(tag, xc + 7 * s, ty - s);
+    if (hoverX != null) {
+      ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(hoverX, top); ctx.lineTo(hoverX, top + specH); ctx.stroke();
+    }
+
+    // Graduations : écart à la porteuse
+    ctx.fillStyle = "#0b0f17"; ctx.fillRect(0, 0, W, top);
+    ctx.font = `${Math.round(10 * s)}px monospace`; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    const step = half > 50000 ? 20000 : half > 7000 ? 2000 : 1000;
+    for (let off = -Math.floor(half / step) * step; off <= half; off += step) {
+      const x = xOff(off);
+      ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + specH); ctx.stroke();
+      ctx.fillStyle = off === 0 ? "rgb(207,181,59)" : "#aab2c0";
+      ctx.fillText(off === 0 ? "0" : (off > 0 ? "+" : "−") + Math.abs(off / 1000) + "k", x, 3 * s);
+    }
+    ctx.textAlign = "left"; ctx.fillStyle = "#8b93a3"; ctx.fillText("dB", 4 * s, 3 * s);
+  }
+
   export function destroy() {
     stop();
     try { gainNode && gainNode.disconnect(); } catch (e) {}
@@ -501,7 +648,7 @@
       <span class="lbl">Fréquence de base</span>
       <span class="val">{fmtKhz(base)} kHz</span>
       <span class="mode">{modeU}</span>
-      <span class="hint">{isCw ? "note CW à 750 Hz audio" : symmetric ? "après démodulation, la porteuse est à 0 Hz et les deux bandes latérales se superposent" : mirrored ? "0 Hz audio = porteuse, fréquences RF décroissantes vers la droite" : "0 Hz audio = porteuse"}</span>
+      <span class="hint">{isCw ? "note CW à 750 Hz audio" : symmetric ? "vue RF automatique : porteuse au centre, bandes latérales de part et d'autre" : mirrored ? "0 Hz audio = porteuse, fréquences RF décroissantes vers la droite" : "0 Hz audio = porteuse"}</span>
     </div>
   {/if}
   <div class="spg-cv">
