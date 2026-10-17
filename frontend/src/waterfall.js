@@ -165,6 +165,16 @@ export default class SpectrumWaterfall {
 
       this.setCanvasWidth()
 
+      // ORSAT : page masquée ou pas encore mise en page (onglet en arrière-plan,
+      // panneau caché) → canevas de taille nulle. drawImage lèverait une
+      // exception qui interrompait tout le démarrage de l'interface — dont
+      // l'abonnement « le mode suit le plan de bande ». On saute la copie.
+      if (!this.canvasElem.width || !this.canvasElem.height) {
+        try { this.updateGraduation(); this.updateBandPlan() } catch (e) {}
+        resizeTimeout = undefined
+        return
+      }
+
       // Create a new canvas and copy over new canvas
       let resizeCanvas = document.createElement('canvas')
       resizeCanvas.width = this.canvasElem.width
