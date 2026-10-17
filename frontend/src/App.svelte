@@ -99,7 +99,7 @@
   import Waterfall3D from "./lib/Waterfall3D.svelte";
   import KnownFreqSelect from "./lib/KnownFreqSelect.svelte";
   import StationMap from "./lib/StationMap.svelte";
-  import { FT8_DIALS, FT4_DIALS, JS8_DIALS, WSPR_DIALS } from "./lib/digitalFreqs.js";
+  import { FT8_DIALS, FT4_DIALS, JS8_DIALS, WSPR_DIALS, SSTV_DIALS } from "./lib/digitalFreqs.js";
   import { parseFtx, parseJs8, qrzUrl } from "./lib/stationSpots.js";
   import HeaderClock from "./lib/HeaderClock.svelte";
   import { meterGated } from "./lib/sUnits.js";
@@ -12504,6 +12504,7 @@ Cliquez à nouveau pour désactiver"
                           >
                         </div>
                       </div>
+                      <KnownFreqSelect items={SSTV_DIALS} on:tune={(e) => tuneDialUsb(e.detail.hz)} />
                       <div
                         class="flex flex-wrap items-center gap-3 mb-2 text-xs text-gray-300"
                       >

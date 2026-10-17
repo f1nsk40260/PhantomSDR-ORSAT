@@ -23,3 +23,10 @@ export const WSPR_DIALS = list({
   "40m": 7038600, "30m": 10138700, "20m": 14095600, "17m": 18104600, "15m": 21094600, "12m": 24924600,
   "10m": 28124600,
 });
+
+// SSTV : fréquences d'appel usuelles (réception en USB sur toutes les bandes).
+export const SSTV_DIALS = [
+  ["80m", 3730000, "Europe"], ["80m", 3845000, "Amériques"], ["40m", 7171000, "international"],
+  ["20m", 14230000, "principale"], ["20m", 14233000, "secondaire"], ["17m", 18160000, ""],
+  ["15m", 21340000, ""], ["12m", 24975000, ""], ["10m", 28680000, ""],
+].map(([band, hz, note]) => ({ band, hz, label: `${band} — ${fmt(hz)} kHz${note ? " (" + note + ")" : ""}` }));
