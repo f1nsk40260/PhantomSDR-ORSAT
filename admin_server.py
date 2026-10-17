@@ -2156,6 +2156,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <span id="sec-ban-count" style="font-size:.65rem;color:var(--text2);"></span>
             <span style="flex:1"></span>
             <input id="sec-ban-filter" placeholder="Filtrer…" style="width:9rem;" oninput="secRenderBans()">
+            <button class="btn btn-amber" onclick="secKiwiImport()" title="Importer (ou mettre à jour) la liste noire officielle des KiwiSDR : robots, hébergeurs abusifs, VPN. Les entrées gardent le motif « KiwiSDR » et sont remplacées à chaque import ; votre IP et la liste blanche restent protégées.">⬇ LISTE KIWISDR</button>
             <a class="btn btn-blue" href="/admin/api/security/banlist.txt" title="Télécharger la liste (réimportable)">⬇ EXPORTER</a>
           </div>
           <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:start;margin-bottom:.5rem;">
@@ -2552,6 +2553,12 @@ async function secBanBulk(hours){
   const d = await (await fetch('/admin/api/security/ban_bulk', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text, hours, reason})})).json();
   toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err');
   if (d.ok) ta.value = '';
+  secLoad(secDays);
+}
+async function secKiwiImport(){
+  if (!confirm('Importer la liste noire KiwiSDR (environ 130 adresses et plages, dont de grandes plages cloud Amazon / Google / Alibaba) ? Un nouvel import remplace le précédent.')) return;
+  const d = await (await fetch('/admin/api/security/kiwi_import', {method:'POST'})).json();
+  toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err');
   secLoad(secDays);
 }
 async function secClear(){
@@ -6048,6 +6055,105 @@ def _sec_protected(target: str):
     return None
 
 
+# ── Liste noire KiwiSDR ─────────────────────────────────────────────────────
+# La liste officielle des KiwiSDR (robots, hébergeurs abusifs, VPN…). Copie
+# embarquée dans security/ (dépôt jks-prv/Beagle_SDR_GPS) ; à l'import on tente
+# d'abord la version à jour servie par kiwisdr.com. Les entrées gardent le
+# motif « KiwiSDR » : un nouvel import remplace les anciennes. Les exceptions
+# « +IP » de la liste vont en liste blanche.
+KIWI_BL_URL = "http://kiwisdr.com/ip_blacklist/ip_blacklist3.cjson"
+KIWI_BL_FILE = BASE_DIR / "security" / "kiwisdr_ip_blacklist3.cjson"
+KIWI_REASON = "KiwiSDR"
+
+
+def _kiwi_parse(text: str):
+    body = "\n".join(l for l in text.split("\n") if not l.lstrip().startswith("//"))
+    items = [x.strip() for x in json.loads(body) if isinstance(x, str)]
+    ban, allow = [], []
+    for x in items:
+        plus = x.startswith("+")
+        ip, _, pfx = x.lstrip("+").partition("/")
+        try:
+            ip = ".".join(str(int(o)) for o in ip.split("."))      # « 194.00 » → « 194.0 »
+        except ValueError:
+            pass
+        (allow if plus else ban).append(ip + ("/" + pfx if pfx else ""))
+    return ban, allow
+
+
+def kiwi_import(fetch: bool = True, me: str = "") -> dict:
+    src, text = None, None
+    if fetch:
+        try:
+            import urllib.request
+            with urllib.request.urlopen(KIWI_BL_URL, timeout=8) as r:
+                text = r.read(1_000_000).decode("utf-8", "replace")
+            _kiwi_parse(text)
+            src = "kiwisdr.com (à jour)"
+        except Exception:
+            text = None
+    if text is None:
+        text = KIWI_BL_FILE.read_text(encoding="utf-8")
+        src = "copie embarquée (déc. 2024)"
+    ban, allow = _kiwi_parse(text)
+    bl = {k: v for k, v in LI.load_blocklist().items() if v.get("reason") != KIWI_REASON}
+    al = dict(LI.load_allowlist())
+    now = time.time()
+    n_ban, skipped = 0, []
+    for raw in ban:
+        k = _sec_norm_target(raw)
+        if not k:
+            continue
+        if me:
+            try:
+                if ipaddress.ip_address(me) in ipaddress.ip_network(k, strict=False):
+                    skipped.append(k)
+                    continue
+            except ValueError:
+                pass
+        if k not in bl:
+            bl[k] = {"until": None, "since": now, "reason": KIWI_REASON}
+            n_ban += 1
+    n_allow = 0
+    for raw in allow:
+        k = _sec_norm_target(raw)
+        if k and k not in al:
+            al[k] = {"since": now, "note": KIWI_REASON + " (exception de la liste)"}
+            n_allow += 1
+    LI.save_blocklist(bl)
+    LI.save_allowlist(al)
+    try:
+        (LI.LOGS / "kiwisdr_import.json").write_text(json.dumps({"ts": now, "src": src, "ban": n_ban}))
+    except OSError:
+        pass
+    msg = "Liste KiwiSDR importée depuis %s : %d entrées bannies, %d exception%s en liste blanche" % (
+        src, n_ban, n_allow, "s" if n_allow > 1 else "")
+    if skipped:
+        msg += " — non bannie%s car %s votre IP : %s" % ("s" if len(skipped) > 1 else "",
+                                                          "elles contiennent" if len(skipped) > 1 else "elle contient", ", ".join(skipped))
+    return {"ok": True, "msg": msg, "ban": n_ban, "allow": n_allow, "src": src}
+
+
+@app.route("/admin/api/security/kiwi_import", methods=["POST"])
+@login_required
+def api_security_kiwi_import():
+    try:
+        return jsonify(kiwi_import(True, LI.norm_ip(request.remote_addr or "")))
+    except Exception as e:
+        return jsonify({"ok": False, "msg": "Import impossible : %s" % e})
+
+
+def _kiwi_auto_import():
+    """Premier démarrage après la mise à jour : importe la liste une fois."""
+    try:
+        if (LI.LOGS / "kiwisdr_import.json").exists():
+            return
+        r = kiwi_import(True, "")
+        print("[PhantomSDR Admin] " + r["msg"])
+    except Exception as e:
+        print("[PhantomSDR Admin] Import KiwiSDR impossible : %s" % e)
+
+
 @app.route("/admin/api/security/allow", methods=["POST"])
 @login_required
 def api_security_allow():
@@ -6315,6 +6421,8 @@ if __name__ == "__main__":
     if not ADMIN_CONFIG_FILE.exists():
         save_admin_config(DEFAULT_CONFIG)
         print("[PhantomSDR Admin] Created admin_config.json with default password 'admin'")
+
+    threading.Thread(target=_kiwi_auto_import, daemon=True).start()
 
     cfg = load_admin_config()
     port = cfg.get("port", ADMIN_PORT)
