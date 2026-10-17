@@ -1219,7 +1219,9 @@ body{background-image:repeating-linear-gradient(0deg,transparent,transparent 2px
 /* Buttons */
 .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .9rem;
   font-family:'Share Tech Mono',monospace;font-size:.75rem;cursor:pointer;
-  border-radius:2px;transition:.15s;border:1px solid;background:transparent;letter-spacing:.05em;}
+  border-radius:2px;transition:.15s;border:1px solid;background:transparent;letter-spacing:.05em;
+  color:var(--text2);border-color:#ffffff40;text-decoration:none;}
+.btn:hover{background:rgba(255,255,255,0.06);}
 .btn-green{color:var(--green);border-color:#00ff4155;}
 .btn-green:hover{background:rgba(0,255,65,0.1);box-shadow:var(--glow);}
 .btn-red{color:var(--red);border-color:#ff404055;}
@@ -2146,7 +2148,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <button class="btn" onclick="secLoad(30,this)">30 J</button>
           <button class="btn" onclick="secLoad(90,this)">90 J</button>
           <span style="flex:1"></span>
-          <button class="btn" onclick="secClear()" title="Efface tout le journal des tentatives ; les IP bannies restent bannies">🗑 VIDER LE JOURNAL</button>
+          <button class="btn btn-amber" onclick="secClear()" title="Efface tout le journal des tentatives ; les IP bannies restent bannies">🗑 VIDER LE JOURNAL</button>
         </div>
         <div class="card" style="margin-bottom:.8rem;">
           <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem;">
@@ -2154,7 +2156,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
             <span id="sec-ban-count" style="font-size:.65rem;color:var(--text2);"></span>
             <span style="flex:1"></span>
             <input id="sec-ban-filter" placeholder="Filtrer…" style="width:9rem;" oninput="secRenderBans()">
-            <a class="btn" href="/admin/api/security/banlist.txt" title="Télécharger la liste (réimportable)">⬇ EXPORTER</a>
+            <a class="btn btn-blue" href="/admin/api/security/banlist.txt" title="Télécharger la liste (réimportable)">⬇ EXPORTER</a>
           </div>
           <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:start;margin-bottom:.5rem;">
             <textarea id="sec-ban-bulk" rows="3" placeholder="Une IP ou une plage par ligne (ex. 203.0.113.7 ou 198.51.100.0/24) — # pour un commentaire. On peut coller une liste entière." style="width:100%;font-family:monospace;font-size:.68rem;"></textarea>
