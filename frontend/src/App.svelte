@@ -608,7 +608,11 @@
   // Spectrogram variables
   let spectrogramComponent;
   let spectrogramEnabled = false;
-  let spectrogramHeight = 200;
+  let spectrogramHeight = 280;
+  // ORSAT : échelle et balises du spectrogramme audio, filtre actuel en Hz audio.
+  let spectrogramScale = "lin";
+  let spectrogramMarkers = true;
+  let spectroPassband = null;
   let spectrogramGain = 1.0;
   let spectrogramColorScheme = "rainbow";
 
@@ -1417,6 +1421,16 @@
     passband = passband || audio.getAudioRange();
     const frequencies = passband.map(FFTOffsetToFrequency);
     bandwidth = ((frequencies[2] - frequencies[0]) / 1000).toFixed(2);
+    {
+      // Filtre actuel exprimé en fréquences audio, pour le spectrogramme.
+      const [fl, fm, fr] = frequencies;
+      const m = String(demodulation || "").toUpperCase();
+      const a = Math.abs(fl - fm), b = Math.abs(fr - fm);
+      if (m.startsWith("CW")) spectroPassband = [750 - (fr - fl) / 2, 750 + (fr - fl) / 2];
+      else if (m === "USB" || m === "RADEU") spectroPassband = [fl - fm, fr - fm];
+      else if (m === "LSB" || m === "RADEL") spectroPassband = [fm - fr, fm - fl];
+      else spectroPassband = [0, Math.max(a, b)];
+    }
     const offsets = frequencies.map(frequencyToWaterfallOffset);
     passbandTunerComponent.changePassband(offsets);
     // Feed tuned passband (Hz) to the waterfall-bin SNR estimator
@@ -9804,6 +9818,10 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         height={spectrogramHeight}
                         enabled={spectrogramEnabled}
                         on:initialized={initSpectrogram}
+                        mode={demodulation}
+                        passband={spectroPassband}
+                        scale={spectrogramScale}
+                        showMarkers={spectrogramMarkers}
                       />
                     </div>
 
@@ -13965,6 +13983,24 @@ Cliquez à nouveau pour désactiver"
                             <option value="white">Grayscale</option>
                           </select>
                         </div>
+
+                        <div class="flex items-center gap-2">
+                          <label class="text-sm text-gray-300">Échelle :</label>
+                          <select
+                            bind:value={spectrogramScale}
+                            class="glass-select px-2 py-1 text-sm text-white"
+                            title="Linéaire : plage adaptée au mode (lecture directe des largeurs de bande). Logarithmique : 40 Hz à 6 kHz."
+                          >
+                            <option value="lin">Linéaire</option>
+                            <option value="log">Logarithmique</option>
+                          </select>
+                        </div>
+
+                        <label class="flex items-center gap-2 text-sm text-gray-300"
+                          title="Afficher les largeurs de bande préconisées pour le mode en cours (SSB standard, ESSB, CW, AM…) et le filtre actuel">
+                          <input type="checkbox" bind:checked={spectrogramMarkers} />
+                          Balises de largeur de bande
+                        </label>
                       {/if}
                     </div>
                   </div>
