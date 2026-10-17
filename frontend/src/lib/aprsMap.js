@@ -79,6 +79,10 @@ export class AprsMap {
     this._lastFit = 0;
     // ORSAT : marqueur « avion » (carte HFDL). false = rond vert d'origine (APRS).
     this.planeIcons = false;
+    // ORSAT : options de la carte « Stations entendues » des décodeurs.
+    this.labelsOnHover = false;      // étiquette au survol plutôt que permanente
+    this.dotStyle = null;            // { color, fillColor } du point
+    this.linkText = '';              // libellé du lien de la fiche (pos.link)
   }
 
   setAutoFit(on) {
@@ -253,10 +257,11 @@ export class AprsMap {
       const el = st.marker.getElement && st.marker.getElement();
       if (el) { el.title = st.pos.link ? 'Ouvrir la fiche FlightAware' : ''; el.style.cursor = 'pointer'; }
     } else if (!st.marker) {
+      const ds = this.dotStyle || { color: '#065f46', fillColor: '#34d399' };
       st.marker = L.circleMarker(ll, {
-        radius: 6, color: '#065f46', weight: 2, fillColor: '#34d399', fillOpacity: 0.9,
+        radius: 6, color: ds.color, weight: 2, fillColor: ds.fillColor, fillOpacity: 0.9,
       }).addTo(this.map);
-      st.marker.bindTooltip(esc(call), { permanent: true, direction: 'right', className: 'aprs-label' });
+      st.marker.bindTooltip(esc(call), { permanent: !this.labelsOnHover, direction: 'right', className: 'aprs-label' });
       st.marker.bindPopup(() => this._popup(call), { maxWidth: 320 });
     } else {
       st.marker.setLatLng(ll);
@@ -296,6 +301,13 @@ export class AprsMap {
     if (st.track.length > 1) bits.push(`${st.track.length} track points`);
     meta.textContent = bits.join(' · ');
     box.appendChild(meta);
+    if (p.link) {
+      const a = document.createElement('a');
+      a.href = p.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.className = 'aprs-popup-link';
+      a.textContent = (this.linkText || 'Fiche') + ' ↗';
+      box.appendChild(a);
+    }
     return box;
   }
 }

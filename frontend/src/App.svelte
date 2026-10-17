@@ -97,6 +97,10 @@
   import { FLDIGI_MODEMS } from "./fsk.js";
   import SignalRefPanel from "./lib/SignalRefPanel.svelte";
   import Waterfall3D from "./lib/Waterfall3D.svelte";
+  import KnownFreqSelect from "./lib/KnownFreqSelect.svelte";
+  import StationMap from "./lib/StationMap.svelte";
+  import { FT8_DIALS, FT4_DIALS, JS8_DIALS, WSPR_DIALS } from "./lib/digitalFreqs.js";
+  import { parseFtx, parseJs8, qrzUrl } from "./lib/stationSpots.js";
   import HeaderClock from "./lib/HeaderClock.svelte";
   import { meterGated } from "./lib/sUnits.js";
   import { loadReceivers } from "./lib/receivers";
@@ -4460,6 +4464,50 @@
   const has3D = (() => {
     try { return !!document.createElement("canvas").getContext("webgl2"); } catch (e) { return false; }
   })();
+  // ── ORSAT : fréquences connues et cartes des décodeurs numériques ──
+  let ftxMap, wsprMap, js8Map;
+  /** Accorde le récepteur en USB sur une fréquence « dial » (Hz). */
+  function tuneDialUsb(hz) {
+    hz = Math.round(Number(hz));
+    if (!Number.isFinite(hz) || hz <= 0) return;
+    try {
+      if (demodulation !== "USB") SetMode("USB");
+      if (frequencyInputComponent && frequencyInputComponent.setFrequency)
+        frequencyInputComponent.setFrequency(hz);
+      handleFrequencyChange({ detail: hz });
+      frequency = (hz / 1e3).toFixed(3);
+    } catch (e) {
+      console.warn("[decoders] tune error", e);
+    }
+  }
+  const _bandOf = () => {
+    const f = Number(frequency);
+    return Number.isFinite(f) ? `${(f / 1000).toFixed(3)} MHz` : "";
+  };
+  audio.onFtxSpots = (mode, msgs) => {
+    if (!ftxMap) return;
+    for (const m of msgs) {
+      const p = parseFtx(m.text);
+      if (!p) continue;
+      const snr = Number.isFinite(m.snr) ? ` · ${m.snr > 0 ? "+" : ""}${m.snr.toFixed(0)} dB` : "";
+      ftxMap.add({ call: p.call, grid: p.grid, link: qrzUrl(p.call),
+        text: `${mode} · ${_bandOf()}${snr} · « ${m.text} »` });
+    }
+  };
+  audio.onWsprSpots = (results) => {
+    if (!wsprMap) return;
+    for (const r of results) {
+      if (!r.callsign || !r.grid) continue;
+      wsprMap.add({ call: String(r.callsign).toUpperCase(), grid: r.grid, link: qrzUrl(r.callsign),
+        text: `WSPR · ${_bandOf()} · ${r.dbm} dBm · SNR ${Number(r.snr).toFixed(1)} dB` });
+    }
+  };
+  function js8Spot(m) {
+    if (!js8Map || !m) return;
+    const p = parseJs8(m.text);
+    if (p) js8Map.add({ call: p.call, grid: p.grid, link: qrzUrl(p.call), text: `JS8 · ${_bandOf()} · « ${m.text} »` });
+  }
+
   let paletteOpen = false;
   function closePalette() { paletteOpen = false; }
   const _gradCache = {};
@@ -5060,6 +5108,7 @@
       // Sink first, then enable: a slot could finish before the next statement.
       audio.onJS8Message = (m) => {
         js8Messages = [...js8Messages, m].slice(-200);
+        js8Spot(m);
         if (typeof audio.js8Pending === "function") js8Pending = audio.js8Pending();
       };
       audio.setJS8Submode(js8Submode);
@@ -11708,6 +11757,14 @@ Cliquez à nouveau pour désactiver"
                           id="farthest-distance">Farthest: 0 km</span
                         >
                       </div>
+                      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <KnownFreqSelect
+                          items={ft2Enabled ? [] : ft4Enabled ? FT4_DIALS : FT8_DIALS}
+                          on:tune={(e) => tuneDialUsb(e.detail.hz)}
+                        />
+                        <StationMap bind:this={ftxMap} homeLocator={siteGridSquare}
+                          title={(ft2Enabled ? "FT2" : ft4Enabled ? "FT4" : "FT8") + " — stations entendues"} />
+                      </div>
                       <FtxSpectrum {audio} />
                       <div
                         class="flex items-center gap-2 text-xs text-gray-300 mb-1"
@@ -11817,6 +11874,12 @@ Cliquez à nouveau pour désactiver"
                             100
                           ).toFixed(1)}%"
                         ></div>
+                      </div>
+
+                      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <KnownFreqSelect items={JS8_DIALS} on:tune={(e) => tuneDialUsb(e.detail.hz)} />
+                        <StationMap bind:this={js8Map} homeLocator={siteGridSquare}
+                          title="JS8 — stations entendues" dot={{ color: "#065f46", fillColor: "#34d399" }} />
                       </div>
 
                       <FtxSpectrum {audio} />
@@ -12009,6 +12072,11 @@ Cliquez à nouveau pour désactiver"
                           ></span>
                           WSPR-2 Decoder
                         </h4>
+                        <div class="flex flex-wrap items-center justify-between gap-2 w-full mt-1">
+                          <KnownFreqSelect items={WSPR_DIALS} on:tune={(e) => tuneDialUsb(e.detail.hz)} />
+                          <StationMap bind:this={wsprMap} homeLocator={siteGridSquare}
+                            title="WSPR — balises entendues" dot={{ color: "#1e3a8a", fillColor: "#60a5fa" }} />
+                        </div>
                         <!-- WSPR slot progress bar -->
                         <div
                           class="w-full mt-1 mb-2 h-2 rounded-full bg-gray-600 overflow-hidden"
@@ -14660,6 +14728,10 @@ Cliquez à nouveau pour désactiver"
     font-weight: 700;
     font-family: ui-monospace, Menlo, monospace;
     margin-bottom: 2px;
+  }
+  .aprs-popup-link {
+    display: inline-block; margin-top: 4px; font-weight: 600;
+    color: rgb(207, 181, 59); text-decoration: underline;
   }
   .aprs-popup-meta {
     margin-top: 4px;

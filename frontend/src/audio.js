@@ -5146,6 +5146,10 @@ _updateCTCSSGate(rawPcm) {
     // below.
     this._ftxAutoCalibrate(mode, decodedMessages || []);
 
+    // ORSAT : les messages décodés alimentent aussi la carte des stations.
+    if (typeof this.onFtxSpots === 'function' && decodedMessages && decodedMessages.length) {
+      try { this.onFtxSpots(mode, decodedMessages); } catch (e) { console.warn('[FTx] onFtxSpots', e); }
+    }
     const list = document.getElementById('ft8MessagesList');
     if (!list || !decodedMessages || decodedMessages.length === 0) return;
 
@@ -5889,6 +5893,10 @@ js8Pending() {
       .map(r => ({ hz: r.audioHz, snr: r.snr, text: r.callsign }));
     this._wsprSpec.seq++;
 
+    // ORSAT : les balises décodées alimentent aussi la carte des stations.
+    if (typeof this.onWsprSpots === 'function' && results && results.length) {
+      try { this.onWsprSpots(results); } catch (e) { console.warn('[WSPR] onWsprSpots', e); }
+    }
     const listDiv = document.getElementById('wsprMessagesList');
     if (!listDiv) return;
 
