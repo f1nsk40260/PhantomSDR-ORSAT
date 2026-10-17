@@ -9870,6 +9870,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         scale={spectrogramScale}
                         showMarkers={spectrogramMarkers}
                         showHistory={spectrogramHistory}
+                        baseKhz={frequency}
                         height={spectrogramHistory ? 280 : 200}
                       />
                     </div>

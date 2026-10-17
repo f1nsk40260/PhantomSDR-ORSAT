@@ -39,6 +39,47 @@
   export let occupied = null;
   /** ORSAT : historique défilant sous le spectre (désactivé par défaut). */
   export let showHistory = false;
+  /** ORSAT : fréquence de base du récepteur (kHz), affichée en clair. */
+  export let baseKhz = null;
+
+  // Fréquence de base et correspondance audio → RF.
+  $: base = Number(baseKhz);
+  $: hasBase = Number.isFinite(base) && base > 0;
+  $: modeU = String(mode || "").toUpperCase();
+  $: isCw = modeU.startsWith("CW");
+  $: symmetric = ["AM", "QUAM", "FM", "WBFM", "SAM"].includes(modeU);
+  /** Fréquence audio (Hz) de la fréquence de base : 0 Hz, ou la note CW. */
+  $: baseAudio = isCw ? 750 : 0;
+  export function fmtKhz(k) {
+    const [i, d] = Number(k).toFixed(3).split(".");
+    return i.replace(/\B(?=(\d{3})+(?!\d))/g, "\u202f") + "," + d;
+  }
+  function rfOf(a) {
+    if (!hasBase) return null;
+    if (symmetric) return null;
+    const off = a - baseAudio;
+    return base + (mirrored ? -off : off) / 1000;
+  }
+
+  // Lecture au survol de la souris.
+  let geo = null, hoverX = null, hover = null;
+  function onMove(e) {
+    if (!geo) return;
+    const r = canvas.getBoundingClientRect();
+    const x = (e.clientX - r.left) * dpr;
+    if (x < geo.left || x > geo.left + geo.pw) { onLeave(); return; }
+    hoverX = x;
+    const a = fOf(x, geo.lo, geo.hi, geo.left, geo.pw);
+    const rf = rfOf(a);
+    hover = {
+      px: e.clientX - r.left,
+      flip: e.clientX - r.left > r.width - 170,
+      audio: Math.round(a) + " Hz audio",
+      rf: rf != null ? fmtKhz(rf) + " kHz"
+        : hasBase && symmetric ? `${fmtKhz(base)} ± ${(a / 1000).toFixed(3).replace(".", ",")} kHz` : "",
+    };
+  }
+  function onLeave() { hoverX = null; hover = null; }
 
   let canvas, ctx, wrap;
   let audioContext, analyser, gainNode;
@@ -217,6 +258,7 @@
     const wfTop = top + specH + Math.round(2 * s);
     const wfH = H - wfTop;
     const [lo, hi] = range();
+    geo = { left, pw, lo, hi };
 
     analyser.getFloatFrequencyData(fdata);
     const binHz = (audioContext.sampleRate / analyser.fftSize) * frequencyCalibration;
@@ -345,6 +387,31 @@
       }
     }
 
+    // ── Fréquence de base : trait or à sa position audio ──
+    if (hasBase && baseAudio >= lo && baseAudio <= hi) {
+      const xb = Math.min(left + pw - s, Math.max(left + s, xOf(baseAudio, lo, hi, left, pw)));
+      ctx.strokeStyle = "rgba(207,181,59,0.95)";
+      ctx.lineWidth = 2 * s;
+      ctx.beginPath(); ctx.moveTo(xb, top); ctx.lineTo(xb, yBot); ctx.stroke();
+      const tag = (isCw ? "CW " : symmetric ? "Porteuse " : "Base ") + fmtKhz(base);
+      ctx.font = `bold ${Math.round(10 * s)}px monospace`;
+      ctx.textBaseline = "bottom";
+      const tw = ctx.measureText(tag).width + 8 * s;
+      const right = xb > left + pw / 2;
+      const tx = right ? xb - tw - 2 * s : xb + 3 * s;
+      const ty = top + Math.round(specH * 0.55);
+      ctx.fillStyle = "rgba(11,15,23,0.85)";
+      ctx.fillRect(tx, ty - 13 * s, tw, 13 * s);
+      ctx.fillStyle = "rgb(243,231,166)";
+      ctx.textAlign = "left";
+      ctx.fillText(tag, tx + 4 * s, ty - 1 * s);
+    }
+    if (hoverX != null) {
+      ctx.strokeStyle = "rgba(255,255,255,0.55)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(hoverX, top); ctx.lineTo(hoverX, yBot); ctx.stroke();
+    }
+
     // ── Graduations de fréquence ──
     if (showLabels) {
       ctx.fillStyle = "#0b0f17";
@@ -391,7 +458,20 @@
 </script>
 
 <div class="spg" bind:this={wrap}>
-  <canvas bind:this={canvas}></canvas>
+  {#if hasBase}
+    <div class="spg-base" title="Fréquence affichée par le récepteur ; le trait or la situe dans le spectre audio">
+      <span class="lbl">Fréquence de base</span>
+      <span class="val">{fmtKhz(base)} kHz</span>
+      <span class="mode">{modeU}</span>
+      <span class="hint">{isCw ? "note CW à 750 Hz audio" : symmetric ? "porteuse au centre, bandes latérales repliées" : mirrored ? "0 Hz audio = porteuse, fréquences RF décroissantes vers la droite" : "0 Hz audio = porteuse"}</span>
+    </div>
+  {/if}
+  <div class="spg-cv">
+    <canvas bind:this={canvas} on:mousemove={onMove} on:mouseleave={onLeave}></canvas>
+    {#if hover}
+      <div class="spg-tip" class:flip={hover.flip} style="left:{hover.px}px">{#if hover.rf}<b>{hover.rf}</b><br />{/if}{hover.audio}</div>
+    {/if}
+  </div>
   {#if occupied && occupied.text}
     <div class="spg-obw {occupied.status}">{occupied.text}</div>
   {/if}
@@ -399,6 +479,22 @@
 
 <style>
   .spg { width: 100%; }
+  .spg-base {
+    display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 4px;
+    padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(207, 181, 59, 0.45); background: rgba(207, 181, 59, 0.08);
+  }
+  .spg-base .lbl { font-size: 0.72rem; color: rgb(207, 181, 59); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .spg-base .val { font-family: monospace; font-size: 1.05rem; font-weight: 700; color: #f3e7a6; }
+  .spg-base .mode { font-size: 0.72rem; font-weight: 700; color: #0b0f17; background: rgb(207, 181, 59); border-radius: 3px; padding: 0 5px; }
+  .spg-base .hint { font-size: 0.68rem; color: #9ca3af; font-style: italic; }
+  .spg-cv { position: relative; }
+  .spg-tip {
+    position: absolute; top: 20px; transform: translateX(8px); pointer-events: none; white-space: nowrap;
+    font: 11px/1.3 monospace; color: #e5e7eb; background: rgba(11, 15, 23, 0.92);
+    border: 1px solid rgba(207, 181, 59, 0.6); border-radius: 4px; padding: 2px 6px; z-index: 2;
+  }
+  .spg-tip.flip { transform: translateX(calc(-100% - 8px)); }
+  .spg-tip b { color: #f3e7a6; }
   .spg-obw { margin-top: 4px; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; }
   .spg-obw.ok { color: #86efac; border-color: rgba(134, 239, 172, 0.35); background: rgba(22, 101, 52, 0.15); }
   .spg-obw.wide { color: #fcd34d; border-color: rgba(252, 211, 77, 0.4); background: rgba(146, 64, 14, 0.18); }
