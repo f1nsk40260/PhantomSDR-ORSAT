@@ -58,7 +58,7 @@ En haut de l'analyseur, un bandeau rappelle :
 - le **mode** dans une pastille dorée ;
 - une courte explication : « 0 Hz audio = porteuse » en USB, l'axe inversé en LSB, la note à 750 Hz en CW, la vue RF en AM et FM.
 
-À droite, le bouton **🔊 Couper le son** coupe le son du récepteur. Il passe en rouge, **🔇 Son coupé**, tant que le son est coupé. C'est le même réglage que le bouton muet du récepteur : les deux restent synchronisés.
+À droite, le bouton **🔊 Couper le son** coupe le son du récepteur. Il passe en rouge, **🔇 Son coupé**, tant que le son est coupé. C'est le même réglage que le bouton muet du récepteur : les deux restent synchronisés. Si le son a été coupé depuis ce bouton, il **revient automatiquement à la fermeture de l'analyseur**.
 
 # 4. Lire le spectre en USB
 
@@ -145,7 +145,7 @@ En USB et LSB, l'encadré **BILAN AUDIO SSB** analyse la modulation sur les **20
 
 ## 8.2 La référence tonale
 
-Le menu **Référence** choisit la courbe tonale à laquelle on compare la voix :
+La rangée de boutons **Juger la voix par rapport à :**, en tête du bilan, choisit la courbe tonale à laquelle on compare la voix ; le bouton doré est la référence active :
 
 | Référence | Graves / médium | Présence / médium | Pour quel usage |
 | SSB standard | −13 dB | −10 dB | Trafic courant, filtre 300–2700 Hz |

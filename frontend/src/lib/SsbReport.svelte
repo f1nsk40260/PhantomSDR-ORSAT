@@ -32,9 +32,12 @@
   const WINDOW = 200;                 // 20 s à 10 mesures / s
   const STEP = 50, NB = 80;           // spectre moyen : 80 cases de 50 Hz
   const REFS = {
-    std:  { name: "SSB standard", bass: -13, pres: -10 },
-    dx:   { name: "DX / punch",   bass: -16, pres: -6 },
-    essb: { name: "ESSB / hi-fi", bass: -3,  pres: -12 },
+    std:  { name: "SSB standard", bass: -13, pres: -10, desc: "trafic courant, filtre 300–2700 Hz",
+            tip: "Référence pour le trafic courant : voix équilibrée dans un filtre 300–2700 Hz" },
+    dx:   { name: "DX / punch",   bass: -16, pres: -6, desc: "présence renforcée pour percer dans le bruit",
+            tip: "Référence DX : peu de graves, présence renforcée pour être lisible dans le bruit" },
+    essb: { name: "ESSB / hi-fi", bass: -3,  pres: -12, desc: "large bande, graves conservés",
+            tip: "Référence ESSB : modulation large bande et hi-fi, graves conservés" },
   };
   let refKey = "std";
   const ROWS = [
@@ -358,12 +361,6 @@ ${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src
   <div class="sr">
     <div class="sr-head">
       <span class="sr-title">Bilan audio SSB</span>
-      <label class="sr-ref" title="Courbe tonale de référence : une émission DX renforce la présence, l'ESSB garde des graves">
-        <span>Référence</span>
-        <select bind:value={refKey} on:change={compute}>
-          {#each Object.entries(REFS) as [k, r]}<option value={k}>{r.name}</option>{/each}
-        </select>
-      </label>
       <span style="flex:1"></span>
       <button class="sr-btn" on:click={memorize} disabled={!rep || !ltas}
         title="Mémoriser la courbe actuelle (pointillés) pour la comparer après un réglage du correspondant">Mémoriser A</button>
@@ -373,6 +370,16 @@ ${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src
         title="Télécharger un rapport d'écoute complet (fichier HTML à envoyer au correspondant) : bilan, image du spectre et les 20 dernières secondes de son">{building ? "…" : "🎧 Générer un rapport d'écoute"}</button>
     </div>
 
+    <div class="sr-refbar">
+      <span class="sr-reflbl">Juger la voix par rapport à :</span>
+      <div class="sr-seg" role="radiogroup" aria-label="Référence tonale">
+        {#each Object.entries(REFS) as [k, r]}
+          <button role="radio" aria-checked={refKey === k} class:on={refKey === k}
+            on:click={() => { refKey = k; compute(); }} title={r.tip}>{r.name}</button>
+        {/each}
+      </div>
+      <span class="sr-refdesc">{REFS[refKey].desc}</span>
+    </div>
     <table class="sr-tab">
       <colgroup><col style="width:18px" /><col style="width:11.5rem" /><col style="width:12rem" /><col /></colgroup>
       {#each ROWS as row (row.key)}
@@ -407,8 +414,16 @@ ${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src
   .sr { margin-top: 6px; padding: 6px 8px; border-radius: 5px; border: 1px solid rgba(207, 181, 59, 0.45); background: #111827; background-image: linear-gradient(rgba(207, 181, 59, 0.06), rgba(207, 181, 59, 0.06)); position: relative; z-index: 1; }
   .sr-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 4px; }
   .sr-title { font-size: 0.78rem; font-weight: 700; color: rgb(207, 181, 59); text-transform: uppercase; letter-spacing: 0.05em; }
-  .sr-ref { display: flex; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: #9ca3af; }
-  .sr-ref select { font-size: 0.7rem; padding: 0 0.3rem; background: #111827; color: #f3e7a6; border: 1px solid rgba(207, 181, 59, 0.5); border-radius: 3px; }
+  .sr-refbar { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin: 2px 0 6px; padding: 5px 8px;
+    border-radius: 5px; background: rgba(207, 181, 59, 0.08); border: 1px solid rgba(207, 181, 59, 0.35); }
+  .sr-reflbl { font-size: 0.74rem; font-weight: 700; color: rgb(207, 181, 59); }
+  .sr-seg { display: inline-flex; border: 1px solid rgba(207, 181, 59, 0.6); border-radius: 0.4rem; overflow: hidden; }
+  .sr-seg button { font-size: 0.74rem; font-weight: 700; padding: 0.2rem 0.75rem; color: #d1d5db; background: rgba(0, 0, 0, 0.3);
+    border-right: 1px solid rgba(207, 181, 59, 0.4); cursor: pointer; }
+  .sr-seg button:last-child { border-right: 0; }
+  .sr-seg button:hover { background: rgba(207, 181, 59, 0.15); color: #f3e7a6; }
+  .sr-seg button.on { color: #0b0f17; background: linear-gradient(180deg, rgb(226, 201, 90), rgb(176, 150, 40)); }
+  .sr-refdesc { font-size: 0.7rem; color: #9ca3af; font-style: italic; }
   .sr-btn {
     font-size: 0.68rem; padding: 0.1rem 0.5rem; border-radius: 0.3rem; font-weight: 600; white-space: nowrap;
     color: #d1d5db; border: 1px solid #ffffff40; background: rgba(0, 0, 0, 0.25);

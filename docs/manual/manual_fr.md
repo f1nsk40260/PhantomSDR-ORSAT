@@ -447,7 +447,7 @@ En **USB** et **LSB**, un encadré **Bilan audio SSB** analyse la modulation sur
 | Bande opposée | Énergie de l'autre bande latérale ; une autre station présente est signalée (QRM) |
 | Largeur occupée | Reprise de la mesure de splatter |
 
-- **Référence** — **SSB standard**, **DX / punch** (présence renforcée) ou **ESSB / hi-fi** (graves conservés) : l'équilibre est jugé par rapport à ce choix.
+- **Juger la voix par rapport à :** — **SSB standard**, **DX / punch** (présence renforcée) ou **ESSB / hi-fi** (graves conservés) : l'équilibre est jugé par rapport à ce choix.
 - **Courbe bleue « voix moyenne »** — forme moyenne de la voix, tracée sur le spectre.
 - **Mémoriser A** — fige cette courbe en pointillés blancs : le correspondant modifie son réglage et l'on compare l'avant et l'après (écarts des graves et de la présence affichés). **Effacer A** la retire.
 - **↺ Recommencer** — repart de zéro (fait aussi automatiquement au changement de fréquence ou de mode).

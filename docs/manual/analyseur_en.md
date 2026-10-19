@@ -58,7 +58,7 @@ At the top of the analyser, a banner shows:
 - the **mode** in a gold badge;
 - a short explanation: “0 Hz audio = carrier” in USB, the reversed axis in LSB, the 750 Hz note in CW, the RF view in AM and FM.
 
-On the right, the **🔊 Mute** button mutes the receiver. It turns red, **🔇 Muted**, while the sound is off. It is the same setting as the receiver's mute button: the two stay in step.
+On the right, the **🔊 Mute** button mutes the receiver. It turns red, **🔇 Muted**, while the sound is off. It is the same setting as the receiver's mute button: the two stay in step. If the sound was muted from this button, it **comes back automatically when the analyser is closed**.
 
 # 4. Reading the spectrum in USB
 
@@ -145,7 +145,7 @@ In USB and LSB, the **SSB AUDIO REPORT** box analyses the modulation over the **
 
 ## 8.2 The tonal reference
 
-The **Reference** menu chooses the tonal curve the voice is compared with:
+The row of buttons **Judge the voice against:**, at the top of the report, chooses the tonal curve the voice is compared with; the gold button is the active reference:
 
 | Reference | Bass / mid | Presence / mid | Intended use |
 | Standard SSB | −13 dB | −10 dB | Everyday operating, 300–2700 Hz filter |

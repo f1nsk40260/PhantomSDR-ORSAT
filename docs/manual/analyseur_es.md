@@ -58,7 +58,7 @@ En la parte superior del analizador, una franja recuerda:
 - el **modo** en una pastilla dorada;
 - una breve explicación: «0 Hz audio = portadora» en USB, el eje invertido en LSB, la nota de 750 Hz en CW, la vista RF en AM y FM.
 
-A la derecha, el botón **🔊 Silenciar** corta el sonido del receptor. Pasa a rojo, **🔇 Silenciado**, mientras el sonido está cortado. Es el mismo ajuste que el botón de silencio del receptor: ambos quedan sincronizados.
+A la derecha, el botón **🔊 Silenciar** corta el sonido del receptor. Pasa a rojo, **🔇 Silenciado**, mientras el sonido está cortado. Es el mismo ajuste que el botón de silencio del receptor: ambos quedan sincronizados. Si el sonido se cortó desde este botón, **vuelve automáticamente al cerrar el analizador**.
 
 # 4. Leer el espectro en USB
 
@@ -145,7 +145,7 @@ En USB y LSB, el recuadro **INFORME DE AUDIO SSB** analiza la modulación durant
 
 ## 8.2 La referencia tonal
 
-El menú **Referencia** elige la curva tonal con la que se compara la voz:
+La fila de botones **Juzgar la voz respecto a:**, al principio del informe, elige la curva tonal con la que se compara la voz; el botón dorado es la referencia activa:
 
 | Referencia | Graves / medios | Presencia / medios | Para qué uso |
 | SSB estándar | −13 dB | −10 dB | Tráfico habitual, filtro 300–2700 Hz |

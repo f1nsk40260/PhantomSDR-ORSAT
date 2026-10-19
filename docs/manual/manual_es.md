@@ -447,7 +447,7 @@ En **USB** y **LSB**, un recuadro **Informe de audio SSB** analiza la modulació
 | Banda opuesta | Energía de la otra banda lateral; se indica si la ocupa otra estación (QRM) |
 | Ancho ocupado | La medida de splatter |
 
-- **Referencia** — **SSB estándar**, **DX / punch** (presencia reforzada) o **ESSB / hi-fi** (graves conservados): el equilibrio se juzga respecto a esta elección.
+- **Juzgar la voz respecto a:** — **SSB estándar**, **DX / punch** (presencia reforzada) o **ESSB / hi-fi** (graves conservados): el equilibrio se juzga respecto a esta elección.
 - **Curva azul «voz media»** — forma media de la voz, trazada sobre el espectro.
 - **Memorizar A** — fija esta curva en puntos blancos: el corresponsal modifica su ajuste y se compara el antes y el después (diferencias de graves y presencia mostradas). **Borrar A** la quita.
 - **↺ Reiniciar** — vuelve a empezar (también automáticamente al cambiar de frecuencia o de modo).

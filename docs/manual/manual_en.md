@@ -447,7 +447,7 @@ In **USB** and **LSB**, an **SSB audio report** box analyses the modulation over
 | Opposite sideband | Energy in the other sideband; another station there is reported (QRM) |
 | Occupied bandwidth | The splatter measurement |
 
-- **Reference** — **standard SSB**, **DX / punch** (boosted presence) or **ESSB / hi-fi** (bass kept): the balance is judged against this choice.
+- **Judge the voice against:** — **standard SSB**, **DX / punch** (boosted presence) or **ESSB / hi-fi** (bass kept): the balance is judged against this choice.
 - **Blue “average voice” curve** — the average shape of the voice, drawn on the spectrum.
 - **Store A** — freezes this curve as a white dotted line: the other station changes its settings and you compare before and after (bass and presence differences shown). **Clear A** removes it.
 - **↺ Restart** — starts again from scratch (also done automatically when frequency or mode changes).

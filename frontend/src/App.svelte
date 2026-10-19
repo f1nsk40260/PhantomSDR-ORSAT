@@ -1143,6 +1143,9 @@
         spectrogramComponent.stop();
       }
       audio.setSpectrogramEnabled(false);
+      // ORSAT : le son coupé depuis l'analyseur (anti-Larsen) revient à sa fermeture.
+      if (mute && muteByAnalyser) handleMuteChange();
+      muteByAnalyser = false;
     }
   }
 
@@ -5842,6 +5845,8 @@
   }
 
   let mute = false;
+  let muteByAnalyser = false;   // ORSAT : son coupé depuis le bouton de l'analyseur audio
+  $: if (!mute) muteByAnalyser = false;
   let volume = 50;
   let squelchEnable;
   let squelch = -50;
@@ -9897,7 +9902,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         ltas={spectroLtas}
                         ltasRef={spectroLtasRef}
                         muted={mute}
-                        on:togglemute={handleMuteChange}
+                        on:togglemute={() => { handleMuteChange(); muteByAnalyser = mute; }}
                       />
                       <SsbReport
                         spectro={spectrogramComponent}
