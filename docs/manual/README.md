@@ -17,3 +17,15 @@ python3 docs/manual/build_manual.py fr       # une seule
 
 puis reconstruire le frontend pour que le site serve les nouveaux PDF.
 La syntaxe des sources est décrite en tête de `build_manual.py`.
+
+## Guide de l'analyseur audio
+
+`analyseur_fr.md`, `analyseur_en.md`, `analyseur_es.md` produisent
+`guideAnalyseurFR.pdf`, `guideAnalyseurEN.pdf`, `guideAnalyseurES.pdf`
+(ouverts depuis la rubrique « Guide de l'analyseur audio » du menu Informations).
+Les images `images/analyseur_*.jpg` sont des captures de l'analyseur alimenté
+par un signal de démonstration (voix synthétique).
+
+```
+python3 docs/manual/build_manual.py analyseur_fr.md
+```

@@ -56,7 +56,7 @@
   let aud = [], rf = [];
   let nb = { b: null, m: null, p: null };   // plancher de bruit audio par bande (dB)
   let rep = null, A = null;
-  let impHold = 0;
+  let impHold = 0, warm = 0;
   let timer = null, tick = 0, lastBase = null, lastMode = "";
 
   $: if (active && !timer) timer = setInterval(sample, 100);
@@ -73,7 +73,7 @@
   }
 
   export function reset() {
-    aud = []; rf = []; nb = { b: null, m: null, p: null }; rep = null; ltas = null; held = {}; impHold = 0;
+    aud = []; rf = []; nb = { b: null, m: null, p: null }; rep = null; ltas = null; held = {}; impHold = 0; warm = 0;
   }
 
   const db = (p) => 10 * Math.log10(Math.max(p, 1e-20));
@@ -81,7 +81,7 @@
   const pct = (a, q) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(q * s.length))]; };
   function track(prev, v) {             // plancher : descend vite, remonte lentement
     if (prev == null || v < prev) return v;
-    return prev + Math.min(0.08, v - prev);
+    return prev + Math.min(0.25, v - prev);           // ~2,5 dB/s
   }
 
   function bandPow(f, binHz, f0, f1) {
@@ -106,6 +106,11 @@
       const { f, t, binHz } = s;
       const pb = bandPow(f, binHz, 100, 300), pm = bandPow(f, binHz, 300, 1500), pp = bandPow(f, binHz, 1500, 2700);
       const lb = db(pb), lm = db(pm), lp = db(pp);
+      // Pas encore de son (analyseur vide, −∞ dB) : on ignore la trame, sinon le
+      // plancher de bruit tombe à −200 dB et tout passe ensuite pour de la voix.
+      if (!(lm > -160)) { tick++; return; }
+      // 2 s de mise en route : le plancher de bruit s'installe, l'analyseur se remplit.
+      if (++warm < 20) { nb = { b: track(nb.b, lb), m: track(nb.m, lm), p: track(nb.p, lp) }; tick++; return; }
       nb = { b: track(nb.b, lb), m: track(nb.m, lm), p: track(nb.p, lp) };
       // Parasites statiques (claquements) : très brefs et à spectre plat.
       // Fenêtre de l'analyseur découpée en tranches de 128 échantillons (~ 11 ms) :
@@ -118,12 +123,15 @@
       const bmed = Math.max(sorted[nbk >> 1], 1e-12), bmax = sorted[nbk - 1];
       const burst = db(bmax / bmed), nHigh = sorted.filter((v) => v > bmed * 10).length;
       const flat = lp - lm;
-      if ((burst > 12 && nHigh <= 4) || (flat > -4 && burst > 8)) impHold = 4;   // + traîne du lissage
+      // Les deux critères ensemble : bref ET plat. Une fin de phrase avant un
+      // silence est brève aussi, mais garde le spectre penché de la voix.
+      const hit = flat > -6 && (burst > 8 || nHigh <= 4 && burst > 6);
+      if (hit) impHold = 4;                              // + traîne du lissage de l'analyseur
       const imp = impHold > 0; if (impHold > 0) impHold--;
       const speech = !imp && lm > nb.m + 9;
       // Puissances débarrassées du bruit de fond
       const clean = (p, n) => Math.max(0, p - Math.pow(10, n / 10));
-      const fr = { sp: speech, imp: imp && lm > nb.m + 9, snr: lm - nb.m };
+      const fr = { sp: speech, imp: hit && lm > nb.m + 9, snr: lm - nb.m };
       if (speech) {
         fr.b = clean(pb, nb.b); fr.m = clean(pm, nb.m); fr.p = clean(pp, nb.p);
         // Facteur de crête sur la fenêtre de l'analyseur (~ 340 ms : une syllabe ou deux)

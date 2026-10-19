@@ -410,9 +410,11 @@ Le bouton **📊 Show / Hide** de l'**Analyseur audio**, dans la colonne de droi
 
 L'affichage s'adapte tout seul au mode : spectre audio en USB, LSB et CW ; **vue RF** en AM et FM.
 
+> [Astuce] Un guide détaillé et illustré de l'analyseur audio est disponible dans le menu « Informations », rubrique **Guide de l'analyseur audio**.
+
 ## 11.1 Fréquence de base et lecture au survol
 
-- Un bandeau rappelle en clair la **fréquence de base** (celle du cadran) et le mode.
+- Un bandeau rappelle en clair la **fréquence de base** (celle du cadran) et le mode ; à droite, le bouton **Couper le son** coupe le son du récepteur sans arrêter l'analyse.
 - Un **trait or** la situe dans le spectre : à 0 Hz audio en SSB (la porteuse supprimée), sur la note à 750 Hz en CW.
 - Au **survol de la souris**, une bulle donne la **fréquence RF exacte** du point visé et sa fréquence audio.
 - En **LSB**, l'axe est **inversé** (aigus à gauche) pour suivre le sens du spectre RF ; la mention « LSB : axe inversé » le rappelle.
@@ -449,7 +451,7 @@ En **USB** et **LSB**, un encadré **Bilan audio SSB** analyse la modulation sur
 - **Courbe bleue « voix moyenne »** — forme moyenne de la voix, tracée sur le spectre.
 - **Mémoriser A** — fige cette courbe en pointillés blancs : le correspondant modifie son réglage et l'on compare l'avant et l'après (écarts des graves et de la présence affichés). **Effacer A** la retire.
 - **↺ Recommencer** — repart de zéro (fait aussi automatiquement au changement de fréquence ou de mode).
-- **📋 Copier le rapport** — copie le bilan en une ligne, prête à envoyer au correspondant.
+- **🎧 Générer un rapport d'écoute** — télécharge un fichier HTML à envoyer au correspondant : fréquence, mode, verdicts, image du spectre et les 20 dernières secondes de son (WAV).
 - Les **parasites statiques** (claquements brefs à spectre plat) sont écartés ; leur proportion est indiquée lorsqu'elle dépasse 10 %.
 
 > [Astuce] Un opérateur peut analyser sa propre émission : il s'écoute sur ORSAT en coupant le son (bouton muet), pour ne pas renvoyer l'audio dans son micro, et lit son bilan.

@@ -410,9 +410,11 @@ The **📊 Show / Hide** button of the **Audio analyser**, in the right-hand col
 
 The display adapts to the mode by itself: audio spectrum in USB, LSB and CW; **RF view** in AM and FM.
 
+> [Tip] A detailed, illustrated guide to the audio analyser is available in the “Information” menu, under **Audio analyser guide**.
+
 ## 11.1 Base frequency and hover readout
 
-- A banner shows the **base frequency** (the dial frequency) and the mode in plain text.
+- A banner shows the **base frequency** (the dial frequency) and the mode in plain text; on the right, the **Mute** button mutes the receiver without stopping the analysis.
 - A **gold line** marks it in the spectrum: at 0 Hz audio in SSB (the suppressed carrier), on the 750 Hz note in CW.
 - **Hovering with the mouse** shows the **exact RF frequency** of the point and its audio frequency.
 - In **LSB** the axis is **reversed** (treble on the left) to follow the RF spectrum; the note “LSB: axis reversed” recalls it.
@@ -449,7 +451,7 @@ In **USB** and **LSB**, an **SSB audio report** box analyses the modulation over
 - **Blue “average voice” curve** — the average shape of the voice, drawn on the spectrum.
 - **Store A** — freezes this curve as a white dotted line: the other station changes its settings and you compare before and after (bass and presence differences shown). **Clear A** removes it.
 - **↺ Restart** — starts again from scratch (also done automatically when frequency or mode changes).
-- **📋 Copy report** — copies the report as one line, ready to send to the other station.
+- **🎧 Generate a listening report** — downloads an HTML file to send to the other station: frequency, mode, verdicts, spectrum image and the last 20 seconds of audio (WAV).
 - **Static crashes** (short, flat-spectrum clicks) are discarded; their share is shown when it exceeds 10 %.
 
 > [Tip] An operator can analyse their own transmission: listen to yourself on ORSAT with the sound muted, so as not to feed the audio back into the microphone, and read the report.

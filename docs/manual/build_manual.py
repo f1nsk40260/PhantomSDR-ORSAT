@@ -4,15 +4,16 @@ build_manual.py — génère les manuels utilisateur PDF de PhantomSDR-ORSAT
 (frontend/src/assets/docs/manualFR.pdf, manualEN.pdf, manualES.pdf)
 à partir des sources éditables manual_fr.md, manual_en.md, manual_es.md.
 
-Usage :  python3 docs/manual/build_manual.py          (les trois langues)
-         python3 docs/manual/build_manual.py fr       (une seule)
+Usage :  python3 docs/manual/build_manual.py          (tout : manuels + guides de l'analyseur)
+         python3 docs/manual/build_manual.py fr       (un seul manuel)
+         python3 docs/manual/build_manual.py analyseur_fr.md   (un guide de l'analyseur audio)
 Dépendance : reportlab (pip install reportlab), polices DejaVu.
 
 Syntaxe des sources (volontairement minimale) :
   ---  bloc d'en-tête « clé: valeur » (titre, sous-titre, en-têtes…)  ---
   # 1. Titre de chapitre            ## 1.1 Sous-titre
   Paragraphe, avec **gras** et *italique*.
-  - puce
+  - puce          1. élément de liste numérotée
   > [Astuce] texte d'un encadré vert
   ![légende](images/x.jpg){w=410}          image centrée (largeur en points)
   ![légende](images/x.jpg){w=200,side}     image à gauche, la liste qui suit à droite
@@ -210,7 +211,15 @@ def table(rows, width):
     head = [Paragraph(inline(c), S["cellh"]) for c in rows[0]]
     body = [[Paragraph(inline(c), S["cell"]) for c in r] for r in rows[1:]]
     n = len(rows[0])
-    cw = [width * 0.22, width * 0.33, width * 0.45] if n == 3 else [width * 0.3, width * 0.7]
+    if n == 3:
+        cw = [width * 0.22, width * 0.33, width * 0.45]
+    elif n == 2:
+        cw = [width * 0.3, width * 0.7]
+    else:   # 4 colonnes et plus : la 2e (souvent la description) prend la place restante
+        rest = width * 0.18 * (n - 2)
+        cw = [width * 0.2, width - width * 0.2 - rest] + [width * 0.18] * (n - 2)
+        if cw[1] < width * 0.2:
+            cw = [width / n] * n
     t = Table([head] + body, colWidths=cw, repeatRows=1)
     t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), TBL_HEAD), ("GRID", (0, 0), (-1, -1), 0.5, TBL_LINE),
                            ("VALIGN", (0, 0), (-1, -1), "TOP"), ("TOPPADDING", (0, 0), (-1, -1), 3),
@@ -237,7 +246,7 @@ def story_for(meta, txt, width):
     story += [Spacer(1, 20 * mm), Paragraph(meta["title"], S["title"]), Spacer(1, 6),
               Paragraph(meta["subtitle"], S["subtitle"]), Paragraph(meta["url"], S["subtitle"]), Spacer(1, 4),
               GoldRule(width * 0.45), Spacer(1, 10)]
-    cov = HERE / "images" / "cover.jpg"
+    cov = HERE / "images" / meta.get("cover", "cover.jpg")
     if cov.is_file():
         story += [image(cov, 300, width, 105 * mm), Paragraph(meta.get("cover_caption", ""), S["caption"])]
     story += [Spacer(1, 6), Paragraph(meta.get("summary", ""), S["cover"]), Spacer(1, 8),
@@ -342,6 +351,16 @@ def story_for(meta, txt, width):
                 i += 1
             story.append(bullets(items))
             continue
+        if re.match(r"\d+\. ", ln):                      # liste numérotée « 1. … »
+            flush()
+            items = []
+            while i < n and re.match(r"\d+\. ", lines[i]):
+                items.append(lines[i].split(". ", 1)[1].strip())
+                i += 1
+            story.append(ListFlowable([ListItem(Paragraph(inline(t), S["bullet"]), leftIndent=16) for t in items],
+                                      bulletType="1", leftIndent=16, bulletFontName="DejaVuSans",
+                                      bulletFontSize=9, spaceAfter=6))
+            continue
         para.append(ln.strip())
         i += 1
     flush()
@@ -349,7 +368,9 @@ def story_for(meta, txt, width):
 
 
 def build(lang):
-    meta, txt = parse(HERE / ("manual_%s.md" % lang))
+    # « fr » → manual_fr.md ; un nom de fichier .md (ex. analyseur_fr.md) est pris tel quel.
+    src = HERE / lang if lang.endswith(".md") else HERE / ("manual_%s.md" % lang)
+    meta, txt = parse(src)
     out = OUT / meta["pdf"]
     doc = Doc(out, meta)
     doc.multiBuild(story_for(meta, txt, doc.width))
@@ -359,5 +380,5 @@ def build(lang):
 if __name__ == "__main__":
     register_fonts()
     styles()
-    for lang in (sys.argv[1:] or ["fr", "en", "es"]):
+    for lang in (sys.argv[1:] or ["fr", "en", "es", "analyseur_fr.md", "analyseur_en.md", "analyseur_es.md"]):
         build(lang)

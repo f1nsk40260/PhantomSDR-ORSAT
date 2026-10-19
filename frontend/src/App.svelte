@@ -8,6 +8,9 @@
   import manualFRUrl from "./assets/docs/manualFR.pdf";
   import manualENUrl from "./assets/docs/manualEN.pdf";
   import manualESUrl from "./assets/docs/manualES.pdf";
+  import guideAnalyseurFRUrl from "./assets/docs/guideAnalyseurFR.pdf";
+  import guideAnalyseurENUrl from "./assets/docs/guideAnalyseurEN.pdf";
+  import guideAnalyseurESUrl from "./assets/docs/guideAnalyseurES.pdf";
 
   // ── Variant selection ────────────────────────────────────────────────────
   //
@@ -9624,6 +9627,25 @@
                       🇪🇸 Manual de Usuario
                     </button>
                    </div>
+
+                  <div style="font-weight: bold; text-align: center; margin-top: 14px;">🎧 GUIDE DE L'ANALYSEUR AUDIO</div>
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 6px;">
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideAnalyseurFRUrl, "Guide de l'analyseur audio")}
+                      title="Ouvrir le guide détaillé de l'analyseur audio en français"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇫🇷 Guide de l'analyseur</button>
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideAnalyseurENUrl, "Audio analyser guide")}
+                      title="Open the detailed audio analyser guide in English"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇬🇧 Audio analyser guide</button>
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideAnalyseurESUrl, "Guía del analizador de audio")}
+                      title="Abrir la guía detallada del analizador de audio en español"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇪🇸 Guía del analizador</button>
+                  </div>
                 </div>
                    
             </div>

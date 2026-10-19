@@ -410,9 +410,11 @@ El botón **📊 Show / Hide** del **Analizador de audio**, en la columna derech
 
 La visualización se adapta sola al modo: espectro de audio en USB, LSB y CW; **vista RF** en AM y FM.
 
+> [Consejo] En el menú «Información», apartado **Guía del analizador de audio**, hay una guía detallada e ilustrada del analizador.
+
 ## 11.1 Frecuencia base y lectura al pasar el ratón
 
-- Una franja recuerda claramente la **frecuencia base** (la del dial) y el modo.
+- Una franja recuerda claramente la **frecuencia base** (la del dial) y el modo; a la derecha, el botón **Silenciar** corta el sonido del receptor sin detener el análisis.
 - Una **línea dorada** la sitúa en el espectro: en 0 Hz de audio en SSB (la portadora suprimida), sobre la nota de 750 Hz en CW.
 - Al **pasar el ratón**, una burbuja da la **frecuencia RF exacta** del punto y su frecuencia de audio.
 - En **LSB** el eje está **invertido** (agudos a la izquierda) para seguir el sentido del espectro RF; la mención «LSB: eje invertido» lo recuerda.
@@ -449,7 +451,7 @@ En **USB** y **LSB**, un recuadro **Informe de audio SSB** analiza la modulació
 - **Curva azul «voz media»** — forma media de la voz, trazada sobre el espectro.
 - **Memorizar A** — fija esta curva en puntos blancos: el corresponsal modifica su ajuste y se compara el antes y el después (diferencias de graves y presencia mostradas). **Borrar A** la quita.
 - **↺ Reiniciar** — vuelve a empezar (también automáticamente al cambiar de frecuencia o de modo).
-- **📋 Copiar informe** — copia el informe en una línea, listo para enviar al corresponsal.
+- **🎧 Generar un informe de escucha** — descarga un archivo HTML para enviar al corresponsal: frecuencia, modo, veredictos, imagen del espectro y los últimos 20 segundos de audio (WAV).
 - Los **parásitos estáticos** (chasquidos breves de espectro plano) se descartan; su proporción se indica cuando supera el 10 %.
 
 > [Consejo] Un operador puede analizar su propia emisión: se escucha en ORSAT con el sonido silenciado, para no devolver el audio al micrófono, y lee su informe.
