@@ -58,7 +58,6 @@
   let rep = null, A = null;
   let impHold = 0;
   let timer = null, tick = 0, lastBase = null, lastMode = "";
-  let copied = false;
 
   $: if (active && !timer) timer = setInterval(sample, 100);
   $: if (!active && timer) { clearInterval(timer); timer = null; reset(); }
@@ -345,16 +344,6 @@ ${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src
     } finally { building = false; }
   }
 
-  async function copy() {
-    if (!rep) return;
-    const parts = [`${fmtKhz(baseKhz)} kHz ${m}`];
-    if (rep.ready) parts.push(`réf. ${REFS[refKey].name}`);
-    for (const row of ROWS) { const r = held[row.key]; if (r && r.lvl !== "na") parts.push(`${r.label} : ${r.txt}${r.val ? " (" + r.val + ")" : ""}`); }
-    const txt = "Bilan audio ORSAT — " + parts.join(" · ");
-    try { await navigator.clipboard.writeText(txt); }
-    catch (e) { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
-    copied = true; setTimeout(() => (copied = false), 1800);
-  }
 </script>
 
 {#if active}
@@ -372,10 +361,8 @@ ${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src
         title="Mémoriser la courbe actuelle (pointillés) pour la comparer après un réglage du correspondant">Mémoriser A</button>
       <button class="sr-btn" on:click={forgetA} disabled={!A} title="Effacer la courbe A">Effacer A</button>
       <button class="sr-btn" on:click={reset} title="Recommencer l'analyse (fenêtre de 20 s)">↺ Recommencer</button>
-      <button class="sr-btn gold copy" on:click={copy} disabled={!Object.keys(held).length}
-        title="Copier le bilan en une ligne, à envoyer au correspondant">{copied ? "✓ Copié" : "📋 Copier le rapport"}</button>
       <button class="sr-btn gold" on:click={fullReport} disabled={building || !Object.keys(held).length}
-        title="Télécharger un rapport d'écoute complet (fichier HTML à envoyer au correspondant) : bilan, image du spectre et les 20 dernières secondes de son">{building ? "…" : "🎧 Rapport avec son"}</button>
+        title="Télécharger un rapport d'écoute complet (fichier HTML à envoyer au correspondant) : bilan, image du spectre et les 20 dernières secondes de son">{building ? "…" : "🎧 Générer un rapport d'écoute"}</button>
     </div>
 
     <table class="sr-tab">
@@ -427,7 +414,6 @@ ${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src
   }
   .sr-line .weak { color: #fcd34d; }
   .sr-line .imp { color: #fcd34d; margin-left: auto; }
-  .sr-btn.copy { min-width: 9.5rem; }
   .num { font-family: monospace; font-style: normal; color: #d1d5db; }
   .sr-tab { width: 100%; border-collapse: collapse; font-size: 0.74rem; table-layout: fixed; }
   .sr-tab td { padding: 2px 6px; height: 1.35rem; border-top: 1px solid rgba(255, 255, 255, 0.06); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

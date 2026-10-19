@@ -14002,7 +14002,7 @@ Cliquez à nouveau pour désactiver"
                   <!-- SPECTROGRAMME -->
                   <div class="w-full mb-4">
                     <h3
-                      class="text-white text-base font-semibold text-center mb-2"
+                      class="text-white text-base font-semibold text-center mb-2 uppercase tracking-wide"
                     >
                       Analyseur audio
                     </h3>
