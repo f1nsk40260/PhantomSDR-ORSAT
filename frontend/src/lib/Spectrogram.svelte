@@ -46,6 +46,8 @@
   export let ltasRef = null;
   /** ORSAT : (centreHz, demiLargeurHz) => tranche RF de la cascade (vue RF AM/FM). */
   export let rfSlice = null;
+  /** ORSAT : état du bouton muet du récepteur (affiché dans le bandeau). */
+  export let muted = false;
 
   // Vue RF automatique en AM / FM : l'audio démodulé n'a plus de porteuse
   // (elle passe à 0 Hz), on montre donc la station telle qu'elle est en RF,
@@ -165,8 +167,31 @@
     return audioContext;
   }
 
+  // ORSAT : mémoire des 30 dernières secondes d'audio brut (rapport avec son).
+  const REC_S = 30;
+  let rec = null, recPos = 0, recFill = 0;
+  function remember(pcm) {
+    const sr = audioContext.sampleRate;
+    if (!rec || rec.length !== REC_S * sr) { rec = new Float32Array(REC_S * sr); recPos = 0; recFill = 0; }
+    for (let i = 0; i < pcm.length; i++) { rec[recPos] = pcm[i]; recPos = (recPos + 1) % rec.length; }
+    recFill = Math.min(rec.length, recFill + pcm.length);
+  }
+  /** Les `sec` dernières secondes d'audio brut : { pcm, sr } ou null. */
+  export function getRecentAudio(sec = 20) {
+    if (!rec || !recFill || !audioContext) return null;
+    const n = Math.min(recFill, Math.round(sec * audioContext.sampleRate));
+    const out = new Float32Array(n);
+    for (let i = 0; i < n; i++) out[i] = rec[(recPos - n + i + rec.length) % rec.length];
+    return { pcm: out, sr: audioContext.sampleRate };
+  }
+  /** Image PNG du spectre affiché. */
+  export function getSnapshot() {
+    try { return canvas ? canvas.toDataURL("image/png") : null; } catch (e) { return null; }
+  }
+
   export function feedPCMData(pcmArray) {
     if (!audioContext || !gainNode || !isRunning || !enabled) return;
+    try { remember(pcmArray); } catch (e) {}
     try {
       const buf = audioContext.createBuffer(1, pcmArray.length, audioContext.sampleRate);
       buf.copyToChannel(pcmArray, 0, 0);
@@ -667,6 +692,12 @@
       <span class="val">{fmtKhz(base)} kHz</span>
       <span class="mode">{modeU}</span>
       <span class="hint">{isCw ? "note CW à 750 Hz audio" : symmetric ? "vue RF automatique : porteuse au centre, bandes latérales de part et d'autre" : mirrored ? "0 Hz audio = porteuse, fréquences RF décroissantes vers la droite" : "0 Hz audio = porteuse"}</span>
+      <span style="flex:1"></span>
+      <button class="spg-mute" class:on={muted} on:click={() => dispatch("togglemute")}
+        title={muted ? "Rétablir le son du récepteur" : "Couper le son du récepteur (l'analyse continue) : pour analyser votre propre émission sans renvoyer l'audio dans votre micro"}>
+        <span aria-hidden="true">{muted ? "🔇" : "🔊"}</span>
+        <span>{muted ? "Son coupé" : "Couper le son"}</span>
+      </button>
     </div>
   {/if}
   <div class="spg-cv">
@@ -687,6 +718,14 @@
   .spg-base .lbl { font-size: 0.72rem; color: rgb(207, 181, 59); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
   .spg-base .val { font-family: monospace; font-size: 1.05rem; font-weight: 700; color: #f3e7a6; }
   .spg-base .mode { font-size: 0.72rem; font-weight: 700; color: #0b0f17; background: rgb(207, 181, 59); border-radius: 3px; padding: 0 5px; }
+  .spg-base { align-items: center; }
+  .spg-mute {
+    display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.15rem 0.6rem; border-radius: 0.35rem;
+    font-size: 0.75rem; font-weight: 700; white-space: nowrap; cursor: pointer;
+    color: rgb(207, 181, 59); background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(207, 181, 59, 0.6);
+  }
+  .spg-mute:hover { background: rgba(207, 181, 59, 0.18); color: #f3e7a6; }
+  .spg-mute.on { color: #fecaca; border-color: rgba(248, 113, 113, 0.75); background: rgba(153, 27, 27, 0.45); }
   .spg-base .hint { font-size: 0.68rem; color: #9ca3af; font-style: italic; }
   .spg-cv { position: relative; }
   .spg-tip {

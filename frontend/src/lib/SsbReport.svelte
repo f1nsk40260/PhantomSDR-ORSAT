@@ -279,6 +279,72 @@
     const [i, d] = Number(k).toFixed(3).split(".");
     return i.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + "," + d;
   }
+  // ── Rapport complet avec un extrait sonore (fichier HTML autonome) ──
+  function wavBlob(pcm, sr) {
+    let pk = 0;
+    for (let i = 0; i < pcm.length; i++) { const a = Math.abs(pcm[i]); if (a > pk) pk = a; }
+    const g = pk > 1e-6 ? 0.89 / pk : 1;                 // normalisé à −1 dBFS pour l'écoute
+    const n = pcm.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVE"); str(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    str(36, "data"); v.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, Math.round(pcm[i] * g * 32767))), true);
+    return new Blob([buf], { type: "audio/wav" });
+  }
+  const blobToDataUrl = (b) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = ko; r.readAsDataURL(b); });
+  const esc = (t) => String(t == null ? "" : t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  let building = false;
+  async function fullReport() {
+    if (!spectro || building) return;
+    building = true;
+    try {
+      const au = typeof spectro.getRecentAudio === "function" ? spectro.getRecentAudio(20) : null;
+      const img = typeof spectro.getSnapshot === "function" ? spectro.getSnapshot() : null;
+      const now = new Date();
+      const utc = now.toISOString().replace("T", " ").slice(0, 16) + " UTC";
+      const stamp = now.toISOString().slice(0, 16).replace(/[-:]/g, "").replace("T", "-");
+      const fk = fmtKhz(baseKhz);
+      const dot = { ok: "#22c55e", warn: "#f59e0b", bad: "#ef4444", na: "#6b7280" };
+      const rows = ROWS.map((row) => {
+        const r = held[row.key];
+        return `<tr><td><span class="d" style="background:${dot[r ? r.lvl : "na"]}"></span></td><td>${esc(row.label)}</td><td class="v">${esc(r && r.val ? r.val : "—")}</td><td>${esc(r ? r.txt : "non mesuré")}</td></tr>`;
+      }).join("");
+      let audioHtml = "<p class=\"n\">Pas d'extrait sonore : ouvrez l'analyseur audio quelques secondes avant de générer le rapport.</p>";
+      let wavUrl = null;
+      if (au && au.pcm.length > au.sr) {
+        const wav = wavBlob(au.pcm, au.sr);
+        wavUrl = await blobToDataUrl(wav);
+        audioHtml = `<audio controls src="${wavUrl}"></audio>
+<p class="n">${(au.pcm.length / au.sr).toFixed(0)} s d'audio brut du récepteur (avant tout traitement d'écoute), normalisé en niveau. <a download="ORSAT-${esc(fk.replace(/\s/g, ""))}kHz-${stamp}.wav" href="${wavUrl}">Télécharger le fichier WAV</a></p>`;
+      }
+      const ab = A && rep && rep.ready
+        ? `<p>Comparaison avec la courbe A (${esc(A.when)}) : graves ${A.bass != null ? sgn(A.bass) + " dB" : "—"} → ${rep.bass != null ? sgn(rep.bass) + " dB" : "—"} ; présence ${A.pres != null ? sgn(A.pres) + " dB" : "—"} → ${rep.pres != null ? sgn(rep.pres) + " dB" : "—"}.</p>` : "";
+      const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rapport d'écoute ORSAT — ${esc(fk)} kHz ${esc(m)}</title>
+<style>body{background:#0b0f17;color:#e5e7eb;font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px}main{max-width:820px;margin:auto}
+h1{color:#cfb53b;font-size:1.4rem;margin:0 0 .2rem}.sub{color:#9ca3af;margin:0 0 1.2rem}.f{font:700 1.6rem monospace;color:#f3e7a6}
+.m{background:#cfb53b;color:#0b0f17;border-radius:4px;padding:0 6px;font-weight:700;margin-left:.4rem}
+table{width:100%;border-collapse:collapse;margin:.8rem 0}td{padding:6px 8px;border-top:1px solid #1f2937}.v{font-family:monospace;color:#f3e7a6;white-space:nowrap}
+.d{display:inline-block;width:10px;height:10px;border-radius:50%}img{width:100%;border:1px solid #cfb53b66;border-radius:6px}audio{width:100%;margin-top:.4rem}
+.n{color:#9ca3af;font-size:.85rem}a{color:#cfb53b}h2{color:#cfb53b;font-size:1.05rem;margin:1.4rem 0 .3rem}</style></head><body><main>
+<h1>Rapport d'écoute — station ORSAT</h1>
+<p class="sub">${esc(utc)} · ${esc(location.host)} · référence tonale ${esc(REFS[refKey].name)}</p>
+<p><span class="f">${esc(fk)} kHz</span><span class="m">${esc(m)}</span></p>
+<h2>Extrait sonore</h2>${audioHtml}
+<h2>Bilan de la modulation</h2><table>${rows}</table>${ab}
+${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src="${img}"><p class="n">Courbe bleue : forme moyenne de la voix ; pointillés blancs : courbe A mémorisée ; trait or : fréquence de base.</p>` : ""}
+<p class="n">Mesure indicative sur 20 s glissantes, pendant la parole uniquement. Le fading, le filtre et l'AGC du récepteur influent.</p>
+</main></body></html>`;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      a.download = `Rapport-ORSAT-${fk.replace(/\s/g, "")}kHz-${m}-${stamp}.html`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    } finally { building = false; }
+  }
+
   async function copy() {
     if (!rep) return;
     const parts = [`${fmtKhz(baseKhz)} kHz ${m}`];
@@ -308,6 +374,8 @@
       <button class="sr-btn" on:click={reset} title="Recommencer l'analyse (fenêtre de 20 s)">↺ Recommencer</button>
       <button class="sr-btn gold copy" on:click={copy} disabled={!Object.keys(held).length}
         title="Copier le bilan en une ligne, à envoyer au correspondant">{copied ? "✓ Copié" : "📋 Copier le rapport"}</button>
+      <button class="sr-btn gold" on:click={fullReport} disabled={building || !Object.keys(held).length}
+        title="Télécharger un rapport d'écoute complet (fichier HTML à envoyer au correspondant) : bilan, image du spectre et les 20 dernières secondes de son">{building ? "…" : "🎧 Rapport avec son"}</button>
     </div>
 
     <table class="sr-tab">

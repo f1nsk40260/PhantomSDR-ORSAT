@@ -9874,6 +9874,8 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         rfSlice={(c, h) => waterfall && typeof waterfall.getRfSlice === "function" ? waterfall.getRfSlice(c, h) : null}
                         ltas={spectroLtas}
                         ltasRef={spectroLtasRef}
+                        muted={mute}
+                        on:togglemute={handleMuteChange}
                       />
                       <SsbReport
                         spectro={spectrogramComponent}
