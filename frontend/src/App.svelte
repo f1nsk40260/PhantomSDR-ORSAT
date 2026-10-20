@@ -12239,7 +12239,8 @@ Cliquez à nouveau pour désactiver"
                             >
                             {#if cwDetectedWpm > 0}
                               <span
-                                class="text-gray-400 font-mono font-normal text-xs"
+                                class="font-mono font-bold text-sm cw-wpm"
+                                title="Vitesse mesurée (mots par minute)"
                                 >· {cwDetectedWpm} WPM</span
                               >
                             {/if}
@@ -16487,6 +16488,13 @@ Cliquez à nouveau pour désactiver"
     font-size: 1.05em;
     font-weight: 900;
     margin-right: 0.5rem;
+  }
+
+  /* ORSAT : vitesse CW mesurée, en vert fluo bien lisible. */
+  .cw-wpm {
+    color: #39ff14;
+    text-shadow: 0 0 6px rgba(57, 255, 20, 0.55);
+    letter-spacing: 0.02em;
   }
 
   /* BOUTONS VIEIL OR DU PANNEAU INFOS */

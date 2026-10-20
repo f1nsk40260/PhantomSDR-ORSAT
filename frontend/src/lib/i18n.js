@@ -395,6 +395,7 @@ const D = [
   ["en cours…", "cycle…", "en curso…"],
   ["Délai dépassé avant l'arrivée de la dernière trame", "Timed out before the last frame arrived", "Tiempo agotado antes de llegar la última trama"],
   ["balayage…", "scanning…", "buscando…"],
+  ["Vitesse mesurée (mots par minute)", "Measured speed (words per minute)", "Velocidad medida (palabras por minuto)"],
   ["Effacer les messages CW", "Clear the CW messages", "Borrar los mensajes CW"],
   ["🔓 Verrouiller la tonalité", "🔓 Lock tone", "🔓 Bloquear tono"],
   ["🔒 Tonalité verrouillée", "🔒 Tone locked", "🔒 Tono bloqueado"],
