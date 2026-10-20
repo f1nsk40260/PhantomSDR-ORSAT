@@ -5,7 +5,7 @@ PhantomSDR-ORSAT est la version francophone de F1NSK, construite sur
 Ce journal ne liste que les apports d'ORSAT ; les nouveautés de la base sont
 décrites dans le README et dans le projet original.
 
-## ORSAT 1.0 — octobre 2026 (base PhantomSDR-Plus 5.1.0)
+## ORSAT 1.0 — 20 octobre 2026 (base PhantomSDR-Plus 5.1.0)
 
 ### Interface
 - Interface intégralement traduite en français, anglais et espagnol, avec un sélecteur de langue à drapeaux dans l'en-tête.
@@ -29,21 +29,29 @@ décrites dans le README et dans le projet original.
 - Balises de largeur préconisée selon le mode (SSB standard, ESSB, CW, AM, FM) et filtre actuel.
 - Mesure de la largeur occupée (−26 dB) sur la cascade et détection du splatter, parasites statiques ignorés.
 - Vue RF automatique en AM et FM : porteuse au centre, bandes latérales de part et d'autre.
+- Zoom automatique de la cascade sur la station quand la mesure l'exige (une fois par station).
+- Référence **ESSB** : le filtre FI s'élargit à 50–4000 Hz pendant l'analyse, filtre d'origine rétabli ensuite.
+- Trait de base renforcé, avec l'étiquette « bande opposée » ; bouton **✕ Fermer** à côté de « Couper le son ».
 - **Bilan audio SSB** : équilibre tonal (graves, présence) selon une référence SSB standard / DX / ESSB, compression, ronflette secteur, porteuse résiduelle, bande opposée, largeur occupée ; courbe « voix moyenne », comparaison A/B et rapport d'écoute copiable.
 
 ### Interface desktop
+- Colonne centrale : barre VFO / Modes / Bandes / Filtres juste sous le S-mètre, réception en diversité plus bas.
+- Panneau Infos : bandeau d'ouverture à pulsation lente et texte lumineux, bouton « Fermer les fenêtres » en or plein, boutons hamdash et DX cluster plus visibles, contenu centré.
+- Logo ORSAT : icônes du navigateur (onglet, écran d'accueil des téléphones), bandeau du README, images pour Facebook (`docs/branding/`).
 - Copie de l'interface mobile retirée d'App.svelte (−4 400 lignes) : ORSAT vise les PC et tablettes ; les téléphones sont dirigés vers /mobile.
 
 ### Décodeurs
 - Décodeur **HFDL** (messages ACARS des avions en ondes courtes), à partir de dumphfdl compilé en WebAssembly ; liens FlightAware, carte des avions en grand format (icônes orientées selon le cap, trace rouge).
 - Menus de **fréquences connues** pour FT8/FT4/FT2, JS8, WSPR et SSTV ; **carte des stations** entendues (d'après leur locator) pour FT8/FT4/FT2, WSPR et JS8.
+- SSTV : les fréquences connues accordent en LSB sur 80/40 m, comme le décodeur.
+- CW : vitesse (WPM) affichée en grand, en vert fluo.
 
 ### Panneau d'administration
 - Carte des auditeurs (tuiles Esri), analyse du niveau de danger des connexions, journal vidable, liste de bannissement complète (plages CIDR, ajout en masse, filtre, export).
 
 ### Documentation
-- Mode d'emploi en PDF en français, anglais et espagnol, accessible depuis le menu.
-- README réécrit pour ORSAT, avec captures du récepteur en service sur https://orsat.ddns.net.
+- Quatre guides PDF en français, anglais et espagnol, accessibles depuis le menu Informations : **guide général d'utilisation**, **guide des décodeurs**, **guide de l'analyseur audio** et **guide de la réception en diversité**.
+- README réécrit pour ORSAT : nouvelle page de garde (décodeurs, identification, analyseur, guides), Ubuntu 26.04 validé en production.
 
 ### Nettoyage du dépôt
 - Retrait du code mort `frontend/src/unused/` et des fichiers produits localement (`frontend/stats.html`, `rade_loadtest.csv`), désormais ignorés par git.
