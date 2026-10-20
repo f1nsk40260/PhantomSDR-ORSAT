@@ -11,6 +11,7 @@ Reads all configuration from admin_config.json (written by setup_admin.sh):
 
 Routes:
   /admin*  → Admin panel     (localhost:{port})
+  /log*    → ORSAT-LOG, carnet de trafic (localhost:{log_port}, si log_port est défini)
   /*       → Spectrumserver  ({sdr_host}:{public_port})
 
 Several receivers on one port: see receivers.toml.example. With a
@@ -182,8 +183,9 @@ if _sdr_port == LISTEN_PORT and _sdr_host in ("127.0.0.1", "localhost", "::1"):
 # A station whose config names none of these ports gets no such route, and
 # those paths go to spectrumserver exactly as before.
 SIDE_SERVICES: "dict[str, str]" = {}
+# /log : ORSAT-LOG, le carnet de trafic (dépôt Orsat-LOG, run.py --central), sur log_port.
 for _prefix, _key in (("/rade", "rade_port"), ("/stats", "stats_port"),
-                      ("/relay", "relay_port")):
+                      ("/relay", "relay_port"), ("/log", "log_port")):
     if _cfg.get(_key):
         SIDE_SERVICES[_prefix] = f"http://127.0.0.1:{int(_cfg[_key])}"
 
@@ -1020,6 +1022,10 @@ async def _handle(request: web.Request) -> web.StreamResponse:
     # could reach this port could disconnect and ban any listener.
     if "~~kick" in request.path and not _is_local(request):
         return web.json_response({"ok": False, "msg": "forbidden"}, status=403)
+    # Le carnet n'a que des adresses relatives : il doit être servi sous « /log/ ».
+    if request.path == "/log" and "/log" in SIDE_SERVICES:
+        qs = request.rel_url.query_string
+        return web.HTTPFound("/log/" + ("?" + qs if qs else ""))
     side = _side_service(request)
     if side:
         upstream, path = side
