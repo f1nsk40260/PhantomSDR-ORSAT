@@ -9356,7 +9356,7 @@
                           ? "Fermer les fenêtres"
                           : "Ouvrir Météo - Alertes - Infos - Propagation - DXcluster et Manuels utilisateur"}
                         class="glass-button gold-button py-2 px-4 rounded-lg flex items-center"
-                        class:blink-attention={!infoMenuOpen}
+                        class:info-toggle-attention={!infoMenuOpen}
                         on:click={() => toggleMenu()}
                       >
                         <span id="menu-toggle-label">{infoMenuOpen
@@ -16412,6 +16412,33 @@ Cliquez à nouveau pour désactiver"
   }
   .blink-attention {
     animation: blink-attention 1.4s ease-in-out infinite;
+  }
+
+  /* ORSAT : bouton d'ouverture du panneau Infos — pulsation lente et texte
+     plus lumineux pour qu'il saute aux yeux, sans quitter le vieil or. */
+  @keyframes info-toggle-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(236, 215, 122, 0);
+      background-color: rgba(207, 181, 59, 0.08);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 14px 4px rgba(236, 215, 122, 0.55);
+      background-color: rgba(207, 181, 59, 0.2);
+    }
+  }
+  .gold-button.info-toggle-attention {
+    animation: info-toggle-pulse 2.8s ease-in-out infinite;
+    color: rgb(243, 225, 140) !important;
+    border-color: rgba(236, 215, 122, 0.75) !important;
+    text-shadow:
+      0 0 6px rgba(236, 215, 122, 0.45),
+      0 1px 2px rgba(0, 0, 0, 0.7);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .info-toggle-attention { animation: none; }
   }
 
   /* BOUTONS VIEIL OR DU PANNEAU INFOS */
