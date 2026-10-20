@@ -131,7 +131,7 @@ const D = [
   ["Passages des satellites radioamateurs", "Amateur radio satellite passes", "Pasos de satélites de radioaficionado"],
   ["Synchroniser le récepteur avec le DX cluster", "Sync the receiver with the DX cluster", "Sincronizar el receptor con el DX cluster"],
   ["Accorder le récepteur sur une fréquence du DX cluster", "Tune the receiver to a DX cluster frequency", "Sintonizar el receptor en una frecuencia del DX cluster"],
-  ["Installation & configuration :", "Setup & Configuration:", "Instalación y configuración:"],
+  ["Version & configuration :", "Version & Configuration:", "Versión y configuración:"],
   ["avec", "with", "con"],
   ["et", "and", "y"],
   ["PC :", "PC:", "PC:"],

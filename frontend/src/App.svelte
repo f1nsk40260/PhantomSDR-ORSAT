@@ -9341,7 +9341,7 @@
                 <div class="columns">
                   <div class="first-column">
                     <ul style="font-size: 0.91rem; text-align: left;">
-                    <b>Setup &amp; Configuration:</b>
+                    <b>Version &amp; Configuration:</b>
                       <img
                         src={`https://img.shields.io/badge/ORSAT-${ORSAT_VERSION}-cfb53b?logo=github`}
                         alt={`ORSAT ${ORSAT_VERSION}`}
@@ -9355,13 +9355,12 @@
                         class="inline-block align-middle ml-1"
                       />
                      with <a href="https://catsyncsdr.wordpress.com/" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)">CAT sync ®</a> and <a href="https://www.aethersdr.com/" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)">AetherSDR ® - TCI</a>
-                    <br>
+                    <div style="height: 0.6rem;"></div>
                     <span style="/*text-decoration: line-through*/">PC: {siteHardware} {siteSoftware}</span>
-                    <br>
                     <!-- STATISTIQUES SYSTÈME -->
                     <button
                       type="button"
-                      class="glass-button gold-button gold-button-sm py-1 px-2 ml-2 mt-2 rounded text-xs"
+                      class="glass-button gold-button gold-button-sm py-1 px-2 ml-2 rounded text-xs"
                       on:click={openSystemStats}
                       title="Ressources système du serveur"
                       aria-haspopup="dialog"
