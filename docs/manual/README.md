@@ -32,7 +32,7 @@ python3 docs/manual/build_manual.py analyseur_fr.md
 
 ## Guide des décodeurs
 
-`decodeurs_fr.md` produit `guideDecodeursFR.pdf` (rubrique « Guide des décodeurs »
+`decodeurs_fr.md`, `decodeurs_en.md`, `decodeurs_es.md` produisent `guideDecodeursFR.pdf`, `guideDecodeursEN.pdf`, `guideDecodeursES.pdf` (rubrique « Guide des décodeurs »
 du menu Informations). Les vignettes `images/dec_*.jpg` sont à fournir : tant
 qu'une image manque, le PDF affiche un cadre « Vignette à fournir » à sa place.
 

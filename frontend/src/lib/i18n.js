@@ -646,7 +646,7 @@ const D = [
   ["Référence ESSB : modulation large bande et hi-fi, graves conservés", "ESSB reference: wideband hi-fi modulation, bass kept", "Referencia ESSB: modulación de banda ancha hi-fi, graves conservados"],
   ["🎧 GUIDE DE L'ANALYSEUR AUDIO", "🎧 AUDIO ANALYSER GUIDE", "🎧 GUÍA DEL ANALIZADOR DE AUDIO"],
   ["📟 GUIDE DES DÉCODEURS", "📟 DECODERS GUIDE", "📟 GUÍA DE LOS DECODIFICADORES"],
-  ["Ouvrir le guide détaillé de tous les décodeurs en français", "Open the detailed decoders guide (French)", "Abrir la guía detallada de los decodificadores (francés)"],
+  ["Ouvrir le guide détaillé de tous les décodeurs en français", "Open the detailed decoders guide in French", "Abrir la guía detallada de los decodificadores en francés"],
   ["Zoomez sur la station dans la cascade pour mesurer sa largeur occupée.", "Zoom in on the station in the waterfall to measure its occupied bandwidth.", "Haga zoom sobre la estación en la cascada para medir su ancho ocupado."],
   ["Signal trop faible pour mesurer la largeur occupée.", "Signal too weak to measure the occupied bandwidth.", "Señal demasiado débil para medir el ancho ocupado."],
   ["Couper le son", "Mute", "Silenciar"],

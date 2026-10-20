@@ -12,6 +12,8 @@
   import guideAnalyseurENUrl from "./assets/docs/guideAnalyseurEN.pdf";
   import guideAnalyseurESUrl from "./assets/docs/guideAnalyseurES.pdf";
   import guideDecodeursFRUrl from "./assets/docs/guideDecodeursFR.pdf";
+  import guideDecodeursENUrl from "./assets/docs/guideDecodeursEN.pdf";
+  import guideDecodeursESUrl from "./assets/docs/guideDecodeursES.pdf";
 
   // ── Variant selection ────────────────────────────────────────────────────
   //
@@ -9659,6 +9661,16 @@
                       title="Ouvrir le guide détaillé de tous les décodeurs en français"
                       aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
                       style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇫🇷 Guide des décodeurs</button>
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideDecodeursENUrl, "Decoders guide")}
+                      title="Open the detailed guide to all the decoders in English"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇬🇧 Decoders guide</button>
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideDecodeursESUrl, "Guía de los decodificadores")}
+                      title="Abrir la guía detallada de todos los decodificadores en español"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇪🇸 Guía de los decodificadores</button>
                   </div>
                 </div>
                    

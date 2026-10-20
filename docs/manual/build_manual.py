@@ -389,5 +389,5 @@ def build(lang):
 if __name__ == "__main__":
     register_fonts()
     styles()
-    for lang in (sys.argv[1:] or ["fr", "en", "es", "analyseur_fr.md", "analyseur_en.md", "analyseur_es.md", "decodeurs_fr.md"]):
+    for lang in (sys.argv[1:] or ["fr", "en", "es", "analyseur_fr.md", "analyseur_en.md", "analyseur_es.md", "decodeurs_fr.md", "decodeurs_en.md", "decodeurs_es.md"]):
         build(lang)
