@@ -154,6 +154,8 @@ The row of buttons **Judge the voice against:**, at the top of the report, choos
 
 The same setting can therefore be “balanced” for ESSB and have “too much bass” for DX: choose the reference that matches what the other operator is trying to do.
 
+**Wider filter for ESSB.** With the usual SSB filter (2.7 kHz), everything an ESSB station transmits above it would be cut before analysis. Choosing the **ESSB / hi-fi** reference therefore automatically widens the IF filter to **50–4,000 Hz**; the original filter comes back as soon as another reference is chosen or the analyser is closed. The occupied-bandwidth measurement, taken on the waterfall, is not affected: when it reports “wide (ESSB?)”, that is the moment to switch to ESSB.
+
 ## 8.3 Static crashes
 
 Static crashes (very short, with a flat spectrum) are detected and **discarded** from the report. The bass and presence ratios are also computed as a **median**: a crash that slipped through does not shift the result. When more than 10 % of the measurements are discarded, the bottom line shows “Static crashes rejected: xx %”.

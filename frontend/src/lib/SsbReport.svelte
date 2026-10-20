@@ -16,7 +16,8 @@
    * Courbe A mémorisable pour comparer avant / après un réglage, et rapport
    * d'écoute copiable en une ligne.
    */
-  import { onDestroy } from "svelte";
+  import { onDestroy, createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
 
   export let spectro = null;          // composant Spectrogram (sampleAudio)
   export let rfMeasure = null;        // (dialHz, mode) => mesure RF ou null
@@ -36,7 +37,7 @@
             tip: "Référence pour le trafic courant : voix équilibrée dans un filtre 300–2700 Hz" },
     dx:   { name: "DX / punch",   bass: -16, pres: -6, desc: "présence renforcée pour percer dans le bruit",
             tip: "Référence DX : peu de graves, présence renforcée pour être lisible dans le bruit" },
-    essb: { name: "ESSB / hi-fi", bass: -3,  pres: -12, desc: "large bande, graves conservés",
+    essb: { name: "ESSB / hi-fi", bass: -3,  pres: -12, desc: "large bande, graves conservés — filtre élargi à 50–4000 Hz pendant l'analyse",
             tip: "Référence ESSB : modulation large bande et hi-fi, graves conservés" },
   };
   let refKey = "std";
@@ -375,7 +376,7 @@ ${img ? `<h2>Spectre audio au moment du rapport</h2><img alt="Spectre audio" src
       <div class="sr-seg" role="radiogroup" aria-label="Référence tonale">
         {#each Object.entries(REFS) as [k, r]}
           <button role="radio" aria-checked={refKey === k} class:on={refKey === k}
-            on:click={() => { refKey = k; compute(); }} title={r.tip}>{r.name}</button>
+            on:click={() => { refKey = k; compute(); dispatch("ref", k); }} title={r.tip}>{r.name}</button>
         {/each}
       </div>
       <span class="sr-refdesc">{REFS[refKey].desc}</span>

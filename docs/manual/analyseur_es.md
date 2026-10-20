@@ -154,6 +154,8 @@ La fila de botones **Juzgar la voz respecto a:**, al principio del informe, elig
 
 Un mismo ajuste puede ser «equilibrado» en ESSB y tener «demasiados graves» en DX: elija la referencia que corresponde a lo que quiere hacer el corresponsal.
 
+**Filtro ampliado en ESSB.** Con el filtro SSB habitual (2,7 kHz), todo lo que una estación ESSB emite por encima quedaría cortado antes del análisis. Elegir la referencia **ESSB / hi-fi** amplía por tanto automáticamente el filtro FI a **50–4 000 Hz**; el filtro original vuelve en cuanto se elige otra referencia o se cierra el analizador. La medida del ancho ocupado, tomada en la cascada, no se ve afectada: cuando indica «ancho (¿ESSB?)», es el momento de pasar a ESSB.
+
 ## 8.3 Los parásitos estáticos
 
 Los chasquidos de parásitos (muy breves, de espectro plano) se detectan y se **descartan** del informe. Las relaciones de graves y presencia se calculan además como **mediana**: un parásito que escapara al filtro no desplaza el resultado. Cuando se descarta más del 10 % de las medidas, la línea inferior indica «Parásitos descartados: xx %».

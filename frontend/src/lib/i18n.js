@@ -641,6 +641,7 @@ const D = [
   ["trafic courant, filtre 300–2700 Hz", "everyday operating, 300–2700 Hz filter", "tráfico habitual, filtro 300–2700 Hz"],
   ["présence renforcée pour percer dans le bruit", "boosted presence to cut through the noise", "presencia reforzada para abrirse paso en el ruido"],
   ["large bande, graves conservés", "wideband, bass kept", "banda ancha, graves conservados"],
+  ["large bande, graves conservés — filtre élargi à 50–4000 Hz pendant l'analyse", "wideband, bass kept — filter widened to 50–4000 Hz during analysis", "banda ancha, graves conservados — filtro ampliado a 50–4000 Hz durante el análisis"],
   ["Référence pour le trafic courant : voix équilibrée dans un filtre 300–2700 Hz", "Reference for everyday operating: balanced voice in a 300–2700 Hz filter", "Referencia para el tráfico habitual: voz equilibrada en un filtro 300–2700 Hz"],
   ["Référence DX : peu de graves, présence renforcée pour être lisible dans le bruit", "DX reference: little bass, boosted presence to stay readable in the noise", "Referencia DX: pocos graves, presencia reforzada para ser legible en el ruido"],
   ["Référence ESSB : modulation large bande et hi-fi, graves conservés", "ESSB reference: wideband hi-fi modulation, bass kept", "Referencia ESSB: modulación de banda ancha hi-fi, graves conservados"],

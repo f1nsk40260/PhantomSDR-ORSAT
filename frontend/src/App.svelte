@@ -1117,6 +1117,42 @@
     }
   }
 
+  // ORSAT : en SSB, la référence « ESSB » de l'analyseur élargit le filtre FI
+  // à 50–4000 Hz (sinon l'audio analysé est coupé à 2,7 kHz). Le filtre
+  // d'origine revient avec une autre référence ou à la fermeture de l'analyseur.
+  const ANALYSER_ESSB_IF = [50, 4000];
+  let _analyserIfSaved = null; // { mode, lo, hi } : bords relatifs au cadran, en Hz
+  function _analyserIsSsb() {
+    const t = (demodulationDefaults[demodulation] || {}).type;
+    return t === "USB" || t === "LSB";
+  }
+  function analyserSetRef(key) {
+    if (key !== "essb") { analyserRestoreIf(); return; }
+    if (!_analyserIsSsb() || !audio) return;
+    try {
+      const [l, m, r] = audio.getAudioRange().map(FFTOffsetToFrequency);
+      if (!_analyserIfSaved) _analyserIfSaved = { mode: demodulation, lo: l - m, hi: r - m };
+      const [lo, hi] = ANALYSER_ESSB_IF;
+      const lsb = (demodulationDefaults[demodulation] || {}).type === "LSB";
+      applyIFEdges(lsb ? m - hi : m + lo, m, lsb ? m - lo : m + hi);
+      updateLink();
+    } catch (e) {
+      console.warn("[analyseur] élargissement du filtre", e);
+    }
+  }
+  function analyserRestoreIf() {
+    const s = _analyserIfSaved;
+    _analyserIfSaved = null;
+    if (!s || !audio || demodulation !== s.mode) return; // mode changé : on laisse le filtre du nouveau mode
+    try {
+      const m = FFTOffsetToFrequency(audio.getAudioRange()[1]);
+      applyIFEdges(m + s.lo, m, m + s.hi);
+      updateLink();
+    } catch (e) {
+      console.warn("[analyseur] restauration du filtre", e);
+    }
+  }
+
   // Toggle spectrogram on/off
   async function toggleSpectrogram() {
     spectrogramEnabled = !spectrogramEnabled;
@@ -1146,6 +1182,8 @@
         spectrogramComponent.stop();
       }
       audio.setSpectrogramEnabled(false);
+      // ORSAT : le filtre élargi pour l'ESSB revient à sa largeur d'origine.
+      analyserRestoreIf();
       // ORSAT : le son coupé depuis l'analyseur (anti-Larsen) revient à sa fermeture.
       if (mute && muteByAnalyser) handleMuteChange();
       muteByAnalyser = false;
@@ -9949,6 +9987,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         passband={spectroPassband}
                         occupied={spectroOccupied}
                         enabled={spectrogramEnabled}
+                        on:ref={(e) => analyserSetRef(e.detail)}
                         bind:ltas={spectroLtas}
                         bind:ltasRef={spectroLtasRef}
                       />

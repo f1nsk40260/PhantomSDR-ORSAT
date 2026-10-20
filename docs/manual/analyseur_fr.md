@@ -154,6 +154,8 @@ La rangée de boutons **Juger la voix par rapport à :**, en tête du bilan, cho
 
 Un même réglage peut donc être « équilibré » en ESSB et avoir « trop de basses » en DX : choisissez la référence qui correspond à ce que veut faire le correspondant.
 
+**Filtre élargi en ESSB.** Avec le filtre SSB habituel (2,7 kHz), tout ce qu'une station ESSB émet au-dessus serait coupé avant l'analyse. Choisir la référence **ESSB / hi-fi** élargit donc automatiquement le filtre FI à **50–4 000 Hz** ; le filtre d'origine revient dès qu'on choisit une autre référence ou qu'on ferme l'analyseur. La mesure de largeur occupée, prise sur la cascade, n'est pas concernée : si elle annonce « large (ESSB ?) », c'est le moment de passer en ESSB.
+
 ## 8.3 Les parasites statiques
 
 Les claquements de parasites (très brefs, à spectre plat) sont repérés et **écartés** du bilan. Les rapports graves et présence sont en outre calculés en **médiane** : un parasite qui échapperait au tri ne déplace pas le résultat. Quand plus de 10 % des mesures sont écartées, la ligne du bas affiche « Parasites écartés : xx % ».
