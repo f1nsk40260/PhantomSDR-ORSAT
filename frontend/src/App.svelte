@@ -223,7 +223,7 @@
   import SsbReport from "./lib/SsbReport.svelte";
   import QrssPanel from "./lib/QrssPanel.svelte";
   import VideoAreaSelector from "./lib/VideoAreaSelector.svelte";
-  import { connectCatSyncAny, buildDefaultSources } from "./lib/catsync.js";
+  import { connectCatSync, connectCatSyncAny, buildDefaultSources } from "./lib/catsync.js";
   import {
     parseChatLine,
     replyMarker,
@@ -271,6 +271,7 @@
   // (a button, the band plan, a decoder, a bookmark) arrives here through
   // handleDemodulationChange.
   function catSendModeToRig() {
+    logSend(null, CAT_TCI_MODES[demodulation]);   // carnet ORSAT-LOG : toujours
     if (!catSyncEnabled || catApplyingRemoteFreq || !catSyncHandle) return;
     const tci = CAT_TCI_MODES[demodulation];
     if (!tci) return;
@@ -368,24 +369,65 @@
   // Carnet ORSAT-LOG central (https://<site>/log/) : si ce navigateur y est connecté, la
   // page lui parle en TCI comme à un logiciel local, pour que le carnet suive l'écoute en
   // SWL. Pour un auditeur sans session au carnet, rien ne change (une seule requête refusée).
-  let catLogUrl = null;
+  // Liaison propre au carnet, indépendante de CAT Sync (qui sert à suivre le transceiver) :
+  // la page envoie toujours sa fréquence et son mode au carnet, dès la connexion puis à
+  // chaque changement, et obéit aux recalages demandés depuis le carnet.
+  let logLink = null;
+  let logConnected = false;
+  let logApplying = false;
+  let logLastHz = null;
+  let logLastMode = null;
+  function logSend(hz, mode) {
+    if (!logLink || !logConnected || logApplying) return;
+    if (hz && Math.round(hz) !== logLastHz && logLink.sendSetFreq(hz)) logLastHz = Math.round(hz);
+    if (mode && mode !== logLastMode && logLink.sendSetMode(mode)) logLastMode = mode;
+  }
+  function logSendCurrent() {
+    logLastHz = null;
+    logLastMode = null;
+    const hz = frequencyInputComponent && frequencyInputComponent.getFrequency
+      ? frequencyInputComponent.getFrequency() : null;
+    logSend(hz, CAT_TCI_MODES[demodulation]);
+  }
   async function probeOrsatLog() {
     try {
       const r = await fetch("/log/api/info", { credentials: "same-origin", cache: "no-store" });
       if (!r.ok) return;
       const info = await r.json();
       if (!info || !info.central) return;
-      catLogUrl = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/log/tci`;
-      if (catSyncHandle) catSyncHandle.close();
-      catSyncHandle = startCatSync();
+      const url = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/log/tci`;
+      logLink = connectCatSync({ url, port: "carnet", reconnectDelayMs: 5000 }, {
+        onPtt: () => {},
+        onFilter: () => {},
+        onStatus: (state) => {
+          logConnected = state === "connecté";
+          if (logConnected) logSendCurrent();
+        },
+        // Recalage demandé depuis le carnet (clic sur une écoute SWL)
+        onVfo: (freqHz, mode) => {
+          logApplying = true;
+          try {
+            if (freqHz && Math.round(freqHz) !== logLastHz) {
+              logLastHz = Math.round(freqHz);
+              frequencyInputComponent.setFrequency(freqHz);
+              handleFrequencyChange({ detail: freqHz });
+            }
+            const wanted = mode ? catsyncModeFromTool(mode) : null;
+            if (wanted && wanted !== demodulation) {
+              logLastMode = CAT_TCI_MODES[wanted] || logLastMode;
+              SetMode(wanted);
+            }
+          } finally {
+            logApplying = false;
+          }
+        },
+      });
     } catch (e) {}
   }
 
   function startCatSync() {
     const catConnectedByPort = {};
-    const sources = buildDefaultSources(catHost);
-    if (catLogUrl) sources.push({ url: catLogUrl, port: "carnet", reconnectDelayMs: 5000 });
-    return connectCatSyncAny(sources, {
+    return connectCatSyncAny(buildDefaultSources(catHost), {
       onPtt: (isTx) => {
         catTxMuted = isTx;
         if (isTx) {
@@ -456,7 +498,7 @@
           .map(([port]) => port);
         catConnected = activePorts.length > 0;
         catActiveSourceLabel = activePorts.length
-          ? `TCI (${activePorts.map((p) => (p === "carnet" ? "carnet ORSAT-LOG" : `port ${p}`)).join(", ")})`
+          ? `TCI (port ${activePorts.join(", ")})`
           : null;
       },
     });
@@ -5787,6 +5829,7 @@
     window.__catsync_state.hz = frequencyInputComponent.getFrequency();
     if (!catsyncRemote) catsyncNotify({ freq: 1 });
 
+    logSend(Math.round(m));   // carnet ORSAT-LOG : toujours, indépendamment de CAT Sync
     // CAT sync over TCI, Phantom -> rig: a waterfall click or passband drag
     // moves the rig too. A drag fires this on every move, so skip repeats.
     if (catSyncEnabled && !catApplyingRemoteFreq && catSyncHandle) {
@@ -5801,6 +5844,7 @@
   function handleFrequencyChange(event) {
     const frequencyHz = event.detail;
 
+    logSend(frequencyHz);   // carnet ORSAT-LOG : toujours, indépendamment de CAT Sync
     // CAT sync, Phantom -> rig (TCI): only when "CAT Sync" is switched on, and
     // only when this change did not come from the rig itself (no echo).
     if (catSyncEnabled && !catApplyingRemoteFreq && catSyncHandle) {
