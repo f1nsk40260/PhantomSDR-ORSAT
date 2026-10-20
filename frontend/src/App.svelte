@@ -9418,7 +9418,7 @@
                 </div>
                 <div class="columns">
                   <div class="first-column">
-                    <ul style="font-size: 0.91rem; text-align: left;">
+                    <ul style="font-size: 0.91rem; text-align: center;">
                     <b>Version &amp; Configuration:</b>
                       <img
                         src={`https://img.shields.io/badge/ORSAT-${ORSAT_VERSION}-cfb53b?logo=github`}
@@ -9451,7 +9451,7 @@
 
 
                     {#if showSystemStats}
-                      <div class="modal-backdrop" on:click={closeSystemStats}>
+                      <div class="modal-backdrop" style="text-align: left;" on:click={closeSystemStats}>
                         <div 
                           id="system-stats-dialog"
                           role="dialog"
@@ -9541,7 +9541,7 @@
 
                     <!-- MANUEL UTILISATEUR PDF -->
                     {#if showManualPopup}
-                      <div class="modal-backdrop" on:click={closeManual}>
+                      <div class="modal-backdrop" style="text-align: left;" on:click={closeManual}>
                         <div
                           id="manual-dialog"
                           role="dialog"
@@ -16466,7 +16466,7 @@ Cliquez à nouveau pour désactiver"
     justify-content: center;
     gap: 8px;
     width: 100%;
-    margin-top: 6px;
+    margin-top: 12px;
     padding: 0.6rem 0.75rem;
     font-size: 1rem;
     border-radius: 0.5rem;
@@ -16606,7 +16606,8 @@ Cliquez à nouveau pour désactiver"
   .hamdash-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    justify-content: center;
+    gap: 12px 6px; /* interligne entre les rangées, écart entre boutons */
     width: 100%;
   }
   .hamdash-buttons a {
