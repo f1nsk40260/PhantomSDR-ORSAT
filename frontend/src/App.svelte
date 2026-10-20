@@ -11090,33 +11090,9 @@ Cliquez à nouveau pour désactiver"
                     </div>
                   </div>
 
-                  <!-- Réception en diversité (second récepteur) -->
-                  <DiversityPanel />
 
                   <div id="frequencyContainer" class="w-full mt-1 sm:mt-1">
                     <div class="space-y-5">
-                      <!-- Begin Fine Tuning Buttons -->
-
-                      <div class="w-full mt-0">
-                        <h3 class="text-white text-base font-semibold mb-2">
-                          Fine Tuning (kHz)
-                        </h3>
-                        <div class="grid grid-cols-5 sm:grid-cols-11 gap-2">
-                          {#each finetuningsteps as finetuningstep}
-                            <button
-                              id="fine-tuning-selector"
-                              class="retro-button text-white font-bold h-7 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                              on:click={() =>
-                                handleFineTuningStep(finetuningstep)}
-                              title="{finetuningstep} kHz"
-                            >
-                              {finetuningstep}
-                            </button>
-                          {/each}
-                        </div>
-                        <hr class="border-gray-600 my-2" />
-                      </div>
-
                       <!-- Phil -->
                       <!-- Begin Popup Buttons Menu -->
                       <div class="w-full mt-4">
@@ -11575,6 +11551,31 @@ Cliquez à nouveau pour désactiver"
                         <hr class="border-gray-600 my-2" />
                       </div>
                       <!-- End of Popup Buttons Menu -->
+
+                      <!-- Begin Fine Tuning Buttons -->
+
+                      <div class="w-full mt-0">
+                        <h3 class="text-white text-base font-semibold mb-2">
+                          Fine Tuning (kHz)
+                        </h3>
+                        <div class="grid grid-cols-5 sm:grid-cols-11 gap-2">
+                          {#each finetuningsteps as finetuningstep}
+                            <button
+                              id="fine-tuning-selector"
+                              class="retro-button text-white font-bold h-7 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+                              on:click={() =>
+                                handleFineTuningStep(finetuningstep)}
+                              title="{finetuningstep} kHz"
+                            >
+                              {finetuningstep}
+                            </button>
+                          {/each}
+                        </div>
+                        <hr class="border-gray-600 my-2" />
+                      </div>
+
+                      <!-- Réception en diversité (second récepteur) -->
+                      <div class="w-full mt-4"><DiversityPanel /></div>
 
                       <!-- Scanner -->
                       <div class="w-full mt-4">
