@@ -44,7 +44,7 @@ The analyser receives the receiver's sound **before** all listening processing: 
 
 1. Tune the station and choose the mode (USB or LSB for a full report).
 2. In the right-hand column, click **📊 Show** under **AUDIO ANALYSER**.
-3. Zoom the waterfall in on the station: occupied bandwidth, carrier and opposite sideband are measured on the waterfall, which must be fine enough.
+3. The waterfall zooms in on the station by itself when it is too wide to measure (occupied bandwidth, carrier, opposite sideband); it does so again whenever you change station.
 4. Let the station talk: the report verdicts appear after **3 seconds of voice**.
 5. To send the result, click **🎧 Generate a listening report**.
 
@@ -188,7 +188,7 @@ The **🎧 Generate a listening report** button downloads a self-contained HTML 
 
 # 11. Tips for reliable measurements
 
-- **Zoom the waterfall** in on the station: occupied bandwidth, carrier, opposite sideband and the RF view all depend on it.
+- **Keep the waterfall zoomed** on the station: occupied bandwidth, carrier, opposite sideband and the RF view all depend on it. The analyser zooms in by itself in SSB, CW and AM; if you zoom out, it only zooms in again when you change station.
 - **Open the receive filter**: to judge the bass it must go down to about 120 Hz; for presence, up to about 2.6 kHz. A 100–2800 Hz filter is fine.
 - **Prefer a station with more than 15 dB signal-to-noise ratio**. Below that, the report shows “Weak signal: reduced reliability”.
 - **Selective fading** distorts the spectrum from moment to moment: the 20 s average reduces it, but a report taken during heavy fading remains indicative.

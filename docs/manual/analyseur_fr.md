@@ -44,7 +44,7 @@ L'analyseur reçoit le son du récepteur **avant** tous les traitements d'écout
 
 1. Accordez la station et choisissez le mode (USB ou LSB pour un bilan complet).
 2. Dans la colonne de droite, cliquez sur **📊 Show** sous **ANALYSEUR AUDIO**.
-3. Zoomez la cascade sur la station : la largeur occupée, la porteuse et la bande opposée se mesurent sur la cascade, qui doit être assez fine.
+3. La cascade se zoome toute seule sur la station si elle est trop large pour mesurer (largeur occupée, porteuse, bande opposée) ; elle le refait à chaque changement de station.
 4. Laissez la station parler : les verdicts du bilan apparaissent après **3 secondes de voix**.
 5. Pour envoyer le résultat, cliquez sur **🎧 Générer un rapport d'écoute**.
 
@@ -188,7 +188,7 @@ Le bouton **🎧 Générer un rapport d'écoute** télécharge un fichier HTML a
 
 # 11. Conseils pour des mesures fiables
 
-- **Zoomez la cascade** sur la station : largeur occupée, porteuse, bande opposée et vue RF en dépendent.
+- **Laissez la cascade zoomée** sur la station : largeur occupée, porteuse, bande opposée et vue RF en dépendent. L'analyseur zoome de lui-même en SSB, CW et AM ; si vous dézoomez, il ne revient qu'au changement de station.
 - **Ouvrez le filtre de réception** : pour juger les graves, il doit descendre vers 120 Hz ; pour la présence, monter vers 2,6 kHz. Un filtre 100–2800 Hz convient.
 - **Préférez une station au-dessus de 15 dB de rapport signal/bruit**. En dessous, le bilan affiche « Signal faible : fiabilité réduite ».
 - **Le fading sélectif** déforme le spectre d'un instant à l'autre : la moyenne sur 20 s l'atténue, mais un bilan pris pendant un fort fading reste indicatif.

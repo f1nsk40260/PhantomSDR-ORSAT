@@ -44,7 +44,7 @@ El analizador recibe el sonido del receptor **antes** de todos los procesados de
 
 1. Sintonice la estación y elija el modo (USB o LSB para un informe completo).
 2. En la columna derecha, haga clic en **📊 Show** bajo **ANALIZADOR DE AUDIO**.
-3. Haga zoom en la cascada sobre la estación: el ancho ocupado, la portadora y la banda opuesta se miden en la cascada, que debe ser lo bastante fina.
+3. La cascada hace zoom sola sobre la estación si es demasiado ancha para medir (ancho ocupado, portadora, banda opuesta); vuelve a hacerlo en cada cambio de estación.
 4. Deje hablar a la estación: los veredictos aparecen tras **3 segundos de voz**.
 5. Para enviar el resultado, haga clic en **🎧 Generar un informe de escucha**.
 
@@ -188,7 +188,7 @@ El botón **🎧 Generar un informe de escucha** descarga un archivo HTML autón
 
 # 11. Consejos para medidas fiables
 
-- **Haga zoom en la cascada** sobre la estación: el ancho ocupado, la portadora, la banda opuesta y la vista RF dependen de ello.
+- **Mantenga la cascada ampliada** sobre la estación: el ancho ocupado, la portadora, la banda opuesta y la vista RF dependen de ello. El analizador hace zoom solo en SSB, CW y AM; si reduce el zoom, solo vuelve a ampliar al cambiar de estación.
 - **Abra el filtro de recepción**: para juzgar los graves debe bajar hasta unos 120 Hz; para la presencia, subir hasta unos 2,6 kHz. Un filtro 100–2800 Hz es adecuado.
 - **Prefiera una estación con más de 15 dB de relación señal/ruido**. Por debajo, el informe indica «Señal débil: fiabilidad reducida».
 - **El fading selectivo** deforma el espectro de un instante a otro: la media sobre 20 s lo atenúa, pero un informe tomado durante un fading fuerte sigue siendo indicativo.

@@ -621,6 +621,20 @@
   // ORSAT : largeur occupée de la station accordée (mesure RF −26 dB) → splatter.
   let spectroOccupied = null;
   let _obwHist = [], _obwTimer = null;
+  let _obwZoomDial = null; // fréquence (Hz) du dernier zoom automatique de l'analyseur
+  const ANALYSER_VIEW_SPAN_HZ = 30000; // ~30 Hz par case : assez fin pour la largeur occupée et le bilan SSB
+  function _analyserZoomIn() {
+    try {
+      const [, m] = audio.getAudioRange();
+      const edge = frequencyToFFTOffset(FFTOffsetToFrequency(m) + ANALYSER_VIEW_SPAN_HZ / 2);
+      const half = Math.max(512, Math.round(edge - m));
+      waterfall.setWaterfallRange(Math.round(m - half), Math.round(m + half));
+      frequencyMarkerComponent.updateFrequencyMarkerPositions();
+      updatePassband();
+    } catch (e) {
+      console.warn("[analyseur] zoom automatique", e);
+    }
+  }
   const OBW_NORMS = {
     SSB: { ok: 3300, wide: 5000, name: "SSB", wideTxt: "large (ESSB ?)", badTxt: "splatter probable" },
     AM: { ok: 10000, wide: 12000, name: "AM", wideTxt: "large", badTxt: "splatter probable" },
@@ -636,6 +650,14 @@
     }
     const r = waterfall.measureOccupied(dial, m);
     if (!r.ok && r.reason === "impulse") return;    // parasite : trace ignorée, sans tout effacer
+    // ORSAT : cascade trop large pour mesurer → l'analyseur zoome lui-même sur
+    // la station, une fois par station accordée (on ne combat pas un dézoom
+    // volontaire : il ne rezoome qu'après un changement de fréquence).
+    if (!r.ok && r.reason === "zoom" && (_obwZoomDial == null || Math.abs(dial - _obwZoomDial) > 5000)) {
+      _obwZoomDial = dial;
+      _analyserZoomIn();
+      return;
+    }
     if (!r.ok) {
       _obwHist = [];
       spectroOccupied = r.reason === "zoom"
@@ -668,7 +690,7 @@
     };
   }
   $: if (spectrogramEnabled && !_obwTimer) { _obwTimer = setInterval(_obwTick, 250); }
-  $: if (!spectrogramEnabled && _obwTimer) { clearInterval(_obwTimer); _obwTimer = null; spectroOccupied = null; _obwHist = []; }
+  $: if (!spectrogramEnabled && _obwTimer) { clearInterval(_obwTimer); _obwTimer = null; spectroOccupied = null; _obwHist = []; _obwZoomDial = null; }
   let spectrogramGain = 1.0;
   let spectroLtas = null, spectroLtasRef = null;   // ORSAT : bilan audio SSB
 
