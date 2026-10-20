@@ -34,7 +34,7 @@ au récepteur.
 | **Identification** | Reconnaissance automatique du mode et base de 583 signaux de référence (Artemis / SigIDWiki) |
 | **Analyse** | Analyseur audio avec bilan de modulation SSB, largeur occupée et rapport d'écoute |
 | **Affichage** | Waterfall avec réglage automatique, spectre 3D en WebGL2, thème « vieil or » |
-| **Documentation** | Manuel, guide des décodeurs et guide de l'analyseur, en PDF et en trois langues |
+| **Documentation** | Manuel, guides des décodeurs, de l'analyseur et de la réception en diversité, en PDF et en trois langues |
 | **Base** | [PhantomSDR-Plus 5.1.0](https://github.com/sv1btl/PhantomSDR-Plus) de SV1BTL, licence GPL v3 |
 
 ## Les décodeurs
@@ -91,7 +91,7 @@ opposée) et comparaison avant / après. Il prépare un **rapport d'écoute** av
 
 ## Une documentation intégrée
 
-Trois guides PDF s'ouvrent directement depuis le menu *Informations* du récepteur, chacun en
+Quatre guides PDF s'ouvrent directement depuis le menu *Informations* du récepteur, chacun en
 français, en anglais et en espagnol :
 
 | Guide | Français | English | Español |
@@ -99,6 +99,7 @@ français, en anglais et en espagnol :
 | Guide général d'utilisation | [PDF](frontend/src/assets/docs/manualFR.pdf) | [PDF](frontend/src/assets/docs/manualEN.pdf) | [PDF](frontend/src/assets/docs/manualES.pdf) |
 | Guide des décodeurs | [PDF](frontend/src/assets/docs/guideDecodeursFR.pdf) | [PDF](frontend/src/assets/docs/guideDecodeursEN.pdf) | [PDF](frontend/src/assets/docs/guideDecodeursES.pdf) |
 | Guide de l'analyseur audio | [PDF](frontend/src/assets/docs/guideAnalyseurFR.pdf) | [PDF](frontend/src/assets/docs/guideAnalyseurEN.pdf) | [PDF](frontend/src/assets/docs/guideAnalyseurES.pdf) |
+| Guide de la réception en diversité | [PDF](frontend/src/assets/docs/guideDiversiteFR.pdf) | [PDF](frontend/src/assets/docs/guideDiversiteEN.pdf) | [PDF](frontend/src/assets/docs/guideDiversiteES.pdf) |
 
 Les sources de ces guides sont dans [`docs/manual/`](docs/manual/README.md).
 Le détail des versions ORSAT est dans **[CHANGELOG-ORSAT.md](CHANGELOG-ORSAT.md)**.

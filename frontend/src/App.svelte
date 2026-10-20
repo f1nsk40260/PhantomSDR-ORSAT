@@ -14,6 +14,9 @@
   import guideDecodeursFRUrl from "./assets/docs/guideDecodeursFR.pdf";
   import guideDecodeursENUrl from "./assets/docs/guideDecodeursEN.pdf";
   import guideDecodeursESUrl from "./assets/docs/guideDecodeursES.pdf";
+  import guideDiversiteFRUrl from "./assets/docs/guideDiversiteFR.pdf";
+  import guideDiversiteENUrl from "./assets/docs/guideDiversiteEN.pdf";
+  import guideDiversiteESUrl from "./assets/docs/guideDiversiteES.pdf";
 
   // ── Variant selection ────────────────────────────────────────────────────
   //
@@ -9748,6 +9751,25 @@
                       title="Abrir la guía detallada de todos los decodificadores en español"
                       aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
                       style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇪🇸 Guía de los decodificadores</button>
+                  </div>
+
+                  <div style="font-weight: bold; text-align: center; margin-top: 14px;">📡 GUIDE DE LA RÉCEPTION EN DIVERSITÉ</div>
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 6px;">
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideDiversiteFRUrl, "Guide de la réception en diversité")}
+                      title="Ouvrir le guide détaillé de la réception en diversité en français"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇫🇷 Guide de la diversité</button>
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideDiversiteENUrl, "Receive diversity guide")}
+                      title="Open the detailed receive diversity guide in English"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇬🇧 Diversity guide</button>
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideDiversiteESUrl, "Guía de la recepción en diversidad")}
+                      title="Abrir la guía detallada de la recepción en diversidad en español"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇪🇸 Guía de la diversidad</button>
                   </div>
                 </div>
                    

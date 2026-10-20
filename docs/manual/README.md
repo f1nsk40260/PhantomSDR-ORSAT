@@ -39,3 +39,13 @@ qu'une image manque, le PDF affiche un cadre « Vignette à fournir » à sa pla
 ```
 python3 docs/manual/build_manual.py decodeurs_fr.md
 ```
+
+## Guide de la réception en diversité
+
+`diversite_fr.md`, `diversite_en.md`, `diversite_es.md` produisent `guideDiversiteFR.pdf`,
+`guideDiversiteEN.pdf`, `guideDiversiteES.pdf`. Les schémas `images/div_principe_*.png`
+illustrent le principe (deux trajets, évanouissements décorrélés, sélection).
+
+```
+python3 docs/manual/build_manual.py diversite_fr.md
+```
