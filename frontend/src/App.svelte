@@ -9939,6 +9939,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                         ltasRef={spectroLtasRef}
                         muted={mute}
                         on:togglemute={() => { handleMuteChange(); muteByAnalyser = mute; }}
+                        on:close={() => { if (spectrogramEnabled) toggleSpectrogram(); }}
                       />
                       <SsbReport
                         spectro={spectrogramComponent}

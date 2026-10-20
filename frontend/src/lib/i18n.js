@@ -650,6 +650,7 @@ const D = [
   ["Zoomez sur la station dans la cascade pour mesurer sa largeur occupée.", "Zoom in on the station in the waterfall to measure its occupied bandwidth.", "Haga zoom sobre la estación en la cascada para medir su ancho ocupado."],
   ["Signal trop faible pour mesurer la largeur occupée.", "Signal too weak to measure the occupied bandwidth.", "Señal demasiado débil para medir el ancho ocupado."],
   ["Couper le son", "Mute", "Silenciar"],
+  ["Fermer l'analyseur audio", "Close the audio analyser", "Cerrar el analizador de audio"],
   ["Son coupé", "Muted", "Silenciado"],
   ["Rétablir le son du récepteur", "Restore the receiver sound", "Restablecer el sonido del receptor"],
   ["Couper le son du récepteur (l'analyse continue) : pour analyser votre propre émission sans renvoyer l'audio dans votre micro", "Mute the receiver (analysis continues): to analyse your own transmission without feeding the audio back into your microphone", "Silenciar el receptor (el análisis continúa): para analizar su propia emisión sin devolver el audio al micrófono"],

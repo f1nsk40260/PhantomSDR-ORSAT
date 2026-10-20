@@ -698,6 +698,11 @@
         <span aria-hidden="true">{muted ? "🔇" : "🔊"}</span>
         <span>{muted ? "Son coupé" : "Couper le son"}</span>
       </button>
+      <button class="spg-mute spg-close" on:click={() => dispatch("close")}
+        title="Fermer l'analyseur audio">
+        <span aria-hidden="true">✕</span>
+        <span>Fermer</span>
+      </button>
     </div>
   {/if}
   <div class="spg-cv">
@@ -725,6 +730,7 @@
     color: rgb(207, 181, 59); background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(207, 181, 59, 0.6);
   }
   .spg-mute:hover { background: rgba(207, 181, 59, 0.18); color: #f3e7a6; }
+  .spg-close { margin-left: 0.35rem; }
   .spg-mute.on { color: #fecaca; border-color: rgba(248, 113, 113, 0.75); background: rgba(153, 27, 27, 0.45); }
   .spg-base .hint { font-size: 0.68rem; color: #9ca3af; font-style: italic; }
   .spg-cv { position: relative; }
