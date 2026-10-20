@@ -9357,8 +9357,10 @@
                           : "Ouvrir Météo - Alertes - Infos - Propagation - DXcluster et Manuels utilisateur"}
                         class="glass-button gold-button py-2 px-4 rounded-lg flex items-center"
                         class:info-toggle-attention={!infoMenuOpen}
+                        class:info-toggle-close={infoMenuOpen}
                         on:click={() => toggleMenu()}
                       >
+                        {#if infoMenuOpen}<span class="info-close-x" aria-hidden="true">✕</span>{/if}
                         <span id="menu-toggle-label">{infoMenuOpen
                           ? "Close Windows"
                           : "Open Meteo - Alerts - Infos - Propagation - DXcluster and User Manuals"}</span>
@@ -16439,6 +16441,30 @@ Cliquez à nouveau pour désactiver"
   }
   @media (prefers-reduced-motion: reduce) {
     .info-toggle-attention { animation: none; }
+  }
+
+  /* ORSAT : panneau Infos ouvert — le bouton « Fermer les fenêtres » passe en
+     or plein (texte bleu nuit), bien visible, avec une croix. */
+  .gold-button.info-toggle-close {
+    color: #0b1426 !important;
+    font-weight: 700;
+    background: linear-gradient(180deg, #ecd77a 0%, #cfb53b 55%, #a8902a 100%) !important;
+    border: 1px solid #f3e7a6 !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    box-shadow:
+      0 0 12px 2px rgba(236, 215, 122, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+  .gold-button.info-toggle-close:hover {
+    background: linear-gradient(180deg, #f3e7a6 0%, #dcc350 55%, #b59c30 100%) !important;
+    box-shadow:
+      0 0 16px 4px rgba(236, 215, 122, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  .info-close-x {
+    font-size: 1.05em;
+    font-weight: 900;
+    margin-right: 0.5rem;
   }
 
   /* BOUTONS VIEIL OR DU PANNEAU INFOS */
