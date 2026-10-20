@@ -19,9 +19,9 @@ toc: Sommaire
 
 ## 1.1 Où se trouvent les décodeurs
 
-Tous les décodeurs sont regroupés dans la rangée **Decoders Control**, dans la colonne de droite, sous le scanner. Chaque bouton lance un décodeur ; un second clic sur le même bouton l'arrête. **Un seul décodeur fonctionne à la fois** : en lancer un autre arrête le précédent.
+Tous les décodeurs sont regroupés dans la rangée **Contrôle des décodeurs**, dans la colonne de droite, sous le scanner. Chaque bouton lance un décodeur ; un second clic sur le même bouton l'arrête. **Un seul décodeur fonctionne à la fois** : en lancer un autre arrête le précédent.
 
-![La rangée « Decoders Control » et ses onze boutons.](images/dec_rangee.jpg){w=380}
+![La rangée « Contrôle des décodeurs » et ses onze boutons.](images/dec_rangee.jpg){w=380}
 
 | Bouton | Décodeur | Chapitre |
 | FT8 / FT4 / FT2 | Modes WSJT faible signal | 2 |
@@ -57,7 +57,7 @@ Un décodeur ne se contente pas de lire le son : il **prend en main le récepteu
 
 **Spectre audio du décodeur.** FT8/FT4/FT2, JS8 et WSPR affichent sous leurs réglages une **cascade audio** de la bande passante : on y voit les signaux arriver, et chaque décodage y est repéré.
 
-**Synchronisation horaire.** Les modes à créneaux fixes (FT8, FT4, FT2, JS8, WSPR) dépendent de l'heure UTC. ORSAT compense le retard du flux audio entre le serveur et votre navigateur grâce au réglage **Sync offset** (section 2.4).
+**Synchronisation horaire.** Les modes à créneaux fixes (FT8, FT4, FT2, JS8, WSPR) dépendent de l'heure UTC. ORSAT compense le retard du flux audio entre le serveur et votre navigateur grâce au réglage **Décalage de synchro** (section 2.4).
 
 # 2. FT8, FT4 et FT2
 
@@ -93,7 +93,7 @@ Ces trois modes de la famille WSJT-X transmettent de courts messages normalisés
 
 ![Panneau FT8 : forme d'onde, réglage de synchro et tableau des messages.](images/fr_p19_0.jpg){w=375}
 
-- **Farthest** — distance du contact le plus lointain entendu depuis le début de la session.
+- **Plus lointain** — distance du contact le plus lointain entendu depuis le début de la session.
 - **Forme d'onde audio** — les repères marquent chaque signal décodé dans la bande passante.
 - **Tableau des messages** — une ligne par décodage :
 
@@ -105,9 +105,9 @@ Ces trois modes de la famille WSJT-X transmettent de courts messages normalisés
 | Message | Le texte : CQ F1ABC JN03, F1ABC DL1XYZ -12, RR73… |
 | Locator / Dist | Locator Maidenhead de la station et distance estimée depuis ORSAT |
 
-## 2.4 Sync offset et Auto
+## 2.4 Décalage de synchro et Auto
 
-Le son met un peu de temps à vous parvenir. **Sync offset** décale le début de la capture après le début du créneau UTC pour compenser ce retard (valeur affichée en secondes).
+Le son met un peu de temps à vous parvenir. **Décalage de synchro** décale le début de la capture après le début du créneau UTC pour compenser ce retard (valeur affichée en secondes).
 
 - **Auto** coché (recommandé) — ORSAT ajuste lui-même le décalage à partir des valeurs **DT** mesurées par le décodeur.
 - **Auto** décoché — réglez le curseur à la main : si la plupart des DT sont fortement positifs ou négatifs, déplacez-le dans le même sens.
@@ -122,7 +122,7 @@ JS8 reprend la modulation de FT8 mais transporte du **texte libre** : messagerie
 
 ## 3.2 Réglages
 
-- **Speed** — la vitesse JS8 écoutée. Toutes les stations d'un QSO utilisent la même ; **Normal** est la vitesse d'appel courante.
+- **Vitesse** — la vitesse JS8 écoutée. Toutes les stations d'un QSO utilisent la même ; **Normal** est la vitesse d'appel courante.
 
 | Vitesse | Créneau |
 | Normal | 15 s |
@@ -133,8 +133,8 @@ JS8 reprend la modulation de FT8 mais transporte du **texte libre** : messagerie
 
 - **Fréquences connues** — 160 m 1 842,0 · 80 m 3 578,0 · 40 m 7 078,0 · 30 m 10 130,0 · 20 m 14 078,0 · 17 m 18 104,0 · 15 m 21 078,0 · 12 m 24 922,0 · 10 m 28 078,0 kHz.
 - **Barre de progression** — avancement du créneau en cours.
-- **Sync offset / Auto** — comme pour FT8 (section 2.4).
-- **Clear** — efface les messages.
+- **Décalage de synchro / Auto** — comme pour FT8 (section 2.4).
+- **Effacer** — efface les messages.
 
 ![Panneau JS8 : vitesse, progression du créneau et messages.](images/dec_js8.jpg){w=375}
 
@@ -142,7 +142,7 @@ JS8 reprend la modulation de FT8 mais transporte du **texte libre** : messagerie
 
 Chaque ligne porte le mode, le SNR et le message, avec l'**indicatif de l'émetteur mis en valeur**. Un message en cours de réception s'affiche **au fur et à mesure**, suivi d'un curseur ▌, avant d'être complété par les trames suivantes. Si la dernière trame n'arrive pas, la ligne le signale (délai dépassé).
 
-> [Astuce] « Listening on the Normal cycle… » indique que le décodeur attend. Sur une bande calme, il peut se passer plusieurs minutes avant le premier message.
+> [Astuce] « À l'écoute du cycle Normal… » indique que le décodeur attend. Sur une bande calme, il peut se passer plusieurs minutes avant le premier message.
 
 # 4. CW (télégraphie Morse)
 
@@ -152,9 +152,10 @@ Le décodeur CW **trouve seul la tonalité** du signal dans la bande passante et
 
 - **≈ … Hz** — fréquence audio de la note décodée.
 - **· … WPM** — vitesse mesurée.
-- **scanning…** — aucune note n'est encore accrochée.
+- **balayage…** — aucune note n'est encore accrochée.
+- **🔓 Verrouiller la tonalité** — fige le décodeur sur la note actuelle : il ne part plus chercher un autre signal voisin. Un nouveau clic la libère.
 - Le texte s'écrit en continu ; une ligne **───** marque un silence (fin d'émission).
-- **Clear** efface le texte.
+- **Effacer** efface le texte.
 
 ![Panneau CW : note détectée, vitesse et texte décodé.](images/dec_cw.jpg){w=375}
 
@@ -194,16 +195,16 @@ WSPR (« whisper ») est un mode de **balises de très faible puissance** servan
 | 60 m | 5 287,2 | 10 m | 28 124,6 |
 | 40 m | 7 038,6 | | |
 
-3. Attendez : « Waiting for next even UTC minute slot… » s'affiche jusqu'au début du prochain créneau, puis la barre de progression avance pendant la réception. Les résultats tombent **à la fin** du créneau.
+3. Attendez : « En attente du prochain créneau UTC de minute paire… » s'affiche jusqu'au début du prochain créneau, puis la barre de progression avance pendant la réception. Les résultats tombent **à la fin** du créneau.
 
 ## 5.3 Lire le tableau
 
 ![Panneau WSPR : progression du créneau et balises décodées.](images/dec_wspr.jpg){w=375}
 
 - **UTC** — heure du créneau ;
-- **Callsign** et **Grid** — indicatif et locator de la balise ;
-- **Power** — puissance déclarée (en dBm : 37 dBm = 5 W, 30 dBm = 1 W, 23 dBm = 200 mW) ;
-- **Freq** — fréquence exacte de la balise ;
+- **Indicatif** et **Carré** — indicatif et locator de la balise ;
+- **Puissance** — puissance déclarée (en dBm : 37 dBm = 5 W, 30 dBm = 1 W, 23 dBm = 200 mW) ;
+- **Fréq.** — fréquence exacte de la balise ;
 - **SNR** — rapport signal/bruit (WSPR décode jusqu'à −28 dB environ).
 
 > [Astuce] Les boutons **WSPR log** et **WSPR map** de la rubrique « Liens externes » du menu Informations montrent les balises reçues par ORSAT sur les sites de référence.
@@ -216,7 +217,7 @@ Les stations météorologiques et militaires diffusent des **cartes météo** (a
 
 ## 6.2 Choisir une station
 
-- **Station** — choisissez une station dans la liste, puis une **Frequency**, et cliquez sur **▶ Tune**.
+- **Station** — choisissez une station dans la liste, puis une **Fréquence**, et cliquez sur **▶ Accorder**.
 
 | Station | Fréquences (kHz) |
 | GYA — Northwood (Royaume-Uni) | 2 618,5 · 4 610 · 8 040 · 11 086,5 |
@@ -227,28 +228,28 @@ Les stations météorologiques et militaires diffusent des **cartes météo** (a
 | JMH — Tokyo (Japon) | 3 622,5 · 7 795 · 13 988,5 |
 | JFX — Kagoshima (Japon) | 4 274 · 8 658 · 13 074 · 16 907,5 · 22 559,6 |
 
-- **Next Transmissions · UTC** — les prochaines émissions de la station choisie, avec un compte à rebours. Une émission **en cours** est signalée en vert (●), une émission **imminente** en rouge. Le lien **FAX transmission schedules** ouvre les grilles horaires complètes.
+- **Prochaines émissions · UTC** — les prochaines émissions de la station choisie, avec un compte à rebours. Une émission **en cours** est signalée en vert (●), une émission **imminente** en rouge. Le lien **Horaires des émissions FAX** ouvre les grilles horaires complètes.
 
 ## 6.3 Réglages de l'image
 
 | Réglage | Valeurs | Défaut |
 | LPM (lignes par minute) | 100 · 120 · 240 | 120 |
 | IOC (indice de coopération) | 288 · 576 | 576 |
-| Shift (écart noir/blanc) | 400 Hz · 800 Hz | 800 Hz |
+| Écart (noir/blanc) | 400 Hz · 800 Hz | 800 Hz |
 
 Les valeurs marquées ★ dans les menus sont la norme ; presque toutes les stations l'utilisent. La ligne d'information rappelle les fréquences du **noir** (1 500 Hz) et du **blanc** (2 300 Hz), la résolution en pixels par ligne et la durée d'une ligne.
 
-- **⇔ Auto-align** — aligne automatiquement les lignes sur les impulsions de synchronisation : l'image ne penche plus.
-- **⇅ Invert** — inverse le noir et le blanc (réception en LSB ou station à polarité inversée).
+- **⇔ Alignement auto** — aligne automatiquement les lignes sur les impulsions de synchronisation : l'image ne penche plus.
+- **⇅ Inverser** — inverse le noir et le blanc (réception en LSB ou station à polarité inversée).
 
 ## 6.4 Pendant la réception
 
 ![Panneau FAX : station, horaires, réglages et image en cours de réception.](images/dec_fax.jpg){w=375}
 
-- Les voyants **300 Hz phasing** et **450 Hz stop** s'allument pendant le phasage et le signal d'arrêt ; l'en-tête affiche **[PHASING]**, **[STOP]** et le nombre de lignes reçues (**Lines**).
+- Les voyants **phasage 300 Hz** et **arrêt 450 Hz** s'allument pendant le phasage et le signal d'arrêt ; l'en-tête affiche **[PHASING]**, **[STOP]** et le nombre de lignes reçues (**Lignes**).
 - L'image se construit ligne par ligne, **les plus récentes en bas**.
-- **↺ Reset** efface l'image et réinitialise le décodeur : à utiliser entre deux émissions ou si l'image se déchire.
-- **⤓ Save PNG** enregistre l'image.
+- **↺ Réinit.** efface l'image et réinitialise le décodeur : à utiliser entre deux émissions ou si l'image se déchire.
+- **⤓ Enregistrer PNG** enregistre l'image.
 
 > [Astuce] Lancez le décodeur une ou deux minutes avant l'heure prévue : vous capterez le phasage et l'image démarrera bien calée.
 
@@ -266,18 +267,18 @@ Par convention, la SSTV se pratique en **LSB sur 80 et 40 m** et en **USB à par
 
 - **Fréquences connues** — 80 m 3 730,0 (Europe) et 3 845,0 (Amériques) · 40 m 7 171,0 · 20 m 14 230,0 (principale) et 14 233,0 · 17 m 18 160,0 · 15 m 21 340,0 · 12 m 24 975,0 · 10 m 28 680,0 kHz.
 - **Mode** — **Auto** (recommandé) reconnaît le mode grâce à l'en-tête VIS envoyé au début de chaque image. On peut aussi imposer : Martin M1, Martin M2, Scottie S1, Scottie S2, Scottie DX, Robot 36, Robot 72.
-- **▶ Start** / **■ Stop** — démarre ou arrête la réception.
-- **↺ Reset** — efface l'image.
-- **⏺ Force** — démarre le décodage tout de suite dans le mode choisi, sans attendre l'en-tête VIS. Utile quand on arrive au milieu d'une image. Ne fonctionne pas en mode Auto.
-- **💾 Save** — enregistre l'image.
+- **▶ Démarrer** / **■ Arrêter** — démarre ou arrête la réception.
+- **↺ Réinit.** — efface l'image.
+- **⏺ Forcer** — démarre le décodage tout de suite dans le mode choisi, sans attendre l'en-tête VIS. Utile quand on arrive au milieu d'une image. Ne fonctionne pas en mode Auto.
+- **💾 Enregistrer** — enregistre l'image.
 
 ## 7.4 Indicateurs
 
 ![Panneau SSTV : mode détecté, état de la synchro et image reçue.](images/dec_sstv.jpg){w=375}
 
 - **[mode détecté]** — par exemple [Martin M1].
-- **hard sync lock** — synchronisation franche sur les impulsions de ligne ; **soft sync hold** — synchro maintenue malgré un signal faible.
-- **Running / Stopped** et **Lines** — état et nombre de lignes reçues sur le total de l'image.
+- **verrouillage synchro franc** — synchronisation franche sur les impulsions de ligne ; **maintien de synchro souple** — synchro maintenue malgré un signal faible.
+- **En marche / Arrêté** et **Lignes** — état et nombre de lignes reçues sur le total de l'image.
 
 > [Astuce] Une image penchée vient d'un mauvais calage de synchro ; une image aux couleurs fausses, d'un mauvais mode ou d'une mauvaise bande latérale.
 
@@ -293,18 +294,18 @@ Le NAVTEX diffuse aux navires les **avis aux navigateurs**, la météo marine et
 ## 8.2 Mise en route
 
 1. Cliquez sur **NAVTX** : le récepteur passe en USB.
-2. Choisissez une station et cliquez sur **⇒ Tune & Set IF** : le récepteur s'accorde 500 Hz sous le canal (le signal tombe à 500 Hz audio) et le filtre FI se règle.
-3. L'en-tête indique « waiting for phasing… » jusqu'à ce qu'une émission commence.
+2. Choisissez une station et cliquez sur **⇒ Accorder & régler la FI** : le récepteur s'accorde 500 Hz sous le canal (le signal tombe à 500 Hz audio) et le filtre FI se règle.
+3. L'en-tête indique « en attente du phasage… » jusqu'à ce qu'une émission commence.
 
 ## 8.3 Le tableau des diffusions
 
 ![Panneau NAVTEX : prochaines diffusions et messages reçus.](images/dec_navtex.jpg){w=375}
 
-**Next Broadcasts · UTC** liste les stations dans l'ordre de leurs prochaines émissions : drapeau, lettre d'identification, nom, zone, heure UTC et compte à rebours. La station **en cours d'émission** est signalée en vert, la suivante en rouge quand elle est imminente.
+**Prochaines diffusions · UTC** liste les stations dans l'ordre de leurs prochaines émissions : drapeau, lettre d'identification, nom, zone, heure UTC et compte à rebours. La station **en cours d'émission** est signalée en vert, la suivante en rouge quand elle est imminente.
 
 - Un bouton permet d'**armer le décodeur immédiatement**, sans attendre le phasage.
-- **NAVTEX Maps Stations** ouvre la carte des stations.
-- **Clear** et **Save Text** effacent ou enregistrent le texte reçu.
+- **Carte des stations NAVTEX** ouvre la carte des stations.
+- **Effacer** et **Enregistrer le texte** effacent ou enregistrent le texte reçu.
 
 > [Astuce] La nuit, le 518 kHz porte loin : on capte régulièrement des stations de toute l'Europe de l'Ouest et de la Méditerranée.
 
@@ -333,7 +334,7 @@ Les avions en vol au-dessus des océans échangent des messages **ACARS** avec d
 
 ## 10.1 Un décodeur, quatorze variantes
 
-Le bouton **FLDIGI** ouvre un décodeur unique qui reprend les modes du logiciel fldigi. Le menu **Variant** choisit la famille ; le titre du panneau change en conséquence (FSK / RTTY, PSK31, Olivia, Packet, APRS…).
+Le bouton **FLDIGI** ouvre un décodeur unique qui reprend les modes du logiciel fldigi. Le menu **Variante** choisit la famille ; le titre du panneau change en conséquence (FSK / RTTY, PSK31, Olivia, Packet, APRS…).
 
 | Variante | Usage |
 | Maritime FSK / SITOR | NAVTEX, avis maritimes SITOR, NBDP |
@@ -355,32 +356,32 @@ Le bouton **FLDIGI** ouvre un décodeur unique qui reprend les modes du logiciel
 ## 10.2 Les commandes communes
 
 ![Décodeur FLDIGI, variante FSK maritime / SITOR.](images/fr_p21_1.jpg){w=204,side}
-- **Known frequency** puis **Tune** — accorde sur une fréquence de référence de la variante.
-- **Next Broadcasts · UTC** — horaires des diffusions pour les variantes qui en ont (stations NAVTEX, DWD).
-- **⇒ Set IF Band-Pass** — règle le filtre FI sur la largeur du mode.
-- **⟳ Auto-tune Center** — cherche le signal et recentre le décodeur dessus.
-- **Clear** — efface le texte ; un bouton permet d'**enregistrer le texte**.
-- L'en-tête affiche l'état du décodeur ; « waiting for lock… » tant qu'aucun signal n'est accroché.
+- **Fréquence connue** puis **Accorder** — accorde sur une fréquence de référence de la variante.
+- **Prochaines diffusions · UTC** — horaires des diffusions pour les variantes qui en ont (stations NAVTEX, DWD).
+- **⇒ Régler le passe-bande FI** — règle le filtre FI sur la largeur du mode.
+- **⟳ Centrage auto** — cherche le signal et recentre le décodeur dessus.
+- **Effacer** — efface le texte ; un bouton permet d'**enregistrer le texte**.
+- L'en-tête affiche l'état du décodeur ; « en attente de verrouillage… » tant qu'aucun signal n'est accroché.
 
 ## 10.3 RTTY et SITOR (FSK)
 
 Les trois variantes FSK partagent les mêmes réglages :
 
-- **Center audio (Hz)** — fréquence audio du centre du signal.
-- **Shift (Hz)** — écart entre les deux tonalités mark et space.
+- **Centre audio (Hz)** — fréquence audio du centre du signal.
+- **Écart (Hz)** — écart entre les deux tonalités mark et space.
 - **Baud** — vitesse.
-- **Framing** — 5N1, 5N1.5, 5N2, 7N1, 7E1, 7O1, 8N1.
-- **Encoding** — CCIR-476 (SITOR), ITA2 / Baudot (RTTY), ASCII.
-- **Invert mark / space** — inverse les deux tonalités.
-- **Auto shift detect** — mesure l'écart automatiquement.
-- **Squelch (SNR)** — bloque l'affichage du bruit. Le bruit seul se lit vers −12 à −15 dB ; le RTTY reste lisible jusqu'à environ −4 dB. Curseur tout à gauche : squelch coupé (« off »).
+- **Trame** — 5N1, 5N1.5, 5N2, 7N1, 7E1, 7O1, 8N1.
+- **Encodage** — CCIR-476 (SITOR), ITA2 / Baudot (RTTY), ASCII.
+- **Inverser mark / space** — inverse les deux tonalités.
+- **Détection auto de l'écart** — mesure l'écart automatiquement.
+- **Squelch (S/B)** — bloque l'affichage du bruit. Le bruit seul se lit vers −12 à −15 dB ; le RTTY reste lisible jusqu'à environ −4 dB. Curseur tout à gauche : squelch coupé (« off »).
 
-| Variante | Centre | Shift | Baud | Code | Inverser |
+| Variante | Centre | Écart | Baud | Code | Inverser |
 | Maritime FSK / SITOR | 500 Hz | 170 Hz | 100 | CCIR-476, 7N1 | non |
 | Weather RTTY | 1 000 Hz | 450 Hz | 50 | ITA2, 5N1.5 | **oui** |
 | Amateur RTTY | 1 000 Hz | 170 Hz | 45,45 | ITA2, 5N1.5 | non |
 
-Indicateurs : **Mark** et **Space** (fréquences mesurées des deux tonalités), **Tones**, **SNR**, **Verrou** et **Timing**.
+Indicateurs : **Mark** et **Space** (fréquences mesurées des deux tonalités), **Tons**, **SNR**, **Verrou** et **Timing**.
 
 **Fréquences connues :**
 
@@ -388,18 +389,18 @@ Indicateurs : **Mark** et **Space** (fréquences mesurées des deux tonalités),
 - *Weather* — DWD Pinneberg : 4 583 (DDK2), 7 646 (DDH7), 10 100,8 (DDK9), 11 039 (DDH9), 14 467,3 (DDH8) et 147,3 kHz (DDH47, en ondes longues, écart de 85 Hz).
 - *Amateur* — RTTY sur 3 590, 7 043, 10 143, 14 083, 21 083 et 28 083 kHz.
 
-> [Astuce] Le RTTY météo du DWD arrive avec la tonalité mark en bas : laissez **Invert** coché. Pour le RTTY amateur et le SITOR, laissez-le décoché.
+> [Astuce] Le RTTY météo du DWD arrive avec la tonalité mark en bas : laissez **Inverser mark / space** coché. Pour le RTTY amateur et le SITOR, laissez-le décoché.
 
 ## 10.4 PSK31
 
-- **Center audio** — placez le décodeur sur la trace du signal (un trait fin de 31 Hz de large sur la cascade), ou utilisez **⟳ Auto-tune Center**.
-- Indicateurs : **Carrier** (fréquence de la porteuse), **IMD** (qualité de l'émission : −25 dB ou moins est propre, au-delà de −20 dB l'émetteur est saturé), **DCD** (● quand un signal est détecté), **Audio** (niveau).
+- **Centre audio** — placez le décodeur sur la trace du signal (un trait fin de 31 Hz de large sur la cascade), ou utilisez **⟳ Centrage auto**.
+- Indicateurs : **Porteuse** (fréquence de la porteuse), **IMD** (qualité de l'émission : −25 dB ou moins est propre, au-delà de −20 dB l'émetteur est saturé), **DCD** (● quand un signal est détecté), **Audio** (niveau).
 - Fréquences connues : 3 580,15 · 7 040,15 · 10 142,15 · 14 070,15 · 18 100,15 · 21 080,15 · 24 920,15 · 28 120,15 kHz.
 
 ## 10.5 Olivia
 
 - **Mode** — nombre de tonalités / largeur : 8/250, 16/500, 32/1000, 16/1000. Il faut le même que la station écoutée.
-- **Squelch (FEC S/N)** — en dessous de 3,5 le bruit commence à s'afficher ; un bon signal se lit 8 à 9.
+- **Squelch (S/B FEC)** — en dessous de 3,5 le bruit commence à s'afficher ; un bon signal se lit 8 à 9.
 - Fréquences connues : 20 m 14 072,5 (8/250) et 14 108,5 (32/1000), 80 m 3 583, 40 m 7 040 et 7 072,5, 12 m 24 922,5, 10 m 28 122,5 kHz…
 
 ## 10.6 MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63
@@ -418,9 +419,9 @@ Ces modes ont tous deux réglages : un **Mode** (sous-mode, à choisir comme la 
 
 ## 10.7 Packet et APRS
 
-- **Speed** — 1 200 bauds (VHF) ou 300 bauds (HF) ; tonalités 1 200 / 2 200 Hz en VHF.
-- **Show raw packet** — affiche aussi la trame brute AX.25.
-- Indicateurs : **Frames** (trames valides reçues), **Stations** (nombre de stations différentes), **DCD**, **Audio**.
+- **Vitesse** — 1 200 bauds (VHF) ou 300 bauds (HF) ; tonalités 1 200 / 2 200 Hz en VHF.
+- **Afficher le paquet brut** — affiche aussi la trame brute AX.25.
+- Indicateurs : **Trames** (trames valides reçues), **Stations** (nombre de stations différentes), **DCD**, **Audio**.
 - En APRS, les stations qui envoient une position peuvent être **affichées sur la carte**.
 - Fréquences connues : 144,800 MHz (APRS Europe), 144,390 (Amérique du Nord), 145,175 (Australie), 144,640 (Chine), 144,660 (Japon), 145,825 MHz (digipeater de l'ISS) et 10 147,6 kHz (APRS HF, 300 bauds).
 
@@ -457,15 +458,15 @@ Le module, placé en tête de la rangée des décodeurs, **tente de reconnaître
 
 | Symptôme | Cause probable | Remède |
 | Aucun décodage FT8 / FT4 / WSPR | Mauvaise fréquence ou bande fermée | Passez par **Fréquences connues** ; vérifiez sur la cascade que des signaux sont présents |
-| Décodages FT8 rares, DT dispersés | Synchro horaire | Cochez **Auto** à côté de Sync offset |
+| Décodages FT8 rares, DT dispersés | Synchro horaire | Cochez **Auto** à côté de Décalage de synchro |
 | CW illisible | Plusieurs signaux dans le filtre | Filtre CW étroit, un seul signal |
-| Image FAX penchée | Synchro de ligne | **⇔ Auto-align** |
-| Image FAX en négatif | Polarité | **⇅ Invert** |
-| SSTV : couleurs fausses ou rien | Mauvaise bande latérale ou mauvais mode | Changez de bande latérale ; essayez un mode imposé puis **⏺ Force** |
+| Image FAX penchée | Synchro de ligne | **⇔ Alignement auto** |
+| Image FAX en négatif | Polarité | **⇅ Inverser** |
+| SSTV : couleurs fausses ou rien | Mauvaise bande latérale ou mauvais mode | Changez de bande latérale ; essayez un mode imposé puis **⏺ Forcer** |
 | NAVTEX muet | Hors créneau | Attendez le créneau de la station (tableau des diffusions) |
-| RTTY : caractères aléatoires | Mark / space inversés | Cochez ou décochez **Invert mark / space** |
+| RTTY : caractères aléatoires | Mark / space inversés | Cochez ou décochez **Inverser mark / space** |
 | RTTY : rien ne s'affiche | Squelch trop haut | Baissez le **Squelch** |
-| PSK31 / Olivia : texte haché | Décodeur décentré | **⟳ Auto-tune Center** |
+| PSK31 / Olivia : texte haché | Décodeur décentré | **⟳ Centrage auto** |
 | HFDL : aucun message | Propagation vers la station sol | Essayez une autre fréquence ou une autre station |
 | RADE : voyant rouge | Service serveur arrêté | Prévenez l'administrateur d'ORSAT |
 
