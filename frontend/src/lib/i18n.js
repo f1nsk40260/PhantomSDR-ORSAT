@@ -672,6 +672,7 @@ const D = [
   ["Ronflette secteur", "Mains hum", "Zumbido de red"],
   ["Porteuse résiduelle", "Residual carrier", "Portadora residual"],
   ["Bande opposée", "Opposite sideband", "Banda opuesta"],
+  ["bande opposée", "opposite sideband", "banda opuesta"],
   ["Largeur occupée", "Occupied bandwidth", "Ancho ocupado"],
   ["équilibré", "balanced", "equilibrado"],
   ["trop de basses", "too much bass", "demasiados graves"],

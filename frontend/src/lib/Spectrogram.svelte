@@ -15,6 +15,7 @@
    * setDisplayGain(), setFrequencyRange(), destroy().
    */
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { tr } from "./i18n.js";
 
   const dispatch = createEventDispatcher();
 
@@ -471,10 +472,32 @@
 
     // ── Fréquence de base : trait or à sa position audio ──
     if (hasBase && baseAudio >= lo && baseAudio <= hi) {
-      const xb = Math.min(left + pw - s, Math.max(left + s, xOf(baseAudio, lo, hi, left, pw)));
-      ctx.strokeStyle = "rgba(207,181,59,0.95)";
-      ctx.lineWidth = 2 * s;
+      // ORSAT : en SSB, ce trait est la limite avec la bande opposée. Posé au
+      // bord du cadre, il se perdait : il est décollé du bord, épaissi et
+      // détouré de sombre pour rester lisible sur un spectre clair comme foncé.
+      const edge = !isCw && !symmetric;
+      const inset = edge ? 2.5 * s : s;
+      const xb = Math.min(left + pw - inset, Math.max(left + inset, xOf(baseAudio, lo, hi, left, pw)));
+      ctx.strokeStyle = "rgba(11,15,23,0.9)";
+      ctx.lineWidth = 5 * s;
       ctx.beginPath(); ctx.moveTo(xb, top); ctx.lineTo(xb, yBot); ctx.stroke();
+      ctx.strokeStyle = "rgb(243,215,90)";
+      ctx.lineWidth = 3 * s;
+      ctx.beginPath(); ctx.moveTo(xb, top); ctx.lineTo(xb, yBot); ctx.stroke();
+      if (edge) {
+        const lbl = tr("bande opposée");
+        ctx.font = `bold ${Math.round(9 * s)}px sans-serif`;
+        ctx.textBaseline = "top";
+        const lw = ctx.measureText(lbl).width + 16 * s;
+        const atRight = xb > left + pw / 2;
+        const lx = atRight ? xb - lw - 3 * s : xb + 3 * s;
+        const lyy = top + Math.round(3 * s);
+        ctx.fillStyle = "rgba(11,15,23,0.85)";
+        ctx.fillRect(lx, lyy, lw, 12 * s);
+        ctx.fillStyle = "rgb(243,215,90)";
+        ctx.textAlign = "left";
+        ctx.fillText(atRight ? lbl + " ▶" : "◀ " + lbl, lx + 3 * s, lyy + 1 * s);
+      }
       const tag = (isCw ? "CW " : symmetric ? "Porteuse " : "Base ") + fmtKhz(base);
       ctx.font = `bold ${Math.round(10 * s)}px monospace`;
       ctx.textBaseline = "bottom";
