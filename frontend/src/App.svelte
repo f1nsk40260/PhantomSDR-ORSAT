@@ -9541,8 +9541,8 @@
                     <span>Github — Artemis (signal database): <a href="https://github.com/AresValley/Artemis" target="new" class="link-button" style="color:rgba(207, 181, 59, 0.993)" title="Base de données d'identification des signaux Artemis">github.com/AresValley/Artemis</a></span>
                     <br><br>
 
-                    <b>LIENS EXTERNES</b> <br> 
-                     <span style="/*text-decoration: line-through*/"><button
+                    <b class="mr-2">LIENS EXTERNES</b>
+                     <span style="white-space: nowrap;"><button
                        title="Ouvrir la carte des spots FT8 (PSK Reporter)"
                        type="button"
                        class="glass-button gold-button gold-button-sm py-1 px-2 mr-1 rounded text-xs"
@@ -9589,7 +9589,7 @@
                      </button> <br><br>
 
                              
-                  <div style="font-weight: bold; text-align: center;">USER MANUAL</div>
+                  <div style="font-weight: bold; text-align: center;">GENERAL USER GUIDE</div>
                   <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 10px;">
 
                     <button

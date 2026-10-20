@@ -169,7 +169,7 @@ const D = [
   ["Ouvrir la carte des spots JS8 (PSK Reporter)", "Open the JS8 spot map (PSK Reporter)", "Abrir el mapa de spots JS8 (PSK Reporter)"],
   ["Ouvrir le journal WSPR (WSPRnet)", "Open the WSPR log (WSPRnet)", "Abrir el registro WSPR (WSPRnet)"],
   ["Ouvrir la carte WSPR", "Open the WSPR map", "Abrir el mapa WSPR"],
-  ["MANUEL DE L'UTILISATEUR", "USER MANUAL", "MANUAL DEL USUARIO"],
+  ["GUIDE GÉNÉRAL D'UTILISATION", "GENERAL USER GUIDE", "GUÍA GENERAL DE USO"],
   ["Ouvrir le manuel utilisateur en français", "Open the user manual in French", "Abrir el manual de usuario en francés"],
   ["Ouvrir le manuel utilisateur en anglais", "Open the user manual in English", "Abrir el manual de usuario en inglés"],
   ["Ouvrir le manuel utilisateur en espagnol", "Open the user manual in Spanish", "Abrir el manual de usuario en español"],
