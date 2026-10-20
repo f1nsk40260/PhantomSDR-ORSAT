@@ -16624,6 +16624,29 @@ Cliquez à nouveau pour désactiver"
     font-size: 1rem;
   }
 
+  /* ORSAT : boutons hamdash et synchro DX cluster plus lumineux (fixes), et
+     3 pulsations lentes du bouton DX cluster à chaque ouverture du panneau
+     (l'animation repart quand le panneau masqué redevient visible). */
+  .hamdash-buttons a.gold-button,
+  .gold-button.dx-sync-button {
+    color: rgb(243, 225, 140) !important;
+    border-color: rgba(236, 215, 122, 0.75) !important;
+    background: rgba(207, 181, 59, 0.12);
+    text-shadow:
+      0 0 6px rgba(236, 215, 122, 0.45),
+      0 1px 2px rgba(0, 0, 0, 0.7);
+  }
+  .hamdash-buttons a.gold-button:hover,
+  .gold-button.dx-sync-button:hover {
+    background: rgba(207, 181, 59, 0.22);
+  }
+  .gold-button.dx-sync-button {
+    animation: info-toggle-pulse 2.8s ease-in-out 0.4s 3;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gold-button.dx-sync-button { animation: none; }
+  }
+
   .hamdash-icon {
     width: 22px;
     height: 22px;
