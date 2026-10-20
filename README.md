@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/branding/orsat-banner.png" alt="ORSAT" width="600"></p>
+
 # PhantomSDR-ORSAT — WebSDR francophone de F1NSK
 
 [![Licence : GPL v3](https://img.shields.io/badge/Licence-GPLv3-cyan.svg)](https://www.gnu.org/licenses/gpl-3.0)
