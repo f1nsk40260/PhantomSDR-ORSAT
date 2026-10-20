@@ -1,0 +1,9 @@
+16:42:20 Serveur TCI prêt sur ws://127.0.0.1:40001 — WebSDR : http://127.0.0.1:8099
+16:42:22 Logiciel TCI connecté (127.0.0.1:50036) — 1 client(s)
+16:42:22 Connexion à ws://127.0.0.1:8099/audio?v=2
+16:42:22 WebSDR : 0.000–30.000 MHz, audio 12000 Hz
+16:42:27 Logiciel TCI déconnecté (127.0.0.1:50036) — 0 client(s)
+[aost#0:0/pcm_f32le @ 0x55fa1da1aa40] Error submitting a packet to the muxer: Broken pipe
+[out#0/f32le @ 0x55fa1da19e80] Error muxing a packet
+[out#0/f32le @ 0x55fa1da19e80] Error writing trailer: Broken pipe
+[out#0/f32le @ 0x55fa1da19e80] Error closing file: Broken pipe

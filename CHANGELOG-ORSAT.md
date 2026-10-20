@@ -5,6 +5,11 @@ PhantomSDR-ORSAT est la version francophone de F1NSK, construite sur
 Ce journal ne liste que les apports d'ORSAT ; les nouveautés de la base sont
 décrites dans le README et dans le projet original.
 
+## En cours (après ORSAT 1.0)
+
+### Outils
+- **Serveur TCI local** (`tci-bridge/orsat-tci-server.py`) : fait voir le WebSDR comme un récepteur TCI sur `ws://127.0.0.1:40001`. Il expose la fréquence et le mode (dans les deux sens), le filtre, l'audio RX et le S-mètre, pour ORSAT-LOG, Log4OM, WSJT-X ou Décodium. Il tourne sur le PC de l'auditeur et se connecte comme un navigateur : aucune modification du serveur. Voir `tci-bridge/README.md`.
+
 ## ORSAT 1.0 — 20 octobre 2026 (base PhantomSDR-Plus 5.1.0)
 
 ### Interface
