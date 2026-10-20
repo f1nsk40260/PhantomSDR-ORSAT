@@ -11,6 +11,7 @@
   import guideAnalyseurFRUrl from "./assets/docs/guideAnalyseurFR.pdf";
   import guideAnalyseurENUrl from "./assets/docs/guideAnalyseurEN.pdf";
   import guideAnalyseurESUrl from "./assets/docs/guideAnalyseurES.pdf";
+  import guideDecodeursFRUrl from "./assets/docs/guideDecodeursFR.pdf";
 
   // ── Variant selection ────────────────────────────────────────────────────
   //
@@ -9649,6 +9650,15 @@
                       title="Abrir la guía detallada del analizador de audio en español"
                       aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
                       style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇪🇸 Guía del analizador</button>
+                  </div>
+
+                  <div style="font-weight: bold; text-align: center; margin-top: 14px;">📟 GUIDE DES DÉCODEURS</div>
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 6px;">
+                    <button type="button" class="glass-button gold-button py-2 px-4 ml-2 mt-2 rounded text-base"
+                      on:click={() => openManual(guideDecodeursFRUrl, "Guide des décodeurs")}
+                      title="Ouvrir le guide détaillé de tous les décodeurs en français"
+                      aria-haspopup="dialog" aria-expanded={showManualPopup} aria-controls="manual-dialog"
+                      style="color:rgba(207, 181, 59, 0.993); font-size: 1rem;" data-no-i18n>🇫🇷 Guide des décodeurs</button>
                   </div>
                 </div>
                    

@@ -7,6 +7,7 @@ build_manual.py — génère les manuels utilisateur PDF de PhantomSDR-ORSAT
 Usage :  python3 docs/manual/build_manual.py          (tout : manuels + guides de l'analyseur)
          python3 docs/manual/build_manual.py fr       (un seul manuel)
          python3 docs/manual/build_manual.py analyseur_fr.md   (un guide de l'analyseur audio)
+         python3 docs/manual/build_manual.py decodeurs_fr.md   (le guide des décodeurs)
 Dépendance : reportlab (pip install reportlab), polices DejaVu.
 
 Syntaxe des sources (volontairement minimale) :
@@ -191,6 +192,14 @@ def admon_box(label, text, width):
 
 def image(path, w, maxw, maxh=None):
     from reportlab.lib.utils import ImageReader
+    if not Path(path).is_file():
+        # Vignette pas encore fournie : cadre pointillé portant le nom attendu.
+        w = min(w, maxw)
+        t = Table([[Paragraph("Vignette à fournir :<br/><b>%s</b>" % Path(path).name, S["cell"])]],
+                  colWidths=[w], rowHeights=[max(40, w * 0.45)])
+        t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#b08d1a"), None, (3, 3)),
+                               ("ALIGN", (0, 0), (-1, -1), "CENTER"), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
+        return t
     iw, ih = ImageReader(str(path)).getSize()
     w = min(w, maxw)
     h = w * ih / iw
@@ -380,5 +389,5 @@ def build(lang):
 if __name__ == "__main__":
     register_fonts()
     styles()
-    for lang in (sys.argv[1:] or ["fr", "en", "es", "analyseur_fr.md", "analyseur_en.md", "analyseur_es.md"]):
+    for lang in (sys.argv[1:] or ["fr", "en", "es", "analyseur_fr.md", "analyseur_en.md", "analyseur_es.md", "decodeurs_fr.md"]):
         build(lang)
