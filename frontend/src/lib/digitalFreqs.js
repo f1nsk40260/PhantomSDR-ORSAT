@@ -24,7 +24,7 @@ export const WSPR_DIALS = list({
   "10m": 28124600,
 });
 
-// SSTV : fréquences d'appel usuelles (réception en USB sur toutes les bandes).
+// SSTV : fréquences d'appel usuelles (LSB sur 80/40 m, USB au-dessus — voir tuneDialSstv).
 export const SSTV_DIALS = [
   ["80m", 3730000, "Europe"], ["80m", 3845000, "Amériques"], ["40m", 7171000, "international"],
   ["20m", 14230000, "principale"], ["20m", 14233000, "secondaire"], ["17m", 18160000, ""],

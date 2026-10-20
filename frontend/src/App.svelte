@@ -4553,6 +4553,21 @@
       console.warn("[decoders] tune error", e);
     }
   }
+  /** SSTV : même convention que le décodeur — LSB sous 10 MHz (80/40 m), USB au-dessus. */
+  function tuneDialSstv(hz) {
+    hz = Math.round(Number(hz));
+    if (!Number.isFinite(hz) || hz <= 0) return;
+    const mode = hz < 10e6 ? "LSB" : "USB";
+    try {
+      if (demodulation !== mode) SetMode(mode);
+      if (frequencyInputComponent && frequencyInputComponent.setFrequency)
+        frequencyInputComponent.setFrequency(hz);
+      handleFrequencyChange({ detail: hz });
+      frequency = (hz / 1e3).toFixed(3);
+    } catch (e) {
+      console.warn("[decoders] tune error", e);
+    }
+  }
   const _bandOf = () => {
     const f = Number(frequency);
     return Number.isFinite(f) ? `${(f / 1000).toFixed(3)} MHz` : "";
@@ -12635,7 +12650,7 @@ Cliquez à nouveau pour désactiver"
                           >
                         </div>
                       </div>
-                      <KnownFreqSelect items={SSTV_DIALS} on:tune={(e) => tuneDialUsb(e.detail.hz)} />
+                      <KnownFreqSelect items={SSTV_DIALS} on:tune={(e) => tuneDialSstv(e.detail.hz)} />
                       <div
                         class="flex flex-wrap items-center gap-3 mb-2 text-xs text-gray-300"
                       >
