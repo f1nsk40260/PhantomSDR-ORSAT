@@ -153,7 +153,9 @@ export function connectCatSync(config, { onPtt, onVfo, onFilter, onStatus }) {
 
   function connect() {
     if (closed) return;
-    const url = `ws://${config.host}:${config.port}`;
+    // config.url : adresse complète (carnet ORSAT-LOG central, wss://<site>/log/tci) ;
+    // sinon le logiciel TCI local, ws://hôte:port.
+    const url = config.url || `ws://${config.host}:${config.port}`;
 
     try {
       ws = new WebSocket(url);

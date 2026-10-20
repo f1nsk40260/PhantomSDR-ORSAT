@@ -365,9 +365,27 @@
   // ExpertSDR2/Thetis 40001) are tried in parallel on catHost, so the
   // listener never has to know which one their software uses; the one that
   // answers is shown in catActiveSourceLabel.
+  // Carnet ORSAT-LOG central (https://<site>/log/) : si ce navigateur y est connecté, la
+  // page lui parle en TCI comme à un logiciel local, pour que le carnet suive l'écoute en
+  // SWL. Pour un auditeur sans session au carnet, rien ne change (une seule requête refusée).
+  let catLogUrl = null;
+  async function probeOrsatLog() {
+    try {
+      const r = await fetch("/log/api/info", { credentials: "same-origin", cache: "no-store" });
+      if (!r.ok) return;
+      const info = await r.json();
+      if (!info || !info.central) return;
+      catLogUrl = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/log/tci`;
+      if (catSyncHandle) catSyncHandle.close();
+      catSyncHandle = startCatSync();
+    } catch (e) {}
+  }
+
   function startCatSync() {
     const catConnectedByPort = {};
-    return connectCatSyncAny(buildDefaultSources(catHost), {
+    const sources = buildDefaultSources(catHost);
+    if (catLogUrl) sources.push({ url: catLogUrl, port: "carnet", reconnectDelayMs: 5000 });
+    return connectCatSyncAny(sources, {
       onPtt: (isTx) => {
         catTxMuted = isTx;
         if (isTx) {
@@ -438,7 +456,7 @@
           .map(([port]) => port);
         catConnected = activePorts.length > 0;
         catActiveSourceLabel = activePorts.length
-          ? `TCI (port ${activePorts.join(", ")})`
+          ? `TCI (${activePorts.map((p) => (p === "carnet" ? "carnet ORSAT-LOG" : `port ${p}`)).join(", ")})`
           : null;
       },
     });
@@ -7435,6 +7453,7 @@
     // CAT sync over TCI: see ./lib/catsync.js and startCatSync().
     loadCatSyncPreferences();
     catSyncHandle = startCatSync();
+    probeOrsatLog();
 
     userId = generateUniqueId();
     let [l, m, r] = audio.getAudioRange().map(FFTOffsetToFrequency);
