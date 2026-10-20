@@ -3,7 +3,7 @@
 [![Licence : GPL v3](https://img.shields.io/badge/Licence-GPLv3-cyan.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![ORSAT](https://img.shields.io/badge/ORSAT-1.0-cfb53b.svg)](CHANGELOG-ORSAT.md)
 [![Base](https://img.shields.io/badge/base-PhantomSDR--Plus%205.1.0-cyan.svg)](https://github.com/sv1btl/PhantomSDR-Plus)
-[![Langues](https://img.shields.io/badge/interface-FR%20%C2%B7%20EN%20%C2%B7%20ES-cfb53b.svg)](#ce-quapporte-phantomsdr-orsat)
+[![Langues](https://img.shields.io/badge/interface-FR%20%C2%B7%20EN%20%C2%B7%20ES-cfb53b.svg)](#orsat-en-bref)
 [![En ligne](https://img.shields.io/badge/en%20ligne-orsat.ddns.net-cfb53b.svg)](https://orsat.ddns.net)
 
 > [!IMPORTANT]
@@ -15,19 +15,93 @@
 
 📻 **Récepteur en service : [orsat.ddns.net](https://orsat.ddns.net)** (aussi en http sur le port 8080).
 
-## Ce qu'apporte PhantomSDR-ORSAT
+**PhantomSDR-ORSAT est un WebSDR complet, en trois langues, pensé pour l'écoute et le décodage.**
+Depuis un simple navigateur, sans rien installer, l'auditeur écoute les ondes courtes,
+décode onze familles de modes numériques, identifie un signal inconnu et analyse la
+modulation d'une station. Chaque fonction est documentée dans des guides PDF intégrés
+au récepteur.
 
-* **Une interface en trois langues** — français, anglais et espagnol, choisis d'un clic sur les drapeaux de l'en-tête.
-* **Un thème « vieil or »** homogène pour les boutons, les titres de sections et les liens, avec des infobulles sur chaque bouton.
-* **Analyse des signaux numériques** — le module tente de reconnaître le mode du signal écouté (FT8, RTTY, CW, PSK…) et propose le décodeur adapté. L'*Analyse automatique* est désactivée par défaut et ne consomme du processeur que lorsqu'elle tourne. *Expérimental.*
-* **Identifier un signal** — une fenêtre flottante, déplaçable et redimensionnable, qui cherche dans **583 signaux de référence** ([Artemis](https://github.com/AresValley/Artemis) / [Signal Identification Wiki](https://www.sigidwiki.com)) ce qui correspond à la fréquence, à la largeur et à la démodulation en cours. Elle propose un filtre par catégorie (radioamateur, militaire, maritime, aviation…) et, pour chaque fiche, le spectre, le son de référence et la description.
-* **Spectre 3D** — d'un clic, le spectre passe en relief : les dernières traces s'empilent en perspective au-dessus du waterfall, calculées par la carte graphique (WebGL2), sans aucune charge pour le serveur.
-* **Commandes du waterfall repensées** — réglage automatique actif par défaut, réglage manuel explicite (fond / signaux forts), menu de palettes avec aperçu.
-* **Infobulles de l'AGC** indiquant l'usage conseillé selon le mode (CW, SSB, AM, numériques).
-* **Un décodeur HFDL** (messages ACARS des avions en ondes courtes), à partir de dumphfdl compilé en WebAssembly.
-* **Un mode d'emploi en PDF** en français, en anglais et en espagnol, accessible depuis le menu.
+![Vue générale du WebSDR ORSAT](docs/websdr.png)
 
+## ORSAT en bref
+
+| | |
+|---|---|
+| **Langues** | Interface intégrale en français, anglais et espagnol, choisie d'un clic sur les drapeaux de l'en-tête |
+| **Décodeurs** | FT8, FT4, FT2, JS8, CW, WSPR, FAX, SSTV, NAVTEX, HFDL, et la famille fldigi (14 variantes), tous dans le navigateur |
+| **Identification** | Reconnaissance automatique du mode et base de 583 signaux de référence (Artemis / SigIDWiki) |
+| **Analyse** | Analyseur audio avec bilan de modulation SSB, largeur occupée et rapport d'écoute |
+| **Affichage** | Waterfall avec réglage automatique, spectre 3D en WebGL2, thème « vieil or » |
+| **Documentation** | Manuel, guide des décodeurs et guide de l'analyseur, en PDF et en trois langues |
+| **Base** | [PhantomSDR-Plus 5.1.0](https://github.com/sv1btl/PhantomSDR-Plus) de SV1BTL, licence GPL v3 |
+
+## Les décodeurs
+
+Tous les décodeurs tournent **dans le navigateur de l'auditeur** : ils ne coûtent rien au serveur,
+quel que soit le nombre d'utilisateurs. Un clic les lance ; ils règlent eux-mêmes le mode et
+le filtre, puis rendent la main au mode habituel de la bande.
+
+| Décodeur | Ce qu'il apporte |
+|---|---|
+| **FT8 / FT4 / FT2** | Tableau des messages avec locator et distance, carte des stations entendues, synchro horaire automatique, fréquences d'usage par bande |
+| **JS8** | Les cinq vitesses (Normal, Fast, Turbo, Slow, Ultra), messages affichés au fil de la réception, carte des stations |
+| **CW** | Détection automatique de la note et de la vitesse (5 à 65 mots/min), verrouillage de la tonalité, tableau des émissions CW régulières (FAV22, F9TM) |
+| **WSPR** | Balises WSPR-2 avec puissance, locator et SNR, carte des balises |
+| **FAX** | Cartes météo HF de sept stations (Northwood, Hambourg, Athènes, Mourmansk, Séoul, Tokyo, Kagoshima), horaires d'émission avec compte à rebours, alignement automatique, export PNG |
+| **SSTV** | Modes Martin, Scottie et Robot, détection VIS automatique, choix de la bande latérale selon la bande |
+| **NAVTEX** | Stations du monde entier classées par prochaine diffusion, accord et réglage FI en un clic |
+| **HFDL** | Messages ACARS des avions (dumphfdl en WebAssembly), fiches FlightAware cliquables, carte des avions avec cap et trace |
+| **FLDIGI** | RTTY amateur et météo, SITOR maritime, PSK31, Olivia, MFSK, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet AX.25 et APRS |
+
+S'y ajoute **RADE v1 (FreeDV)**, la voix numérique décodée sur le serveur, avec le FreeDV Reporter.
+
+## Identifier un signal
+
+* **Analyse des signaux numériques** — le module écoute le signal, mesure sa largeur, son écart
+  entre tonalités et sa vitesse, puis propose le décodeur adapté, réglages compris. *Expérimental*,
+  désactivé par défaut pour ne pas consommer de processeur.
+* **Base de signaux** — une fenêtre flottante cherche parmi **583 signaux de référence**
+  ([Artemis](https://github.com/AresValley/Artemis) /
+  [Signal Identification Wiki](https://www.sigidwiki.com)) ceux qui correspondent à la fréquence,
+  à la largeur et à la démodulation en cours, avec spectre, échantillon sonore et description.
+
+![Analyse des signaux numériques et fenêtre « Identifier un signal »](docs/websdr2.png)
+
+## Analyser une modulation
+
+L'**analyseur audio** travaille sur le son brut du récepteur et s'adapte au mode : spectre SSB avec
+balises de largeur conseillée, vue RF en AM et FM, mesure de la largeur occupée et détection du
+splatter, **bilan de modulation SSB** (équilibre tonal, compression, ronflette, porteuse, bande
+opposée) et comparaison avant / après. Il prépare un **rapport d'écoute** avec extrait sonore, prêt
+à envoyer à la station écoutée.
+
+## Affichage et confort
+
+* **Spectre 3D** — les dernières traces s'empilent en relief au-dessus du waterfall, calculées par
+  la carte graphique (WebGL2), sans charge pour le serveur.
+* **Waterfall** — réglage automatique actif par défaut, réglage manuel explicite (fond / signaux
+  forts), palettes avec aperçu.
+* **Thème « vieil or »** homogène, avec une infobulle sur chaque bouton dans la langue choisie.
+* **Panneau hamdash** — propagation, météo spatiale, DX cluster avec synchronisation du récepteur,
+  liens externes (PSK Reporter, WSPR) et accès aux guides.
+
+![Spectre 3D](docs/spectre3d.png)
+
+## Une documentation intégrée
+
+Trois guides PDF s'ouvrent directement depuis le menu *Informations* du récepteur, chacun en
+français, en anglais et en espagnol :
+
+| Guide | Français | English | Español |
+|---|---|---|---|
+| Guide général d'utilisation | [PDF](frontend/src/assets/docs/manualFR.pdf) | [PDF](frontend/src/assets/docs/manualEN.pdf) | [PDF](frontend/src/assets/docs/manualES.pdf) |
+| Guide des décodeurs | [PDF](frontend/src/assets/docs/guideDecodeursFR.pdf) | [PDF](frontend/src/assets/docs/guideDecodeursEN.pdf) | [PDF](frontend/src/assets/docs/guideDecodeursES.pdf) |
+| Guide de l'analyseur audio | [PDF](frontend/src/assets/docs/guideAnalyseurFR.pdf) | [PDF](frontend/src/assets/docs/guideAnalyseurEN.pdf) | [PDF](frontend/src/assets/docs/guideAnalyseurES.pdf) |
+
+Les sources de ces guides sont dans [`docs/manual/`](docs/manual/README.md).
 Le détail des versions ORSAT est dans **[CHANGELOG-ORSAT.md](CHANGELOG-ORSAT.md)**.
+
+---
 
 Le reste de ce document décrit la base PhantomSDR-Plus de SV1BTL, que ce fork conserve.
 
@@ -139,7 +213,7 @@ Nous proposons aussi un large éventail de **fonctions** supplémentaires :
 - La prise en charge des SDR à haut débit d'échantillonnage (70 MSPS en réel, 35 MSPS en IQ).
 - Les données IQ comme réelles.
 - Une prise en charge complète des décodeurs.
-- Un décodeur **HFDL** (HF Data Link, messages ACARS des avions en ondes courtes) dans l'interface F1NSK : bouton HFDL de « Decoders Control », liste des stations sol et de leurs fréquences, position des avions quand elle est transmise. Il repose sur dumphfdl compilé en WebAssembly (voir `jsdsp/hfdl_wasm`).
+- Onze décodeurs dans l'interface F1NSK (voir [Les décodeurs](#les-décodeurs)), dont **HFDL**, basé sur dumphfdl compilé en WebAssembly (voir `jsdsp/hfdl_wasm`).
 - Une vue mobile légère à l'adresse **/mobile**, pour les téléphones aux forfaits de données limités.
 
 ## Performances mesurées
@@ -149,25 +223,11 @@ Nous proposons aussi un large éventail de **fonctions** supplémentaires :
 
 ## Captures d'écran
 
-Le WebSDR ORSAT de F1NSK : **[https://orsat.ddns.net](https://orsat.ddns.net)**
-
-![Vue générale du WebSDR ORSAT](docs/websdr.png)
-
-*Vue générale : en-tête, choix de la langue, waterfall, S-mètre et commandes.*
-
-![Analyse des signaux numériques et fenêtre « Identifier un signal »](docs/websdr2.png)
-
-*Analyse des signaux numériques et fenêtre flottante « Identifier un signal » (base Artemis / SigIDWiki).*
-
-![Spectre 3D](docs/spectre3d.png)
-
-*Spectre 3D au-dessus du waterfall : la nappe de bruit et les signaux en relief.*
-
 ![Panneau hamdash, liens et manuels](docs/websdr3.png)
 
-*Panneau hamdash : propagation, DX cluster, liens GitHub, liens externes et manuels utilisateur en trois langues.*
+*Panneau hamdash : propagation, DX cluster, liens GitHub, liens externes et guides en trois langues.*
 
-(https://sdr-list.xyz)
+D'autres WebSDR PhantomSDR-Plus sont répertoriés sur [sdr-list.xyz](https://sdr-list.xyz).
 
 ## Installation
 
@@ -796,6 +856,8 @@ Pour tout ce qui concerne l'installation, l'utilisation et la structure du proje
 - **[Accès sécurisé (HTTPS)](docs/HTTPS.md)** — servir le récepteur en https:// avec Caddy et un certificat Let's Encrypt gratuit : `setup-https.sh`, le mode réseau local, et un nginx ou un Apache déjà en place
 
 ### 👥 Pour les auditeurs :
+
+- **Les guides PDF d'ORSAT** — guide général, guide des décodeurs et guide de l'analyseur audio, en trois langues : voir [Une documentation intégrée](#une-documentation-intégrée)
 
 - **[Pilotage du transceiver (CAT)](docs/RIG_CONTROL.md)** — garder votre propre transceiver et une fenêtre de récepteur synchronisés
   - Ce qu'il vous faut : Desktop PhantomSDR+, ou le CATsync Tool dans un navigateur
