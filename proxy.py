@@ -468,6 +468,30 @@ def _fix_static_type(headers: dict, url: str) -> None:
     headers["Content-Type"] = ctype
 
 
+# Taille maximale d'une requête. aiohttp refuse au-delà de 1 Mo (client_max_size), ce qui
+# suffit au WebSDR et au panneau ; le carnet ORSAT-LOG reçoit des fichiers ADIF de plusieurs
+# Mo (export QRZ.com), d'où une limite propre à /log, sous celle du carnet lui-même (50 Mo).
+LOG_MAX_BODY = 60 * 1024 * 1024
+
+
+async def _read_body(request: web.Request) -> bytes:
+    if request.path == "/log" or request.path.startswith("/log/"):
+        size = request.content_length
+        if size is not None and size > LOG_MAX_BODY:
+            raise web.HTTPRequestEntityTooLarge(max_size=LOG_MAX_BODY, actual_size=size)
+        chunks, total = [], 0
+        while True:
+            chunk = await request.content.read(1 << 16)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > LOG_MAX_BODY:
+                raise web.HTTPRequestEntityTooLarge(max_size=LOG_MAX_BODY, actual_size=total)
+            chunks.append(chunk)
+        return b"".join(chunks)
+    return await request.read()        # 1 Mo au plus ailleurs (défaut aiohttp)
+
+
 async def proxy_request(request: web.Request, upstream: str,
                         set_rx: str = "", path: str = "") -> web.StreamResponse:
     url = upstream + (path or _upstream_path(request))
@@ -482,7 +506,7 @@ async def proxy_request(request: web.Request, upstream: str,
     try:
         timeout = ClientTimeout(total=60)
         async with ClientSession(timeout=timeout) as session:
-            body = await request.read()
+            body = await _read_body(request)
             async with session.request(
                 method=request.method,
                 url=url,
