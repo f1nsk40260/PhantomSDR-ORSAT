@@ -918,7 +918,7 @@ def _ol_update_job(folder):
     with open(OL_UPDATE_LOG, "w", encoding="utf-8") as logf:
         logf.write("### Mise à jour du carnet ORSAT-LOG — %s\n" % _now_utc().strftime("%Y-%m-%d %H:%M:%S UTC"))
         logf.flush()
-        cmd = ('git pull --ff-only && if [ -f update-server.sh ]; then bash update-server.sh; '
+        cmd = ('git checkout -- frontend/package-lock.json 2>/dev/null; git pull --ff-only && if [ -f update-server.sh ]; then bash update-server.sh; '
                'else echo "update-server.sh absent : mise à jour du code seulement"; fi')
         p = subprocess.Popen(["/bin/bash", "-c", cmd], cwd=str(folder), stdout=logf,
                              stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True,
