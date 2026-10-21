@@ -663,6 +663,8 @@
         '<div id="x-ol-restore-msg" style="' + small + 'margin-top:.4rem;"></div>', 'var(--amber)') +
       '</div>';
 
+    html += card('SYNCHRONISATION QRZ.COM', '<div id="x-ol-qrz" style="' + small + '">Chargement…</div>', 'var(--green)');
+
     html += card('MISE À JOUR DU CARNET',
       '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;">' +
       '<button class="btn btn-green" id="x-ol-check">🔍 VÉRIFIER</button>' +
@@ -673,6 +675,7 @@
     $('x-ol-state').innerHTML = html;
 
     $('x-ol-form').onsubmit = olSave;
+    olQrzRender();
     $('x-ol-restore').onchange = olRestore;
     $('x-ol-check').onclick = olCheck;
     $('x-ol-run').onclick = olRun;
@@ -680,6 +683,80 @@
     // (le relire comme une fin de mise à jour rechargeait la page en boucle).
     if (d.updating) { olPos = 0; $('x-ol-log').textContent = ''; olWatch(true); }
     else if (d.has_log) olShowLastLog();
+  }
+
+  // ── Synchronisation QRZ.com ─────────────────────────────────────────
+  let olQrzTimer = null;
+  async function olQrzRender(keepJournal) {
+    const box = $('x-ol-qrz');
+    if (!box) return;
+    let d;
+    try { d = await api('/admin/api/orsatlog/qrz'); } catch (e) { box.innerHTML = '<span class="x-bad">' + esc(e.message) + '</span>'; return; }
+    if (!d.ok) { box.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+    const kpi = (l, v) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div></div>';
+    const etat = d.running ? '<span class="x-warn">synchronisation en cours…</span>'
+      : d.last_error ? '<span class="x-bad">✗ ' + esc(d.last_error) + '</span>'
+      : d.last_ok ? '<span class="x-ok">✓ dernière synchronisation réussie : ' + esc(d.last_ok) + '</span>'
+      : '<span class="x-dim">jamais synchronisé</span>';
+    if (!keepJournal || !$('x-ol-qrz-form')) {
+      box.innerHTML =
+        '<p style="margin-bottom:.6rem;">Le carnet de trafic et le logbook QRZ.com se tiennent à jour l\'un l\'autre : ' +
+        'tout le logbook QRZ est repris au premier passage, puis toutes les 15 min les modifications faites chez QRZ, ' +
+        'et chaque contact saisi ou corrigé dans le carnet part vers QRZ. Les écoutes SWL ne partent jamais. ' +
+        'Une suppression dans le carnet demande s\'il faut aussi supprimer chez QRZ.</p>' +
+        '<form id="x-ol-qrz-form">' +
+        olField('x-ol-qrz-key', 'CLÉ D\'ACCÈS DU LOGBOOK QRZ (API KEY)', '',
+          d.key_set ? 'Clé enregistrée (' + esc(d.key_hint) + '). Laisser vide pour la garder.' : 'Elle est vérifiée auprès de QRZ.com avant d\'être enregistrée.',
+          'type="password" autocomplete="off" placeholder="' + (d.key_set ? '••••••••' : 'XXXX-XXXX-XXXX-XXXX') + '"') +
+        '<label style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;">' +
+        '<input type="checkbox" id="x-ol-qrz-on"' + (d.enabled ? ' checked' : '') + '> synchronisation automatique</label>' +
+        '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
+        '<button class="btn btn-green" type="submit">💾 ENREGISTRER</button>' +
+        '<button class="btn btn-amber" type="button" id="x-ol-qrz-run">🔄 SYNCHRONISER MAINTENANT</button>' +
+        '<button class="btn" type="button" id="x-ol-qrz-full" title="Relire tout le logbook QRZ (après une coupure longue, ou en cas de doute)">RELIRE TOUT QRZ</button>' +
+        '</div><div id="x-ol-qrz-msg" style="margin-top:.4rem;"></div></form>' +
+        '<div id="x-ol-qrz-state" style="margin-top:.8rem;"></div>' +
+        '<div class="x-log" id="x-ol-qrz-log" style="margin-top:.6rem;max-height:220px;">—</div>';
+      $('x-ol-qrz-form').onsubmit = olQrzSave;
+      $('x-ol-qrz-run').onclick = () => olQrzRun(false);
+      $('x-ol-qrz-full').onclick = () => {
+        if (confirm('Relire tout le logbook QRZ maintenant ?\n\nLes QSO retirés volontairement du carnet ne reviendront pas.')) olQrzRun(true);
+      };
+    }
+    $('x-ol-qrz-state').innerHTML = '<div class="x-kpis">' +
+      kpi('SYNCHRONISÉS', d.synced) + kpi('EN ATTENTE', d.pending) +
+      kpi('REFUSÉS PAR QRZ', d.errors ? '<span class="x-bad">' + d.errors + '</span>' : 0) +
+      kpi('SYNCHRO AUTO', d.enabled ? '<span class="x-ok">activée</span>' : '<span class="x-dim">désactivée</span>') +
+      '</div><div>' + etat + '</div>';
+    const log = $('x-ol-qrz-log');
+    log.textContent = (d.journal || []).join('\n') || '—';
+    log.scrollTop = log.scrollHeight;
+    clearTimeout(olQrzTimer);
+    if (d.running) olQrzTimer = setTimeout(() => currentPageIs('orsatlog') && olQrzRender(true), 2000);
+  }
+
+  async function olQrzSave(e) {
+    e.preventDefault();
+    const msg = $('x-ol-qrz-msg');
+    const body = { enabled: $('x-ol-qrz-on').checked };
+    const key = $('x-ol-qrz-key').value.trim();
+    if (key) body.api_key = key;
+    msg.innerHTML = '<span class="x-dim">' + (key ? 'Vérification de la clé auprès de QRZ.com…' : 'Enregistrement…') + '</span>';
+    try {
+      const d = await post('/admin/api/orsatlog/qrz', body);
+      if (!d.ok) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+      msg.innerHTML = '<span class="x-ok">✓ Enregistré</span>';
+      $('x-ol-qrz-key').value = '';
+      olQrzRender();
+    } catch (err) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(err.message) + '</span>'; }
+  }
+
+  async function olQrzRun(full) {
+    try {
+      const d = await post('/admin/api/orsatlog/qrz/run', { full: !!full });
+      if (!d.ok) { notify(d.msg, 'err'); return; }
+      olQrzRender(true);
+    } catch (err) { notify(err.message, 'err'); }
   }
 
   async function olSave(e) {

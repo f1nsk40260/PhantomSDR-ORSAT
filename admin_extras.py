@@ -887,8 +887,8 @@ def _ol_call(method, path, body=None, raw=None, ctype=None, timeout=15):
         return e.code, e.read(), e.headers.get("Content-Type", "")
 
 
-def _ol_json(method, path, body=None):
-    code, data, _ = _ol_call(method, path, body=body)
+def _ol_json(method, path, body=None, timeout=15):
+    code, data, _ = _ol_call(method, path, body=body, timeout=timeout)
     try:
         payload = json.loads(data.decode() or "{}")
     except ValueError:
@@ -1345,6 +1345,28 @@ def init(app, g):
         if code >= 400:
             return jsonify({"ok": False, "msg": payload.get("detail") or "erreur %d" % code})
         return jsonify({"ok": True, "previous": payload.get("previous", "")})
+
+    # Synchronisation avec le logbook QRZ.com (la clé est gardée par le carnet, jamais renvoyée)
+    @app.route("/admin/api/orsatlog/qrz", methods=["GET", "POST"])
+    @lr
+    def ol_qrz():
+        try:
+            if request.method == "GET":
+                return jsonify({"ok": True, **_ol_json("GET", "/api/admin/qrz")})
+            data = request.get_json(silent=True) or {}
+            body = {k: data[k] for k in ("api_key", "enabled") if k in data}
+            return jsonify({"ok": True, **_ol_json("POST", "/api/admin/qrz", body, timeout=45)})
+        except Exception as e:
+            return jsonify({"ok": False, "msg": str(e)})
+
+    @app.route("/admin/api/orsatlog/qrz/run", methods=["POST"])
+    @lr
+    def ol_qrz_run():
+        full = "true" if (request.get_json(silent=True) or {}).get("full") else "false"
+        try:
+            return jsonify({"ok": True, **_ol_json("POST", "/api/admin/qrz/run?full=" + full)})
+        except Exception as e:
+            return jsonify({"ok": False, "msg": str(e)})
 
     @app.route("/admin/api/orsatlog/check", methods=["POST"])
     @lr
