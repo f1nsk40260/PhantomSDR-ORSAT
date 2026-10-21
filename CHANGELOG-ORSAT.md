@@ -7,6 +7,9 @@ décrites dans le README et dans le projet original.
 
 ## En cours (après ORSAT 1.0)
 
+### Interface
+- **Carte APRS** : fond de carte au choix à la souris (Nuit, Satellite, Plan OSM sombre, Plan OSM), sans clé d'API ; le choix est retenu par le navigateur. « Nuit » par défaut, dans l'esprit ORSAT.
+
 ### Outils
 - **Carnet ORSAT-LOG ↔ QRZ.com** : carte « Synchronisation QRZ.com » dans la rubrique Carnet ORSAT-LOG, avec la clé du logbook QRZ, la synchronisation automatique, le bouton « synchroniser maintenant » et le journal.
 - **Panneau admin → rubrique « Carnet ORSAT-LOG »** : un seul centre de gestion pour le WebSDR et le carnet. On y trouve l'état du service, les réglages du carnet (indicatif, locators station / WebSDR, TCI, météo), ses sauvegardes et sa restauration, et sa mise à jour en un clic, sans couper le WebSDR. Le service apparaît aussi dans « Santé du serveur ».

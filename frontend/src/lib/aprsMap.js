@@ -134,10 +134,33 @@ export class AprsMap {
       this.autoFit = false;
       if (typeof this.onAutoFitChange === 'function') this.onAutoFitChange(false);
     });
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
-    }).addTo(this.map);
+    // Fonds de carte sans clé d'API, au choix à la souris (coin haut droit), choix retenu par le
+    // navigateur — même jeu que la fiche QSO d'ORSAT-LOG.
+    if (!document.getElementById('orsat-map-fonds')) {
+      const st = document.createElement('style');
+      st.id = 'orsat-map-fonds';
+      st.textContent = '.fond-nuit{filter:brightness(.55) contrast(1.15)}'
+        + '.fond-sat{filter:brightness(.7) saturate(.8)}'
+        + '.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.8) contrast(.9)}';
+      document.head.appendChild(st);
+    }
+    const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+    const OSM = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+    const fonds = {
+      'Nuit': L.tileLayer(ESRI + 'Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 16, className: 'fond-nuit', attribution: 'Fond &copy; Esri, HERE, Garmin, ' + OSM }),
+      'Satellite': L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19, className: 'fond-sat', attribution: 'Imagerie &copy; Esri, Maxar, Earthstar Geographics' }),
+      'Plan OSM sombre': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, className: 'osm-dark', attribution: OSM }),
+      'Plan OSM': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: OSM }),
+    };
+    let choix = 'Nuit';
+    try { const c = localStorage.getItem('orsat.fondCarte'); if (fonds[c]) choix = c; } catch (_) {}
+    fonds[choix].addTo(this.map);
+    L.control.layers(fonds, null, { position: 'topright' }).addTo(this.map);
+    this.map.on('baselayerchange', (e) => { try { localStorage.setItem('orsat.fondCarte', e.name); } catch (_) {} });
 
     if (this.home) {
       L.circleMarker([this.home.lat, this.home.lon], {
