@@ -1,5 +1,5 @@
 /* admin_extras.js — pages ajoutées au panneau d'administration (F1NSK / ORSAT)
- * Mise à jour · Sauvegardes · Santé du serveur · Qualité du signal · Carte
+ * Mise à jour · Sauvegardes · Santé du serveur · Qualité du signal · Carte · Carnet ORSAT-LOG
  * Servi par /admin/extras.js (admin_extras.py). Fichier JS ordinaire : pas de
  * gabarit Jinja ici, les accolades ne posent aucun problème.
  */
@@ -598,6 +598,167 @@
     if (fit && bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 6 });
   }
 
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  Carnet ORSAT-LOG (/log) : état, réglages, sauvegardes, mise à jour
+  // ══════════════════════════════════════════════════════════════════════
+  let olPos = 0, olWatching = false;
+  const olField = (id, label, value, hint, extra) =>
+    '<div style="margin-bottom:.6rem;"><label for="' + id + '" style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">' +
+    label + '</label><input id="' + id + '" value="' + esc(value || '') + '" ' + (extra || '') +
+    ' style="width:100%;">' + (hint ? '<div class="x-dim" style="font-size:.6rem;margin-top:.2rem;">' + hint + '</div>' : '') + '</div>';
+  const day8 = (d) => (d && d.length === 8 ? d.slice(6) + '/' + d.slice(4, 6) + '/' + d.slice(0, 4) : '—');
+
+  async function olRender() {
+    const box = $('x-orsatlog');
+    box.innerHTML = '<div id="x-ol-state">' + card('CARNET ORSAT-LOG', '<div style="' + small + '">Chargement…</div>') + '</div>';
+    let d;
+    try { d = await api('/admin/api/orsatlog/status'); }
+    catch (e) { $('x-ol-state').innerHTML = card('CARNET ORSAT-LOG', '<span class="x-bad">' + esc(e.message) + '</span>', 'var(--red)'); return; }
+    const u = d.unit, st = d.status || {}, cfg = d.settings || {}, bk = (d.backups || {}).items || [];
+    const active = u && u.active === 'active';
+    const kpi = (l, v) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div></div>';
+    let html = card('ÉTAT',
+      (d.ok ? '' : '<div class="x-bad" style="margin-bottom:.6rem;">✗ ' + esc(d.msg) + '</div>') +
+      '<div class="x-kpis">' +
+      kpi('SERVICE', u ? '<span class="' + (active ? 'x-ok' : 'x-bad') + '">' + esc(u.active + ' / ' + u.sub) + '</span>' : '<span class="x-bad">non installé</span>') +
+      kpi('VERSION', esc(st.version || '—') + ' <span class="x-dim" style="font-size:.7rem;">' + esc(st.commit || '') + '</span>') +
+      kpi('QSO / SWL', (st.qso ?? '—') + ' / ' + (st.swl ?? '—')) +
+      kpi('QSO DE GROUPE', st.sessions ?? '—') +
+      kpi('BASE', fmtBytes(st.db_size)) +
+      kpi('PÉRIODE', day8(st.first_day) + ' → ' + day8(st.last_day)) +
+      kpi('EN LIGNE', (st.clients ?? 0) + ' carnet · ' + (st.websdr_pages ?? 0) + ' page WebSDR') +
+      '</div><div style="' + small + '">Adresse : <a href="/log/" target="_blank" style="color:var(--green);">/log/</a> · dossier ' +
+      esc(d.dir) + ' · port interne ' + d.port + (u && u.since ? ' · actif depuis ' + esc(u.since) : '') + '</div>',
+      active ? 'var(--green)' : 'var(--red)');
+
+    html += '<div class="grid grid-2">' +
+      card('STATION',
+        '<form id="x-ol-form">' +
+        olField('x-ol-call', 'INDICATIF', cfg.callsign, '', 'class="mono" style="text-transform:uppercase;"') +
+        olField('x-ol-loc', 'LOCATOR STATION (QSO)', cfg.locator, 'Station émettrice (FlexRadio) : distances et azimuts des QSO.') +
+        olField('x-ol-swl', 'LOCATOR WEBSDR (SWL)', cfg.swl_locator, 'Récepteur WebSDR : distances et azimuts des écoutes. Vide = locator de la station.') +
+        olField('x-ol-wc', 'STATION MÉTÉO WEATHERCLOUD', cfg.weathercloud, 'Identifiant à 10 chiffres ou adresse de la station.') +
+        '<div style="margin:.4rem 0 .6rem;font-size:.65rem;color:var(--text3);">CONNEXION TCI À AETHERSDR <span class="x-dim">(faite par le navigateur du poste d\'exploitation)</span></div>' +
+        '<label style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem;">' +
+        '<input type="checkbox" id="x-ol-tci"' + (cfg.tci_enabled === '1' ? ' checked' : '') + '> suivre AetherSDR</label>' +
+        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:.5rem;">' +
+        olField('x-ol-host', 'ADRESSE', cfg.tci_host) + olField('x-ol-port', 'PORT', cfg.tci_port) +
+        '<div><label for="x-ol-trx" style="font-size:.65rem;color:var(--text3);display:block;margin-bottom:.3rem;">RÉCEPTEUR</label>' +
+        '<select id="x-ol-trx" style="width:100%;">' + ['0', '1', '2', '3'].map((n) =>
+          '<option value="' + n + '"' + (String(cfg.tci_trx || '0') === n ? ' selected' : '') + '>' + 'ABCD'[+n] + ' (' + n + ')</option>').join('') +
+        '</select></div></div>' +
+        '<button class="btn btn-green" type="submit" style="margin-top:.4rem;">💾 ENREGISTRER</button>' +
+        '<span id="x-ol-saved" style="' + small + 'margin-left:.6rem;"></span></form>', 'var(--green)') +
+      card('SAUVEGARDES DU CARNET',
+        '<p style="' + small + 'margin-bottom:.6rem;">Une copie automatique par jour, gardée ' + ((d.backups || {}).keep_days || 30) + ' jours, dans le dossier data/backups du carnet.</p>' +
+        '<a class="btn btn-green" href="/admin/api/orsatlog/backup" style="display:inline-block;text-decoration:none;margin-bottom:.6rem;">💾 TÉLÉCHARGER UNE SAUVEGARDE</a>' +
+        (bk.length ? '<table class="x-tbl"><tr><th>COPIE</th><th>DATE</th><th>TAILLE</th><th></th></tr>' + bk.slice(0, 8).map((b) =>
+          '<tr><td>' + esc(b.name) + '</td><td>' + esc(b.time) + '</td><td>' + fmtBytes(b.size) +
+          '</td><td><a href="/admin/api/orsatlog/backup?name=' + encodeURIComponent(b.name) + '" style="color:var(--green);">télécharger</a></td></tr>').join('') + '</table>'
+          : '<div class="x-dim" style="font-size:.7rem;">Pas encore de copie.</div>') +
+        '<div style="margin-top:.8rem;font-size:.65rem;color:var(--text3);">RESTAURER (en cas de panne)</div>' +
+        '<p style="' + small + 'margin:.3rem 0;">Remplace TOUT le carnet par une sauvegarde .db. Le carnet actuel est sauvegardé juste avant.</p>' +
+        '<input type="file" id="x-ol-restore" accept=".db" style="font-size:.7rem;color:var(--text2);">' +
+        '<div id="x-ol-restore-msg" style="' + small + 'margin-top:.4rem;"></div>', 'var(--amber)') +
+      '</div>';
+
+    html += card('MISE À JOUR DU CARNET',
+      '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;">' +
+      '<button class="btn btn-green" id="x-ol-check">🔍 VÉRIFIER</button>' +
+      '<button class="btn btn-amber" id="x-ol-run">🔄 METTRE À JOUR</button></div>' +
+      '<div id="x-ol-info" style="' + small + 'margin-bottom:.6rem;">' + esc(st.commit_subject || '') + '</div>' +
+      '<p class="x-dim" style="font-size:.62rem;margin-bottom:.4rem;">Récupère le code, recompile l\'interface en basse priorité, puis redémarre le carnet (le WebSDR n\'est pas touché).</p>' +
+      '<div class="x-log" id="x-ol-log">—</div>', 'var(--amber)');
+    $('x-ol-state').innerHTML = html;
+
+    $('x-ol-form').onsubmit = olSave;
+    $('x-ol-restore').onchange = olRestore;
+    $('x-ol-check').onclick = olCheck;
+    $('x-ol-run').onclick = olRun;
+    if (d.has_log || d.updating) { olPos = 0; $('x-ol-log').textContent = ''; olWatch(); }
+  }
+
+  async function olSave(e) {
+    e.preventDefault();
+    const v = (id) => $(id).value.trim();
+    const msg = $('x-ol-saved');
+    msg.textContent = 'Enregistrement…';
+    try {
+      const d = await post('/admin/api/orsatlog/settings', {
+        callsign: v('x-ol-call').toUpperCase(), locator: v('x-ol-loc').toUpperCase(),
+        swl_locator: v('x-ol-swl').toUpperCase(), weathercloud: v('x-ol-wc'),
+        tci_enabled: $('x-ol-tci').checked ? '1' : '0', tci_host: v('x-ol-host') || '127.0.0.1',
+        tci_port: v('x-ol-port') || '50001', tci_trx: $('x-ol-trx').value,
+      });
+      if (!d.ok) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+      msg.innerHTML = '<span class="x-ok">✓ Enregistré</span> <span class="x-dim">(rechargez le carnet ouvert pour l\'appliquer)</span>';
+      notify('Réglages du carnet enregistrés');
+    } catch (err) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(err.message) + '</span>'; }
+  }
+
+  async function olRestore(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!confirm('Remplacer TOUT le carnet par « ' + file.name + ' » ?\n\nLe carnet actuel est d\'abord sauvegardé.')) return;
+    const msg = $('x-ol-restore-msg');
+    msg.textContent = 'Restauration…';
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const d = await api('/admin/api/orsatlog/restore', { method: 'POST', body: fd });
+      if (!d.ok) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+      msg.innerHTML = '<span class="x-ok">✓ Carnet restauré.</span> Ancien carnet gardé : ' + esc(d.previous);
+      notify('Carnet restauré');
+    } catch (err) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(err.message) + '</span>'; }
+  }
+
+  async function olCheck() {
+    const info = $('x-ol-info');
+    info.textContent = 'Interrogation de GitHub…';
+    try {
+      const d = await post('/admin/api/orsatlog/check');
+      if (!d.ok) { info.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+      info.innerHTML = d.commits.length
+        ? '<b class="x-warn">' + d.commits.length + ' nouveauté(s) :</b><ul style="margin:.3rem 0 0 1.1rem;">' +
+          d.commits.map((c) => '<li><span class="x-dim">' + esc(c.h) + '</span> ' + esc(c.s) + '</li>').join('') + '</ul>'
+        : '<span class="x-ok">✓ Le carnet est à jour.</span>';
+    } catch (err) { info.innerHTML = '<span class="x-bad">✗ ' + esc(err.message) + '</span>'; }
+  }
+
+  async function olRun() {
+    if (!confirm('Mettre à jour le carnet ORSAT-LOG maintenant ?\n\nIl redémarre à la fin (quelques secondes) ; le WebSDR n\'est pas touché.')) return;
+    try {
+      const d = await post('/admin/api/orsatlog/update');
+      if (!d.ok) { notify(d.msg, 'err'); return; }
+      olPos = 0; $('x-ol-log').textContent = '';
+      olWatch();
+    } catch (err) { notify(err.message, 'err'); }
+  }
+
+  function olWatch() {
+    if (olWatching) return;
+    olWatching = true;
+    const tick = async () => {
+      try {
+        const d = await api('/admin/api/orsatlog/update/log?pos=' + olPos);
+        const el = $('x-ol-log');
+        if (d.text && el) { el.textContent += d.text; el.scrollTop = el.scrollHeight; }
+        olPos = d.pos;
+        if (!d.running) {
+          olWatching = false;
+          const txt = (el || {}).textContent || '';
+          if (/### FIN rc=0/.test(txt)) { notify('Carnet mis à jour'); setTimeout(() => currentPageIs('orsatlog') && olRender(), 4000); }
+          else if (/### FIN rc=/.test(txt)) notify('Mise à jour du carnet échouée — voir le journal', 'err');
+          return;
+        }
+      } catch (e) { /* panneau momentanément injoignable */ }
+      setTimeout(tick, 1200);
+    };
+    tick();
+  }
+
   // ── Aiguillage depuis showPage() ──────────────────────────────────────
   window.extrasShow = function (name) {
     stopTimers();
@@ -606,5 +767,6 @@
     else if (name === 'health') { healthRender(); timers.health = setInterval(() => currentPageIs('health') && healthRender(), 30000); }
     else if (name === 'signal') { sigRender(); timers.signal = setInterval(() => currentPageIs('signal') && sigLoad(), 120000); }
     else if (name === 'map') mapRender();
+    else if (name === 'orsatlog') olRender();
   };
 })();

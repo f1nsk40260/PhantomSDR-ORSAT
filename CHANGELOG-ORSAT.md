@@ -8,6 +8,7 @@ décrites dans le README et dans le projet original.
 ## En cours (après ORSAT 1.0)
 
 ### Outils
+- **Panneau admin → rubrique « Carnet ORSAT-LOG »** : un seul centre de gestion pour le WebSDR et le carnet. On y trouve l'état du service, les réglages du carnet (indicatif, locators station / WebSDR, TCI, météo), ses sauvegardes et sa restauration, et sa mise à jour en un clic, sans couper le WebSDR. Le service apparaît aussi dans « Santé du serveur ».
 - **CAT Sync ↔ carnet ORSAT-LOG** : si le navigateur a une session ouverte au carnet (`/log/`), la page l'ajoute à ses sources TCI. Le carnet suit alors la fréquence et le mode écoutés, et peut recaler la page. Les autres auditeurs ne voient aucune différence.
 - **Carnet ORSAT-LOG sous `/log`** : `proxy.py` relaie `/log` vers le carnet de trafic ORSAT-LOG (serveur central, port `log_port` de `admin_config.json`), comme `/admin` vers le panneau. Sans `log_port`, rien ne change.
 - **Serveur TCI local** (`tci-bridge/orsat-tci-server.py`) : fait voir le WebSDR comme un récepteur TCI sur `ws://127.0.0.1:40001`. Il expose la fréquence et le mode (dans les deux sens), le filtre, l'audio RX et le S-mètre, pour ORSAT-LOG, Log4OM, WSJT-X ou Décodium. Il tourne sur le PC de l'auditeur et se connecte comme un navigateur : aucune modification du serveur. Voir `tci-bridge/README.md`.

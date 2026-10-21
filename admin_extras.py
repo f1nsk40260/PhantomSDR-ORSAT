@@ -11,6 +11,9 @@ admin_extras.py — fonctions supplémentaires du panneau d'administration
   • Qualité du signal : bruit de fond et pics par bande, mesurés toutes les
     10 minutes sur le waterfall du spectrumserver (logs/signal_quality.jsonl).
   • Carte des auditeurs : visites géolocalisées des dernières heures.
+  • Carnet ORSAT-LOG : réglages, sauvegardes, mise à jour et état du carnet de
+    trafic qui tourne à côté du WebSDR (/log). Le panneau lui parle en interne
+    (127.0.0.1:log_port) avec une clé tirée du mot de passe admin.
 
 Toutes les routes sont réservées à l'administrateur connecté.
 """
@@ -30,6 +33,12 @@ import threading
 import time
 import base64
 import zipfile
+import hashlib
+import hmac
+import secrets
+import signal
+import urllib.error
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, unquote
@@ -351,7 +360,8 @@ UNITS = [("phantomsdr-proxy", "Proxy web (ports publics)"),
          ("phantomsdr-admin", "Panneau d'administration"),
          ("caddy", "Caddy (https)"),
          ("phantomsdr-websdr-relay", "Relais websdr.org"),
-         ("thermal-guard", "Garde thermique")]
+         ("thermal-guard", "Garde thermique"),
+         ("orsat-log", "Carnet ORSAT-LOG (/log)")]
 
 
 def _unit_info(unit):
@@ -823,6 +833,121 @@ def _background():
 #  Routes
 # ══════════════════════════════════════════════════════════════════════════
 
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Carnet ORSAT-LOG (dépôt Orsat-LOG, service systemd « orsat-log »)
+# ══════════════════════════════════════════════════════════════════════════
+OL_UPDATE_LOG = LOGS / "orsatlog_update.log"
+_ol_upd = {"proc": None}
+
+
+def _ol_port():
+    try:
+        return int(_G["load_admin_config"]().get("log_port") or 8740)
+    except Exception:
+        return 8740
+
+
+def _ol_token():
+    """Clé partagée avec le carnet : HMAC de l'empreinte du mot de passe admin
+    (même calcul que orsatlog/auth.py admin_token)."""
+    h = _G["load_admin_config"]().get("password_hash", "")
+    return hmac.new(h.encode(), b"orsatlog-admin", hashlib.sha256).hexdigest() if h else ""
+
+
+def _ol_dir():
+    """Dossier du carnet : celui du service orsat-log, sinon ~/Orsat-LOG."""
+    try:
+        r = subprocess.run(["systemctl", "show", "orsat-log", "-p", "WorkingDirectory", "--value"],
+                           capture_output=True, text=True, timeout=4)
+        d = r.stdout.strip()
+        if d and Path(d).is_dir():
+            return Path(d)
+    except Exception:
+        pass
+    return Path.home() / "Orsat-LOG"
+
+
+def _ol_call(method, path, body=None, raw=None, ctype=None, timeout=15):
+    """Appel interne au carnet. Renvoie (code HTTP, octets, type de contenu)."""
+    url = "http://127.0.0.1:%d%s" % (_ol_port(), path)
+    headers = {"X-OrsatLog-Admin": _ol_token()}
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode()
+        headers["Content-Type"] = "application/json"
+    elif raw is not None:
+        data = raw
+        headers["Content-Type"] = ctype
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, r.read(), r.headers.get("Content-Type", "")
+    except urllib.error.HTTPError as e:
+        return e.code, e.read(), e.headers.get("Content-Type", "")
+
+
+def _ol_json(method, path, body=None):
+    code, data, _ = _ol_call(method, path, body=body)
+    try:
+        payload = json.loads(data.decode() or "{}")
+    except ValueError:
+        payload = {}
+    if code >= 400:
+        raise RuntimeError(payload.get("detail") or "erreur %d du carnet" % code)
+    return payload
+
+
+def _ol_git(*args, timeout=20):
+    try:
+        r = subprocess.run(["git", "-C", str(_ol_dir()), *args], capture_output=True, text=True,
+                           timeout=timeout, env=dict(os.environ, GIT_TERMINAL_PROMPT="0"))
+        return r.returncode, (r.stdout if r.returncode == 0 else r.stderr)
+    except Exception as e:
+        return 1, str(e)
+
+
+def _ol_update_running():
+    p = _ol_upd.get("proc")
+    return bool(p and p.poll() is None)
+
+
+def _ol_update_job(folder):
+    """git pull du carnet (le script de mise à jour peut lui-même être nouveau), puis
+    update-server.sh, puis redémarrage du carnet par systemd."""
+    with open(OL_UPDATE_LOG, "w", encoding="utf-8") as logf:
+        logf.write("### Mise à jour du carnet ORSAT-LOG — %s\n" % _now_utc().strftime("%Y-%m-%d %H:%M:%S UTC"))
+        logf.flush()
+        cmd = ('git pull --ff-only && if [ -f update-server.sh ]; then bash update-server.sh; '
+               'else echo "update-server.sh absent : mise à jour du code seulement"; fi')
+        p = subprocess.Popen(["/bin/bash", "-c", cmd], cwd=str(folder), stdout=logf,
+                             stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True,
+                             env=dict(os.environ, GIT_TERMINAL_PROMPT="0", NO_COLOR="1", TERM="dumb"))
+        _ol_upd["proc"] = p
+    rc = p.wait()
+    with open(OL_UPDATE_LOG, "a", encoding="utf-8") as logf:
+        if rc != 0:
+            logf.write("\n### FIN rc=%d (échec : le carnet n'a pas été redémarré)\n" % rc)
+            return
+        logf.write("\n== Redémarrage du carnet ==\n")
+        try:
+            _ol_json("POST", "/api/admin/restart")
+            logf.write("Demandé au carnet ; systemd le relance.\n")
+        except Exception as e:
+            # Carnet trop ancien (pas de route de redémarrage) : on arrête son processus
+            # (même utilisateur que ce panneau) et systemd le relance (Restart=always).
+            u = _unit_info("orsat-log") or {}
+            pid = u.get("pid") or 0
+            try:
+                if not pid:
+                    raise RuntimeError("service orsat-log introuvable")
+                os.kill(pid, signal.SIGTERM)
+                logf.write("Processus %d arrêté ; systemd le relance.\n" % pid)
+            except Exception as e2:
+                logf.write("[!] Redémarrage impossible (%s / %s) : sudo systemctl restart orsat-log\n" % (e, e2))
+        logf.write("### FIN rc=0\n")
+
+
 def _send(src, name):
     try:
         return send_file(src, as_attachment=True, download_name=name, mimetype="application/zip")
@@ -1159,5 +1284,111 @@ def init(app, g):
                           country=e.get("country", ""), cc=e.get("countryCode", ""),
                           net=e.get("net", ""), last=e.get("ts", ""))
         return jsonify({"ok": True, "visits": list(by.values()), "hours": hours})
+
+    # ── Carnet ORSAT-LOG ────────────────────────────────────────────────
+    @app.route("/admin/api/orsatlog/status")
+    @lr
+    def ol_status():
+        unit = _unit_info("orsat-log")
+        out = {"ok": True, "unit": unit, "dir": str(_ol_dir()), "port": _ol_port(),
+               "updating": _ol_update_running(), "has_log": OL_UPDATE_LOG.is_file()}
+        try:
+            out["status"] = _ol_json("GET", "/api/admin/status")
+            out["settings"] = _ol_json("GET", "/api/settings")
+            out["backups"] = _ol_json("GET", "/api/backups")
+        except Exception as e:
+            out["ok"] = False
+            out["msg"] = "Carnet injoignable sur 127.0.0.1:%d (%s)" % (_ol_port(), e)
+        return jsonify(out)
+
+    @app.route("/admin/api/orsatlog/settings", methods=["POST"])
+    @lr
+    def ol_settings():
+        data = request.get_json(silent=True) or {}
+        keep = ("callsign", "locator", "swl_locator", "tci_enabled", "tci_host", "tci_port",
+                "tci_trx", "weathercloud")
+        try:
+            saved = _ol_json("PUT", "/api/settings", {k: str(data[k]) for k in keep if k in data})
+        except Exception as e:
+            return jsonify({"ok": False, "msg": str(e)})
+        return jsonify({"ok": True, "settings": saved})
+
+    @app.route("/admin/api/orsatlog/backup")
+    @lr
+    def ol_backup():
+        name = request.args.get("name", "")
+        if name and not re.match(r"^orsatlog-\d{8}(-\d{4})?\.db$", name):
+            return jsonify({"ok": False, "msg": "nom invalide"}), 400
+        code, data, _ = _ol_call("GET", "/api/backups/" + name if name else "/api/backup/download", timeout=60)
+        if code != 200:
+            return jsonify({"ok": False, "msg": "sauvegarde indisponible (%d)" % code}), 502
+        fname = name or "orsat-log_%s.db" % _now_utc().strftime("%Y%m%d-%H%M")
+        return send_file(io.BytesIO(data), as_attachment=True, download_name=fname,
+                         mimetype="application/vnd.sqlite3")
+
+    @app.route("/admin/api/orsatlog/restore", methods=["POST"])
+    @lr
+    def ol_restore():
+        up = request.files.get("file")
+        if not up:
+            return jsonify({"ok": False, "msg": "aucun fichier reçu"})
+        boundary = "orsatlog" + secrets.token_hex(12)
+        body = (("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n"
+                 "Content-Type: application/octet-stream\r\n\r\n") % (boundary, (up.filename or "carnet.db").replace('"', ""))).encode()
+        body += up.read() + ("\r\n--%s--\r\n" % boundary).encode()
+        code, data, _ = _ol_call("POST", "/api/restore", raw=body,
+                                 ctype="multipart/form-data; boundary=" + boundary, timeout=120)
+        try:
+            payload = json.loads(data.decode() or "{}")
+        except ValueError:
+            payload = {}
+        if code >= 400:
+            return jsonify({"ok": False, "msg": payload.get("detail") or "erreur %d" % code})
+        return jsonify({"ok": True, "previous": payload.get("previous", "")})
+
+    @app.route("/admin/api/orsatlog/check", methods=["POST"])
+    @lr
+    def ol_check():
+        rc, out = _ol_git("fetch", "-q", "origin", timeout=60)
+        if rc != 0:
+            return jsonify({"ok": False, "msg": "GitHub injoignable : " + out.strip()[:200]})
+        rc, out = _ol_git("log", "--format=%h|%s|%cI", "HEAD..@{u}")
+        commits = []
+        for line in out.splitlines():
+            h, sub, d = (line.split("|", 2) + ["", "", ""])[:3]
+            commits.append({"h": h, "s": sub, "d": d})
+        return jsonify({"ok": True, "commits": commits})
+
+    @app.route("/admin/api/orsatlog/update", methods=["POST"])
+    @lr
+    def ol_update():
+        folder = _ol_dir()
+        if not (folder / ".git").exists():
+            return jsonify({"ok": False, "msg": "dépôt du carnet introuvable : %s" % folder})
+        if _ol_update_running():
+            return jsonify({"ok": False, "msg": "Une mise à jour du carnet est déjà en cours"})
+        LOGS.mkdir(exist_ok=True)
+        threading.Thread(target=_ol_update_job, args=(folder,), daemon=True, name="orsatlog-update").start()
+        time.sleep(0.3)
+        return jsonify({"ok": True})
+
+    @app.route("/admin/api/orsatlog/update/log")
+    @lr
+    def ol_update_log():
+        try:
+            pos = int(request.args.get("pos", "0"))
+        except ValueError:
+            pos = 0
+        text = ""
+        try:
+            with open(OL_UPDATE_LOG, "rb") as f:
+                f.seek(pos)
+                raw = f.read()
+            text = raw.decode("utf-8", errors="replace")
+            pos += len(raw)
+        except OSError:
+            pass
+        done = "### FIN" in text or not _ol_update_running()
+        return jsonify({"ok": True, "text": text, "pos": pos, "running": not done})
 
     threading.Thread(target=_background, daemon=True, name="admin-extras").start()
