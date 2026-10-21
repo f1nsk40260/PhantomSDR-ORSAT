@@ -676,7 +676,10 @@
     $('x-ol-restore').onchange = olRestore;
     $('x-ol-check').onclick = olCheck;
     $('x-ol-run').onclick = olRun;
-    if (d.has_log || d.updating) { olPos = 0; $('x-ol-log').textContent = ''; olWatch(); }
+    // Mise à jour en cours : suivi en direct. Sinon, l'ancien journal est seulement affiché
+    // (le relire comme une fin de mise à jour rechargeait la page en boucle).
+    if (d.updating) { olPos = 0; $('x-ol-log').textContent = ''; olWatch(true); }
+    else if (d.has_log) olShowLastLog();
   }
 
   async function olSave(e) {
@@ -733,11 +736,19 @@
       const d = await post('/admin/api/orsatlog/update');
       if (!d.ok) { notify(d.msg, 'err'); return; }
       olPos = 0; $('x-ol-log').textContent = '';
-      olWatch();
+      olWatch(true);
     } catch (err) { notify(err.message, 'err'); }
   }
 
-  function olWatch() {
+  async function olShowLastLog() {
+    try {
+      const d = await api('/admin/api/orsatlog/update/log?pos=0');
+      const el = $('x-ol-log');
+      if (el && d.text) { el.textContent = d.text; el.scrollTop = el.scrollHeight; }
+    } catch (e) { /* journal indisponible : on garde « — » */ }
+  }
+
+  function olWatch(live) {
     if (olWatching) return;
     olWatching = true;
     const tick = async () => {
@@ -749,6 +760,7 @@
         if (!d.running) {
           olWatching = false;
           const txt = (el || {}).textContent || '';
+          if (!live) return;
           if (/### FIN rc=0/.test(txt)) { notify('Carnet mis à jour'); setTimeout(() => currentPageIs('orsatlog') && olRender(), 4000); }
           else if (/### FIN rc=/.test(txt)) notify('Mise à jour du carnet échouée — voir le journal', 'err');
           return;
