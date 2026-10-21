@@ -738,6 +738,7 @@
         '</div><div id="x-ol-qrz-msg" style="margin-top:.4rem;"></div></div>' +
         '<style>.x-secret{-webkit-text-security:disc;text-security:disc;}</style>' +
         '<div id="x-ol-qrz-state" style="margin-top:.8rem;"></div>' +
+        '<div id="x-ol-grid" style="margin-top:.8rem;"></div>' +
         '<div class="x-log" id="x-ol-qrz-log" style="margin-top:.6rem;max-height:220px;">—</div>';
       $('x-ol-qrz-save').onclick = olQrzSave;
       $('x-ol-qrz-run').onclick = () => olQrzRun(false);
@@ -750,11 +751,38 @@
       kpi('REFUSÉS PAR QRZ', d.errors ? '<span class="x-bad">' + d.errors + '</span>' : 0) +
       kpi('SYNCHRO AUTO', d.enabled ? '<span class="x-ok">activée</span>' : '<span class="x-dim">désactivée</span>') +
       '</div><div>' + etat + '</div>';
+    olGridRender();
     const log = $('x-ol-qrz-log');
     log.textContent = (d.journal || []).join('\n') || '—';
     log.scrollTop = log.scrollHeight;
     clearTimeout(olQrzTimer);
     if (d.running) olQrzTimer = setTimeout(() => currentPageIs('orsatlog') && olQrzRender(true), 2000);
+  }
+
+  // Locators manquants des QSO déjà enregistrés : recherche dans l'annuaire QRZ
+  let olGridTimer = null;
+  async function olGridRender(start) {
+    const box = $('x-ol-grid');
+    if (!box) return;
+    let d;
+    try { d = start ? await post('/admin/api/orsatlog/gridfill', {}) : await api('/admin/api/orsatlog/gridfill'); }
+    catch (e) { box.innerHTML = '<span class="x-bad">' + esc(e.message) + '</span>'; return; }
+    if (!d.ok) { box.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+    const st = d.state || {};
+    const res = st.total ? ' — dernier passage : ' + st.filled + ' indicatif(s) trouvé(s), ' + st.qsos + ' QSO complété(s), ' +
+      st.notfound + ' sans locator chez QRZ' + (st.skipped ? ', ' + st.skipped + ' portable(s) ignoré(s)' : '') : '';
+    box.innerHTML = '<div style="font-size:.7rem;color:var(--text2);margin-bottom:.3rem;">LOCATORS MANQUANTS — ' +
+      '<b>' + d.qsos + '</b> QSO sans locator (' + d.calls + ' indicatifs). Le locator est cherché dans l\'annuaire QRZ ' +
+      '(adresse actuelle de la station), puis distance et azimut sont recalculés. Rien n\'est renvoyé vers le logbook QRZ.</div>' +
+      (st.running
+        ? '<span class="x-warn">recherche en cours… ' + st.done + ' / ' + st.total + (st.last ? ' · ' + esc(st.last) : '') + '</span>'
+        : '<button class="btn btn-amber" type="button" id="x-ol-grid-run"' + (d.qsos ? '' : ' disabled') + '>📍 COMPLÉTER LES LOCATORS</button>' +
+          '<span class="x-dim" style="font-size:.65rem;margin-left:.5rem;">' + esc(res) + '</span>' +
+          (st.error ? '<div class="x-bad" style="margin-top:.3rem;">✗ ' + esc(st.error) + '</div>' : ''));
+    const b = $('x-ol-grid-run');
+    if (b) b.onclick = () => olGridRender(true);
+    clearTimeout(olGridTimer);
+    if (st.running) olGridTimer = setTimeout(() => currentPageIs('orsatlog') && olGridRender(), 3000);
   }
 
   async function olQrzSave(e) {

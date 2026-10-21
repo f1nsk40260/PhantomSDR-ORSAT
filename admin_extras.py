@@ -1359,6 +1359,15 @@ def init(app, g):
         except Exception as e:
             return jsonify({"ok": False, "msg": str(e)})
 
+    @app.route("/admin/api/orsatlog/gridfill", methods=["GET", "POST"])
+    @lr
+    def ol_gridfill():
+        """Locators manquants des QSO du carnet, complétés depuis l'annuaire QRZ."""
+        try:
+            return jsonify({"ok": True, **_ol_json(request.method, "/api/admin/gridfill")})
+        except Exception as e:
+            return jsonify({"ok": False, "msg": str(e)})
+
     @app.route("/admin/api/orsatlog/qrz/run", methods=["POST"])
     @lr
     def ol_qrz_run():
