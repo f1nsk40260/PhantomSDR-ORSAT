@@ -715,27 +715,31 @@
         'tout le logbook QRZ est repris au premier passage, puis toutes les 15 min les modifications faites chez QRZ, ' +
         'et chaque contact saisi ou corrigé dans le carnet part vers QRZ. Les écoutes SWL ne partent jamais. ' +
         'Une suppression dans le carnet demande s\'il faut aussi supprimer chez QRZ.</p>' +
-        '<form id="x-ol-qrz-form">' +
+        // Pas de <form> ni de champ « password » : le gestionnaire de mots de passe du navigateur
+        // prenait l'identifiant + mot de passe QRZ pour la connexion au panneau et remplaçait le
+        // mot de passe enregistré du site. Les secrets sont masqués par CSS (x-secret).
+        '<div id="x-ol-qrz-form">' +
         olField('x-ol-qrz-key', 'CLÉ D\'ACCÈS DU LOGBOOK QRZ (API KEY)', '',
           d.key_set ? 'Clé enregistrée (' + esc(d.key_hint) + '). Laisser vide pour la garder.' : 'Elle est vérifiée auprès de QRZ.com avant d\'être enregistrée.',
-          'type="password" autocomplete="off" placeholder="' + (d.key_set ? '••••••••' : 'XXXX-XXXX-XXXX-XXXX') + '"') +
+          'type="text" class="x-secret" autocomplete="off" data-lpignore="true" data-1p-ignore spellcheck="false" placeholder="' + (d.key_set ? '••••••••' : 'XXXX-XXXX-XXXX-XXXX') + '"') +
         '<div style="font-size:.7rem;color:var(--text2);margin:.2rem 0 .3rem;">ANNUAIRE QRZ — photo, prénom, nom et QTH au clic sur un indicatif du carnet. ' +
         'Il demande l\'identifiant et le mot de passe du compte QRZ.com (pas la clé du logbook) ; sans abonnement XML, QRZ peut ne pas donner la photo.</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">' +
-        olField('x-ol-qrz-xuser', 'IDENTIFIANT QRZ.COM', d.xml_user || '', d.xml_set ? 'Vérifié et enregistré. Vider pour effacer.' : 'Votre indicatif, en général.', 'autocomplete="off"') +
+        olField('x-ol-qrz-xuser', 'IDENTIFIANT QRZ.COM', d.xml_user || '', d.xml_set ? 'Vérifié et enregistré. Vider pour effacer.' : 'Votre indicatif, en général.', 'autocomplete="off" data-lpignore="true" data-1p-ignore spellcheck="false"') +
         olField('x-ol-qrz-xpwd', 'MOT DE PASSE QRZ.COM', '', d.xml_set ? 'Enregistré. Laisser vide pour le garder.' : 'Vérifié auprès de QRZ.com avant d\'être enregistré.',
-          'type="password" autocomplete="new-password" placeholder="' + (d.xml_set ? '••••••••' : '') + '"') +
+          'type="text" class="x-secret" autocomplete="off" data-lpignore="true" data-1p-ignore spellcheck="false" placeholder="' + (d.xml_set ? '••••••••' : '') + '"') +
         '</div>' +
         '<label style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;">' +
         '<input type="checkbox" id="x-ol-qrz-on"' + (d.enabled ? ' checked' : '') + '> synchronisation automatique</label>' +
         '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
-        '<button class="btn btn-green" type="submit">💾 ENREGISTRER</button>' +
+        '<button class="btn btn-green" type="button" id="x-ol-qrz-save">💾 ENREGISTRER</button>' +
         '<button class="btn btn-amber" type="button" id="x-ol-qrz-run">🔄 SYNCHRONISER MAINTENANT</button>' +
         '<button class="btn" type="button" id="x-ol-qrz-full" title="Relire tout le logbook QRZ (après une coupure longue, ou en cas de doute)">RELIRE TOUT QRZ</button>' +
-        '</div><div id="x-ol-qrz-msg" style="margin-top:.4rem;"></div></form>' +
+        '</div><div id="x-ol-qrz-msg" style="margin-top:.4rem;"></div></div>' +
+        '<style>.x-secret{-webkit-text-security:disc;text-security:disc;}</style>' +
         '<div id="x-ol-qrz-state" style="margin-top:.8rem;"></div>' +
         '<div class="x-log" id="x-ol-qrz-log" style="margin-top:.6rem;max-height:220px;">—</div>';
-      $('x-ol-qrz-form').onsubmit = olQrzSave;
+      $('x-ol-qrz-save').onclick = olQrzSave;
       $('x-ol-qrz-run').onclick = () => olQrzRun(false);
       $('x-ol-qrz-full').onclick = () => {
         if (confirm('Relire tout le logbook QRZ maintenant ?\n\nLes QSO retirés volontairement du carnet ne reviendront pas.')) olQrzRun(true);
@@ -754,7 +758,7 @@
   }
 
   async function olQrzSave(e) {
-    e.preventDefault();
+    e && e.preventDefault && e.preventDefault();
     const msg = $('x-ol-qrz-msg');
     const body = { enabled: $('x-ol-qrz-on').checked };
     const key = $('x-ol-qrz-key').value.trim();
