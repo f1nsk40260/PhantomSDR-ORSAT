@@ -25,6 +25,7 @@ import { AutorunManager } from './manager.js';
 import { PskReporter } from './pskreporter.js';
 import { WsprNet } from './wsprnet.js';
 import { parseFtxSpot, parseJs8Spot, reporterGrid } from './spotparse.js';
+import { SpotSpool } from './spool.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -192,7 +193,11 @@ function main() {
     mgr.on('ready', (s) => { console.log(`[autorun] tuned ${s.mode} ${s.band}`); writeStatus(); });
     mgr.on('error', (e, ctx) => console.error(`[autorun] ${ctx?.mode ?? ''} ${ctx?.band ?? ''}: ${e.message}`));
 
+    // ORSAT : journal local des stations décodées, relu par le carnet ORSAT-LOG
+    const spool = new SpotSpool(join(ROOT, 'autorun-spots'));
+
     mgr.on('decode', (d) => {
+        const local = [];
         const stamp = new Date().toISOString().slice(11, 19);
         counts.decodes += d.results.length;
         modeTally(d.mode).decodes += d.results.length;
@@ -204,6 +209,8 @@ function main() {
         for (const r of d.results) {
             if (d.mode === 'wspr') {
                 if (!r.callsign) continue;
+                local.push({ t: Math.floor(d.slotTime ?? Date.now() / 1000), mode: 'wspr', band: d.band,
+                             call: r.callsign, grid: r.grid || '', snr: r.snr, f: r.freq, dbm: r.dbm });
                 if (cfg.report.wsprnet) {
                     wspr.addSpot({
                         band: d.band,
@@ -219,6 +226,8 @@ function main() {
                 // over a message string that has to be parsed.
                 const p = d.mode === 'js8' ? parseJs8Spot(r) : parseFtxSpot(r.text);
                 if (!p) continue;
+                local.push({ t: Math.floor(d.slotTime ?? Date.now() / 1000), mode: d.mode, band: d.band,
+                             call: p.call, grid: p.grid || '', snr: r.snr, f: d.dialHz + (r.freq || 0) });
                 if (cfg.report.pskreporter) {
                     psk.addSpot({
                         band: d.band,
@@ -231,6 +240,7 @@ function main() {
                 }
             }
         }
+        spool.add(local);
     });
 
     // Flush cycles.
@@ -276,7 +286,7 @@ function main() {
 
     const shutdown = async () => {
         console.log('\n[autorun] shutting down…');
-        clearInterval(pskTimer); clearInterval(wsprTimer); clearInterval(statusTimer);
+        clearInterval(pskTimer); clearInterval(wsprTimer); clearInterval(statusTimer); spool.close();
         await flushPsk(); await flushWspr();
         await mgr.stop(); psk.close(); wspr.close();
         writeTotals();   // totals persist across restarts; status does not

@@ -633,6 +633,10 @@
         kpi('SFI / K CONNUS', st.enrich.solar + ' / ' + st.enrich.n +
           (st.enrich.gfz ? ' <span class="x-dim" style="font-size:.65rem;" title="Complétés par l\'archive GFZ Potsdam">(' + st.enrich.gfz + ' GFZ)</span>' : '')) +
         kpi('DISTANCE CONNUE', st.enrich.dist + ' / ' + st.enrich.n) : '') +
+      (st.heard ? kpi('ENTENDU (AUTORUN)', st.heard.spool_found
+          ? Number(st.heard.rows).toLocaleString('fr-FR') + ' <span class="x-dim" style="font-size:.65rem;" title="Stations décodées par l\'autorun, une par heure et par bande ; détail gardé 2 ans (2 Go au plus), résumé gardé toujours">' +
+            (st.heard.last_ingest ? 'lu ' + st.heard.last_ingest.slice(11) : 'en attente') + '</span>'
+          : '<span class="x-dim" title="Mettre l\'autorun en service (rubrique Autorun)">autorun arrêté</span>') : '') +
       '</div><div style="' + small + '">Adresse : <a href="/log/" target="_blank" style="color:var(--green);">/log/</a> · dossier ' +
       esc(d.dir) + ' · port interne ' + d.port + (u && u.since ? ' · actif depuis ' + esc(u.since) : '') + '</div>',
       active ? 'var(--green)' : 'var(--red)');
