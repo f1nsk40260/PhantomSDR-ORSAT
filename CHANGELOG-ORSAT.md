@@ -11,6 +11,7 @@ décrites dans le README et dans le projet original.
 - **Carte APRS** : fond de carte au choix à la souris (Nuit, Satellite, Plan OSM sombre, Plan OSM), sans clé d'API ; le choix est retenu par le navigateur. « Nuit » par défaut, dans l'esprit ORSAT.
 
 ### Outils
+- **Carnet ORSAT-LOG → annuaire QRZ** : identifiant et mot de passe QRZ.com dans la carte QRZ (vérifiés avant enregistrement), pour la photo, le nom et le QTH des correspondants dans la fiche QSO.
 - **Autorun → carnet ORSAT-LOG** : chaque station décodée par l'autorun (FT8, FT4, JS8, WSPR) est aussi écrite dans `autorun-spots/` (un fichier par heure), que l'envoi vers PSK Reporter / WSPRnet soit activé ou non. Le carnet en fait des observations de propagation et efface les fichiers lus ; sans carnet, ils sont effacés au bout de 3 jours. Rubrique Carnet ORSAT-LOG : indicateur « Entendu (autorun) ».
 - **Carnet ORSAT-LOG ↔ QRZ.com** : carte « Synchronisation QRZ.com » dans la rubrique Carnet ORSAT-LOG, avec la clé du logbook QRZ, la synchronisation automatique, le bouton « synchroniser maintenant » et le journal.
 - **Panneau admin → rubrique « Carnet ORSAT-LOG »** : un seul centre de gestion pour le WebSDR et le carnet. On y trouve l'état du service, les réglages du carnet (indicatif, locators station / WebSDR, TCI, météo), ses sauvegardes et sa restauration, et sa mise à jour en un clic, sans couper le WebSDR. Le service apparaît aussi dans « Santé du serveur ».

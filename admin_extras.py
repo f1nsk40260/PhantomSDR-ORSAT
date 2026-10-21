@@ -1354,7 +1354,7 @@ def init(app, g):
             if request.method == "GET":
                 return jsonify({"ok": True, **_ol_json("GET", "/api/admin/qrz")})
             data = request.get_json(silent=True) or {}
-            body = {k: data[k] for k in ("api_key", "enabled") if k in data}
+            body = {k: data[k] for k in ("api_key", "enabled", "xml_user", "xml_password") if k in data}
             return jsonify({"ok": True, **_ol_json("POST", "/api/admin/qrz", body, timeout=45)})
         except Exception as e:
             return jsonify({"ok": False, "msg": str(e)})

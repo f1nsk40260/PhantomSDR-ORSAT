@@ -696,12 +696,14 @@
 
   // ── Synchronisation QRZ.com ─────────────────────────────────────────
   let olQrzTimer = null;
+  let olQrzLast = {};
   async function olQrzRender(keepJournal) {
     const box = $('x-ol-qrz');
     if (!box) return;
     let d;
     try { d = await api('/admin/api/orsatlog/qrz'); } catch (e) { box.innerHTML = '<span class="x-bad">' + esc(e.message) + '</span>'; return; }
     if (!d.ok) { box.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+    olQrzLast = d;
     const kpi = (l, v) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div></div>';
     const etat = d.running ? '<span class="x-warn">synchronisation en cours…</span>'
       : d.last_error ? '<span class="x-bad">✗ ' + esc(d.last_error) + '</span>'
@@ -717,6 +719,13 @@
         olField('x-ol-qrz-key', 'CLÉ D\'ACCÈS DU LOGBOOK QRZ (API KEY)', '',
           d.key_set ? 'Clé enregistrée (' + esc(d.key_hint) + '). Laisser vide pour la garder.' : 'Elle est vérifiée auprès de QRZ.com avant d\'être enregistrée.',
           'type="password" autocomplete="off" placeholder="' + (d.key_set ? '••••••••' : 'XXXX-XXXX-XXXX-XXXX') + '"') +
+        '<div style="font-size:.7rem;color:var(--text2);margin:.2rem 0 .3rem;">ANNUAIRE QRZ — photo, prénom, nom et QTH au clic sur un indicatif du carnet. ' +
+        'Il demande l\'identifiant et le mot de passe du compte QRZ.com (pas la clé du logbook) ; sans abonnement XML, QRZ peut ne pas donner la photo.</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">' +
+        olField('x-ol-qrz-xuser', 'IDENTIFIANT QRZ.COM', d.xml_user || '', d.xml_set ? 'Vérifié et enregistré. Vider pour effacer.' : 'Votre indicatif, en général.', 'autocomplete="off"') +
+        olField('x-ol-qrz-xpwd', 'MOT DE PASSE QRZ.COM', '', d.xml_set ? 'Enregistré. Laisser vide pour le garder.' : 'Vérifié auprès de QRZ.com avant d\'être enregistré.',
+          'type="password" autocomplete="new-password" placeholder="' + (d.xml_set ? '••••••••' : '') + '"') +
+        '</div>' +
         '<label style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;">' +
         '<input type="checkbox" id="x-ol-qrz-on"' + (d.enabled ? ' checked' : '') + '> synchronisation automatique</label>' +
         '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
@@ -750,12 +759,15 @@
     const body = { enabled: $('x-ol-qrz-on').checked };
     const key = $('x-ol-qrz-key').value.trim();
     if (key) body.api_key = key;
-    msg.innerHTML = '<span class="x-dim">' + (key ? 'Vérification de la clé auprès de QRZ.com…' : 'Enregistrement…') + '</span>';
+    const xu = $('x-ol-qrz-xuser').value.trim(), xp = $('x-ol-qrz-xpwd').value;
+    if (xu !== (olQrzLast.xml_user || '') || xp) { body.xml_user = xu; if (xp) body.xml_password = xp; }
+    msg.innerHTML = '<span class="x-dim">' + (key || body.xml_user ? 'Vérification auprès de QRZ.com…' : 'Enregistrement…') + '</span>';
     try {
       const d = await post('/admin/api/orsatlog/qrz', body);
       if (!d.ok) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
       msg.innerHTML = '<span class="x-ok">✓ Enregistré</span>';
       $('x-ol-qrz-key').value = '';
+      $('x-ol-qrz-xpwd').value = '';
       olQrzRender();
     } catch (err) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(err.message) + '</span>'; }
   }
