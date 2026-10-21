@@ -628,6 +628,11 @@
       kpi('BASE', fmtBytes(st.db_size)) +
       kpi('PÉRIODE', day8(st.first_day) + ' → ' + day8(st.last_day)) +
       kpi('EN LIGNE', (st.clients ?? 0) + ' carnet · ' + (st.websdr_pages ?? 0) + ' page WebSDR') +
+      (st.enrich ? kpi('ENTITÉS DXCC', st.enrich.dxcc) +
+        kpi('CONFIRMÉS', st.enrich.conf + ' / ' + st.enrich.n) +
+        kpi('SFI / K CONNUS', st.enrich.solar + ' / ' + st.enrich.n +
+          (st.enrich.gfz ? ' <span class="x-dim" style="font-size:.65rem;" title="Complétés par l\'archive GFZ Potsdam">(' + st.enrich.gfz + ' GFZ)</span>' : '')) +
+        kpi('DISTANCE CONNUE', st.enrich.dist + ' / ' + st.enrich.n) : '') +
       '</div><div style="' + small + '">Adresse : <a href="/log/" target="_blank" style="color:var(--green);">/log/</a> · dossier ' +
       esc(d.dir) + ' · port interne ' + d.port + (u && u.since ? ' · actif depuis ' + esc(u.since) : '') + '</div>',
       active ? 'var(--green)' : 'var(--red)');
