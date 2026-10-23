@@ -46,7 +46,7 @@
     {#each BANDS as [b]}
       {@const p = data.bands[b]}
       <span class="chip {cls(p)}" class:cur={near === b} title="{b} : réception {word(p)}{p != null ? ` (${p} %)` : ''}{near === b && !inBand ? ' — bande la plus proche de la fréquence écoutée' : ''}">
-        {near === b && !inBand ? "≈" : ""}{b.replace("m", "")}<small>{p == null ? "–" : p}</small>
+        {near === b && !inBand ? "≈" : ""}{b.replace("m", "")}<small>{p == null ? "–" : `${p} %`}</small>
       </span>
     {/each}
     <span class="when">{data.when}</span>
@@ -54,24 +54,26 @@
 {/if}
 
 <style>
+  /* fond opaque : lisible quelle que soit l'image de fond de la page */
   .lb {
-    display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: hidden; width: 100%; box-sizing: border-box;
-    height: 22px; margin: 2px 0 4px; padding: 0 8px; cursor: pointer; user-select: none;
-    background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(207, 181, 59, 0.35); border-radius: 6px;
-    font-size: 11px; line-height: 1;
+    display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; overflow: hidden; width: 100%; box-sizing: border-box;
+    height: 28px; margin: 3px 0 5px; padding: 0 10px; cursor: pointer; user-select: none;
+    background: #15130d; border: 1px solid rgba(207, 181, 59, 0.75); border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    font-size: 13px; line-height: 1; color: #f2eedf;
   }
-  .lb:hover { border-color: rgba(207, 181, 59, 0.8); }
-  .lbl { color: rgb(207, 181, 59); font-weight: 600; letter-spacing: 0.04em; margin-right: 4px; white-space: nowrap; }
+  .lb:hover { border-color: rgb(226, 201, 90); }
+  .lbl { color: rgb(226, 201, 90); font-weight: 700; letter-spacing: 0.03em; margin-right: 6px; white-space: nowrap; }
   .chip {
-    display: inline-flex; align-items: baseline; gap: 3px; padding: 2px 6px; border-radius: 10px;
-    color: #e6e2d3; white-space: nowrap; border: 1px solid transparent;
+    display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 8px; border-radius: 11px;
+    color: #ffffff; font-weight: 600; white-space: nowrap; border: 1px solid transparent;
   }
-  .chip small { font-size: 10px; opacity: 0.85; }
-  .chip.hi { background: rgba(95, 191, 107, 0.55); }
-  .chip.mid { background: rgba(200, 200, 80, 0.45); }
-  .chip.lo { background: rgba(224, 140, 48, 0.4); }
-  .chip.off { background: rgba(255, 255, 255, 0.06); color: #8f8a78; }
-  .chip.na { background: transparent; color: #8f8a78; }
-  .chip.cur { border-color: rgb(207, 181, 59); box-shadow: 0 0 6px rgba(207, 181, 59, 0.6); font-weight: 700; }
-  .when { margin-left: auto; color: #8f8a78; white-space: nowrap; padding-left: 6px; }
+  .chip small { font-size: 11px; font-weight: 500; }
+  .chip.hi { background: #2f7d3a; }
+  .chip.mid { background: #8a8a22; }
+  .chip.lo { background: #a5601c; }
+  .chip.off { background: #2b2a25; color: #9b9684; }
+  .chip.na { background: transparent; color: #9b9684; }
+  .chip.cur { border-color: rgb(226, 201, 90); box-shadow: 0 0 0 1px rgb(226, 201, 90), 0 0 8px rgba(226, 201, 90, 0.7); }
+  .when { margin-left: auto; color: #b9b39d; white-space: nowrap; padding-left: 8px; font-size: 12px; }
 </style>
