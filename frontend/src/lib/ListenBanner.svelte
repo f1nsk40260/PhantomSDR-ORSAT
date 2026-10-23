@@ -36,13 +36,16 @@
   const cls = (p) => (p == null ? "na" : p >= 70 ? "hi" : p >= 40 ? "mid" : p >= 15 ? "lo" : "off");
   const word = (p) => (p == null ? "pas de mesure" : p >= 70 ? "très probable" : p >= 40 ? "probable" : p >= 15 ? "possible" : "improbable");
 
-  function openMap() { window.open("/log/ecoute", "_blank", "noopener"); }
+  // carte détaillée : fenêtre par-dessus la page du WebSDR (cadre vers /log/ecoute), bouton Fermer bien visible
+  let showMap = false;
+  function openMap() { showMap = true; }
+  function closeMap() { showMap = false; }
 </script>
 
 {#if data}
   <div class="lb" role="button" tabindex="-1" on:click={openMap} on:keydown={() => {}}
        title="Probabilité de réception par ORSAT, en ce moment, d'une station située à moins de {data.radius_km} km du récepteur ({data.locator}). Calcul : ionosondes mesurées (KC2G) × diagramme de l'antenne loop. Clic : carte détaillée.">
-    <span class="lbl">Écoute ORSAT ≤ {data.radius_km} km</span>
+    <span class="lbl" title="Probabilité de réception d'une station située à moins de {data.radius_km} km du récepteur ORSAT">ORSAT exploitable</span>
     {#each BANDS as [b]}
       {@const p = data.bands[b]}
       <span class="chip {cls(p)}" class:cur={near === b} title="{b} : réception {word(p)}{p != null ? ` (${p} %)` : ''}{near === b && !inBand ? ' — bande la plus proche de la fréquence écoutée' : ''}">
@@ -50,6 +53,20 @@
       </span>
     {/each}
     <span class="when">{data.when}</span>
+    <button type="button" class="see" on:click|stopPropagation={openMap}
+            title="Ouvrir la carte détaillée : où ORSAT entend bien en ce moment, bande par bande">🗺 Voir la carte</button>
+  </div>
+{/if}
+
+{#if showMap}
+  <div class="ov" role="presentation" on:click={closeMap}>
+    <div class="win" role="dialog" aria-label="Carte d'écoute ORSAT" on:click|stopPropagation={() => {}}>
+      <div class="bar">
+        <span class="t">ORSAT exploitable — carte détaillée</span>
+        <button type="button" class="close" on:click={closeMap} title="Fermer la carte et revenir au WebSDR">✕ Fermer</button>
+      </div>
+      <iframe src="/log/ecoute" title="Carte d'écoute ORSAT"></iframe>
+    </div>
   </div>
 {/if}
 
@@ -63,9 +80,9 @@
     font-size: 13px; line-height: 1; color: #f2eedf;
   }
   .lb:hover { border-color: rgb(226, 201, 90); }
-  .lbl { color: rgb(226, 201, 90); font-weight: 700; letter-spacing: 0.03em; margin-right: 6px; white-space: nowrap; }
+  .lbl { flex-shrink: 0; color: rgb(226, 201, 90); font-weight: 700; letter-spacing: 0.03em; margin-right: 6px; white-space: nowrap; }
   .chip {
-    display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 8px; border-radius: 11px;
+    display: inline-flex; align-items: baseline; gap: 3px; padding: 3px 6px; border-radius: 11px; flex-shrink: 0;
     color: #ffffff; font-weight: 600; white-space: nowrap; border: 1px solid transparent;
   }
   .chip small { font-size: 11px; font-weight: 500; }
@@ -75,5 +92,22 @@
   .chip.off { background: #2b2a25; color: #9b9684; }
   .chip.na { background: transparent; color: #9b9684; }
   .chip.cur { border-color: rgb(226, 201, 90); box-shadow: 0 0 0 1px rgb(226, 201, 90), 0 0 8px rgba(226, 201, 90, 0.7); }
-  .when { margin-left: auto; color: #b9b39d; white-space: nowrap; padding-left: 8px; font-size: 12px; }
+  .lbl .r { color: #b9b39d; font-weight: 500; margin-left: 4px; }
+  .see {
+    flex-shrink: 0; margin-left: 8px; padding: 3px 12px; border-radius: 11px; font-size: 12px; font-weight: 700; white-space: nowrap;
+    color: #1a1606; background: linear-gradient(180deg, #e2c95a, rgb(207, 181, 59)); border: 1px solid #f0dc80; cursor: pointer;
+  }
+  .see:hover { filter: brightness(1.12); box-shadow: 0 0 8px rgba(226, 201, 90, 0.7); }
+  .ov { position: fixed; inset: 0; z-index: 9000; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; }
+  .win { width: min(1240px, 96vw); height: min(920px, 92vh); display: flex; flex-direction: column;
+         background: #15130d; border: 2px solid rgb(207, 181, 59); border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); overflow: hidden; }
+  .win .bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid rgba(207, 181, 59, 0.5); }
+  .win .t { color: rgb(226, 201, 90); font-weight: 700; font-size: 15px; letter-spacing: 0.03em; }
+  .close {
+    margin-left: auto; padding: 7px 18px; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer;
+    color: #1a1606; background: linear-gradient(180deg, #f0d96a, rgb(207, 181, 59)); border: 1px solid #fff2a8;
+  }
+  .close:hover { filter: brightness(1.12); box-shadow: 0 0 10px rgba(240, 217, 106, 0.8); }
+  iframe { flex: 1; width: 100%; border: 0; background: #0d0d0f; }
+  .when { margin-left: auto; flex-shrink: 0; color: #b9b39d; white-space: nowrap; padding-left: 8px; font-size: 12px; }
 </style>

@@ -8,7 +8,7 @@ décrites dans le README et dans le projet original.
 ## En cours (après ORSAT 1.0)
 
 ### Interface
-- **Bandeau « Écoute ORSAT ≤ 800 km »** entre l'en-tête et la chute d'eau : probabilité de réception, bande par bande, d'une station située à moins de 800 km du récepteur, calculée par le carnet ORSAT-LOG (ionosondes mesurées × diagramme NEC de la loop). Bande écoutée mise en évidence, rafraîchi toutes les 5 min, clic : carte détaillée (`/log/ecoute`). Composant isolé `frontend/src/lib/ListenBanner.svelte` ; si le carnet ne répond pas, le bandeau n'apparaît simplement pas.
+- **Bandeau « ORSAT exploitable »** (probabilité à 800 km) entre l'en-tête et la chute d'eau : probabilité de réception, bande par bande, d'une station située à moins de 800 km du récepteur, calculée par le carnet ORSAT-LOG (ionosondes mesurées × diagramme NEC de la loop). Bande écoutée mise en évidence, rafraîchi toutes les 5 min. Bouton « 🗺 Voir la carte » (ou clic sur le bandeau) : carte détaillée dans une fenêtre par-dessus le WebSDR (`/log/ecoute`), avec un grand bouton « ✕ Fermer » (ou clic à côté). Composant isolé `frontend/src/lib/ListenBanner.svelte` ; si le carnet ne répond pas, le bandeau n'apparaît simplement pas.
 - **Carte APRS** : fond de carte au choix à la souris (Nuit, Satellite, Plan OSM sombre, Plan OSM), sans clé d'API ; le choix est retenu par le navigateur. « Nuit » par défaut, dans l'esprit ORSAT.
 
 ### Outils
