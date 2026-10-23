@@ -10204,9 +10204,9 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                       class:mute-on={mute}
                       on:click={handleMuteChange}
                       aria-pressed={mute}
-                      title={mute ? "Son coupé — cliquer pour rétablir l'audio" : "Couper le son avant de passer en émission (évite le larsen)"}
+                      title={mute ? "Audio coupé — cliquer pour le rétablir" : "Couper l'audio avant de passer en émission (évite le larsen)"}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="currentColor" class="mute-ico" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="currentColor" class="mute-ico" aria-hidden="true">
                         {#if mute}
                           <path
                             d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
@@ -10217,7 +10217,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                           />
                         {/if}
                       </svg>
-                      {#if mute}<span>SON COUPÉ</span>{:else}<span>COUPER LE SON</span>{/if}
+                      {#if mute}<span>AUDIO COUPÉ</span>{:else}<span>COUPER L'AUDIO</span>{/if}
                     </button>
                     <div class="slider-container">
                       <input
@@ -15104,7 +15104,7 @@ Cliquez à nouveau pour désactiver"
     box-shadow: 0 0 12px rgba(230, 60, 60, 0.8); animation: mute-pulse 1.6s ease-in-out infinite;
   }
   /* icône à taille fixe : ne jamais la comprimer quand le texte est long (« COUPER LE SON ») */
-  :global(.mute-big .mute-ico) { width: 26px !important; height: 26px !important; min-width: 26px; flex: 0 0 26px; }
+  :global(.mute-big .mute-ico) { width: 32px !important; height: 32px !important; min-width: 32px; flex: 0 0 32px; }
   :global(.mute-big span) { white-space: nowrap; }
   :global(#volume-slider .slider-container) { flex: 1 1 auto; min-width: 60px; }
   @keyframes -global-mute-pulse { 0%, 100% { box-shadow: 0 0 6px rgba(230, 60, 60, 0.6); } 50% { box-shadow: 0 0 16px rgba(255, 80, 80, 1); } }
