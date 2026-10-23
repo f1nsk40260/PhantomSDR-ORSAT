@@ -10197,20 +10197,16 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                     Audio & Buffer
                   </h3>
                   <div class="control-group" id="volume-slider">
+                    <!-- ORSAT : grand bouton de coupure du son, bien visible (passage en émission sans liaison
+                         automatique transceiver ↔ ordinateur : éviter le larsen). Même fonction qu'avant. -->
                     <button
-                      class="glass-button text-white font-bold rounded-full w-7 h-7 flex items-center justify-center mr-4"
-                      style="background: {mute
-                        ? 'rgba(255, 0, 0, 0.3)'
-                        : 'rgba(255, 255, 255, 0.05)'}"
+                      class="mute-big"
+                      class:mute-on={mute}
                       on:click={handleMuteChange}
-                      title="Cliquer pour couper l'audio"
+                      aria-pressed={mute}
+                      title={mute ? "Son coupé — cliquer pour rétablir l'audio" : "Couper le son avant de passer en émission (évite le larsen)"}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-5 h-5"
-                      >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="mute-ico" aria-hidden="true">
                         {#if mute}
                           <path
                             d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
@@ -10221,8 +10217,8 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                           />
                         {/if}
                       </svg>
+                      {#if mute}<span>SON COUPÉ</span>{:else}<span>COUPER LE SON</span>{/if}
                     </button>
-                    &nbsp;&nbsp;&nbsp;
                     <div class="slider-container">
                       <input
                         type="range"
@@ -15094,6 +15090,22 @@ Cliquez à nouveau pour désactiver"
   #chat-box {
     margin-bottom: 0;
   }
+  /* ORSAT : grand bouton de coupure du son (section Audio) */
+  :global(.mute-big) {
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; margin-right: 10px;
+    min-width: 168px; height: 44px; padding: 0 14px; border-radius: 10px; cursor: pointer;
+    font-size: 14px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap;
+    color: #1a1606; background: linear-gradient(180deg, #e2c95a, rgb(207, 181, 59));
+    border: 2px solid #f0dc80; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+  :global(.mute-big:hover) { filter: brightness(1.1); }
+  :global(.mute-big.mute-on) {
+    color: #ffffff; background: linear-gradient(180deg, #e04848, #a81e1e); border-color: #ff9a9a;
+    box-shadow: 0 0 12px rgba(230, 60, 60, 0.8); animation: mute-pulse 1.6s ease-in-out infinite;
+  }
+  :global(.mute-big .mute-ico) { width: 24px; height: 24px; flex: 0 0 auto; }
+  :global(#volume-slider .slider-container) { flex: 1 1 auto; min-width: 60px; }
+  @keyframes -global-mute-pulse { 0%, 100% { box-shadow: 0 0 6px rgba(230, 60, 60, 0.6); } 50% { box-shadow: 0 0 16px rgba(255, 80, 80, 1); } }
   #outer-waterfall-container {
     margin-top: 3px;
   }
