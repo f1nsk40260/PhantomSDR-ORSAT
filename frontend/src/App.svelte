@@ -4,6 +4,7 @@
   // section 7(b) author attribution — see ADDITIONAL_TERMS.md.
   import { VERSION, ORIGIN_URL, MODIFIED_NOTE, MODIFIED_URL, ORSAT_VERSION } from "./lib/version.js";
   import { reportDecoder, reportHello } from "./lib/usageBeacon.js";
+  import ListenBanner from "./lib/ListenBanner.svelte";   // bandeau « écoute ORSAT » (carnet ORSAT-LOG)
   // Manuels utilisateur PDF (version française F1NSK)
   import manualFRUrl from "./assets/docs/manualFR.pdf";
   import manualENUrl from "./assets/docs/manualEN.pdf";
@@ -9858,6 +9859,9 @@
               </style>
 
               <!--End of Titel Box -->
+
+              <!-- Bandeau « écoute ORSAT » : probabilité de réception à 800 km (ORSAT-LOG) -->
+              <ListenBanner freqKhz={frequency} />
 
               <!--Beginn of Waterfall -->
               <div class="flex justify-center w-full">
