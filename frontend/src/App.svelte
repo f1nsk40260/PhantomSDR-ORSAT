@@ -10204,7 +10204,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                       class:mute-on={mute}
                       on:click={handleMuteChange}
                       aria-pressed={mute}
-                      title={mute ? "Audio coupé — cliquer pour le rétablir" : "Couper l'audio avant de passer en émission (évite le larsen)"}
+                      title={mute ? "Silencieux — cliquer pour rétablir l'audio" : "Couper l'audio avant de passer en émission (évite le larsen)"}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="currentColor" class="mute-ico" aria-hidden="true">
                         {#if mute}
@@ -10217,7 +10217,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                           />
                         {/if}
                       </svg>
-                      {#if mute}<span>AUDIO COUPÉ</span>{:else}<span>COUPER L'AUDIO</span>{/if}
+                      {#if mute}<span>SILENCIEUX</span>{:else}<span>COUPER L'AUDIO</span>{/if}
                     </button>
                     <div class="slider-container">
                       <input

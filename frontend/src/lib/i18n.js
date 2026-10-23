@@ -52,9 +52,9 @@ export const lang = writable(current);
 const D = [
   // Grand bouton de coupure du son (section Audio)
   ["COUPER L'AUDIO", "MUTE AUDIO", "SILENCIAR"],
-  ["AUDIO COUPÉ", "AUDIO MUTED", "SILENCIADO"],
+  ["SILENCIEUX", "AUDIO MUTED", "SILENCIADO"],
   ["Couper l'audio avant de passer en émission (évite le larsen)", "Mute the audio before transmitting (avoids feedback)", "Silenciar el audio antes de transmitir (evita el acople)"],
-  ["Audio coupé — cliquer pour le rétablir", "Audio muted — click to restore it", "Audio silenciado — clic para restablecerlo"],
+  ["Silencieux — cliquer pour rétablir l'audio", "Audio muted — click to restore it", "Audio silenciado — clic para restablecerlo"],
   // En-tête
   [", situé à", ", located in", ", ubicado en"],
   ["Page QRZ :", "QRZ page :", "Página QRZ :"],
