@@ -9860,12 +9860,11 @@
 
               <!--End of Titel Box -->
 
-              <!-- Bandeau « écoute ORSAT » : probabilité de réception à 800 km (ORSAT-LOG) -->
-              <ListenBanner freqKhz={frequency} />
-
               <!--Beginn of Waterfall -->
               <div class="flex justify-center w-full">
                 <div class="w-full" id="outer-waterfall-container">
+                  <!-- Bandeau « ORSAT exploitable » (ORSAT-LOG), même largeur que la chute d'eau -->
+                  <ListenBanner freqKhz={frequency} />
                   <div
                     style="image-rendering:pixelated;"
                     class="relative w-full xl:rounded-lg peer overflow-hidden"
