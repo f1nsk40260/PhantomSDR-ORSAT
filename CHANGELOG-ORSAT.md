@@ -8,6 +8,7 @@ décrites dans le README et dans le projet original.
 ## En cours (après ORSAT 1.0)
 
 ### Interface
+- **Scanner supprimé** : sans intérêt sur ORSAT. Section, boutons, réglages, traductions et module `scanner.js` retirés intégralement.
 - **Bouton « Indice de performance ? »** (titre du bandeau) : ouvre un panneau qui explique, en FR / EN / ES, comment ORSAT calcule son IP (prévision ionosondes, antenne NEC, note par distance, mesure réelle, mélange 40/60, lecture, zones, étalonnage), avec un grand bouton Fermer.
 - **Bandeau « Indice de performance »** (remplace la couverture à 800 km) : note 0–100 par bande et zone où ORSAT entend le mieux (Loc ≤ 300 km, Rég 300–900, EU 900–2500, DX au-delà). Prévision sur toutes les distances (meilleure tranche 70 %, étendue 30 %), corrigée par la mesure réelle de la chute d'eau quand elle a moins de 15 min (40 % prévision, 60 % mesure). Verdicts Excellent ≥ 75 / Bon ≥ 50 / Moyen ≥ 25 / Faible ; détail par distance et cause d'une mesure absente dans l'infobulle ; FR / EN / ES.
 - **Grand bouton de coupure du son** (section Audio) à la place du petit haut-parleur : « 🔊 COUPER L'AUDIO » (doré), qui devient « 🔇 SILENCIEUX » (rouge, pulsant). Pour les auditeurs sans liaison automatique transceiver ↔ ordinateur : couper d'un clic avant de passer en émission, sans larsen. Même fonction qu'avant (la coupure automatique en émission par CAT Sync l'affiche aussi) ; curseur de volume raccourci d'autant ; textes FR / EN / ES.
