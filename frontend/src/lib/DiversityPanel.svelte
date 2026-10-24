@@ -37,6 +37,7 @@
   import { PARTNERS, ORSAT_LOCATOR, locatorLatLon, distanceKm } from "./diversityPartners.js";
   const T = {
     fr: {
+      stOff: "Arrêtée", stWait: "Synchronisation…", stOn: "En marche", stBad: "Erreur", open: "Ouvrir ▸", close: "Fermer ▾",
       title: "Réception en diversité", sub: "Deux récepteurs, toujours le meilleur signal",
       step1: "1. Choisissez un récepteur partenaire", step2: "2. Lancez la diversité", step3: "3. Écoutez",
       other: "Autre récepteur…", otherSub: "adresse à saisir dans les réglages avancés",
@@ -52,6 +53,7 @@
       decoders: "Les décodeurs continuent d'utiliser ORSAT seul ; la diversité ne concerne que le son du haut-parleur.",
     },
     en: {
+      stOff: "Off", stWait: "Synchronising…", stOn: "Running", stBad: "Error", open: "Open ▸", close: "Close ▾",
       title: "Diversity reception", sub: "Two receivers, always the best signal",
       step1: "1. Choose a partner receiver", step2: "2. Start diversity", step3: "3. Listen",
       other: "Another receiver…", otherSub: "address to enter in the advanced settings",
@@ -67,6 +69,7 @@
       decoders: "Decoders keep using ORSAT alone; diversity only affects the speaker audio.",
     },
     es: {
+      stOff: "Detenida", stWait: "Sincronizando…", stOn: "En marcha", stBad: "Error", open: "Abrir ▸", close: "Cerrar ▾",
       title: "Recepción en diversidad", sub: "Dos receptores, siempre la mejor señal",
       step1: "1. Elija un receptor asociado", step2: "2. Inicie la diversidad", step3: "3. Escuche",
       other: "Otro receptor…", otherSub: "dirección a introducir en los ajustes avanzados",
@@ -537,26 +540,19 @@
 </script>
 
 <div class="w-full rounded-lg p-4 mt-2 text-left decoder-window decoder-panel">
-  <button
-    class="w-full flex justify-between items-center text-xs bg-transparent border-0 p-0 cursor-pointer"
-    on:click={() => (expanded = !expanded)}
-    title={D.sub}
-    data-no-i18n
-  >
-    <h4 class="text-white font-semibold flex items-center gap-2">
-      <span class="inline-block w-2 h-2 rounded-full {dotClass}"></span>
-      {D.title}
-      <span class="dv-sub">· {D.sub}</span>
-    </h4>
-    <span class="flex items-center gap-1">
-      <span
-        class="{running &&
-        (status.state === 'error' || status.state === 'closed')
-          ? 'text-red-400'
-          : summaryClass} truncate max-w-[16rem]">{summaryFull}</span
-      >
-      <span class="text-gray-400">{expanded ? "▾" : "▸"}</span>
+  <!-- En-tête bien visible (ORSAT) : barre dorée, icône, état en clair, bouton Ouvrir / Fermer -->
+  <button class="dv-head" class:on={running} class:open={expanded} on:click={() => (expanded = !expanded)}
+          title={D.sub} data-no-i18n>
+    <span class="dv-ico" aria-hidden="true">📡📡</span>
+    <span class="dv-titles">
+      <b>{D.title}</b>
+      <small>{D.sub}</small>
     </span>
+    <span class="dv-badge {bad ? 'bad' : !running ? 'off' : waiting ? 'wait' : 'ok'}">
+      <i class="inline-block w-2 h-2 rounded-full {dotClass}"></i>
+      {bad ? D.stBad : !running ? D.stOff : waiting ? D.stWait : D.stOn}
+    </span>
+    <span class="dv-open">{expanded ? D.close : D.open}</span>
   </button>
 
   {#if expanded}
@@ -1057,6 +1053,23 @@
 
 <style>
   /* Partie guidée (ORSAT) */
+  .dv-head { width: 100%; display: flex; align-items: center; gap: 12px; cursor: pointer; text-align: left;
+             padding: 10px 14px; border-radius: 10px; color: #f2eedf;
+             background: linear-gradient(180deg, rgba(207, 181, 59, 0.22), rgba(207, 181, 59, 0.08));
+             border: 2px solid rgba(207, 181, 59, 0.85); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45); }
+  .dv-head:hover { background: linear-gradient(180deg, rgba(207, 181, 59, 0.32), rgba(207, 181, 59, 0.12)); }
+  .dv-head.on { border-color: #7fe08c; box-shadow: 0 0 12px rgba(127, 224, 140, 0.45); }
+  .dv-ico { font-size: 22px; line-height: 1; letter-spacing: -6px; padding-right: 6px; }
+  .dv-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .dv-titles b { font-size: 17px; color: rgb(226, 201, 90); font-weight: 800; letter-spacing: 0.02em; }
+  .dv-titles small { font-size: 12.5px; color: #e6e2d3; }
+  .dv-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 11px; font-size: 12px;
+              font-weight: 700; white-space: nowrap; background: #2b2a25; color: #cfc9b2; border: 1px solid #555; }
+  .dv-badge.ok { background: rgba(63, 154, 75, 0.35); color: #9ef0a8; border-color: #7fe08c; }
+  .dv-badge.wait { background: rgba(224, 160, 48, 0.25); color: #f0c060; border-color: #e0a030; }
+  .dv-badge.bad { background: rgba(200, 64, 64, 0.3); color: #ff9a9a; border-color: #ff8080; }
+  .dv-open { flex-shrink: 0; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 800; white-space: nowrap;
+             color: #1a1606; background: linear-gradient(180deg, #e2c95a, rgb(207, 181, 59)); border: 1px solid #f0dc80; }
   .dv-sub { font-weight: 400; color: #b9b39d; font-size: 0.75rem; }
   .dv { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #e6e2d3; }
   .dv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
