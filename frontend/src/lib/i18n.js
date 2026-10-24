@@ -967,6 +967,8 @@ const D = [
   ["nom (facultatif)", "name (optional)", "nombre (opcional)"],
   ["Monter", "Move up", "Subir"],
   ["Descendre", "Move down", "Bajar"],
+  ["Glisser pour réordonner", "Drag to reorder", "Arrastrar para reordenar"],
+  ["Mettre cette adresse dans le champ", "Put this address in the box", "Poner esta dirección en el campo"],
   ["Mettre cette adresse dans le champ (faites glisser la ligne pour réordonner)", "Put this address in the box (drag the row to reorder)", "Poner esta dirección en el campo (arrastre la fila para reordenar)"],
   ["Ouvrir la page de ce récepteur dans un nouvel onglet", "Open this receiver's own page in a new tab", "Abrir la página de este receptor en una pestaña nueva"],
   ["Modifier le nom et l'adresse", "Edit the name and address", "Editar el nombre y la dirección"],

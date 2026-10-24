@@ -35,7 +35,7 @@
 
   // Partie guidée (ORSAT) : annuaire de partenaires, étapes, écoute en clair, FR / EN / ES
   import { lang } from "./i18n.js";
-  import { PARTNERS, ORSAT_LOCATOR, locatorLatLon, distanceKm } from "./diversityPartners.js";
+  import { PARTNERS, ORSAT_LOCATOR, locatorLatLon, distanceKm, flagSvg } from "./diversityPartners.js";
   const T = {
     fr: {
       stOff: "Arrêtée", stWait: "Synchronisation…", stOn: "En marche", stBad: "Erreur", open: "Ouvrir ▸", close: "Fermer ▾",
@@ -568,7 +568,7 @@
           {@const d = distanceKm(home, [x.lat, x.lon])}
           <button type="button" class="dv-card" class:sel={partnerId === x.id} disabled={running && partnerId !== x.id}
                   on:click={() => choosePartner(x)} title={x.addr}>
-            <b>{x.name}{#if x.call}<i> · {x.call}</i>{/if}</b>
+            <b>{#if x.country}<span class="dv-flag" title={x.country}>{@html flagSvg(x.country)}</span>{/if}{x.name}{#if x.call}<i> · {x.call}</i>{/if}</b>
             <span>{x.place[$lang] || x.place.fr}{d != null ? ` · ${D.km(d)}` : ""}</span>
             <em>{D[x.type] || x.type}</em>
           </button>
@@ -775,8 +775,6 @@
                   dragFrom !== i
                     ? 'bg-gray-800 outline outline-1 outline-cyan-600'
                     : ''} {dragFrom === i ? 'opacity-40' : ''}"
-                  draggable={!running}
-                  on:dragstart={(ev) => onDragStart(i, ev)}
                   on:dragover={(ev) => onDragOver(i, ev)}
                   on:drop={(ev) => onDrop(i, ev)}
                   on:dragend={onDragEnd}
@@ -784,6 +782,17 @@
                 >
                   <!-- Arrows first, so the pair reads as one control column
                      and the drag handle is the whole row. -->
+                  <!-- Poignée de glisser : seule elle est glissable. Une ligne entière
+                       draggable empêche Firefox de livrer les clics à ses boutons. -->
+                  <span
+                    class="px-0.5 pt-1 text-gray-600 hover:text-cyan-300 select-none {running ? 'cursor-default' : 'cursor-grab'}"
+                    draggable={!running}
+                    on:dragstart={(ev) => onDragStart(i, ev)}
+                    on:dragend={onDragEnd}
+                    title="Drag to reorder"
+                    role="button"
+                    tabindex="-1">⠿</span
+                  >
                   <span class="flex flex-col leading-none pt-px">
                     <button
                       class="px-1 text-[9px] bg-transparent border-0 {i === 0
@@ -805,7 +814,7 @@
                   </span>
                   <button
                     class="flex-1 min-w-0 text-left bg-transparent border-0 cursor-pointer p-0 leading-tight"
-                    title="Put this address in the box  (drag the row to reorder)"
+                    title="Put this address in the box"
                     disabled={running}
                     on:click={() => useOne(e)}
                   >
@@ -1087,6 +1096,7 @@
   .dv-card.sel { border: 2px solid rgb(226, 201, 90); background: rgba(207, 181, 59, 0.15); }
   .dv-card:disabled { opacity: 0.45; cursor: not-allowed; }
   .dv-card b { color: #fff; font-size: 13px; }
+  .dv-card .dv-flag { margin-right: 6px; font-size: inherit; }
   .dv-card i { font-style: normal; color: rgb(226, 201, 90); }
   .dv-card span { font-size: 12px; color: #cfc9b2; }
   .dv-card em { font-style: normal; font-size: 11px; color: #9b9684; }
