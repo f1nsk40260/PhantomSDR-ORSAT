@@ -1,6 +1,7 @@
 <script>
-  // Bandeau « écoute ORSAT » : probabilité de réception par bande dans un rayon de 800 km autour du
-  // récepteur, calculée par le carnet ORSAT-LOG (ionosondes mesurées × diagramme NEC de la loop).
+  // Bandeau « Indice de performance ORSAT » : note 0–100 par bande calculée par le carnet ORSAT-LOG
+  // (prévision sur toutes les distances : ionosondes × diagramme NEC de la loop, corrigée par la mesure
+  // réelle de la chute d'eau) et zone où le récepteur entend le mieux.
   // Source : /log/api/public/listenbanner (même serveur, sans connexion). Rafraîchi toutes les 5 min.
   // Si le carnet ne répond pas, le bandeau ne s'affiche pas : aucun effet sur le WebSDR.
   import { onMount, onDestroy } from "svelte";
@@ -38,6 +39,14 @@
   // traduire des phrases contenant des chiffres qui changent : le bandeau porte data-no-i18n).
   const T = {
     fr: {
+      ipTitle: "Indice de performance ORSAT", ipShort: "IP",
+      ipTip: (w) => `Indice de performance du récepteur ORSAT, bande par bande (0 à 100, calcul de ${w}).\nPrévision sur toutes les distances (ionosondes mesurées × diagramme de la loop), corrigée par ce qu'ORSAT mesure réellement sur la chute d'eau.\nLettres : zone où ORSAT entend le mieux. Clic : carte détaillée.`,
+      ipVerdict: { ex: "Excellent", ok: "Bon", mid: "Moyen", low: "Faible", na: "Pas de données" },
+      zoneShort: { loc: "Loc", reg: "Rég", eu: "EU", dx: "DX" },
+      zoneLong: { loc: "local (≤ 300 km)", reg: "régional (300–900 km)", eu: "Europe (900–2500 km)", dx: "DX (au-delà de 2500 km)" },
+      bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
+      predWord: "prévision", measWord: "mesure", noMeas: "pas de mesure récente",
+      byDist: "Prévision par distance", measErr: "Mesure réelle indisponible",
       sep: " : ", title: "ORSAT exploitable", radius: (r) => `≤ ${r} km`, see: "🗺 Voir la carte",
       seeTip: "Ouvrir la carte détaillée : où ORSAT entend bien en ce moment, bande par bande",
       lblTip: (r, w) => `Probabilité de réception d'une station située à moins de ${r} km du récepteur ORSAT (calcul de ${w})`,
@@ -51,10 +60,18 @@
       nearest: "(bande la plus proche de la fréquence écoutée)",
       calibWait: "Étalonnage en cours : les mesures réelles s'accumulent (quelques jours).",
       calibHead: (d, s) => `Constaté sur ${d} jours (signal exploitable = SNR ≥ ${s} dB) :`,
-      calibRow: (x) => `couverture ${x.range} % → signal exploitable ${x.rate} % du temps (${x.n} mesures)`,
+      calibRow: (x) => `prévision ${x.range} → signal exploitable ${x.rate} % du temps (${x.n} mesures)`,
       mapTitle: "ORSAT exploitable — carte détaillée", close: "✕ Fermer", closeTip: "Fermer la carte et revenir au WebSDR",
     },
     en: {
+      ipTitle: "ORSAT performance index", ipShort: "PI",
+      ipTip: (w) => `Performance index of the ORSAT receiver, band by band (0 to 100, computed at ${w}).\nForecast over all distances (measured ionosondes × loop pattern), corrected by what ORSAT actually measures on the waterfall.\nLetters: area where ORSAT hears best. Click: detailed map.`,
+      ipVerdict: { ex: "Excellent", ok: "Good", mid: "Fair", low: "Poor", na: "No data" },
+      zoneShort: { loc: "Loc", reg: "Reg", eu: "EU", dx: "DX" },
+      zoneLong: { loc: "local (≤ 300 km)", reg: "regional (300–900 km)", eu: "Europe (900–2500 km)", dx: "DX (beyond 2500 km)" },
+      bestZone: "best range", noZone: "no really good area",
+      predWord: "forecast", measWord: "measurement", noMeas: "no recent measurement",
+      byDist: "Forecast by distance", measErr: "Real measurement unavailable",
       sep: ": ", title: "ORSAT usable", radius: (r) => `≤ ${r} km`, see: "🗺 Show map",
       seeTip: "Open the detailed map: where ORSAT hears well right now, band by band",
       lblTip: (r, w) => `Probability of hearing a station located within ${r} km of the ORSAT receiver (computed at ${w})`,
@@ -68,10 +85,18 @@
       nearest: "(band closest to the tuned frequency)",
       calibWait: "Calibration in progress: real measurements are building up (a few days).",
       calibHead: (d, s) => `Observed over ${d} days (usable signal = SNR ≥ ${s} dB):`,
-      calibRow: (x) => `coverage ${x.range} % → usable signal ${x.rate} % of the time (${x.n} measurements)`,
+      calibRow: (x) => `forecast ${x.range} → usable signal ${x.rate} % of the time (${x.n} measurements)`,
       mapTitle: "ORSAT usable — detailed map", close: "✕ Close", closeTip: "Close the map and return to the WebSDR",
     },
     es: {
+      ipTitle: "Índice de rendimiento ORSAT", ipShort: "IR",
+      ipTip: (w) => `Índice de rendimiento del receptor ORSAT, banda por banda (0 a 100, cálculo de las ${w}).\nPrevisión sobre todas las distancias (ionosondas medidas × diagrama de la loop), corregida con lo que ORSAT mide realmente en la cascada.\nLetras: zona donde ORSAT escucha mejor. Clic: mapa detallado.`,
+      ipVerdict: { ex: "Excelente", ok: "Bueno", mid: "Regular", low: "Débil", na: "Sin datos" },
+      zoneShort: { loc: "Loc", reg: "Reg", eu: "EU", dx: "DX" },
+      zoneLong: { loc: "local (≤ 300 km)", reg: "regional (300–900 km)", eu: "Europa (900–2500 km)", dx: "DX (más de 2500 km)" },
+      bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
+      predWord: "previsión", measWord: "medida", noMeas: "sin medida reciente",
+      byDist: "Previsión por distancia", measErr: "Medida real no disponible",
       sep: ": ", title: "ORSAT utilizable", radius: (r) => `≤ ${r} km`, see: "🗺 Ver el mapa",
       seeTip: "Abrir el mapa detallado: dónde ORSAT escucha bien ahora, banda por banda",
       lblTip: (r, w) => `Probabilidad de recibir una estación situada a menos de ${r} km del receptor ORSAT (cálculo de las ${w})`,
@@ -85,7 +110,7 @@
       nearest: "(banda más cercana a la frecuencia sintonizada)",
       calibWait: "Calibración en curso: las medidas reales se acumulan (unos días).",
       calibHead: (d, s) => `Constatado en ${d} días (señal utilizable = SNR ≥ ${s} dB):`,
-      calibRow: (x) => `cobertura ${x.range} % → señal utilizable ${x.rate} % del tiempo (${x.n} medidas)`,
+      calibRow: (x) => `previsión ${x.range} → señal utilizable ${x.rate} % del tiempo (${x.n} medidas)`,
       mapTitle: "ORSAT utilizable — mapa detallado", close: "✕ Cerrar", closeTip: "Cerrar el mapa y volver al WebSDR",
     },
   };
@@ -113,6 +138,26 @@
       + (near === b && !inBand ? "\n" + L.nearest : "");
   }
 
+  // Indice de performance (IP) : fourni par le carnet (data.ip) ; carnet plus ancien : couverture à 800 km
+  $: IP = data && data.ip ? data.ip : null;
+  const ipOf = (b) => (IP ? (IP[b] ? IP[b].ip : null) : data && data.bands ? data.bands[b] : null);
+  const ipCls = (v) => (v == null ? "na" : v >= 75 ? "hi" : v >= 50 ? "mid" : v >= 25 ? "lo" : "off");
+  const ipWord = (L, v) => L.ipVerdict[v == null ? "na" : v >= 75 ? "ex" : v >= 50 ? "ok" : v >= 25 ? "mid" : "low"];
+  const zoneOf = (b) => (IP && IP[b] ? IP[b].zone : null);
+  const DIST = [["d100", "≤100"], ["d300", "≤300"], ["d900", "≤900"], ["d2500", "≤2500"], ["dx", ">2500"]];
+  function ipTip(L, b) {
+    const v = ipOf(b), z = zoneOf(b), x = IP && IP[b];
+    let t = `${b}${L.sep}${ipWord(L, v)}${v != null ? ` (${L.ipShort} ${v})` : ""} — `
+      + (z ? `${L.bestZone}${L.sep}${L.zoneLong[z]}` : L.noZone);
+    if (x) {
+      t += `\n${L.predWord} ${x.pred ?? "–"} · ${L.measWord} ${x.meas ?? "–"}` + (measText(L, b) ? ` (${measText(L, b)})` : ` (${L.noMeas})`);
+      t += `\n${L.byDist}${L.sep}` + DIST.map(([k, l]) => `${l} ${x.tranches[k] ?? "–"}`).join(" · ") + " km";
+    }
+    if (near === b && !inBand) t += "\n" + L.nearest;
+    if (data && data.measure_error && !data.measured) t += `\n${L.measErr}${L.sep}${data.measure_error}`;
+    return t;
+  }
+
   // carte détaillée : fenêtre par-dessus la page du WebSDR (cadre vers /log/ecoute), bouton Fermer bien visible
   let showMap = false;
   function openMap() { showMap = true; }
@@ -122,17 +167,17 @@
 {#if data}
   <div class="lb" data-no-i18n role="button" tabindex="-1" on:click={openMap} on:keydown={() => {}}
        title={L.boxTip(data.radius_km, data.locator)}>
-    <span class="lbl" title={L.lblTip(data.radius_km, data.when)}>{L.title} <span class="r">{L.radius(data.radius_km)}</span></span>
+    <span class="lbl" title="{L.ipTip(data.when)}{calibText(L)}">{L.ipTitle}</span>
     {#if near}
-      {@const p = data.bands[near]}
-      <span class="sum {cls(p)}" title="{chipTip(L, near, p)}{calibText(L)}">
-        {near}{L.sep}<b>{L.verdict[cls(p)]}</b>{#if measText(L, near)}<i>&nbsp;· {L.measured}{L.sep}{measText(L, near)}</i>{/if}
+      {@const v = ipOf(near)}
+      <span class="sum {ipCls(v)}" title="{ipTip(L, near)}{calibText(L)}">
+        {near}{L.sep}<b>{ipWord(L, v)}</b>{#if zoneOf(near)}<i>&nbsp;· {L.zoneLong[zoneOf(near)]}</i>{/if}
       </span>
     {/if}
     {#each BANDS as [b]}
-      {@const p = data.bands[b]}
-      <span class="chip {cls(p)}" class:cur={near === b} title="{chipTip(L, b, p)}{calibText(L)}">
-        {near === b && !inBand ? "≈" : ""}{b.replace("m", "")}<small>{p == null ? "–" : p}</small>
+      {@const v = ipOf(b)}
+      <span class="chip {ipCls(v)}" class:cur={near === b} title="{ipTip(L, b)}{calibText(L)}">
+        {near === b && !inBand ? "≈" : ""}{b.replace("m", "")}<small>{v == null ? "–" : v}</small>{#if zoneOf(b)}<em>{L.zoneShort[zoneOf(b)]}</em>{/if}
       </span>
     {/each}
     <button type="button" class="see" on:click|stopPropagation={openMap} title={L.seeTip}>{L.see}</button>
@@ -167,6 +212,8 @@
     color: #ffffff; font-weight: 600; white-space: nowrap; border: 1px solid transparent;
   }
   .chip small { font-size: 11px; font-weight: 500; }
+  .chip em { font-style: normal; font-size: 10px; font-weight: 700; opacity: 0.9; padding-left: 1px; }
+  .sum { min-width: 0; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1 !important; }
   .chip.hi { background: #2f7d3a; }
   .chip.mid { background: #8a8a22; }
   .chip.lo { background: #a5601c; }
