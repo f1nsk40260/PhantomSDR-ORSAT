@@ -1032,6 +1032,90 @@ async def handle(request: web.Request) -> web.StreamResponse:
     return resp
 
 
+
+# ── Relais de la réception en diversité ───────────────────────────────────────
+# Une page servie en https ne peut pas ouvrir de connexion vers un récepteur en
+# http (contenu mixte, refusé par le navigateur) : c'est le cas de la plupart des
+# KiwiSDR. La page passe alors par /divrelay/<id>/… et ce proxy fait la connexion.
+# Relais FERMÉ : seuls les partenaires inscrits dans le panneau admin
+# (diversity_partners.json) sont joignables, et rien de la requête de l'auditeur
+# n'est transmis à part le chemin, le corps et le sous-protocole websocket — pas
+# de cookie, pas d'en-tête d'identification.
+DIV_RELAY_PREFIX = "/divrelay/"
+DIV_RELAY_MAX = 30                     # connexions websocket relayées en même temps
+_div_relay_open = 0
+
+
+def _div_partner_origin(pid: str):
+    try:
+        d = json.loads((Path(__file__).resolve().parent / "diversity_partners.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    for p in d.get("partners", []):
+        if str(p.get("id")) == pid and p.get("enabled", True):
+            m = re.match(r"^(https?|wss?)://([^/?#\s]+)", str(p.get("addr", "")).strip(), re.I)
+            if m:
+                scheme = {"ws": "http", "wss": "https"}.get(m.group(1).lower(), m.group(1).lower())
+                return f"{scheme}://{m.group(2)}"
+    return None
+
+
+async def handle_div_relay(request: web.Request) -> web.StreamResponse:
+    global _div_relay_open
+    pid, _, sub = request.path[len(DIV_RELAY_PREFIX):].partition("/")
+    origin = _div_partner_origin(pid)
+    if not origin:
+        return web.Response(status=404, text="partenaire inconnu")
+    qs = request.rel_url.query_string
+    target = origin + "/" + sub + ("?" + qs if qs else "")
+    ua = {"User-Agent": "ORSAT-diversity-relay", "Origin": origin}
+
+    if request.headers.get("Upgrade", "").lower() == "websocket":
+        if _div_relay_open >= DIV_RELAY_MAX:
+            return web.Response(status=503, text="relais complet")
+        protocols = [x.strip() for x in request.headers.get("Sec-WebSocket-Protocol", "").split(",") if x.strip()]
+        ws_client = web.WebSocketResponse(max_msg_size=0, protocols=protocols, heartbeat=30.0)
+        await ws_client.prepare(request)
+        _div_relay_open += 1
+        try:
+            async with ClientSession() as session:
+                async with session.ws_connect(target.replace("http", "ws", 1), headers=ua, protocols=protocols,
+                                              max_msg_size=0, heartbeat=30.0, timeout=15) as ws_up:
+                    async def pump(src, dst):
+                        async for msg in src:
+                            if msg.type == WSMsgType.TEXT:
+                                await dst.send_str(msg.data)
+                            elif msg.type == WSMsgType.BINARY:
+                                await dst.send_bytes(msg.data)
+                            else:
+                                break
+                    tasks = [asyncio.create_task(pump(ws_client, ws_up)), asyncio.create_task(pump(ws_up, ws_client))]
+                    await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                    for t in tasks:
+                        t.cancel()
+        except Exception as e:
+            logging.getLogger("proxy").info("relais diversité %s : %s", pid, e)
+        finally:
+            _div_relay_open -= 1
+            if not ws_client.closed:
+                await ws_client.close()
+        return ws_client
+
+    # HTTP simple (UberSDR : POST /connection) : corps et type de contenu seulement
+    body = await request.read() if request.can_read_body else None
+    hdr = dict(ua)
+    if request.headers.get("Content-Type"):
+        hdr["Content-Type"] = request.headers["Content-Type"]
+    try:
+        async with ClientSession(timeout=ClientTimeout(total=15)) as session:
+            async with session.request(request.method, target, data=body, headers=hdr, allow_redirects=False) as r:
+                data = await r.content.read(1024 * 1024)
+                return web.Response(status=r.status, body=data,
+                                    headers={"Content-Type": r.headers.get("Content-Type", "application/octet-stream"),
+                                             "Cache-Control": "no-store"})
+    except Exception as e:
+        return web.Response(status=502, text=f"partenaire injoignable : {e}")
+
 async def _handle(request: web.Request) -> web.StreamResponse:
     if request.path == "/__usage":
         return await handle_usage(request)
@@ -1041,6 +1125,8 @@ async def _handle(request: web.Request) -> web.StreamResponse:
     _note_visit(request)
     if request.path == "/__proxy_control/kick":
         return await handle_kick(request)
+    if request.path.startswith(DIV_RELAY_PREFIX):
+        return await handle_div_relay(request)
     # Récepteurs partenaires de la réception en diversité, fixés dans le panneau admin
     # (admin_extras.py). Absent : 404, la page garde son annuaire intégré.
     if request.path == "/diversity.json" and request.method == "GET":

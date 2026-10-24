@@ -1054,7 +1054,7 @@ def div_test(addr, typ):
             extra += f" · position {kv['gps'].strip('()')}"
     warn = ""
     if scheme == "http":
-        warn = " — attention : adresse en http, refusée par le navigateur quand ORSAT est ouvert en https"
+        warn = " — adresse en http : relayée par le serveur ORSAT pour les auditeurs en https"
     if code >= 500 or code == 404 and typ != "kiwi":
         return {"ok": False, "msg": f"répond avec l'erreur HTTP {code}", "ms": ms}
     return {"ok": True, "msg": f"répond (HTTP {code}, {ms} ms){extra}{warn}", "ms": ms}

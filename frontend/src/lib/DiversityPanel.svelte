@@ -182,7 +182,12 @@
       return;
     }
     if (!partner) return;
-    const url = normalise(partner.addr, partner.type);
+    // Page en https, partenaire en http (la plupart des KiwiSDR) : le navigateur refuse la connexion
+    // directe ; elle passe par le relais du serveur ORSAT (/divrelay/<id>/, proxy.py).
+    const relayed = location.protocol === "https:" && partner.type !== "websdr" && /^(http|ws):/i.test(String(partner.addr).trim());
+    const url = relayed
+      ? `wss://${location.host}/divrelay/${encodeURIComponent(partner.id)}` + (partner.type === "phantom" ? "/audio" : "")
+      : normalise(partner.addr, partner.type);
     if (!url) return;
     polls = 0;
     pollsRemote = 0;

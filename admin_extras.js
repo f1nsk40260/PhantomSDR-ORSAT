@@ -942,7 +942,7 @@
     $('x-diversity').innerHTML = card('RÉCEPTEURS PARTENAIRES',
       '<div style="' + small + 'margin-bottom:.7rem;">Les auditeurs choisissent uniquement parmi ces récepteurs (ordre conservé) ; ils ne peuvent saisir aucune autre adresse. ' +
       'Un bon partenaire est assez loin d\'ORSAT pour que les évanouissements soient indépendants (300 km au moins) et assez près pour entendre les mêmes stations (1500 km au plus). ' +
-      'Une adresse en <b>http</b> (souvent les KiwiSDR) est refusée par le navigateur quand ORSAT est ouvert en https. ' +
+      'Une adresse en <b>http</b> (souvent les KiwiSDR) passe automatiquement par le relais du serveur ORSAT quand la page est ouverte en https (le navigateur refuserait la connexion directe) ; les auditeurs relayés apparaissent alors chez le partenaire avec l\'adresse IP d\'ORSAT. ' +
       '<b>Correction</b> : ajoutée au SNR du partenaire avant la comparaison (un codec avec pertes fait paraître son SNR plus bas ; 0 pour un autre PhantomSDR). ' +
       'Décocher la première case retire un partenaire sans l\'effacer.' +
       (saved ? '' : '<br><span class="x-warn">Liste par défaut : rien n\'est encore enregistré.</span>') + '</div>' +
