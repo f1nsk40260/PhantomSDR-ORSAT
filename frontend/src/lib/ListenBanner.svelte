@@ -230,7 +230,7 @@
 {#if data}
   <div class="lb" data-no-i18n role="button" tabindex="-1" on:click={openMap} on:keydown={() => {}}
        title={L.boxTip(data.radius_km, data.locator)}>
-    <button type="button" class="lbl help-btn" class:open={showHelp} title="{H.btnTip}\n⚠ {H.warnShort}"
+    <button type="button" class="lbl help-btn" class:open={showHelp} title={`${H.btnTip}\n⚠ ${H.warnShort}`}
             on:click|stopPropagation={() => (showHelp = !showHelp)}>{L.ipTitle} <span class="q">?</span></button>
     {#if near}
       {@const v = ipOf(near)}
