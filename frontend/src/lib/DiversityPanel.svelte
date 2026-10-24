@@ -31,6 +31,7 @@
       helpText: "Deux récepteurs éloignés de plusieurs centaines de kilomètres ne reçoivent pas les ondes par le même chemin dans l'ionosphère : quand le signal s'évanouit chez l'un, il reste souvent fort chez l'autre. La diversité écoute les deux en même temps, les synchronise, et vous fait entendre à chaque instant celui qui reçoit le mieux. Les décodeurs, eux, restent sur ORSAT.",
       decoders: "Les décodeurs continuent d'utiliser ORSAT seul ; la diversité ne concerne que le son du haut-parleur.",
       tLink: "liaison", tAligned: "décalage", tSearch: "recherche", tCorr: "corrélation", tAudio: "son distant", tNone: "aucun",
+      adBest: (b) => `★ Conseillé sur ${b}`, adOk: "Possible", adLow: (b) => `Peu utile sur ${b}`, adOff: "Hors ligne", adTip: (v, b) => `Entend environ ${v} % de la zone qu’ORSAT entend en ce moment sur ${b} (ionosondes mesurées), par un autre chemin.`, adOffTip: "Ce récepteur ne répond pas en ce moment (vérifié par le serveur toutes les 10 min).",
       tSnrL: "SNR ORSAT", tSnrR: "SNR partenaire", tTrim: "correction", tSw: "bascules",
     },
     en: {
@@ -49,6 +50,7 @@
       helpText: "Two receivers several hundred kilometres apart do not get the waves along the same path through the ionosphere: when the signal fades at one, it often stays strong at the other. Diversity listens to both at once, synchronises them and lets you hear, at every moment, the one receiving best. The decoders stay on ORSAT.",
       decoders: "Decoders keep using ORSAT alone; diversity only affects the speaker audio.",
       tLink: "link", tAligned: "delay", tSearch: "searching", tCorr: "correlation", tAudio: "remote audio", tNone: "none",
+      adBest: (b) => `★ Recommended on ${b}`, adOk: "Possible", adLow: (b) => `Of little use on ${b}`, adOff: "Offline", adTip: (v, b) => `Hears about ${v} % of the area ORSAT hears right now on ${b} (measured ionosondes), along another path.`, adOffTip: "This receiver is not answering right now (checked by the server every 10 min).",
       tSnrL: "ORSAT SNR", tSnrR: "partner SNR", tTrim: "trim", tSw: "switches",
     },
     es: {
@@ -67,10 +69,42 @@
       helpText: "Dos receptores separados varios cientos de kilómetros no reciben las ondas por el mismo camino en la ionosfera: cuando la señal se desvanece en uno, a menudo sigue fuerte en el otro. La diversidad escucha los dos a la vez, los sincroniza y le hace oír en cada momento el que mejor recibe. Los decodificadores siguen en ORSAT.",
       decoders: "Los decodificadores siguen usando solo ORSAT; la diversidad solo afecta al audio del altavoz.",
       tLink: "enlace", tAligned: "retardo", tSearch: "buscando", tCorr: "correlación", tAudio: "audio remoto", tNone: "ninguno",
+      adBest: (b) => `★ Recomendado en ${b}`, adOk: "Posible", adLow: (b) => `Poco útil en ${b}`, adOff: "Fuera de línea", adTip: (v, b) => `Escucha cerca del ${v} % de la zona que ORSAT escucha ahora en ${b} (ionosondas medidas), por otro camino.`, adOffTip: "Este receptor no responde ahora (comprobado por el servidor cada 10 min).",
       tSnrL: "SNR ORSAT", tSnrR: "SNR asociado", tTrim: "corrección", tSw: "conmutaciones",
     },
   };
   $: D = T[$lang] || T.fr;
+
+  // ── Conseil de partenaire (carnet ORSAT-LOG, /log/api/public/diversity) ──
+  // Pour la bande écoutée : part de la zone entendue par ORSAT que le partenaire entend aussi,
+  // et disponibilité (sondée par le serveur toutes les 10 min). Sans carnet : aucun badge.
+  export let freqKhz = null;
+  const HAM = [["160m", 1810, 2000], ["80m", 3500, 3800], ["60m", 5351, 5367], ["40m", 7000, 7200],
+    ["30m", 10100, 10150], ["20m", 14000, 14350], ["17m", 18068, 18168], ["15m", 21000, 21450],
+    ["12m", 24890, 24990], ["10m", 28000, 29700], ["6m", 50000, 52000]];
+  $: fk = parseFloat(freqKhz);
+  $: band = !fk ? null : (HAM.find(([, lo, hi]) => fk >= lo && fk <= hi)
+    || HAM.reduce((a, b) => (Math.abs(Math.log(fk / ((b[1] + b[2]) / 2))) < Math.abs(Math.log(fk / ((a[1] + a[2]) / 2))) ? b : a)))[0];
+  let advice = null;
+  async function loadAdvice() {
+    try {
+      const r = await fetch("/log/api/public/diversity", { cache: "no-store" });
+      const d = r.ok ? await r.json() : null;
+      advice = d && d.ok ? d : null;
+    } catch (_) { advice = null; }
+  }
+  let adviceTimer;
+  onMount(() => { loadAdvice(); adviceTimer = setInterval(loadAdvice, 10 * 60 * 1000); });
+  onDestroy(() => clearInterval(adviceTimer));
+  // badge d'une carte : best / ok / low / off (hors ligne) / null (pas d'avis)
+  function adviceOf(x, adv, b) {
+    const a = adv && adv.partners ? adv.partners[x.id] : null;
+    if (!a) return null;
+    if (a.online === false) return { k: "off" };
+    const v = b ? a.bands[b] : null;
+    if (v == null) return null;
+    return { k: adv.best[b] === x.id && v >= adv.good ? "best" : v >= adv.fair ? "ok" : "low", v };
+  }
 
   const LS_PARTNER = "orsat.diversity.partner";
   let home = locatorLatLon(ORSAT_LOCATOR);
@@ -195,8 +229,12 @@
         <div class="dv-cards">
           {#each partners as x (x.id)}
             {@const d = distanceKm(home, posOf(x))}
-            <button type="button" class="dv-card" class:sel={partnerId === x.id} disabled={running && partnerId !== x.id}
+            {@const ad = adviceOf(x, advice, band)}
+            <button type="button" class="dv-card" class:sel={partnerId === x.id} class:offline={ad && ad.k === "off"}
+                    disabled={running && partnerId !== x.id}
+                    title={ad ? (ad.k === "off" ? D.adOffTip : D.adTip(ad.v, band)) : ""}
                     on:click={() => choosePartner(x)}>
+              {#if ad}<span class="dv-ad {ad.k}">{ad.k === "best" ? D.adBest(band) : ad.k === "ok" ? `${D.adOk} · ${ad.v} %` : ad.k === "low" ? D.adLow(band) : D.adOff}</span>{/if}
               <b>{#if x.country}<span class="dv-flag" title={x.country}>{@html flagSvg(x.country)}</span>{/if}{x.name}{#if x.call}<i> · {x.call}</i>{/if}</b>
               <span>{placeOf(x)}{d != null ? `${placeOf(x) ? " · " : ""}${D.km(d)}` : ""}</span>
               <em>{D[x.type] || x.type}</em>
@@ -285,6 +323,12 @@
   .dv-card.sel { border: 2px solid rgb(226, 201, 90); background: rgba(207, 181, 59, 0.15); }
   .dv-card:disabled { opacity: 0.45; cursor: not-allowed; }
   .dv-card b { color: #fff; font-size: 13px; }
+  .dv-card.offline { opacity: 0.6; }
+  .dv-card .dv-ad { align-self: flex-start; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 9px; margin-bottom: 2px; }
+  .dv-card .dv-ad.best { color: #1a1606; background: linear-gradient(180deg, #9ef0a8, #4fbf5e); }
+  .dv-card .dv-ad.ok { color: #f0c060; background: rgba(224, 160, 48, 0.18); border: 1px solid rgba(224, 160, 48, 0.6); }
+  .dv-card .dv-ad.low { color: #b9b39d; background: #2b2a25; border: 1px solid #555; }
+  .dv-card .dv-ad.off { color: #ff9a9a; background: rgba(200, 64, 64, 0.25); border: 1px solid #ff8080; }
   .dv-card .dv-flag { margin-right: 6px; font-size: inherit; }
   .dv-card i { font-style: normal; color: rgb(226, 201, 90); }
   .dv-card span { font-size: 12px; color: #cfc9b2; }
