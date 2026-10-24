@@ -956,6 +956,110 @@ def _send(src, name):
                          mimetype="application/zip")
 
 
+# ══════════════════════════════════════════════════════════════════════
+#  Réception en diversité : récepteurs partenaires fixés par l'opérateur
+#  Fichier diversity_partners.json (hors git, inclus dans les sauvegardes),
+#  servi au public par proxy.py en /diversity.json.
+# ══════════════════════════════════════════════════════════════════════
+DIV_FILE = BASE / "diversity_partners.json"
+DIV_TYPES = ("phantom", "kiwi", "uber", "websdr")
+# Liste par défaut tant que l'opérateur n'a rien enregistré
+# (même contenu que frontend/src/lib/diversityPartners.js).
+DIV_DEFAULT = [
+    {"id": "rigi", "enabled": True, "name": "NovaSDR Rigi", "call": "HB9RYZ", "country": "CH",
+     "place": "Suisse (Rigi)", "type": "phantom", "addr": "https://novasdr.rigiremote.ch/",
+     "locator": "JN47FB", "trim": 0},
+    {"id": "heppen", "enabled": True, "name": "WebSDR Heppen", "call": "ON5HB · ON3MS", "country": "BE",
+     "place": "Belgique (Heppen, Limbourg)", "type": "uber", "addr": "https://websdr.heppen.be/",
+     "locator": "JO21OC", "trim": 0},
+    {"id": "kiwi21051", "enabled": True, "name": "KiwiSDR 21051", "call": "", "country": "",
+     "place": "", "type": "kiwi", "addr": "http://21051.proxy2.kiwisdr.com:8073/",
+     "locator": "", "trim": 0},
+]
+_LOC_RE = re.compile(r"^[A-R]{2}[0-9]{2}([A-X]{2})?$")
+
+
+def div_load():
+    try:
+        d = json.loads(DIV_FILE.read_text(encoding="utf-8"))
+        if isinstance(d.get("partners"), list):
+            return d, True
+    except (OSError, ValueError, AttributeError):
+        pass
+    return {"partners": DIV_DEFAULT}, False
+
+
+def div_clean(rows):
+    """Contrôle et nettoie la liste envoyée par le panneau. Renvoie (liste, erreur)."""
+    out, ids = [], set()
+    for i, r in enumerate(rows or []):
+        if not isinstance(r, dict):
+            continue
+        name = str(r.get("name", "")).strip()[:60]
+        addr = str(r.get("addr", "")).strip()[:300]
+        typ = str(r.get("type", "")).strip()
+        loc = str(r.get("locator", "")).strip().upper()[:6]
+        if not name or not addr:
+            return None, f"ligne {i + 1} : nom et adresse obligatoires"
+        if typ not in DIV_TYPES:
+            return None, f"{name} : type inconnu"
+        if not re.match(r"^(https?|wss?)://[^\s/]+", addr, re.I):
+            return None, f"{name} : l'adresse doit commencer par http:// ou https://"
+        if loc and not _LOC_RE.match(loc):
+            return None, f"{name} : locator invalide (4 ou 6 caractères, ex. JN47FB)"
+        try:
+            trim = max(-15.0, min(15.0, round(float(r.get("trim") or 0) * 2) / 2))
+        except (TypeError, ValueError):
+            trim = 0.0
+        base = re.sub(r"[^a-z0-9]+", "-", (r.get("id") or name).lower()).strip("-")[:30] or "rx"
+        pid, n = base, 2
+        while pid in ids:
+            pid, n = f"{base}-{n}", n + 1
+        ids.add(pid)
+        out.append({"id": pid, "enabled": bool(r.get("enabled", True)), "name": name,
+                    "call": str(r.get("call", "")).strip()[:40],
+                    "country": str(r.get("country", "")).strip().upper()[:2],
+                    "place": str(r.get("place", "")).strip()[:80],
+                    "type": typ, "addr": addr, "locator": loc, "trim": trim})
+    return out, ""
+
+
+def div_test(addr, typ):
+    """Le récepteur répond-il ? Vérifié depuis le serveur : utile pour une adresse fausse ou un
+    récepteur éteint, sans garantir ce que verra le navigateur de l'auditeur."""
+    m = re.match(r"^(https?|wss?)://([^/?#]+)", addr.strip(), re.I)
+    if not m:
+        return {"ok": False, "msg": "adresse invalide"}
+    scheme = {"ws": "http", "wss": "https"}.get(m.group(1).lower(), m.group(1).lower())
+    url = f"{scheme}://{m.group(2)}/" + ("status" if typ == "kiwi" else "")
+    t0 = time.monotonic()
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "ORSAT-diversity-check"})
+        with urllib.request.urlopen(req, timeout=8, context=ssl.create_default_context()) as r:
+            code = r.status
+            body = r.read(4096).decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        code, body = e.code, ""
+    except Exception as e:
+        return {"ok": False, "msg": f"injoignable : {e}"}
+    ms = round((time.monotonic() - t0) * 1000)
+    extra = ""
+    if typ == "kiwi" and body:
+        kv = dict(l.split("=", 1) for l in body.splitlines() if "=" in l)
+        if kv.get("offline") == "yes":
+            return {"ok": False, "msg": "le KiwiSDR se déclare hors ligne", "ms": ms}
+        if kv.get("users") and kv.get("users_max"):
+            extra = f" · {kv['users']}/{kv['users_max']} auditeurs"
+        if kv.get("gps"):
+            extra += f" · position {kv['gps'].strip('()')}"
+    warn = ""
+    if scheme == "http":
+        warn = " — attention : adresse en http, refusée par le navigateur quand ORSAT est ouvert en https"
+    if code >= 500 or code == 404 and typ != "kiwi":
+        return {"ok": False, "msg": f"répond avec l'erreur HTTP {code}", "ms": ms}
+    return {"ok": True, "msg": f"répond (HTTP {code}, {ms} ms){extra}{warn}", "ms": ms}
+
+
 def init(app, g):
     """g = globals() d'admin_server : login_required, get_sdr_dir,
     load_admin_config, get_process_status, write_file_safe, _sdr_ports, LI."""
@@ -1284,6 +1388,30 @@ def init(app, g):
                           country=e.get("country", ""), cc=e.get("countryCode", ""),
                           net=e.get("net", ""), last=e.get("ts", ""))
         return jsonify({"ok": True, "visits": list(by.values()), "hours": hours})
+
+    # ── Réception en diversité ──────────────────────────────────────────
+    @app.route("/admin/api/diversity")
+    @lr
+    def div_get():
+        d, saved = div_load()
+        return jsonify({"ok": True, "partners": d["partners"], "saved": saved, "types": DIV_TYPES})
+
+    @app.route("/admin/api/diversity", methods=["POST"])
+    @lr
+    def div_save():
+        rows, err = div_clean((request.get_json(silent=True) or {}).get("partners"))
+        if err:
+            return jsonify({"ok": False, "msg": err})
+        tmp = DIV_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"partners": rows}, indent=2, ensure_ascii=False), encoding="utf-8")
+        os.replace(tmp, DIV_FILE)
+        return jsonify({"ok": True, "partners": rows})
+
+    @app.route("/admin/api/diversity/test", methods=["POST"])
+    @lr
+    def div_test_route():
+        b = request.get_json(silent=True) or {}
+        return jsonify(div_test(str(b.get("addr", "")), str(b.get("type", ""))))
 
     # ── Carnet ORSAT-LOG ────────────────────────────────────────────────
     @app.route("/admin/api/orsatlog/status")

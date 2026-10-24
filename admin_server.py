@@ -1535,6 +1535,9 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <a class="nav-item" onclick="showPage('orsatlog',this)" href="#">
         <span class="icon">📒</span><span>Carnet ORSAT-LOG</span>
       </a>
+      <a class="nav-item" onclick="showPage('diversity',this)" href="#">
+        <span class="icon">📡</span><span>Réception en diversité</span>
+      </a>
     </div>
     <div class="nav-section">
       <div class="nav-label">SYSTÈME</div>
@@ -1928,6 +1931,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <div class="page" id="page-update"><div id="x-update"></div></div>
       <div class="page" id="page-backup"><div id="x-backup"></div></div>
       <div class="page" id="page-orsatlog"><div id="x-orsatlog"></div></div>
+      <div class="page" id="page-diversity"><div id="x-diversity"></div></div>
 
       <div class="page" id="page-settings">
         <div class="section-head">RÉGLAGES ADMIN</div>

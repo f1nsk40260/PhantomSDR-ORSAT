@@ -1,5 +1,5 @@
 /* admin_extras.js — pages ajoutées au panneau d'administration (F1NSK / ORSAT)
- * Mise à jour · Sauvegardes · Santé du serveur · Qualité du signal · Carte · Carnet ORSAT-LOG
+ * Mise à jour · Sauvegardes · Santé du serveur · Qualité du signal · Carte · Carnet ORSAT-LOG · Diversité
  * Servi par /admin/extras.js (admin_extras.py). Fichier JS ordinaire : pas de
  * gabarit Jinja ici, les accolades ne posent aucun problème.
  */
@@ -901,6 +901,94 @@
     tick();
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  //  Réception en diversité : récepteurs partenaires proposés aux auditeurs
+  // ══════════════════════════════════════════════════════════════════════
+  const DV_TYPES = { phantom: 'PhantomSDR / NovaSDR', kiwi: 'KiwiSDR', uber: 'UberSDR', websdr: 'WebSDR (relais)' };
+  const DV_COUNTRIES = { '': '—', AT: 'Autriche', BE: 'Belgique', CH: 'Suisse', DE: 'Allemagne', ES: 'Espagne', FR: 'France',
+    IE: 'Irlande', IT: 'Italie', LU: 'Luxembourg', NL: 'Pays-Bas', PL: 'Pologne' };
+  let dvRows = [];
+  const dvOpts = (map, cur) => Object.entries(map).map(([k, v]) =>
+    '<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + esc(k ? (k.length === 2 ? k + ' · ' + v : v) : v) + '</option>').join('');
+
+  async function dvRender() {
+    const box = $('x-diversity');
+    box.innerHTML = card('RÉCEPTEURS PARTENAIRES', '<div style="' + small + '">Chargement…</div>');
+    let d;
+    try { d = await api('/admin/api/diversity'); }
+    catch (e) { box.innerHTML = card('RÉCEPTEURS PARTENAIRES', '<span class="x-bad">' + esc(e.message) + '</span>', 'var(--red)'); return; }
+    dvRows = d.partners.map((r) => Object.assign({}, r));
+    dvDraw(d.saved);
+  }
+
+  function dvDraw(saved) {
+    const inp = (i, k, w, ph, cls) => '<input data-i="' + i + '" data-k="' + k + '" value="' + esc(dvRows[i][k] ?? '') + '" placeholder="' + (ph || '') +
+      '" style="width:' + w + ';"' + (cls ? ' class="' + cls + '"' : '') + '>';
+    const rows = dvRows.map((r, i) =>
+      '<tr>' +
+      '<td><input type="checkbox" data-i="' + i + '" data-k="enabled"' + (r.enabled !== false ? ' checked' : '') + ' title="Proposé aux auditeurs"></td>' +
+      '<td>' + inp(i, 'name', '9rem', 'Nom affiché') + '<br>' + inp(i, 'call', '9rem', 'Indicatif(s)', 'mono') + '</td>' +
+      '<td><select data-i="' + i + '" data-k="country" style="width:8rem;">' + dvOpts(DV_COUNTRIES, r.country || '') + '</select><br>' + inp(i, 'place', '8rem', 'Lieu') + '</td>' +
+      '<td><select data-i="' + i + '" data-k="type" style="width:10rem;">' + dvOpts(DV_TYPES, r.type) + '</select><br>' + inp(i, 'addr', '16rem', 'https://…', 'mono') + '</td>' +
+      '<td>' + inp(i, 'locator', '5.5rem', 'JN47FB', 'mono') + '</td>' +
+      '<td><input type="number" data-i="' + i + '" data-k="trim" value="' + (r.trim || 0) + '" min="-15" max="15" step="0.5" style="width:4.5rem;"> dB</td>' +
+      '<td style="white-space:nowrap;">' +
+        '<button class="btn" data-act="test" data-i="' + i + '" title="Vérifier depuis le serveur que ce récepteur répond">Tester</button> ' +
+        '<button class="btn" data-act="up" data-i="' + i + '" title="Monter"' + (i ? '' : ' disabled') + '>▲</button>' +
+        '<button class="btn" data-act="down" data-i="' + i + '" title="Descendre"' + (i < dvRows.length - 1 ? '' : ' disabled') + '>▼</button> ' +
+        '<button class="btn" data-act="del" data-i="' + i + '" title="Supprimer ce partenaire" style="color:var(--red);">✕</button>' +
+        '<div id="x-dv-t' + i + '" style="font-size:.62rem;max-width:16rem;white-space:normal;margin-top:.2rem;"></div></td>' +
+      '</tr>').join('');
+    $('x-diversity').innerHTML = card('RÉCEPTEURS PARTENAIRES',
+      '<div style="' + small + 'margin-bottom:.7rem;">Les auditeurs choisissent uniquement parmi ces récepteurs (ordre conservé) ; ils ne peuvent saisir aucune autre adresse. ' +
+      'Un bon partenaire est assez loin d\'ORSAT pour que les évanouissements soient indépendants (300 km au moins) et assez près pour entendre les mêmes stations (1500 km au plus). ' +
+      'Une adresse en <b>http</b> (souvent les KiwiSDR) est refusée par le navigateur quand ORSAT est ouvert en https. ' +
+      '<b>Correction</b> : ajoutée au SNR du partenaire avant la comparaison (un codec avec pertes fait paraître son SNR plus bas ; 0 pour un autre PhantomSDR). ' +
+      'Décocher la première case retire un partenaire sans l\'effacer.' +
+      (saved ? '' : '<br><span class="x-warn">Liste par défaut : rien n\'est encore enregistré.</span>') + '</div>' +
+      '<div style="overflow-x:auto;"><table class="x-tbl"><thead><tr><th>ACTIF</th><th>NOM · INDICATIF</th><th>PAYS · LIEU</th><th>TYPE · ADRESSE</th><th>LOCATOR</th><th>CORRECTION</th><th></th></tr></thead><tbody>' +
+      (rows || '<tr><td colspan="7" class="x-dim">Aucun partenaire : la diversité ne sera pas proposée.</td></tr>') + '</tbody></table></div>' +
+      '<div style="display:flex;gap:.6rem;align-items:center;margin-top:.8rem;">' +
+      '<button class="btn" id="x-dv-add">+ Ajouter un partenaire</button>' +
+      '<button class="btn btn-green" id="x-dv-save">💾 ENREGISTRER</button><span id="x-dv-msg" style="font-size:.7rem;"></span></div>',
+      'var(--green)');
+    const box = $('x-diversity');
+    box.querySelectorAll('[data-k]').forEach((el) => el.addEventListener(el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input', () => {
+      const r = dvRows[+el.dataset.i];
+      r[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.dataset.k === 'trim' ? Number(el.value) || 0 : el.value;
+      $('x-dv-msg').innerHTML = '<span class="x-warn">Modifications non enregistrées</span>';
+    }));
+    box.querySelectorAll('[data-act]').forEach((el) => el.addEventListener('click', () => dvAct(el.dataset.act, +el.dataset.i)));
+    $('x-dv-add').onclick = () => { dvRows.push({ enabled: true, name: '', call: '', country: '', place: '', type: 'phantom', addr: '', locator: '', trim: 0 }); dvDraw(saved); };
+    $('x-dv-save').onclick = dvSave;
+  }
+
+  async function dvAct(act, i) {
+    if (act === 'up' && i > 0) { [dvRows[i - 1], dvRows[i]] = [dvRows[i], dvRows[i - 1]]; dvDraw(true); }
+    else if (act === 'down' && i < dvRows.length - 1) { [dvRows[i + 1], dvRows[i]] = [dvRows[i], dvRows[i + 1]]; dvDraw(true); }
+    else if (act === 'del') { dvRows.splice(i, 1); dvDraw(true); $('x-dv-msg').innerHTML = '<span class="x-warn">Modifications non enregistrées</span>'; }
+    else if (act === 'test') {
+      const out = $('x-dv-t' + i);
+      out.innerHTML = '<span class="x-dim">test en cours…</span>';
+      try {
+        const d = await post('/admin/api/diversity/test', { addr: dvRows[i].addr, type: dvRows[i].type });
+        out.innerHTML = '<span class="' + (d.ok ? 'x-ok' : 'x-bad') + '">' + (d.ok ? '✓ ' : '✗ ') + esc(d.msg) + '</span>';
+      } catch (e) { out.innerHTML = '<span class="x-bad">✗ ' + esc(e.message) + '</span>'; }
+    }
+  }
+
+  async function dvSave() {
+    const msg = $('x-dv-msg');
+    try {
+      const d = await post('/admin/api/diversity', { partners: dvRows });
+      if (!d.ok) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+      dvRows = d.partners.map((r) => Object.assign({}, r));
+      dvDraw(true);
+      $('x-dv-msg').innerHTML = '<span class="x-ok">✓ Enregistré — visible des auditeurs au prochain chargement de la page</span>';
+      notify('Partenaires de diversité enregistrés');
+    } catch (e) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(e.message) + '</span>'; }
+  }
+
   // ── Aiguillage depuis showPage() ──────────────────────────────────────
   window.extrasShow = function (name) {
     stopTimers();
@@ -910,5 +998,6 @@
     else if (name === 'signal') { sigRender(); timers.signal = setInterval(() => currentPageIs('signal') && sigLoad(), 120000); }
     else if (name === 'map') mapRender();
     else if (name === 'orsatlog') olRender();
+    else if (name === 'diversity') dvRender();
   };
 })();

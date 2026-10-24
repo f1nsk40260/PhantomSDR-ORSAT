@@ -1041,6 +1041,15 @@ async def _handle(request: web.Request) -> web.StreamResponse:
     _note_visit(request)
     if request.path == "/__proxy_control/kick":
         return await handle_kick(request)
+    # Récepteurs partenaires de la réception en diversité, fixés dans le panneau admin
+    # (admin_extras.py). Absent : 404, la page garde son annuaire intégré.
+    if request.path == "/diversity.json" and request.method == "GET":
+        try:
+            d = json.loads((Path(__file__).resolve().parent / "diversity_partners.json").read_text(encoding="utf-8"))
+            parts = [p for p in d.get("partners", []) if p.get("enabled", True)]
+        except (OSError, ValueError, AttributeError):
+            return web.Response(status=404, text="404 Not Found")
+        return web.json_response({"partners": parts}, headers={"Cache-Control": "no-cache"})
     # spectrumserver's /~~kick is allowed for a loopback TCP peer — and to it,
     # everything relayed from here is loopback. Without this check anyone who
     # could reach this port could disconnect and ban any listener.

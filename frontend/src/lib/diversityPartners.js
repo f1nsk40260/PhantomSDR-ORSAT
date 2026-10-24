@@ -1,4 +1,6 @@
-// Annuaire des récepteurs partenaires proposés pour la réception en diversité (ORSAT).
+// Annuaire PAR DÉFAUT des récepteurs partenaires de la réception en diversité (ORSAT).
+// La liste réelle est fixée dans le panneau admin (rubrique « Réception en diversité ») et servie
+// en /diversity.json ; celle-ci ne sert que tant que l'opérateur n'a rien enregistré.
 //
 // Ajouter un partenaire : une entrée de plus dans PARTNERS.
 //   type : 'phantom' (PhantomSDR / NovaSDR), 'kiwi' (KiwiSDR), 'uber' (UberSDR), 'websdr' (WebSDR classique,
@@ -20,6 +22,10 @@ export const FLAGS = {
   IT: BAND3V("#009246", "#fff", "#ce2b37"),
   DE: BAND3H("#000", "#dd0000", "#ffce00"),
   NL: BAND3H("#ae1c28", "#fff", "#21468b"),
+  AT: BAND3H("#c8102e", "#fff", "#c8102e"),
+  LU: BAND3H("#ed2939", "#fff", "#00a1de"),
+  IE: BAND3V("#169b62", "#fff", "#ff883e"),
+  PL: '<rect width="3" height="1" fill="#fff"/><rect y="1" width="3" height="1" fill="#dc143c"/>',
   ES: '<rect width="3" height="2" fill="#aa151b"/><rect y=".5" width="3" height="1" fill="#f1bf00"/>',
 };
 export function flagSvg(cc) {

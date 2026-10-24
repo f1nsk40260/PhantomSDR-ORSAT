@@ -14,3 +14,6 @@ rade_loadtest.csv
 
 # ORSAT : journal local des stations décodées par l'autorun (relu par ORSAT-LOG)
 autorun-spots/
+
+# Récepteurs partenaires de la diversité (panneau admin)
+/diversity_partners.json
