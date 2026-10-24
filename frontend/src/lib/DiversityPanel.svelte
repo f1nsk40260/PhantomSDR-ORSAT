@@ -30,6 +30,7 @@
     qrTooLarge,
     qrDataUrl,
     browseUrl,
+    guessType,
   } from "../diversityList.js";
 
   // Partie guidée (ORSAT) : annuaire de partenaires, étapes, écoute en clair, FR / EN / ES
@@ -631,6 +632,7 @@
           id="div-endpoint"
           type="text"
           bind:value={endpoint}
+          on:change={() => { const g = guessType(endpoint); if (g && g !== type) { type = g; prevType = g; } }}
           disabled={running}
           placeholder={hintFor(type)}
           list="div-endpoint-history"

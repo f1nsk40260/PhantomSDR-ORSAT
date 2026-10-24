@@ -21,6 +21,15 @@ export const PARTNERS = [
     lat: 47.056, lon: 8.485,
   },
   {
+    id: "heppen",
+    name: "WebSDR Heppen",
+    call: "ON5HB · ON3MS",
+    place: { fr: "Belgique (Heppen, Limbourg)", en: "Belgium (Heppen, Limburg)", es: "Bélgica (Heppen, Limburgo)" },
+    type: "uber",
+    addr: "https://websdr.heppen.be/",
+    lat: 51.10, lon: 5.23,
+  },
+  {
     id: "kiwi21051",
     name: "KiwiSDR 21051",
     call: "",

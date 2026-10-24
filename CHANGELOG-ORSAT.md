@@ -8,6 +8,7 @@ décrites dans le README et dans le projet original.
 ## En cours (après ORSAT 1.0)
 
 ### Interface
+- **Diversité, correctifs d'adresse** : UberSDR — seule l'origine du site est gardée (l'adresse copiée `…/v2/` est celle de la page ; `/connection` et `/ws` sont à la racine) ; PhantomSDR / NovaSDR — les paramètres `?frequency=…&modulation=…` d'une adresse copiée ne sont plus collés devant `/audio`. Type de récepteur reconnu d'après l'adresse saisie (`/v2/` → UberSDR, `:8073` → KiwiSDR…). Annuaire : + WebSDR Heppen (UberSDR, ON5HB · ON3MS).
 - **Réception en diversité, partie guidée** : titre et sous-titre clairs, parcours en 3 étapes (choisir un partenaire dans l'annuaire, démarrer avec un grand bouton, écouter avec « 🎧 Vous écoutez : ORSAT / partenaire », états en clair, deux barres de signal, part du temps sur le partenaire), bouton « Comment ça marche ? », FR / EN / ES. Annuaire `frontend/src/lib/diversityPartners.js` (NovaSDR Rigi HB9RYZ, KiwiSDR 21051). Les réglages existants (adresse libre, type, liste enregistrée, correction SNR, détails techniques) sont intacts sous « Réglages avancés ».
 - **Scanner supprimé** : sans intérêt sur ORSAT. Section, boutons, réglages, traductions et module `scanner.js` retirés intégralement.
 - **Bouton « Indice de performance ? »** (titre du bandeau) : ouvre un panneau qui explique, en FR / EN / ES, comment ORSAT calcule son IP (prévision ionosondes, antenne NEC, note par distance, mesure réelle, mélange 40/60, lecture, zones, étalonnage), avec un grand bouton Fermer.

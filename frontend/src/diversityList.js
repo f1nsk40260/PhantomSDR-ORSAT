@@ -103,6 +103,21 @@ export function remembered (history, type, value) {
  * Turn what was typed into the URL the source adapter wants.  Each type
  * differs, and the differences are not cosmetic:
  */
+/**
+ * Receiver type guessed from an address as copied from the browser (ORSAT), or
+ * '' when nothing gives it away.  Used to preselect the type, never to override
+ * a choice made by hand.
+ */
+export function guessType (u) {
+  const v = String(u || '').trim().toLowerCase()
+  if (!v) return ''
+  if (/:8073(\/|$)/.test(v) || /kiwisdr\.com/.test(v) || /\/kiwi\//.test(v)) return 'kiwi'
+  if (/\/v2\/?($|[?#])/.test(v) || /ubersdr/.test(v)) return 'uber'
+  if (/:8901(\/|$)/.test(v) || /~~/.test(v)) return 'websdr'
+  if (/:89(00|01)(\/|$)/.test(v) || /novasdr|phantom/.test(v) || /[?&]frequency=\d+&modulation=/.test(v)) return 'phantom'
+  return ''
+}
+
 export function normalise (u, type) {
   let v = (u || '').trim()
   if (!v) return ''
@@ -113,12 +128,17 @@ export function normalise (u, type) {
   // A Kiwi wants the bare origin: kiwiSource.js appends /kiwi/<ts>/SND itself,
   // because that timestamp has to be fresh on every connection.
   if (type === 'kiwi') return v.replace(/\/kiwi\/.*$/i, '')
-  // UberSDR native: the bare origin; uberSource.js appends /ws itself.
-  if (type === 'uber') return v.replace(/\/ws(\?.*)?$/i, '')
+  // UberSDR native: the bare ORIGIN; uberSource.js appends /connection and /ws
+  // itself.  The address people copy from the browser is the page (often
+  // https://host/v2/), but the API lives at the site root: any path is dropped.
+  if (type === 'uber') return (v.match(/^wss?:\/\/[^/?#]+/i) || [v])[0]
   // WebSDR: hand the address over as typed.  webSdrSource.js reduces it to
   // host:port itself and gives that to the relay, which makes the actual
   // connection — the browser is not allowed to make it directly.
   if (type === 'websdr') return v
+  // PhantomSDR / NovaSDR : the page address often carries ?frequency=…&modulation=…
+  // (and a #hash): none of it belongs to the audio socket.
+  v = v.replace(/[?#].*$/, '').replace(/\/+$/, '')
   return /\/audio$/.test(v) ? v : v + '/audio'
 }
 
