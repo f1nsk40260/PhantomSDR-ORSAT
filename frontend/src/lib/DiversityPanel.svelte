@@ -32,6 +32,92 @@
     browseUrl,
   } from "../diversityList.js";
 
+  // Partie guidée (ORSAT) : annuaire de partenaires, étapes, écoute en clair, FR / EN / ES
+  import { lang } from "./i18n.js";
+  import { PARTNERS, ORSAT_LOCATOR, locatorLatLon, distanceKm } from "./diversityPartners.js";
+  const T = {
+    fr: {
+      title: "Réception en diversité", sub: "Deux récepteurs, toujours le meilleur signal",
+      step1: "1. Choisissez un récepteur partenaire", step2: "2. Lancez la diversité", step3: "3. Écoutez",
+      other: "Autre récepteur…", otherSub: "adresse à saisir dans les réglages avancés",
+      start: (n) => `▶ Démarrer avec ${n}`, stop: "■ Arrêter la diversité", pick: "Choisissez d'abord un partenaire",
+      listening: "Vous écoutez", local: "ORSAT",
+      sync: "Synchronisation des deux récepteurs… (environ 10 à 15 s)", ready: "Synchronisé ✓ — le meilleur signal est choisi en continu",
+      fail: "Le partenaire ne répond pas", notCovered: "Ce partenaire ne reçoit pas cette fréquence : choisissez-en un autre",
+      noAudio: "Pas encore de son du partenaire…",
+      signal: "Qualité du signal", onPartner: (p) => `${p} % du temps sur le partenaire`, saves: (n) => `${n} bascule${n > 1 ? "s" : ""}`,
+      advanced: "Réglages avancés et détails techniques", km: (d) => `${d} km d'ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
+      help: "Comment ça marche ?",
+      helpText: "Deux récepteurs éloignés de plusieurs centaines de kilomètres ne reçoivent pas les ondes par le même chemin dans l'ionosphère : quand le signal s'évanouit chez l'un, il reste souvent fort chez l'autre. La diversité écoute les deux en même temps, les synchronise, et vous fait entendre à chaque instant celui qui reçoit le mieux. Les décodeurs, eux, restent sur ORSAT.",
+      decoders: "Les décodeurs continuent d'utiliser ORSAT seul ; la diversité ne concerne que le son du haut-parleur.",
+    },
+    en: {
+      title: "Diversity reception", sub: "Two receivers, always the best signal",
+      step1: "1. Choose a partner receiver", step2: "2. Start diversity", step3: "3. Listen",
+      other: "Another receiver…", otherSub: "address to enter in the advanced settings",
+      start: (n) => `▶ Start with ${n}`, stop: "■ Stop diversity", pick: "Choose a partner first",
+      listening: "You are hearing", local: "ORSAT",
+      sync: "Synchronising the two receivers… (about 10 to 15 s)", ready: "Synchronised ✓ — the best signal is picked continuously",
+      fail: "The partner does not answer", notCovered: "This partner does not receive this frequency: choose another one",
+      noAudio: "No audio from the partner yet…",
+      signal: "Signal quality", onPartner: (p) => `${p} % of the time on the partner`, saves: (n) => `${n} switch${n > 1 ? "es" : ""}`,
+      advanced: "Advanced settings and technical details", km: (d) => `${d} km from ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
+      help: "How does it work?",
+      helpText: "Two receivers several hundred kilometres apart do not get the waves along the same path through the ionosphere: when the signal fades at one, it often stays strong at the other. Diversity listens to both at once, synchronises them and lets you hear, at every moment, the one receiving best. The decoders stay on ORSAT.",
+      decoders: "Decoders keep using ORSAT alone; diversity only affects the speaker audio.",
+    },
+    es: {
+      title: "Recepción en diversidad", sub: "Dos receptores, siempre la mejor señal",
+      step1: "1. Elija un receptor asociado", step2: "2. Inicie la diversidad", step3: "3. Escuche",
+      other: "Otro receptor…", otherSub: "dirección a introducir en los ajustes avanzados",
+      start: (n) => `▶ Iniciar con ${n}`, stop: "■ Detener la diversidad", pick: "Elija primero un receptor asociado",
+      listening: "Está escuchando", local: "ORSAT",
+      sync: "Sincronizando los dos receptores… (unos 10 a 15 s)", ready: "Sincronizado ✓ — se elige continuamente la mejor señal",
+      fail: "El receptor asociado no responde", notCovered: "Este receptor no recibe esta frecuencia: elija otro",
+      noAudio: "Todavía no hay audio del receptor asociado…",
+      signal: "Calidad de la señal", onPartner: (p) => `${p} % del tiempo en el receptor asociado`, saves: (n) => `${n} conmutacion${n > 1 ? "es" : ""}`,
+      advanced: "Ajustes avanzados y detalles técnicos", km: (d) => `a ${d} km de ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
+      help: "¿Cómo funciona?",
+      helpText: "Dos receptores separados varios cientos de kilómetros no reciben las ondas por el mismo camino en la ionosfera: cuando la señal se desvanece en uno, a menudo sigue fuerte en el otro. La diversidad escucha los dos a la vez, los sincroniza y le hace oír en cada momento el que mejor recibe. Los decodificadores siguen en ORSAT.",
+      decoders: "Los decodificadores siguen usando solo ORSAT; la diversidad solo afecta al audio del altavoz.",
+    },
+  };
+  $: D = T[$lang] || T.fr;
+  const home = locatorLatLon(ORSAT_LOCATOR);
+  let partnerId = null;
+  let showAdvanced = false;
+  let showHelp = false;
+  let polls = 0, pollsRemote = 0;
+  // un partenaire de l'annuaire déjà en cours d'usage est reconnu à son adresse
+  try { partnerId = (PARTNERS.find((x) => x.addr === (localStorage.getItem(LS_URL) || "")) || {}).id || null; } catch (_) {}
+  $: partner = PARTNERS.find((x) => x.id === partnerId) || null;
+  $: partnerName = partner ? partner.name : (endpoint || "").trim() ? endpoint.replace(/^\w+:\/\//, "").replace(/\/.*$/, "") : "";
+  function choosePartner(x) {
+    if (running) return;
+    partnerId = x.id;
+    type = x.type;
+    endpoint = x.addr;
+  }
+  function chooseOther() {
+    if (running) return;
+    partnerId = null;
+    showAdvanced = true;
+  }
+  $: if (running && status.locked) {
+    polls += 1;
+    if (status.live === "remote") pollsRemote += 1;
+  }
+  $: sharePct = polls ? Math.round((100 * pollsRemote) / polls) : 0;
+  $: bad = running && (status.state === "error" || status.state === "closed");
+  $: stateText = !running ? "" : bad ? `${D.fail}${status.errorText ? " — " + status.errorText : ""}`
+    : status.inRange === false && status.state === "ready" ? D.notCovered
+    : !status.remoteSamples ? D.noAudio : waiting ? D.sync : D.ready;
+  const bar = (v) => (v == null ? 0 : Math.max(3, Math.min(100, (v / 40) * 100)));
+  function guidedToggle() {
+    if (!running) { polls = 0; pollsRemote = 0; }
+    toggle();
+  }
+
   let expanded = false;
   let endpoint = "";
   let type = "phantom";
@@ -454,11 +540,13 @@
   <button
     class="w-full flex justify-between items-center text-xs bg-transparent border-0 p-0 cursor-pointer"
     on:click={() => (expanded = !expanded)}
-    title="Combine this receiver with a second one to ride through fades"
+    title={D.sub}
+    data-no-i18n
   >
     <h4 class="text-white font-semibold flex items-center gap-2">
       <span class="inline-block w-2 h-2 rounded-full {dotClass}"></span>
-      Receive Diversity
+      {D.title}
+      <span class="dv-sub">· {D.sub}</span>
     </h4>
     <span class="flex items-center gap-1">
       <span
@@ -472,6 +560,60 @@
   </button>
 
   {#if expanded}
+    <div class="dv" data-no-i18n>
+      <div class="dv-top">
+        <span class="dv-step">{D.step1}</span>
+        <button type="button" class="dv-help-btn" on:click={() => (showHelp = !showHelp)}>{showHelp ? "✕" : "?"} {D.help}</button>
+      </div>
+      {#if showHelp}<p class="dv-help">{D.helpText}</p>{/if}
+      <div class="dv-cards">
+        {#each PARTNERS as x}
+          {@const d = distanceKm(home, [x.lat, x.lon])}
+          <button type="button" class="dv-card" class:sel={partnerId === x.id} disabled={running && partnerId !== x.id}
+                  on:click={() => choosePartner(x)} title={x.addr}>
+            <b>{x.name}{#if x.call}<i> · {x.call}</i>{/if}</b>
+            <span>{x.place[$lang] || x.place.fr}{d != null ? ` · ${D.km(d)}` : ""}</span>
+            <em>{D[x.type] || x.type}</em>
+          </button>
+        {/each}
+        <button type="button" class="dv-card other" class:sel={!partnerId && (endpoint || "").trim()} disabled={running}
+                on:click={chooseOther}>
+          <b>{D.other}</b><span>{D.otherSub}</span>
+        </button>
+      </div>
+
+      <span class="dv-step">{D.step2}</span>
+      <button type="button" class="dv-go" class:stop={running} disabled={!running && !(endpoint || "").trim()}
+              on:click={guidedToggle}>
+        {running ? D.stop : (endpoint || "").trim() ? D.start(partnerName) : D.pick}
+      </button>
+
+      {#if running}
+        <span class="dv-step">{D.step3}</span>
+        <div class="dv-live">
+          <div class="dv-now">🎧 {D.listening} :
+            <b class:remote={status.locked && status.live === "remote"}>
+              {status.locked && status.live === "remote" ? partnerName : D.local}</b></div>
+          <p class="dv-state" class:bad class:ok={!bad && !waiting && status.inRange !== false}>{stateText}</p>
+          <div class="dv-bars" title={D.signal}>
+            <span>{D.local}</span>
+            <div class="dv-bar"><i class:win={status.locked && status.live !== "remote"} style="width:{bar(status.snrLocalDb)}%"></i></div>
+            <small>{dB(status.snrLocalDb)} dB</small>
+            <span>{partnerName}</span>
+            <div class="dv-bar"><i class:win={status.locked && status.live === "remote"} style="width:{bar(status.snrRemoteDb)}%"></i></div>
+            <small>{dB(status.snrRemoteDb)} dB</small>
+          </div>
+          {#if status.locked}<p class="dv-stats">{D.onPartner(sharePct)} · {D.saves(status.switches ?? 0)}</p>{/if}
+          <p class="dv-note">{D.decoders}</p>
+        </div>
+      {/if}
+
+      <button type="button" class="dv-adv-btn" on:click={() => (showAdvanced = !showAdvanced)}>
+        {showAdvanced ? "▾" : "▸"} {D.advanced}</button>
+    </div>
+  {/if}
+
+  {#if expanded && showAdvanced}
     <div class="mt-3 flex flex-col gap-2 text-xs text-gray-300">
       <div class="flex items-center gap-2">
         <label class="whitespace-nowrap text-gray-400" for="div-type"
@@ -914,6 +1056,47 @@
 </div>
 
 <style>
+  /* Partie guidée (ORSAT) */
+  .dv-sub { font-weight: 400; color: #b9b39d; font-size: 0.75rem; }
+  .dv { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #e6e2d3; }
+  .dv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .dv-step { color: rgb(226, 201, 90); font-weight: 700; font-size: 13px; }
+  .dv-help-btn { font-size: 12px; padding: 2px 10px; border-radius: 11px; cursor: pointer; color: #1a1606;
+                 background: linear-gradient(180deg, #e2c95a, rgb(207, 181, 59)); border: 1px solid #f0dc80; font-weight: 700; }
+  .dv-help { margin: 0; padding: 8px 10px; border-radius: 8px; background: rgba(207, 181, 59, 0.1);
+             border: 1px solid rgba(207, 181, 59, 0.4); line-height: 1.45; }
+  .dv-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+  .dv-card { text-align: left; padding: 7px 10px; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+             background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(207, 181, 59, 0.35); color: #e6e2d3; }
+  .dv-card:hover:not(:disabled) { border-color: rgb(226, 201, 90); }
+  .dv-card.sel { border: 2px solid rgb(226, 201, 90); background: rgba(207, 181, 59, 0.15); }
+  .dv-card:disabled { opacity: 0.45; cursor: not-allowed; }
+  .dv-card b { color: #fff; font-size: 13px; }
+  .dv-card i { font-style: normal; color: rgb(226, 201, 90); }
+  .dv-card span { font-size: 12px; color: #cfc9b2; }
+  .dv-card em { font-style: normal; font-size: 11px; color: #9b9684; }
+  .dv-card.other b { color: #cfc9b2; }
+  .dv-go { padding: 9px 14px; border-radius: 9px; font-size: 14px; font-weight: 800; cursor: pointer;
+           color: #fff; background: linear-gradient(180deg, #3f9a4b, #2a6e34); border: 1px solid #7fe08c; }
+  .dv-go.stop { background: linear-gradient(180deg, #c84040, #8e1f1f); border-color: #ff9a9a; }
+  .dv-go:disabled { opacity: 0.5; cursor: not-allowed; background: #2b2a25; border-color: #555; color: #9b9684; }
+  .dv-live { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border-radius: 8px;
+             background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(207, 181, 59, 0.35); }
+  .dv-now { font-size: 15px; }
+  .dv-now b { color: #7fe08c; font-size: 16px; }
+  .dv-now b.remote { color: #6ad0e8; }
+  .dv-state { margin: 0; font-size: 12px; color: #f0c060; }
+  .dv-state.ok { color: #7fe08c; }
+  .dv-state.bad { color: #ff8080; }
+  .dv-bars { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; font-size: 12px; }
+  .dv-bar { height: 10px; border-radius: 5px; background: #2b2a25; overflow: hidden; }
+  .dv-bar i { display: block; height: 100%; background: #7f7a66; transition: width 0.4s; }
+  .dv-bar i.win { background: linear-gradient(90deg, #3f9a4b, #7fe08c); }
+  .dv-bars small { font-family: ui-monospace, monospace; color: #cfc9b2; }
+  .dv-stats { margin: 0; font-size: 12px; color: #cfc9b2; }
+  .dv-note { margin: 0; font-size: 11px; color: #9b9684; }
+  .dv-adv-btn { align-self: flex-start; background: transparent; border: 0; color: #b9b39d; cursor: pointer; font-size: 12px; padding: 2px 0; }
+  .dv-adv-btn:hover { color: rgb(226, 201, 90); }
   /* The receiver currently on air. A fade rather than a hard on/off: it has
      to be noticeable in the corner of the eye without pulling attention off
      the waterfall, and a square blink at this size reads as a fault. */
