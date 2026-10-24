@@ -155,7 +155,7 @@
     }
     if (near === b && !inBand) t += "\n" + L.nearest;
     if (data && data.measure_error && !data.measured) t += `\n${L.measErr}${L.sep}${data.measure_error}`;
-    return t;
+    return t + "\n\n⚠ " + H.warnShort;
   }
 
 
@@ -172,6 +172,9 @@
         ["4. La mesure réelle", "Toutes les 5 min, ORSAT écoute lui-même chaque bande sur sa chute d'eau, quelques secondes, sans décoder : il compte les signaux qui dépassent le bruit de 10 dB et relève le meilleur rapport signal/bruit (SNR). Note de mesure : jusqu'à 70 points pour le SNR (de 6 à 30 dB) et 30 points pour le nombre de signaux (jusqu'à 10)."],
         ["5. L'indice final", "IP = 40 % prévision + 60 % mesure réelle si la mesure a moins de 15 min ; sinon la prévision seule. La mesure pèse plus : c'est ce que le récepteur entend vraiment."],
       ],
+      warnTitle: "⚠ Procédé expérimental",
+      warn: "Cet indice est un procédé original et expérimental, propre à ORSAT. Ses réglages ne sont pas encore validés par l'étalonnage : il peut donner des valeurs aberrantes, par exemple une bande ouverte mais déserte (la nuit, sur 60 m) notée trop bas, ou une bande gonflée par un concours. À prendre comme une indication, pas comme une certitude.",
+      warnShort: "Procédé expérimental : valeurs aberrantes possibles.",
       legendTitle: "Lecture",
       legend: ["Excellent : 75 et plus", "Bon : 50 à 74", "Moyen : 25 à 49", "Faible : moins de 25"],
       zones: "Lettres : où ORSAT entend le mieux — Loc ≤ 300 km · Rég 300–900 km · EU 900–2500 km · DX au-delà.",
@@ -188,6 +191,9 @@
         ["4. Real measurement", "Every 5 min, ORSAT itself listens to each band on its waterfall for a few seconds, without decoding: it counts the signals 10 dB above the noise and records the best signal-to-noise ratio (SNR). Measurement score: up to 70 points for SNR (6 to 30 dB) and 30 points for the number of signals (up to 10)."],
         ["5. Final index", "PI = 40 % forecast + 60 % real measurement when the measurement is less than 15 min old; otherwise the forecast alone. The measurement weighs more: it is what the receiver actually hears."],
       ],
+      warnTitle: "⚠ Experimental method",
+      warn: "This index is an original, experimental method specific to ORSAT. Its settings are not yet validated by calibration: it may give aberrant values, for example an open but empty band (at night, on 60 m) rated too low, or a band inflated by a contest. Take it as an indication, not a certainty.",
+      warnShort: "Experimental method: aberrant values possible.",
       legendTitle: "Reading",
       legend: ["Excellent: 75 and above", "Good: 50 to 74", "Fair: 25 to 49", "Poor: below 25"],
       zones: "Letters: where ORSAT hears best — Loc ≤ 300 km · Reg 300–900 km · EU 900–2500 km · DX beyond.",
@@ -204,6 +210,9 @@
         ["4. La medida real", "Cada 5 min, ORSAT escucha él mismo cada banda en su cascada durante unos segundos, sin decodificar: cuenta las señales 10 dB por encima del ruido y anota la mejor relación señal/ruido (SNR). Nota de medida: hasta 70 puntos por la SNR (de 6 a 30 dB) y 30 puntos por el número de señales (hasta 10)."],
         ["5. El índice final", "IR = 40 % previsión + 60 % medida real si la medida tiene menos de 15 min; si no, solo la previsión. La medida pesa más: es lo que el receptor oye de verdad."],
       ],
+      warnTitle: "⚠ Método experimental",
+      warn: "Este índice es un método original y experimental, propio de ORSAT. Sus ajustes aún no están validados por la calibración: puede dar valores aberrantes, por ejemplo una banda abierta pero vacía (de noche, en 60 m) puntuada demasiado baja, o una banda inflada por un concurso. Tómelo como una indicación, no como una certeza.",
+      warnShort: "Método experimental: valores aberrantes posibles.",
       legendTitle: "Lectura",
       legend: ["Excelente: 75 o más", "Bueno: 50 a 74", "Regular: 25 a 49", "Débil: menos de 25"],
       zones: "Letras: dónde ORSAT escucha mejor — Loc ≤ 300 km · Reg 300–900 km · EU 900–2500 km · DX más allá.",
@@ -221,7 +230,7 @@
 {#if data}
   <div class="lb" data-no-i18n role="button" tabindex="-1" on:click={openMap} on:keydown={() => {}}
        title={L.boxTip(data.radius_km, data.locator)}>
-    <button type="button" class="lbl help-btn" class:open={showHelp} title={H.btnTip}
+    <button type="button" class="lbl help-btn" class:open={showHelp} title="{H.btnTip}\n⚠ {H.warnShort}"
             on:click|stopPropagation={() => (showHelp = !showHelp)}>{L.ipTitle} <span class="q">?</span></button>
     {#if near}
       {@const v = ipOf(near)}
@@ -248,6 +257,7 @@
       </div>
       <div class="help-body">
         <p class="intro">{H.intro}</p>
+        <div class="warn"><b>{H.warnTitle}</b><p>{H.warn}</p></div>
         {#each H.blocks as [h, txt]}<h4>{h}</h4><p>{txt}</p>{/each}
         <h4>{H.legendTitle}</h4>
         <div class="leg">
@@ -302,6 +312,10 @@
   .help-body .intro { font-size: 15px; color: #fff; }
   .help-body h4 { margin: 14px 0 4px; color: rgb(226, 201, 90); font-size: 14px; font-weight: 700; }
   .help-body p { margin: 0 0 6px; }
+  .help-body .warn { margin: 10px 0 4px; padding: 8px 12px; border-radius: 8px;
+                     background: rgba(224, 140, 48, 0.15); border: 1px solid rgba(240, 162, 90, 0.7); }
+  .help-body .warn b { color: #f0a25a; }
+  .help-body .warn p { margin: 4px 0 0; }
   .help-body .calib { color: #c9c3ad; font-size: 13px; margin-top: 10px; }
   .leg { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 6px 10px; align-items: center; margin-bottom: 8px; }
   .lbl { flex-shrink: 0; color: rgb(226, 201, 90); font-weight: 700; letter-spacing: 0.03em; margin-right: 6px; white-space: nowrap; }
