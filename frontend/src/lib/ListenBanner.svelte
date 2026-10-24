@@ -39,7 +39,7 @@
   // traduire des phrases contenant des chiffres qui changent : le bandeau porte data-no-i18n).
   const T = {
     fr: {
-      ipTitle: "Indice de performance ORSAT", ipShort: "IP",
+      ipTitle: "Indice de performance", ipShort: "IP",
       ipTip: (w) => `Indice de performance du récepteur ORSAT, bande par bande (0 à 100, calcul de ${w}).\nPrévision sur toutes les distances (ionosondes mesurées × diagramme de la loop), corrigée par ce qu'ORSAT mesure réellement sur la chute d'eau.\nLettres : zone où ORSAT entend le mieux. Clic : carte détaillée.`,
       ipVerdict: { ex: "Excellent", ok: "Bon", mid: "Moyen", low: "Faible", na: "Pas de données" },
       zoneShort: { loc: "Loc", reg: "Rég", eu: "EU", dx: "DX" },
@@ -64,7 +64,7 @@
       mapTitle: "ORSAT exploitable — carte détaillée", close: "✕ Fermer", closeTip: "Fermer la carte et revenir au WebSDR",
     },
     en: {
-      ipTitle: "ORSAT performance index", ipShort: "PI",
+      ipTitle: "Performance index", ipShort: "PI",
       ipTip: (w) => `Performance index of the ORSAT receiver, band by band (0 to 100, computed at ${w}).\nForecast over all distances (measured ionosondes × loop pattern), corrected by what ORSAT actually measures on the waterfall.\nLetters: area where ORSAT hears best. Click: detailed map.`,
       ipVerdict: { ex: "Excellent", ok: "Good", mid: "Fair", low: "Poor", na: "No data" },
       zoneShort: { loc: "Loc", reg: "Reg", eu: "EU", dx: "DX" },
@@ -89,7 +89,7 @@
       mapTitle: "ORSAT usable — detailed map", close: "✕ Close", closeTip: "Close the map and return to the WebSDR",
     },
     es: {
-      ipTitle: "Índice de rendimiento ORSAT", ipShort: "IR",
+      ipTitle: "Índice de rendimiento", ipShort: "IR",
       ipTip: (w) => `Índice de rendimiento del receptor ORSAT, banda por banda (0 a 100, cálculo de las ${w}).\nPrevisión sobre todas las distancias (ionosondas medidas × diagrama de la loop), corregida con lo que ORSAT mide realmente en la cascada.\nLetras: zona donde ORSAT escucha mejor. Clic: mapa detallado.`,
       ipVerdict: { ex: "Excelente", ok: "Bueno", mid: "Regular", low: "Débil", na: "Sin datos" },
       zoneShort: { loc: "Loc", reg: "Reg", eu: "EU", dx: "DX" },
