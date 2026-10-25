@@ -8,7 +8,7 @@ cover: div_principe_fr.png
 cover_caption: Deux récepteurs éloignés n'entendent pas les mêmes évanouissements : ORSAT passe à chaque instant sur le meilleur des deux.
 summary: Ce guide explique pourquoi un signal ondes courtes s'évanouit, comment un second récepteur placé ailleurs permet de traverser ces évanouissements, et comment utiliser pas à pas le panneau « Réception en diversité » d'ORSAT.
 edition: Version française — Édition octobre 2026 — ORSAT 1.0
-credits: Fonction de réception en diversité développée par **SV1BTL** pour PhantomSDR-Plus, intégrée et documentée par **F1NSK** pour ORSAT.
+credits: Procédé de réception en diversité inspiré d'**AetherSDR**, adapté et documenté par **F1NSK** pour ORSAT.
 header_left: ORSAT — Réception en diversité
 header_right: ORSAT 1.0
 page: Page

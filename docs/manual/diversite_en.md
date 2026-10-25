@@ -8,7 +8,7 @@ cover: div_principe_en.png
 cover_caption: Two distant receivers do not hear the same fades: ORSAT switches, moment by moment, to the better of the two.
 summary: This guide explains why a shortwave signal fades, how a second receiver located elsewhere lets you ride through those fades, and how to use ORSAT's “Receive Diversity” panel step by step.
 edition: English version — October 2026 edition — ORSAT 1.0
-credits: Receive diversity developed by **SV1BTL** for PhantomSDR-Plus, integrated and documented by **F1NSK** for ORSAT.
+credits: Receive diversity method inspired by **AetherSDR**, adapted and documented by **F1NSK** for ORSAT.
 header_left: ORSAT — Receive diversity
 header_right: ORSAT 1.0
 page: Page

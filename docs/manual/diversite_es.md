@@ -8,7 +8,7 @@ cover: div_principe_es.png
 cover_caption: Dos receptores alejados no oyen los mismos desvanecimientos: ORSAT pasa en cada momento al mejor de los dos.
 summary: Esta guía explica por qué se desvanece una señal de onda corta, cómo un segundo receptor situado en otro lugar permite atravesar esos desvanecimientos y cómo usar paso a paso el panel «Recepción en diversidad» de ORSAT.
 edition: Versión española — Edición octubre 2026 — ORSAT 1.0
-credits: Función de recepción en diversidad desarrollada por **SV1BTL** para PhantomSDR-Plus, integrada y documentada por **F1NSK** para ORSAT.
+credits: Método de recepción en diversidad inspirado en **AetherSDR**, adaptado y documentado por **F1NSK** para ORSAT.
 header_left: ORSAT — Recepción en diversidad
 header_right: ORSAT 1.0
 page: Página
