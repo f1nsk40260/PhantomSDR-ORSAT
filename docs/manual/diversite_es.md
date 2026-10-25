@@ -2,7 +2,7 @@
 pdf: guideDiversiteES.pdf
 pdf_title: PhantomSDR-ORSAT — Guía de la recepción en diversidad
 title: La recepción en diversidad
-subtitle: Guía detallada — el principio, elegir un segundo receptor, leer los indicadores
+subtitle: Guía detallada — el principio, elegir un receptor asociado, leer los indicadores
 url: https://orsat.ddns.net
 cover: div_principe_es.png
 cover_caption: Dos receptores alejados no oyen los mismos desvanecimientos: ORSAT pasa en cada momento al mejor de los dos.
@@ -69,7 +69,7 @@ ORSAT compara el **ritmo del habla** de los dos sonidos: la sucesión de sílaba
 - Espera a que **dos medidas sucesivas coincidan** con 40 milisegundos de margen antes de declararse alineado.
 - Una vez alineado, **vuelve a comprobar el desfase cada minuto**, porque los relojes de los dos sitios derivan muy lentamente.
 
-Cuente pues **de 10 a 20 segundos** entre la pulsación de **Start** y el momento en que la diversidad está operativa. Es necesario que **alguien hable** durante ese tiempo: en una portadora pura o una frecuencia vacía no hay ritmo que comparar.
+Cuente pues **de 10 a 20 segundos** entre la pulsación de **▶ Iniciar** y el momento en que la diversidad está operativa. Es necesario que **alguien hable** durante ese tiempo: en una portadora pura o una frecuencia vacía no hay ritmo que comparar.
 
 > [Consejo] Una vez alineado, el sonido que oye lleva unos **0,3 segundos de retraso** respecto a ORSAT solo. Es el precio del margen que permite conmutar sin brusquedad; al escuchar, no se nota.
 
@@ -77,78 +77,92 @@ Cuente pues **de 10 a 20 segundos** entre la pulsación de **Start** y el moment
 
 ## 4.1 El panel
 
-El panel **Recepción en diversidad** está en la columna central, bajo la sintonía fina. Haga clic en su barra de título para desplegarlo.
+El panel **Recepción en diversidad** está en la columna central, bajo la sintonía fina. Su barra dorada indica el estado en claro; haga clic en **Abrir ▸** para desplegarlo.
 
-![El panel «Recepción en diversidad» desplegado.](images/es_p16_0.jpg){w=482}
+![La barra del panel, plegada: título, estado y botón Abrir.](images/es_div_ferme.jpg){w=330}
 
-## 4.2 Puesta en marcha
+![El panel desplegado: los receptores asociados propuestos y el botón de inicio.](images/es_div_ouvert.jpg){w=330}
 
-1. **Sintonice primero ORSAT** en la estación que desea escuchar, en el modo correcto.
-2. En **Segundo RX**, elija el tipo de receptor remoto: **PhantomSDR+**, **KiwiSDR**, **UberSDR** o **WebSDR** (el WebSDR clásico de PA3FWM).
-3. En el campo de dirección, escriba su dirección en la forma *host:puerto* (por ejemplo **miwebsdr.example.org:8073**). El texto gris del campo muestra la forma esperada para el tipo elegido.
-4. Haga clic en **Start**.
-5. Espere: la barra de título muestra **Espere…** durante la alineación y luego **Ready** cuando la diversidad está operativa.
+## 4.2 Iniciar
 
-**No tiene que ajustar el receptor remoto.** ORSAT lo coloca automáticamente en la misma frecuencia, el mismo modo y el mismo filtro que él, y lo sigue en cada cambio de sintonía.
+1. **Sintonice primero ORSAT** en la estación que quiere escuchar, en el modo correcto.
+2. **Elija un receptor asociado** haciendo clic en su tarjeta: se rodea de oro. Preferiblemente el que lleva la insignia **★ Recomendado** (sección 5).
+3. Haga clic en el gran botón verde **▶ Iniciar con…**.
+4. Espere: el estado pasa de **Sincronizando…** a **En marcha** cuando la diversidad está operativa.
 
-Para detenerla, haga clic en **Stop**: vuelve al instante a ORSAT solo.
+**No hay nada que ajustar en el asociado.** ORSAT lo coloca automáticamente en la misma frecuencia, modo y filtro, y lo sigue en cada cambio de sintonía.
 
-## 4.3 El piloto de la barra de título
+Para detenerla, haga clic en **■ Detener la diversidad**: vuelve al instante a ORSAT solo. Su navegador recuerda su último asociado para la próxima vez.
 
-| Color | Significado |
-| Gris | Diversidad detenida |
-| Ámbar parpadeante | Conexión o alineación en curso |
-| Verde parpadeante | Alineado, está oyendo **ORSAT** |
-| Cian parpadeante | Alineado, está oyendo **el receptor remoto** |
+## 4.3 Durante la escucha
 
-Al escuchar una estación que fluctúa, verá el piloto pasar del verde al cian al ritmo de los desvanecimientos: es la diversidad trabajando.
+Bajo el botón, la parte **3. Escuche** muestra lo que ocurre:
 
-## 4.4 Los indicadores detallados
+- **🎧 Está escuchando: ORSAT** (en verde) o **el nombre del asociado** (en azul) — el receptor que oye en ese momento.
+- **El estado en claro** — «Sincronizando los dos receptores…», luego «Sincronizado ✓ — se elige continuamente la mejor señal»; en rojo, «El receptor asociado no responde» con el motivo.
+- **Dos barras de calidad de señal**, ORSAT y asociado, con su relación señal/ruido en dB; la barra verde es la del receptor elegido.
+- **La parte del tiempo** pasada en el asociado y el **número de conmutaciones** desde el inicio.
 
-Durante el funcionamiento, una tabla muestra el estado del enlace:
+## 4.4 El estado en la barra del panel
 
-| Indicador | Lo que indica |
-| enlace | Estado de la conexión con el receptor remoto (connecting, ready, closed, error) y el motivo de un corte |
-| alineado | Desfase medido entre los dos sonidos, en segundos; «buscando» mientras no se encuentra |
-| corr | Parecido entre los dos sonidos una vez alineados: cuanto más alto, más fiable es la alineación |
-| audio remoto | Cantidad de sonido recibida del receptor remoto y su frecuencia de muestreo; «none» indica que no envía nada |
-| SNR local / SNR remoto | Relación señal/ruido de cada receptor, en dB, sobre la que se hace la elección |
-| conmutaciones | Número de cambios de un receptor a otro desde el arranque |
+| Estado | Significado |
+| ● Detenida (gris) | Diversidad detenida |
+| ● Sincronizando… (ámbar) | Conexión o alineación en curso |
+| ● En marcha, punto verde | Alineado, oye **ORSAT** |
+| ● En marcha, punto azul | Alineado, oye **el asociado** |
+| ● Error (rojo) | El asociado ya no responde: oye ORSAT solo |
 
-Si aparece el mensaje **«el receptor remoto no cubre esta frecuencia»**, el segundo receptor no recibe la banda escuchada: elija otro.
+Escuchando una estación que fluctúa, verá el punto pasar de verde a azul al ritmo de los desvanecimientos: es la diversidad trabajando.
 
-## 4.5 La corrección SNR remoto
+## 4.5 Detalles técnicos
 
-El cursor **Corrección SNR remoto** (−15 a +15 dB) se suma al SNR del receptor remoto antes de la comparación.
+Durante la escucha, **▸ Detalles técnicos** despliega una tabla para los curiosos:
 
-- Con **otro PhantomSDR+**, déjelo en **0 dB**: las dos medidas son directamente comparables.
-- Con un receptor que **comprime mucho su sonido** (un WebSDR clásico envía un sonido de 8 bits), su ruido de fondo queda en parte oculto por la compresión y su SNR parece más bajo de lo que es. Suba la corrección unos dB si ORSAT nunca le cede el paso aunque sea claramente mejor.
-- Al contrario, bájela si ORSAT conmuta con demasiada facilidad hacia un receptor remoto que suena peor.
+| Indicador | Lo que dice |
+| enlace | Estado de la conexión con el asociado (connecting, ready, closed, error) y el motivo de un corte |
+| retardo | Desfase medido entre los dos sonidos, en segundos; «buscando» mientras no se encuentra |
+| correlación | Parecido entre los dos sonidos una vez alineados: cuanto más alto, más segura la alineación |
+| audio remoto | Cantidad de sonido recibido del asociado y su frecuencia de muestreo; «ninguno» indica que no envía nada |
+| SNR ORSAT / SNR asociado | Relación señal/ruido de cada receptor, en dB, sobre la que se hace la elección |
+| corrección | Corrección añadida a la SNR del asociado, ajustada por el sysop (ver sección 6) |
+| conmutaciones | Número de pasos de un receptor a otro desde el inicio |
 
-# 5. Los receptores guardados
+Si aparece el mensaje **«Este receptor no recibe esta frecuencia»**, elija otro.
 
-El botón **☰**, junto a la dirección, abre la lista de sus receptores, organizada **por tipo**: una dirección KiwiSDR solo se propone cuando está elegido el tipo KiwiSDR.
+# 5. El receptor asociado recomendado
 
-- Cada receptor arrancado con éxito se **añade automáticamente** al principio de la lista.
-- **add** añade un receptor a mano; **✎** modifica su nombre y dirección; **✕** lo elimina; **borrar todo** vacía la lista del tipo en curso.
-- Un clic en una línea pone su dirección en el campo; **▲ ▼** o arrastrar y soltar cambian el orden; **🌍** abre la página del receptor en una pestaña nueva.
-- El receptor en uso aparece en negrita en la lista.
-- **⭳ exportar** guarda todas las listas en un archivo; **⭱ importar** las vuelve a leer, proponiendo **combinar** con la lista actual o **reemplazarla**.
-- **▦ QR** muestra las listas como código QR: escanéelo con un teléfono para recuperar sus receptores en la página móvil de ORSAT (pestaña Div).
+## 5.1 Lo que dicen las insignias
 
-Estas listas se guardan **en su navegador**: no pasan de un ordenador a otro sin exportación o código QR.
+Cada tarjeta lleva una insignia que vale **para la banda que escucha**; cambia cuando cambia de banda.
 
-# 6. Elegir bien el segundo receptor
+| Insignia | Significado |
+| ★ Recomendado en 40m | El mejor asociado ahora en esta banda |
+| Posible · 41 % | Útil en parte: oye aproximadamente ese porcentaje de la zona que oye ORSAT |
+| Poco útil en 40m | No oye las mismas estaciones que ORSAT en esta banda ahora |
+| Fuera de línea | El receptor no responde; su tarjeta aparece atenuada |
 
-Es la elección más importante: la diversidad solo vale por la diferencia entre los dos sitios.
+Pase el ratón sobre una insignia para leer la explicación completa. Sin insignia, el servidor aún no tiene consejo (al arrancar, o asociado sin locator conocido).
 
-- **Lo bastante lejos de ORSAT**: a partir de **unos cientos de kilómetros**, los desvanecimientos se vuelven independientes. Dos receptores en la misma ciudad se desvanecen juntos y no aportan casi nada.
-- **Tampoco demasiado lejos**: debe **oír la estación**. Para un corresponsal europeo, un receptor en otro país de Europa conviene más que uno en Australia.
-- **Que cubra la banda** escuchada, con una antena correcta.
-- **Preferiblemente un PhantomSDR+**: misma calidad de sonido, misma medida del SNR, sin corrección que ajustar.
-- **Disponible**: un receptor saturado de oyentes o con conexión inestable hará que la diversidad vuelva a menudo a ORSAT solo.
+## 5.2 Cómo se calcula el consejo
 
-> [Consejo] Los directorios de WebSDR, como **sdr-list.xyz**, permiten encontrar receptores PhantomSDR+, KiwiSDR y WebSDR clasificados por país.
+Un buen asociado no es necesariamente el que recibe más fuerte: es el que oye **las mismas estaciones que ORSAT, por otro camino**. Un receptor que oye muy bien otra región no aporta nada.
+
+- Cada 10 minutos, el servidor de ORSAT calcula, a partir de las **ionosondas** de todo el mundo (red KC2G), la zona que oye ORSAT en cada banda, hasta 3000 km.
+- Hace el mismo cálculo **desde el locator de cada asociado**, y mide la parte de la zona de ORSAT que el asociado oye también: es el porcentaje de la insignia.
+- Tiene en cuenta la **distancia** entre los dos receptores: a menos de 100 km sus desvanecimientos están ligados y la diversidad no sirve; a partir de 300 km son independientes.
+- Comprueba también cada 10 minutos que cada asociado **responde**: un receptor fuera de línea nunca se recomienda.
+
+Ejemplo: en 40 m de día, ORSAT oye sobre todo Francia, a menos de 900 km. Un asociado en Bélgica oye entonces otra zona y será «Poco útil»; por la tarde, cuando los 40 m se abren a larga distancia, vuelve a ser un excelente asociado.
+
+> [Nota] Este consejo se calcula aparte: nunca entra en el **índice de rendimiento** de ORSAT mostrado encima de la cascada.
+
+# 6. Los receptores asociados propuestos
+
+Los asociados los **elige el sysop de ORSAT** en el panel de administración: receptores fiables, a buena distancia, cada uno con la **corrección de SNR** que equilibra la comparación (un receptor que comprime mucho su sonido parece más ruidoso de lo que es). No hay pues dirección que escribir ni ajuste que hacer.
+
+Cada tarjeta indica la **bandera** del país, el **nombre** y el **indicativo** del receptor, su **lugar** y su **distancia** a ORSAT, su **locator** y su **acimut** desde ORSAT.
+
+Algunos receptores (a menudo KiwiSDR) solo son accesibles por **http**, lo que un navegador rechaza desde una página segura https. En ese caso la conexión pasa automáticamente por el **servidor de ORSAT**, que hace de relé: no hay nada que hacer. El asociado ve entonces la dirección del servidor de ORSAT, no la suya.
 
 # 7. Lo que no hace la diversidad
 
@@ -160,12 +174,13 @@ Es la elección más importante: la diversidad solo vale por la diferencia entre
 # 8. Resolución de problemas
 
 | Síntoma | Causa probable | Remedio |
-| Se queda en «Espere…» | Nadie habla, o el receptor remoto no oye la estación | Espere una transmisión; compruebe en la página del receptor remoto (🌍) que oye la estación |
-| enlace: error o closed | Dirección errónea, tipo incorrecto, receptor fuera de línea o completo | Compruebe la dirección y el tipo; pruebe otro receptor |
-| audio remoto: none | El receptor remoto acepta la conexión pero no envía sonido | Pruebe otro receptor del mismo tipo |
-| «no cubre esta frecuencia» | El segundo receptor no recibe esta banda | Elija un receptor que cubra la banda |
-| El piloto sigue verde, 0 conmutaciones | ORSAT siempre es mejor, o el remoto está infravalorado | Normal si ORSAT es mejor; si no, suba la corrección SNR remoto |
-| Conmutaciones constantes | Los dos receptores son parecidos | No molesta al escuchar; baje un poco la corrección para favorecer a ORSAT |
-| Una palabra repetida o saltada al conmutar | Alineación reajustándose | Se corrige sola en la siguiente comprobación (como mucho un minuto) |
+| Se queda en «Sincronizando…» | Nadie habla, o el asociado no oye la estación | Espere una transmisión; pruebe el asociado recomendado |
+| Estado «Error», «El receptor asociado no responde» | Receptor fuera de línea o completo | Elija otro asociado; evite las tarjetas «Fuera de línea» |
+| audio remoto: ninguno | El asociado acepta la conexión pero no envía sonido | Pruebe otro asociado |
+| «no recibe esta frecuencia» | El asociado no cubre esta banda | Elija otro asociado |
+| Siempre en ORSAT, 0 conmutaciones | ORSAT es mejor ahora | Normal: la diversidad solo pasa al asociado si lo hace mejor |
+| Conmutaciones constantes | Los dos receptores se equivalen | Sin molestia en la escucha |
+| Una palabra repetida o saltada al conmutar | Alineación en reajuste | Se corrige sola en la siguiente comprobación (un minuto como máximo) |
+| Ninguna insignia en las tarjetas | El servidor aún no ha calculado, o el asociado no tiene locator | Espere unos minutos; puede elegir igualmente sin insignia |
 
-> [Consejo] En caso de duda, haga clic en **Stop**: el sonido vuelve de inmediato a ORSAT solo, sin ninguna consecuencia.
+> [Consejo] En caso de duda, haga clic en **■ Detener la diversidad**: el sonido vuelve inmediatamente a ORSAT solo, sin ninguna consecuencia.

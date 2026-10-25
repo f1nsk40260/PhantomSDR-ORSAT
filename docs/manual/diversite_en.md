@@ -2,7 +2,7 @@
 pdf: guideDiversiteEN.pdf
 pdf_title: PhantomSDR-ORSAT — Receive diversity guide
 title: Receive diversity
-subtitle: Detailed guide — the principle, choosing a second receiver, reading the indicators
+subtitle: Detailed guide — the principle, choosing a partner, reading the indicators
 url: https://orsat.ddns.net
 cover: div_principe_en.png
 cover_caption: Two distant receivers do not hear the same fades: ORSAT switches, moment by moment, to the better of the two.
@@ -69,7 +69,7 @@ ORSAT compares the **rhythm of speech** in the two sounds: the sequence of sylla
 - It waits for **two successive measurements to agree** within 40 milliseconds before declaring itself aligned.
 - Once aligned, it **re-checks the delay every minute**, since the clocks of the two sites drift very slowly.
 
-Allow **10 to 20 seconds** between pressing **Start** and diversity being operational. **Someone must be talking** during that time: on a bare carrier or an empty frequency there is no rhythm to compare.
+Allow **10 to 20 seconds** between pressing **▶ Start** and diversity being operational. **Someone must be talking** during that time: on a bare carrier or an empty frequency there is no rhythm to compare.
 
 > [Tip] Once aligned, the sound you hear is about **0.3 second behind** ORSAT alone. That is the price of the margin that allows smooth switching; when listening, you do not notice it.
 
@@ -77,78 +77,92 @@ Allow **10 to 20 seconds** between pressing **Start** and diversity being operat
 
 ## 4.1 The panel
 
-The **Receive Diversity** panel is in the centre column, below fine tuning. Click its title bar to unfold it.
+The **Diversity reception** panel is in the middle column, below fine tuning. Its gold bar shows the state in plain words; click **Open ▸** to unfold it.
 
-![The “Receive Diversity” panel unfolded.](images/en_p16_0.jpg){w=482}
+![The panel bar, folded: title, state and Open button.](images/en_div_ferme.jpg){w=330}
+
+![The unfolded panel: the partners offered and the start button.](images/en_div_ouvert.jpg){w=330}
 
 ## 4.2 Starting
 
-1. **Tune ORSAT first** to the station you want, in the right mode.
-2. In **Second RX**, choose the type of the remote receiver: **PhantomSDR+**, **KiwiSDR**, **UberSDR** or **WebSDR** (PA3FWM's classic WebSDR).
-3. In the address field, type its address as *host:port* (for example **mywebsdr.example.org:8073**). The greyed text in the field shows the expected form for the chosen type.
-4. Click **Start**.
-5. Wait: the title bar shows **Please wait…** during alignment, then **Ready** when diversity is operational.
+1. **Tune ORSAT first** to the station you want to hear, in the right mode.
+2. **Choose a partner receiver** by clicking its card: it gets a gold outline. Preferably the one carrying the **★ Recommended** badge (section 5).
+3. Click the large green **▶ Start with…** button.
+4. Wait: the state goes from **Synchronising…** to **Running** when diversity is operational.
 
-**You do not have to tune the remote receiver.** ORSAT automatically puts it on the same frequency, mode and filter as itself, and follows every retune.
+**There is nothing to set on the partner.** ORSAT tunes it automatically to the same frequency, mode and filter, and follows every tuning change.
 
-To stop, click **Stop**: you are instantly back to ORSAT alone.
+To stop, click **■ Stop diversity**: you are instantly back to ORSAT alone. Your browser remembers your last partner for next time.
 
-## 4.3 The title-bar light
+## 4.3 While listening
 
-| Colour | Meaning |
-| Grey | Diversity off |
-| Blinking amber | Connecting or aligning |
-| Blinking green | Aligned, you are hearing **ORSAT** |
-| Blinking cyan | Aligned, you are hearing **the remote receiver** |
+Below the button, the **3. Listen** part shows what is happening:
 
-Listening to a fluctuating station, you will see the light switch between green and cyan as the fades come and go: that is diversity at work.
+- **🎧 You are hearing: ORSAT** (green) or **the partner's name** (blue) — the receiver you hear at this moment.
+- **The state in plain words** — “Synchronising the two receivers…”, then “Synchronised ✓ — the best signal is picked continuously”; in red, “The partner does not answer” with the reason.
+- **Two signal quality bars**, ORSAT and partner, with their signal-to-noise ratio in dB; the green bar is the receiver being used.
+- **The share of time** spent on the partner and the **number of switches** since starting.
 
-## 4.4 The detailed indicators
+## 4.4 The state in the panel bar
 
-While running, a table shows the state of the link:
+| State | Meaning |
+| ● Off (grey) | Diversity stopped |
+| ● Synchronising… (amber) | Connecting or aligning |
+| ● Running, green dot | Aligned, you are hearing **ORSAT** |
+| ● Running, blue dot | Aligned, you are hearing **the partner** |
+| ● Error (red) | The partner no longer answers: you hear ORSAT alone |
 
-| Indicator | What it tells you |
-| link | State of the connection to the remote receiver (connecting, ready, closed, error) and the reason for a drop |
-| aligned | Measured delay between the two sounds, in seconds; “searching” until it is found |
-| corr | How alike the two sounds are once aligned: the higher, the more reliable the alignment |
-| remote audio | Amount of audio received from the remote and its sample rate; “none” means it is sending nothing |
-| SNR local / SNR remote | Signal-to-noise ratio of each receiver, in dB, on which the choice is made |
+Listening to a fluctuating station, you will see the dot switch between green and blue with the fades: that is diversity at work.
+
+## 4.5 Technical details
+
+While listening, **▸ Technical details** unfolds a table for the curious:
+
+| Indicator | What it says |
+| link | State of the connection to the partner (connecting, ready, closed, error) and the reason for a disconnection |
+| delay | Measured offset between the two sounds, in seconds; “searching” until it is found |
+| correlation | Similarity of the two sounds once aligned: the higher, the surer the alignment |
+| remote audio | Amount of sound received from the partner and its sample rate; “none” means it sends nothing |
+| ORSAT SNR / partner SNR | Signal-to-noise ratio of each receiver, in dB, on which the choice is made |
+| trim | Correction added to the partner's SNR, set by the sysop (see section 6) |
 | switches | Number of changes from one receiver to the other since starting |
 
-If the message **“remote does not cover this frequency”** appears, the second receiver does not receive the band you are on: choose another one.
+If the message **“This partner does not receive this frequency”** appears, choose another one.
 
-## 4.5 Remote SNR trim
+# 5. The recommended partner
 
-The **Remote SNR trim** slider (−15 to +15 dB) is added to the remote receiver's SNR before comparison.
+## 5.1 What the badges say
 
-- With **another PhantomSDR+**, leave it at **0 dB**: the two measurements are directly comparable.
-- With a receiver that **compresses its audio heavily** (a classic WebSDR sends 8-bit audio), its noise floor is partly hidden by the compression and its SNR looks lower than it really is. Raise the trim by a few dB if ORSAT never hands over to it although it is clearly better.
-- Conversely, lower it if ORSAT switches too readily to a remote receiver that sounds worse.
+Each card carries a badge that applies **to the band you are tuned to**; it changes when you change band.
 
-# 5. Saved receivers
+| Badge | Meaning |
+| ★ Recommended on 40m | The best partner right now on this band |
+| Possible · 41 % | Partly useful: it hears about this percentage of the area ORSAT hears |
+| Of little use on 40m | It does not hear the same stations as ORSAT on this band right now |
+| Offline | The receiver does not answer; its card is greyed out |
 
-The **☰** button, next to the address, opens your list of receivers, kept **per type**: a KiwiSDR address is only offered when the KiwiSDR type is selected.
+Hover a badge to read the full explanation. No badge means the server has no advice yet (at start-up, or a partner without a known locator).
 
-- Every receiver started successfully is **added automatically** at the top of the list.
-- **add** adds a receiver by hand; **✎** edits its name and address; **✕** removes it; **clear all** empties the list for the current type.
-- Clicking a row puts its address in the field; **▲ ▼** or drag-and-drop change the order; **🌍** opens the receiver's page in a new tab.
-- The receiver in use is shown in bold in the list.
-- **⭳ export** saves all the lists to a file; **⭱ import** reads them back, offering to **merge** with the current list or **replace** it.
-- **▦ QR** shows the lists as a QR code: scan it with a phone to get your receivers on ORSAT's mobile page (Div tab).
+## 5.2 How the advice is computed
 
-These lists are kept **in your browser**: they do not travel from one computer to another without an export or the QR code.
+A good partner is not necessarily the one receiving the loudest: it is the one hearing **the same stations as ORSAT, along another path**. A receiver that hears another region very well brings nothing.
 
-# 6. Choosing the second receiver well
+- Every 10 minutes, the ORSAT server computes, from **ionosondes** worldwide (KC2G network), the area ORSAT hears on each band, up to 3000 km.
+- It makes the same computation **from each partner's locator**, and measures the share of ORSAT's area that the partner hears too: that is the badge percentage.
+- It takes the **distance** between the two receivers into account: under 100 km their fades are linked and diversity is useless; from 300 km they are independent.
+- Every 10 minutes it also checks that each partner **answers**: an offline receiver is never recommended.
 
-This is the most important choice: diversity is only worth the difference between the two sites.
+Example: on 40 m in daytime, ORSAT mostly hears France, within 900 km. A partner in Belgium then hears another area and will be “Of little use”; in the evening, when 40 m opens to long distance, it becomes an excellent partner again.
 
-- **Far enough from ORSAT**: from **a few hundred kilometres**, fades become independent. Two receivers in the same town fade together and add almost nothing.
-- **Not too far either**: it must **hear the station**. For a European station, a receiver in another European country works better than one in Australia.
-- **Covering the band** you are on, with a decent antenna.
-- **Preferably a PhantomSDR+**: same audio quality, same SNR measurement, no trim to set.
-- **Available**: a receiver overloaded with listeners or with an unstable connection will often make diversity fall back to ORSAT alone.
+> [Note] This advice is computed separately: it never enters ORSAT's **performance index** shown above the waterfall.
 
-> [Tip] WebSDR directories such as **sdr-list.xyz** list PhantomSDR+, KiwiSDR and WebSDR receivers by country.
+# 6. The partners offered
+
+The partners are **chosen by the ORSAT sysop** in the administration panel: reliable receivers at a good distance, each with the **SNR correction** that balances the comparison (a receiver that compresses its sound heavily seems noisier than it is). So there is no address to type and nothing to set.
+
+Each card shows the country **flag**, the receiver's **name** and **callsign**, its **place** and **distance** from ORSAT, its **locator** and its **bearing** from ORSAT.
+
+Some receivers (often KiwiSDRs) can only be reached over **http**, which a browser refuses from a secure https page. In that case the connection goes automatically through the **ORSAT server**, acting as a relay: there is nothing to do. The partner then sees the ORSAT server's address, not yours.
 
 # 7. What diversity does not do
 
@@ -159,13 +173,14 @@ This is the most important choice: diversity is only worth the difference betwee
 
 # 8. Troubleshooting
 
-| Symptom | Likely cause | Remedy |
-| Stays on “Please wait…” | Nobody is talking, or the remote does not hear the station | Wait for a transmission; check on the remote receiver's page (🌍) that it hears the station |
-| link: error or closed | Wrong address, wrong type, receiver offline or full | Check the address and type; try another receiver |
-| remote audio: none | The remote accepts the connection but sends no audio | Try another receiver of the same type |
-| “does not cover this frequency” | The second receiver does not receive this band | Choose a receiver that covers the band |
-| Light stays green, 0 switches | ORSAT is always better, or the remote is underrated | Normal if ORSAT is better; otherwise raise the remote SNR trim |
-| Constant switching | The two receivers are about equal | Harmless to listen to; lower the trim slightly to favour ORSAT |
-| A word repeated or skipped at a switch | Alignment being corrected | Fixes itself at the next check (within a minute) |
+| Symptom | Probable cause | Remedy |
+| Stays on “Synchronising…” | Nobody is talking, or the partner does not hear the station | Wait for a transmission; try the recommended partner |
+| “Error” state, “The partner does not answer” | Receiver offline or full | Choose another partner; avoid “Offline” cards |
+| remote audio: none | The partner accepts the connection but sends no sound | Try another partner |
+| “does not receive this frequency” | The partner does not cover this band | Choose another partner |
+| Always on ORSAT, 0 switches | ORSAT is better right now | Normal: diversity only uses the partner when it does better |
+| Constant switching | The two receivers are equivalent | Harmless to listening |
+| A word repeated or skipped at a switch | Alignment being readjusted | Corrects itself at the next check (one minute at most) |
+| No badge on the cards | The server has not computed yet, or the partner has no locator | Wait a few minutes; you can still choose without a badge |
 
-> [Tip] When in doubt, click **Stop**: the sound returns immediately to ORSAT alone, with no side effects.
+> [Tip] When in doubt, click **■ Stop diversity**: the sound returns immediately to ORSAT alone, with no consequence.

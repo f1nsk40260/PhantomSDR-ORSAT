@@ -2,7 +2,7 @@
 pdf: guideDiversiteFR.pdf
 pdf_title: PhantomSDR-ORSAT — Guide de la réception en diversité
 title: La réception en diversité
-subtitle: Guide détaillé — comprendre le principe, choisir un second récepteur, lire les indicateurs
+subtitle: Guide détaillé — comprendre le principe, choisir un partenaire, lire les indicateurs
 url: https://orsat.ddns.net
 cover: div_principe_fr.png
 cover_caption: Deux récepteurs éloignés n'entendent pas les mêmes évanouissements : ORSAT passe à chaque instant sur le meilleur des deux.
@@ -68,7 +68,7 @@ ORSAT compare le **rythme de la parole** des deux sons : la succession des sylla
 - Il attend que **deux mesures successives concordent** à 40 millisecondes près avant de se déclarer aligné.
 - Une fois aligné, il **revérifie le décalage chaque minute**, car les horloges des deux sites dérivent très lentement.
 
-Comptez donc **10 à 20 secondes** entre l'appui sur **Start** et le moment où la diversité est opérationnelle. Il faut qu'**une station parle** pendant ce temps : sur une porteuse pure ou une fréquence vide, il n'y a pas de rythme à comparer.
+Comptez donc **10 à 20 secondes** entre l'appui sur **▶ Démarrer** et le moment où la diversité est opérationnelle. Il faut qu'**une station parle** pendant ce temps : sur une porteuse pure ou une fréquence vide, il n'y a pas de rythme à comparer.
 
 > [Astuce] Une fois l'alignement trouvé, le son que vous entendez a environ **0,3 seconde de retard** sur ORSAT seul. C'est le prix de la marge qui permet de basculer sans à-coup ; à l'écoute, on ne le remarque pas.
 
@@ -76,78 +76,92 @@ Comptez donc **10 à 20 secondes** entre l'appui sur **Start** et le moment où 
 
 ## 4.1 Le panneau
 
-Le panneau **Réception en diversité** se trouve dans la colonne centrale, sous l'accord fin. Cliquez sur sa barre de titre pour le déplier.
+Le panneau **Réception en diversité** se trouve dans la colonne centrale, sous l'accord fin. Sa barre dorée indique l'état en clair ; cliquez sur **Ouvrir ▸** pour le déplier.
 
-![Le panneau « Réception en diversité » déplié.](images/fr_p17_0.jpg){w=482}
+![La barre du panneau, repliée : titre, état et bouton Ouvrir.](images/fr_div_ferme.jpg){w=330}
+
+![Le panneau déplié : les partenaires proposés et le bouton de démarrage.](images/fr_div_ouvert.jpg){w=330}
 
 ## 4.2 Démarrer
 
 1. **Accordez d'abord ORSAT** sur la station à écouter, dans le bon mode.
-2. Dans **2e récepteur**, choisissez le type du récepteur distant : **PhantomSDR+**, **KiwiSDR**, **UberSDR** ou **WebSDR** (WebSDR classique de PA3FWM).
-3. Dans le champ d'adresse, tapez son adresse, sous la forme *hôte:port* (par exemple **monwebsdr.example.org:8073**). Le texte grisé du champ montre la forme attendue pour le type choisi.
-4. Cliquez sur **Start**.
-5. Patientez : la barre de titre affiche **Veuillez patienter…** pendant l'alignement, puis **Ready** quand la diversité est opérationnelle.
+2. **Choisissez un récepteur partenaire** en cliquant sur sa vignette : elle s'entoure d'or. De préférence celui qui porte le badge **★ Conseillé** (section 5).
+3. Cliquez sur le grand bouton vert **▶ Démarrer avec…**.
+4. Patientez : l'état passe de **Synchronisation…** à **En marche** quand la diversité est opérationnelle.
 
-**Vous n'avez pas à régler le récepteur distant.** ORSAT le place automatiquement sur la même fréquence, le même mode et le même filtre que lui, et le suit à chaque changement d'accord.
+**Vous n'avez rien à régler sur le partenaire.** ORSAT le place automatiquement sur la même fréquence, le même mode et le même filtre que lui, et le suit à chaque changement d'accord.
 
-Pour arrêter, cliquez sur **Stop** : vous revenez instantanément à ORSAT seul.
+Pour arrêter, cliquez sur **■ Arrêter la diversité** : vous revenez instantanément à ORSAT seul. Votre dernier partenaire est retenu par votre navigateur pour la fois suivante.
 
-## 4.3 Le voyant de la barre de titre
+## 4.3 Pendant l'écoute
 
-| Couleur | Signification |
-| Gris | Diversité arrêtée |
-| Ambre clignotant | Connexion ou alignement en cours |
-| Vert clignotant | Aligné, vous entendez **ORSAT** |
-| Cyan clignotant | Aligné, vous entendez **le récepteur distant** |
+Sous le bouton, la partie **3. Écoutez** montre ce qui se passe :
 
-En écoutant une station qui fluctue, vous verrez le voyant passer du vert au cyan au gré des évanouissements : c'est la diversité qui travaille.
+- **🎧 Vous écoutez : ORSAT** (en vert) ou **le nom du partenaire** (en bleu) — le récepteur que vous entendez à cet instant.
+- **L'état en clair** — « Synchronisation des deux récepteurs… », puis « Synchronisé ✓ — le meilleur signal est choisi en continu » ; en rouge, « Le partenaire ne répond pas » avec la raison.
+- **Deux barres de qualité du signal**, ORSAT et partenaire, avec leur rapport signal/bruit en dB ; la barre en vert est celle du récepteur retenu.
+- **La part du temps** passée sur le partenaire et le **nombre de bascules** depuis le démarrage.
 
-## 4.4 Les indicateurs détaillés
+## 4.4 L'état dans la barre du panneau
 
-Pendant le fonctionnement, un tableau affiche l'état de la liaison :
+| État | Signification |
+| ● Arrêtée (gris) | Diversité arrêtée |
+| ● Synchronisation… (ambre) | Connexion ou alignement en cours |
+| ● En marche, point vert | Aligné, vous entendez **ORSAT** |
+| ● En marche, point bleu | Aligné, vous entendez **le partenaire** |
+| ● Erreur (rouge) | Le partenaire ne répond plus : vous entendez ORSAT seul |
+
+En écoutant une station qui fluctue, vous verrez le point passer du vert au bleu au gré des évanouissements : c'est la diversité qui travaille.
+
+## 4.5 Les détails techniques
+
+Pendant l'écoute, **▸ Détails techniques** déplie un tableau pour les curieux :
 
 | Indicateur | Ce qu'il dit |
-| liaison | État de la connexion au récepteur distant (connecting, ready, closed, error) et la raison d'une coupure |
-| aligné | Décalage mesuré entre les deux sons, en secondes ; « recherche » tant qu'il n'est pas trouvé |
-| corr | Ressemblance entre les deux sons une fois alignés : plus elle est haute, plus l'alignement est sûr |
-| audio distant | Quantité de son reçue du récepteur distant et sa fréquence d'échantillonnage ; « none » signale qu'il n'envoie rien |
-| SNR local / SNR distant | Rapport signal/bruit de chaque récepteur, en dB, celui sur lequel se fait le choix |
-| basculements | Nombre de passages d'un récepteur à l'autre depuis le démarrage |
+| liaison | État de la connexion au partenaire (connecting, ready, closed, error) et la raison d'une coupure |
+| décalage | Décalage mesuré entre les deux sons, en secondes ; « recherche » tant qu'il n'est pas trouvé |
+| corrélation | Ressemblance entre les deux sons une fois alignés : plus elle est haute, plus l'alignement est sûr |
+| son distant | Quantité de son reçue du partenaire et sa fréquence d'échantillonnage ; « aucun » signale qu'il n'envoie rien |
+| SNR ORSAT / SNR partenaire | Rapport signal/bruit de chaque récepteur, en dB, celui sur lequel se fait le choix |
+| correction | Correction ajoutée au SNR du partenaire, réglée par le sysop (voir section 6) |
+| bascules | Nombre de passages d'un récepteur à l'autre depuis le démarrage |
 
-Si le message **« le récepteur distant ne couvre pas cette fréquence »** apparaît, le second récepteur ne reçoit pas la bande écoutée : choisissez-en un autre.
+Si le message **« Ce partenaire ne reçoit pas cette fréquence »** apparaît, choisissez-en un autre.
 
-## 4.5 La correction SNR distant
+# 5. Le partenaire conseillé
 
-Le curseur **Correction SNR distant** (−15 à +15 dB) est ajouté au SNR du récepteur distant avant la comparaison.
+## 5.1 Ce que disent les badges
 
-- Avec un **autre PhantomSDR+**, laissez-le à **0 dB** : les deux mesures sont directement comparables.
-- Avec un récepteur qui **compresse fortement son son** (un WebSDR classique envoie un son 8 bits), son bruit de fond est en partie masqué par la compression et son SNR paraît plus faible qu'il n'est. Montez la correction de quelques dB si ORSAT ne lui donne jamais la main alors qu'il est manifestement meilleur.
-- À l'inverse, baissez-la si ORSAT bascule trop volontiers vers un récepteur distant qui sonne moins bien.
+Chaque vignette porte un badge qui vaut **pour la bande que vous écoutez** ; il change quand vous changez de bande.
 
-# 5. Les récepteurs enregistrés
+| Badge | Signification |
+| ★ Conseillé sur 40m | Le meilleur partenaire en ce moment sur cette bande |
+| Possible · 41 % | Utile en partie : il entend environ ce pourcentage de la zone entendue par ORSAT |
+| Peu utile sur 40m | Il n'entend pas les mêmes stations qu'ORSAT sur cette bande en ce moment |
+| Hors ligne | Le récepteur ne répond pas ; sa vignette est grisée |
 
-Le bouton **☰**, à côté de l'adresse, ouvre la liste de vos récepteurs, rangée **par type** : une adresse KiwiSDR n'est proposée que lorsque le type KiwiSDR est choisi.
+Survolez un badge pour lire l'explication complète. Sans badge, le serveur n'a pas encore d'avis (au démarrage, ou partenaire sans locator connu).
 
-- Chaque récepteur démarré avec succès est **ajouté automatiquement** en tête de liste.
-- **add** ajoute un récepteur à la main ; **✎** modifie son nom et son adresse ; **✕** le retire ; **tout effacer** vide la liste du type en cours.
-- Un clic sur une ligne met son adresse dans le champ ; **▲ ▼** ou un glisser-déposer changent l'ordre ; **🌍** ouvre la page du récepteur dans un nouvel onglet.
-- Le récepteur en cours d'utilisation est signalé en gras dans la liste.
-- **⭳ exporter** enregistre toutes les listes dans un fichier ; **⭱ importer** les relit, en proposant de **fusionner** avec la liste actuelle ou de la **remplacer**.
-- **▦ QR** affiche les listes sous forme de QR code : scannez-le avec un téléphone pour retrouver vos récepteurs sur la page mobile d'ORSAT (onglet Div).
+## 5.2 Comment le conseil est calculé
 
-Ces listes sont gardées **dans votre navigateur** : elles ne passent pas d'un ordinateur à l'autre sans export ou QR code.
+Un bon partenaire n'est pas forcément celui qui reçoit le plus fort : c'est celui qui entend **les mêmes stations qu'ORSAT, par un autre chemin**. Un récepteur qui entend très bien une autre région n'apporte rien.
 
-# 6. Bien choisir le second récepteur
+- Toutes les 10 minutes, le serveur d'ORSAT calcule, à partir des **ionosondes** du monde entier (réseau KC2G), la zone qu'ORSAT entend sur chaque bande, jusqu'à 3000 km.
+- Il fait le même calcul **depuis le locator de chaque partenaire**, et mesure la part de la zone d'ORSAT que le partenaire entend aussi : c'est le pourcentage du badge.
+- Il tient compte de la **distance** entre les deux récepteurs : à moins de 100 km, leurs évanouissements sont liés et la diversité ne sert à rien ; à partir de 300 km, ils sont indépendants.
+- Il vérifie aussi toutes les 10 minutes que chaque partenaire **répond** : un récepteur hors ligne n'est jamais conseillé.
 
-C'est le choix le plus important : la diversité ne vaut que par la différence entre les deux sites.
+Exemple : sur 40 m en journée, ORSAT entend surtout la France, à moins de 900 km. Un partenaire en Belgique entend alors une autre zone et sera « Peu utile » ; le soir, quand le 40 m s'ouvre au loin, il redevient un excellent partenaire.
 
-- **Assez loin d'ORSAT** : à partir de **quelques centaines de kilomètres**, les évanouissements deviennent indépendants. Deux récepteurs dans la même ville évanouissent ensemble et n'apportent presque rien.
-- **Pas trop loin non plus** : il doit **entendre la station**. Pour un correspondant européen, un récepteur dans un autre pays d'Europe convient mieux qu'un récepteur en Australie.
-- **Qui couvre la bande** écoutée, avec une antenne correcte.
-- **De préférence un PhantomSDR+** : même qualité de son, même mesure du SNR, pas de correction à régler.
-- **Disponible** : un récepteur saturé d'auditeurs ou à la connexion instable fera souvent retomber la diversité sur ORSAT seul.
+> [Remarque] Ce conseil est calculé à part : il n'entre jamais dans l'**indice de performance** d'ORSAT affiché au-dessus de la cascade.
 
-> [Astuce] Les annuaires de WebSDR, comme **sdr-list.xyz**, permettent de trouver des récepteurs PhantomSDR+, KiwiSDR et WebSDR classés par pays.
+# 6. Les partenaires proposés
+
+Les partenaires sont **choisis par le sysop d'ORSAT** dans le panneau d'administration : il retient des récepteurs fiables, à bonne distance, et règle pour chacun la **correction de SNR** qui équilibre la comparaison (un récepteur qui compresse fortement son son paraît plus bruyant qu'il n'est). Vous n'avez donc ni adresse à saisir ni réglage à faire.
+
+Chaque vignette indique le **drapeau** du pays, le **nom** et l'**indicatif** du récepteur, son **lieu** et sa **distance** à ORSAT, son **locator** et son **azimut** vu d'ORSAT.
+
+Certains récepteurs (souvent des KiwiSDR) ne sont joignables qu'en **http**, ce qu'un navigateur refuse depuis une page sécurisée en https. Dans ce cas, la connexion passe automatiquement par le **serveur d'ORSAT**, qui sert de relais : vous n'avez rien à faire. Le partenaire voit alors l'adresse du serveur d'ORSAT, pas la vôtre.
 
 # 7. Ce que la diversité ne fait pas
 
@@ -159,12 +173,13 @@ C'est le choix le plus important : la diversité ne vaut que par la différence 
 # 8. Dépannage
 
 | Symptôme | Cause probable | Remède |
-| Reste sur « Veuillez patienter… » | Personne ne parle, ou le récepteur distant n'entend pas la station | Attendez une transmission ; vérifiez sur la page du récepteur distant (🌍) qu'il reçoit bien la station |
-| liaison : error ou closed | Adresse erronée, mauvais type, récepteur hors ligne ou complet | Vérifiez l'adresse et le type ; essayez un autre récepteur |
-| audio distant : none | Le récepteur distant accepte la connexion mais n'envoie pas de son | Essayez un autre récepteur du même type |
-| « ne couvre pas cette fréquence » | Le second récepteur ne reçoit pas cette bande | Choisissez un récepteur qui couvre la bande |
-| Le voyant reste vert, 0 basculement | ORSAT est toujours meilleur, ou le distant est sous-évalué | Normal si ORSAT est meilleur ; sinon montez la correction SNR distant |
-| Basculements incessants | Les deux récepteurs se valent | Pas gênant à l'écoute ; baissez légèrement la correction pour favoriser ORSAT |
+| Reste sur « Synchronisation… » | Personne ne parle, ou le partenaire n'entend pas la station | Attendez une transmission ; essayez le partenaire conseillé |
+| État « Erreur », « Le partenaire ne répond pas » | Récepteur hors ligne ou complet | Choisissez un autre partenaire ; les vignettes « Hors ligne » sont à éviter |
+| son distant : aucun | Le partenaire accepte la connexion mais n'envoie pas de son | Essayez un autre partenaire |
+| « ne reçoit pas cette fréquence » | Le partenaire ne couvre pas cette bande | Choisissez un autre partenaire |
+| Toujours sur ORSAT, 0 bascule | ORSAT est meilleur en ce moment | Normal : la diversité ne passe sur le partenaire que s'il fait mieux |
+| Bascules incessantes | Les deux récepteurs se valent | Sans gêne à l'écoute |
 | Un mot répété ou sauté au basculement | Alignement en cours de recalage | Se corrige seul à la vérification suivante (au plus une minute) |
+| Aucun badge sur les vignettes | Le serveur n'a pas encore calculé, ou le partenaire n'a pas de locator | Patientez quelques minutes ; le choix reste possible sans badge |
 
-> [Astuce] En cas de doute, cliquez sur **Stop** : le son revient immédiatement à ORSAT seul, sans aucune conséquence.
+> [Astuce] En cas de doute, cliquez sur **■ Arrêter la diversité** : le son revient immédiatement à ORSAT seul, sans aucune conséquence.

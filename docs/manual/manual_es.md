@@ -28,9 +28,9 @@ Este manual describe, zona por zona, todos los controles visibles en pantalla: d
 ## 1.1 Organización de la pantalla
 
 - **Banda superior** — identificación de la estación, enlaces, reloj, idioma y menú «Información» (sección 2).
-- **Zona central** — espectro, cascada, regla de frecuencias y marcas de bandas (sección 3).
+- **Zona central** — banda «Índice de rendimiento», espectro, cascada, regla de frecuencias y marcas de bandas (sección 3).
 - **Columna izquierda** — audio, AGC, filtros de ruido, DSP, QRSS y grabación (secciones 5 a 7).
-- **Columna  central** — dial de frecuencia, S-meter, diversidad, sintonía fina, bandas/modos/filtros, escáner y decodificadores (secciones 4, 8 y 9).
+- **Columna  central** — dial de frecuencia, S-meter, bandas/modos/filtros, sintonía fina, diversidad y decodificadores (secciones 4, 8 y 9).
 - **Columna derecha** — controles de la cascada (ajuste automático, colores, espectro 3D), analizador de audio, marcadores e indicador de conexión (secciones 10 a 12).
 
 ## 1.2 Elección del idioma
@@ -115,11 +115,34 @@ Cuando una banda **★ ADMIN** atraviesa la cascada, se trata de un mensaje difu
 
 > [Consejo] Los colores, el brillo y el contraste de la cascada se ajustan en la columna derecha (sección 10).
 
+## 3.3 Banda «Índice de rendimiento»
+
+Justo encima de la cascada, una banda fina indica, **banda por banda**, la capacidad de ORSAT para oír estaciones **en este momento**. El servidor la recalcula continuamente, incluso cuando nadie escucha.
+
+![Banda «Índice de rendimiento»: una pastilla por banda, nota de 0 a 100 y zona donde ORSAT escucha mejor; a la derecha, el botón «Ver el mapa».](images/es_ip_bandeau.jpg){w=440}
+
+- **Pastillas** — una por banda, con una nota de **0 a 100** y su color: **verde** excelente (75 o más), **oliva** bueno (50 a 74), **naranja** regular (25 a 49), **gris** débil (menos de 25). La banda que escucha aparece resaltada.
+- **Zona** — **Loc** (hasta 300 km), **Reg** (300 a 900 km), **EU** (900 a 2500 km) o **DX** (más allá): la distancia a la que ORSAT escucha mejor en esa banda.
+- **Al pasar sobre una pastilla** — el detalle: nota prevista, medida real y lo que la calibración ha constatado los días anteriores.
+- **🗺 Ver el mapa** (o un clic en cualquier parte de la banda) — abre el mapa detallado de las zonas donde ORSAT escucha bien, banda por banda; el botón **✕ Cerrar** lo cierra.
+- **Índice de rendimiento ?** — el título es un botón: abre la explicación completa del cálculo.
+
+![Explicación del cálculo, abierta con un clic en el título de la banda.](images/es_ip_aide.jpg){w=330}
+
+El índice combina dos cosas:
+
+- **una previsión**: cada 15 minutos, el servidor lee las medidas de las ionosondas de todo el mundo (red KC2G), calcula la frecuencia máxima utilizable y la absorción diurna para cada dirección y distancia, y las pondera con el diagrama real de la antena loop de ORSAT;
+- **una medida real**: cada 5 minutos, ORSAT escucha él mismo cada banda unos segundos en su cascada, cuenta las señales y anota la mejor relación señal/ruido.
+
+Cuando la medida tiene menos de 15 minutos, el índice vale 40 % de previsión y 60 % de medida; si no, solo la previsión.
+
+> [Atención] Este método es **original y experimental**, propio de ORSAT. Puede dar valores aberrantes, por ejemplo una banda abierta pero vacía puntuada demasiado baja, o una banda inflada por un concurso. Tómelo como una indicación, no como una certeza.
+
 # 4. Dial, bandas, modos y filtros
 
 La columna central reúne todo lo relativo a la sintonía del receptor.
 
-![Columna central: dial y S-meter, diversidad, sintonía fina, VFO / Modos / Bandas / Filtros FI / TCI-CAT, escáner y decodificadores.](images/es_p08_0.jpg){w=275}
+![Columna central: dial y S-meter, VFO / Modos / Bandas / Filtros FI / TCI-CAT, sintonía fina, diversidad y decodificadores.](images/es_colonne.jpg){w=275}
 
 ## 4.0 Dial de frecuencia, S-meter e indicadores
 
@@ -183,7 +206,9 @@ La columna izquierda reúne los ajustes de reproducción y procesado del sonido.
 
 ## 5.1 Audio y búfer
 
-- **Volumen** (altavoz) — nivel de escucha; un clic en el icono silencia / restablece el sonido (indicador SILENCIO).
+![El botón «SILENCIAR» en reposo, y activado («SILENCIADO»).](images/es_mute_off.jpg){w=200,side}
+- **SILENCIAR** — botón grande a la izquierda del volumen: un clic corta el sonido, el botón se vuelve **rojo** y muestra **SILENCIADO**; otro clic restablece la escucha. Pensado para el oyente que pasa a transmisión sin enlace automático entre su transceptor y el ordenador: evita el **acoplamiento (larsen)**.
+- **Volumen** — cursor del nivel de escucha, a la derecha del botón.
 - **SQ** (silenciador) — el cursor fija el umbral en dB. El botón **SQ** ofrece un **silenciador automático**: sitúese en una frecuencia silenciosa, haga clic para medir el ruido y el umbral se ajusta solo; un nuevo clic lo desactiva.
 - **Búfer** (icono de globo) — multiplicador del búfer de audio (×1 por defecto). Auméntelo si su conexión a Internet es lenta o inestable, a costa de algo de latencia.
 
@@ -250,37 +275,31 @@ Un nuevo clic detiene la grabación y ofrece la descarga del archivo producido.
 
 # 8. Recepción en diversidad
 
-La función **Recepción en diversidad** combina el receptor ORSAT con un **segundo receptor remoto** accesible por Internet, para superar los desvanecimientos (fading) y mejorar la relación señal/ruido gracias a dos puntos de escucha geográficamente distintos. Haga clic en la barra para desplegar el panel.
+La **recepción en diversidad** asocia ORSAT a un **receptor asociado** situado a varios cientos de kilómetros. Los dos sitios no sufren los mismos desvanecimientos (QSB): ORSAT le hace oír en cada momento **el mejor de los dos**. El panel está en la columna central, bajo la sintonía fina; haga clic en su barra dorada (**Abrir ▸**) para desplegarlo.
 
-![Panel «Recepción en diversidad» desplegado.](images/es_p16_0.jpg){w=482}
+![El panel desplegado: receptores asociados propuestos, con bandera, distancia, locator, acimut y consejo para la banda escuchada.](images/es_div_ouvert.jpg){w=330}
 
-- **Interruptor** (off / on, arriba a la derecha) — activa o desactiva la combinación.
-- **2.º receptor** — tipo de receptor remoto: **PhantomSDR+**, **KiwiSDR**, **UberSDR** o **WebSDR**.
-- **Dirección** — host y puerto del receptor remoto (forma host:puerto).
-- **☰ Receptores guardados** — memoriza sus receptores favoritos por tipo: **Añadir** uno a mano y recuperarlo con un clic; **importar** vuelve a leer una lista desde un archivo de copia de seguridad.
-- **Start** — se conecta al receptor remoto e inicia la combinación.
-- **Corrección SNR remota** — compensa (en dB) la diferencia de nivel entre los dos receptores para equilibrar su contribución.
-> [Consejo] El receptor remoto debe cubrir la misma frecuencia y estar accesible; el resultado depende de la calidad de su recepción y de la latencia de la red.
+1. **Elija un receptor asociado** — las tarjetas presentan los receptores elegidos por el sysop de ORSAT: bandera, nombre e indicativo, lugar y distancia, **locator** y **acimut** desde ORSAT.
+2. **Inicie la diversidad** — el gran botón verde **▶ Iniciar con…**; se convierte en **■ Detener la diversidad** durante la escucha.
+3. **Escuche** — «🎧 Está escuchando: ORSAT» o el nombre del asociado, el estado en claro (sincronizando, luego «Sincronizado ✓»), dos barras de calidad de señal y la parte del tiempo pasada en el asociado.
 
-# 9. Escáner y decodificadores
+En cada tarjeta, una insignia da el consejo del momento **para la banda escuchada**; sigue la frecuencia cuando cambia de banda:
 
-![Sintonía fina, VFO / Modos / Bandas / Filtros FI / TCI-CAT, escáner y control de decodificadores.](images/es_p17_0.jpg){w=410}
+| Insignia | Significado |
+| ★ Recomendado en 40m | El mejor asociado ahora: oye la misma zona que ORSAT, por otro camino |
+| Posible · 41 % | Útil en parte: oye aproximadamente ese porcentaje de la zona que oye ORSAT |
+| Poco útil en 40m | No oye las mismas estaciones que ORSAT en esta banda ahora |
+| Fuera de línea | El receptor no responde (comprobado por el servidor cada 10 minutos) |
 
-## 9.1 Escáner
+La sincronización de los dos receptores tarda **10 a 15 segundos** y necesita que una estación transmita. El asociado se ajusta automáticamente a la misma frecuencia, modo y filtro que ORSAT, y sigue cada cambio de sintonía. Los decodificadores siguen en ORSAT solo.
 
-- **‹** / **›** — barren hacia abajo o hacia arriba en pasos de 1 kHz; el barrido se reanuda tras cada parada.
-- **■** — detiene el barrido.
-- **◐** — excluye la frecuencia actual del barrido (portadora o interferencia permanente).
-- **Umbral (p. ej. 30 dB ▾)** — abre el menú de ajuste del escáner (abajo).
+> [Consejo] La guía detallada «Recepción en diversidad» (menú Información) explica el principio, la sincronización, los indicadores y la resolución de problemas.
 
-![Menú de ajuste del escáner.](images/es_p17_1.jpg){w=164,side}
-- **Rango** — Banda completa o solo la Parte visible de la cascada.
-- **Barrido** — Cada canal o Saltar los vacíos.
-- **Parar en** — nivel sobre el ruido de fondo (+6 a +40 dB) que detiene el barrido en el primer canal activo.
-- **Reanudar tras** — Mantener (permanece en la señal), 3 s, 5 s o 10 s tras su desaparición.
-- **Permanencia máx.** — tiempo máximo en una misma señal: Off, 30 s, 1 min o 2 min.
+# 9. Decodificadores
 
-## 9.2 Decodificadores digitales
+![Sintonía fina, VFO / Modos / Bandas / Filtros FI / TCI-CAT, diversidad y control de decodificadores.](images/es_commandes.jpg){w=410}
+
+## 9.1 Decodificadores digitales
 
 La fila **Control de decodificadores** ofrece once decodificadores que se activan con un clic (un segundo clic los detiene):
 
@@ -308,9 +327,9 @@ La fila **Control de decodificadores** ofrece once decodificadores que se activa
 
 **Mapa de estaciones.** Los paneles FT8 / FT4 / FT2, WSPR y JS8 tienen un botón **🗺 Mapa (n)**: cada estación oída cuyo mensaje contiene un locator se sitúa en él (las llamadas CQ casi siempre lo incluyen). **⤢ Gran formato** abre el mapa en una ventana flotante, desplazable y redimensionable; al pasar el ratón sobre un punto se ven el indicativo y el mensaje, un clic abre su ficha QRZ.
 
-## 9.3 Análisis de señales digitales
+## 9.2 Análisis de señales digitales
 
-El módulo **Análisis de señales digitales**, bajo la fila de decodificadores, **intenta reconocer el modo** de la señal que escucha (FT8, WSPR, RTTY, PSK, Olivia, CW…) y **propone el decodificador adecuado**. Esta función es **experimental**.
+El módulo **Análisis de señales digitales**, justo encima de la fila de decodificadores, **intenta reconocer el modo** de la señal que escucha (FT8, WSPR, RTTY, PSK, Olivia, CW…) y **propone el decodificador adecuado**. Esta función es **experimental**.
 
 ![Módulo «Análisis de señales digitales»: análisis automático y acceso a la base de señales.](images/new_analyse.jpg){w=380}
 
@@ -318,11 +337,11 @@ El módulo **Análisis de señales digitales**, bajo la fila de decodificadores,
 - **Medida actual** — el modo reconocido y lo medido: ancho, separación entre tonos (shift), velocidad en baudios, cadencia, relación señal/ruido.
 - **Modos reconocidos, por relevancia** — los modos ya vistos siguen en la lista con su puntuación, el número de detecciones y su antigüedad; el botón **▶ Lanzar** abre el decodificador correspondiente y el icono **i** muestra la ficha de referencia del modo.
 - **Recentrar y reintentar** — aparece cuando la señal está demasiado cerca del borde del filtro, donde la medida no es fiable.
-- **📚 Buscar en la base de señales** — abre la ventana «Identificar una señal» (sección 9.4).
+- **📚 Buscar en la base de señales** — abre la ventana «Identificar una señal» (sección 9.3).
 
 > [Consejo] El análisis automático está desactivado por defecto: solo consume CPU mientras está activo. Nunca cambia de decodificador por sí solo: solo propone.
 
-## 9.4 Identificar una señal (base Artemis)
+## 9.3 Identificar una señal (base Artemis)
 
 El botón **📚 Buscar en la base de señales** abre una ventana que busca, entre **583 señales de referencia** (base Artemis, procedente del Signal Identification Wiki), lo que corresponde a la frecuencia, al ancho del filtro y a la demodulación actuales. Las señales se clasifican por porcentaje de coincidencia.
 
@@ -336,7 +355,7 @@ El botón **📚 Buscar en la base de señales** abre una ventana que busca, ent
 
 Un clic en una entrada muestra su **ficha**: espectrograma de referencia, **muestra de audio** para comparar de oído (el audio del receptor se silencia durante la escucha), ancho, modulación, modo de recepción, rango de frecuencias, categoría, zona, descripción y enlace a la ficha completa del Signal Identification Wiki.
 
-## 9.5 Decodificador FLDIGI (FSK / RTTY y otros modos)
+## 9.4 Decodificador FLDIGI (FSK / RTTY y otros modos)
 
 ![Decodificador FLDIGI en variante FSK marítimo / SITOR (NAVTEX 518 kHz).](images/es_p21_0.jpg){w=204,side}
 - **Variante** — FSK marítimo / SITOR, RTTY meteorológico, RTTY de aficionado, PSK31, Olivia, MFSK16·32·64, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet (AX.25), APRS.
@@ -349,7 +368,7 @@ Un clic en una entrada muestra su **ficha**: espectrograma de referencia, **mues
 
 > [Consejo] Mientras funciona, este decodificador toma el control del modo y del filtro FI: elija una frecuencia conocida y afine la sintonía hasta que el texto se estabilice.
 
-## 9.6 Decodificador HFDL
+## 9.5 Decodificador HFDL
 
 ![Receptor HFDL (decodificador dumphfdl en WebAssembly).](images/es_p21_1.jpg){w=204,side}
 - **Estación terrestre** — elija una estación HFDL (Shannon, Reykjavik, Canarias, Riverhead, Johannesburg…) y una de sus frecuencias, y luego **Sintonizar y ajustar FI**.
@@ -454,7 +473,7 @@ En **USB** y **LSB**, un recuadro **Informe de audio SSB** analiza la modulació
 - **🎧 Generar un informe de escucha** — descarga un archivo HTML para enviar al corresponsal: frecuencia, modo, veredictos, imagen del espectro y los últimos 20 segundos de audio (WAV).
 - Los **parásitos estáticos** (chasquidos breves de espectro plano) se descartan; su proporción se indica cuando supera el 10 %.
 
-> [Consejo] Un operador puede analizar su propia emisión: se escucha en ORSAT con el sonido silenciado, para no devolver el audio al micrófono, y lee su informe.
+> [Consejo] Un operador puede analizar su propia emisión: se escucha en ORSAT con el sonido cortado (botón **SILENCIAR**), para no devolver el audio al micrófono, y lee su informe.
 
 > [Nota] Medida indicativa: el fading, el filtro del receptor y las señales débiles influyen. Para juzgar los graves, el filtro debe bajar hasta unos 120 Hz; para la presencia, subir hasta unos 2,6 kHz.
 

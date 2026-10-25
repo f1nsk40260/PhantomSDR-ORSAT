@@ -28,9 +28,9 @@ This manual describes, area by area, every control visible on screen: where it i
 ## 1.1 Screen layout
 
 - **Top banner** — station identification, links, clock, language and the “Information” menu (section 2).
-- **Central area** — spectrum, waterfall, frequency scale and band markers (section 3).
+- **Central area** — “Performance index” banner, spectrum, waterfall, frequency scale and band markers (section 3).
 - **Left column** — audio, AGC, noise filters, DSP, QRSS and recording (sections 5 to 7).
-- **Middle column** — frequency dial, S-meter, diversity, fine tuning, bands/modes/filters, scanner and decoders (sections 4, 8 and 9).
+- **Middle column** — frequency dial, S-meter, bands/modes/filters, fine tuning, diversity and decoders (sections 4, 8 and 9).
 - **Right column** — waterfall controls (automatic adjustment, colours, 3D spectrum), audio analyser, bookmarks and connection indicator (sections 10 to 12).
 
 ## 1.2 Choosing the language
@@ -115,11 +115,34 @@ When a **★ ADMIN** banner runs across the waterfall, it is a message broadcast
 
 > [Tip] Waterfall colours, brightness and contrast are set in the right column (section 10).
 
+## 3.3 “Performance index” banner
+
+Just above the waterfall, a thin banner shows, **band by band**, how well ORSAT can hear stations **right now**. The server recomputes it continuously, even when nobody is listening.
+
+![“Performance index” banner: one chip per band, a 0 to 100 score and the area where ORSAT hears best; on the right, the “Show map” button.](images/en_ip_bandeau.jpg){w=440}
+
+- **Chips** — one per band, with a score from **0 to 100** and its colour: **green** excellent (75 and above), **olive** good (50 to 74), **orange** fair (25 to 49), **grey** weak (below 25). The band you are tuned to is highlighted.
+- **Area** — **Loc** (up to 300 km), **Reg** (300 to 900 km), **EU** (900 to 2500 km) or **DX** (beyond): the distance at which ORSAT hears best on that band.
+- **Hovering a chip** — the detail: forecast score, real measurement, and what calibration has observed over the previous days.
+- **🗺 Show map** (or a click anywhere on the banner) — opens the detailed map of the areas where ORSAT hears well, band by band; the **✕ Close** button closes it.
+- **Performance index ?** — the title is a button: it opens the full explanation of the computation.
+
+![Explanation of the computation, opened by clicking the banner title.](images/en_ip_aide.jpg){w=330}
+
+The index combines two things:
+
+- **a forecast**: every 15 minutes, the server reads the measurements of ionosondes worldwide (KC2G network), computes the maximum usable frequency and daytime absorption for every direction and distance, and weighs them with the real pattern of ORSAT's loop antenna;
+- **a real measurement**: every 5 minutes, ORSAT itself listens to each band for a few seconds on its waterfall, counts the signals and notes the best signal-to-noise ratio.
+
+When the measurement is less than 15 minutes old, the index is 40 % forecast and 60 % measurement; otherwise, the forecast alone.
+
+> [Warning] This method is **original and experimental**, specific to ORSAT. It can give aberrant values, for instance an open but empty band scored too low, or a band inflated by a contest. Take it as an indication, not a certainty.
+
 # 4. Dial, bands, modes and filters
 
 The middle column gathers everything related to tuning the receiver.
 
-![Middle column: dial and S-meter, diversity, fine tuning, VFO / Modes / Bands / IF Filters / TCI-CAT, scanner and decoders.](images/en_p08_0.jpg){w=275}
+![Middle column: dial and S-meter, VFO / Modes / Bands / IF Filters / TCI-CAT, fine tuning, diversity and decoders.](images/en_colonne.jpg){w=275}
 
 ## 4.0 Frequency dial, S-meter and indicators
 
@@ -183,7 +206,9 @@ The left column gathers the sound output and processing settings.
 
 ## 5.1 Audio & Buffer
 
-- **Volume** (speaker) — listening level; clicking the icon mutes / unmutes (MUTED indicator).
+![The “MUTE AUDIO” button at rest, and engaged (“AUDIO MUTED”).](images/en_mute_off.jpg){w=200,side}
+- **MUTE AUDIO** — large button to the left of the volume: one click cuts the sound, the button turns **red** and reads **AUDIO MUTED**; another click restores listening. Designed for listeners who go to transmit without an automatic link between their transceiver and the computer: it prevents **audio feedback**.
+- **Volume** — listening level slider, to the right of the button.
 - **SQ** (squelch) — the slider sets the threshold in dB. The **SQ** button offers an **automatic squelch**: go to a quiet frequency, click to measure the noise and the threshold sets itself; click again to disable it.
 - **Buffer** (globe icon) — audio buffer multiplier (×1 by default). Increase it on a slow or unstable Internet connection, at the cost of a little latency.
 
@@ -250,37 +275,31 @@ A second click stops recording and offers the resulting file for download.
 
 # 8. Receive diversity
 
-**Receive Diversity** combines the ORSAT receiver with a **second, remote receiver** reachable over the Internet, to ride through fading and improve the signal-to-noise ratio thanks to two geographically different listening points. Click the bar to unfold the panel.
+**Diversity reception** pairs ORSAT with a **partner receiver** several hundred kilometres away. The two sites do not suffer the same fades (QSB): ORSAT lets you hear, at every moment, **the better of the two**. The panel is in the middle column, below fine tuning; click its gold bar (**Open ▸**) to unfold it.
 
-![“Receive Diversity” panel unfolded.](images/en_p16_0.jpg){w=482}
+![The unfolded panel: partners offered, with flag, distance, locator, bearing and advice for the band you are tuned to.](images/en_div_ouvert.jpg){w=330}
 
-- **Switch** (off / on, top right) — enables or disables the combination.
-- **2nd receiver** — type of remote receiver: **PhantomSDR+**, **KiwiSDR**, **UberSDR** or **WebSDR**.
-- **Address** — host and port of the remote receiver (host:port).
-- **☰ Saved receivers** — stores your favourite receivers by type: **Add** one by hand, then recall it with a click; **import** reloads a list from a backup file.
-- **Start** — connects to the remote receiver and starts combining.
-- **Remote SNR trim** — compensates (in dB) the level difference between the two receivers to balance their contributions.
-> [Tip] The remote receiver must cover the same frequency and be reachable; results depend on its reception quality and on network latency.
+1. **Choose a partner receiver** — the cards show the receivers selected by the ORSAT sysop: flag, name and callsign, place and distance, **locator** and **bearing** from ORSAT.
+2. **Start diversity** — the large green **▶ Start with…** button; it becomes **■ Stop diversity** while listening.
+3. **Listen** — “🎧 You are hearing: ORSAT” or the partner's name, the state in plain words (synchronising, then “Synchronised ✓”), two signal quality bars and the share of time spent on the partner.
 
-# 9. Scanner and decoders
+On each card, a badge gives the current advice **for the band you are tuned to**; it follows the frequency when you change band:
 
-![Fine tuning, VFO / Modes / Bands / IF Filters / TCI-CAT, scanner and decoders control.](images/en_p16_1.jpg){w=410}
+| Badge | Meaning |
+| ★ Recommended on 40m | The best partner right now: it hears the same area as ORSAT, along another path |
+| Possible · 41 % | Partly useful: it hears about this percentage of the area ORSAT hears |
+| Of little use on 40m | It does not hear the same stations as ORSAT on this band right now |
+| Offline | The receiver does not answer (checked by the server every 10 minutes) |
 
-## 9.1 Scanner
+Synchronising the two receivers takes **10 to 15 seconds** and needs a station to be transmitting. The partner is set automatically to the same frequency, mode and filter as ORSAT, and follows every tuning change. The decoders stay on ORSAT alone.
 
-- **‹** / **›** — scan down or up in 1 kHz steps; scanning resumes after each stop.
-- **■** — stops scanning.
-- **◐** — excludes the current frequency from the scan (carrier or permanent interference).
-- **Threshold (e.g. 30 dB ▾)** — opens the scanner settings menu (below).
+> [Tip] The detailed “Receive diversity” guide (Information menu) explains the principle, synchronisation, the indicators and troubleshooting.
 
-![Scanner settings menu.](images/en_p17_0.jpg){w=164,side}
-- **Range** — Whole band or only the Visible part of the waterfall.
-- **Sweep** — Every channel or Skip empty.
-- **Stop at** — level above the noise floor (+6 to +40 dB) that stops the scan on the first active channel.
-- **Resume after** — Hold (stays on the signal), 3 s, 5 s or 10 s after it disappears.
-- **Max dwell** — maximum time on one signal: Off, 30 s, 1 min or 2 min.
+# 9. Decoders
 
-## 9.2 Digital decoders
+![Fine tuning, VFO / Modes / Bands / IF Filters / TCI-CAT, diversity and decoder control.](images/en_commandes.jpg){w=410}
+
+## 9.1 Digital decoders
 
 The **Decoders Control** row offers eleven decoders, each started with one click (a second click stops it):
 
@@ -308,9 +327,9 @@ The **Decoders Control** row offers eleven decoders, each started with one click
 
 **Station map.** The FT8 / FT4 / FT2, WSPR and JS8 panels have a **🗺 Map (n)** button: every station heard whose message carries a locator is placed on it (CQ calls almost always do). **⤢ Large view** opens the map in a floating window that can be moved and resized; hovering a dot shows the callsign and message, a click opens its QRZ page.
 
-## 9.3 Digital signal analysis
+## 9.2 Digital signal analysis
 
-The **Digital signal analysis** module, below the decoder row, **tries to recognise the mode** of the signal you are hearing (FT8, WSPR, RTTY, PSK, Olivia, CW…) and **offers the right decoder**. This feature is **experimental**.
+The **Digital signal analysis** module, just above the decoder row, **tries to recognise the mode** of the signal you are hearing (FT8, WSPR, RTTY, PSK, Olivia, CW…) and **offers the right decoder**. This feature is **experimental**.
 
 ![“Digital signal analysis” module: automatic analysis and access to the signal database.](images/new_analyse.jpg){w=380}
 
@@ -318,11 +337,11 @@ The **Digital signal analysis** module, below the decoder row, **tries to recogn
 - **Current measurement** — the recognised mode and what was measured: width, tone spacing (shift), baud rate, timing, signal-to-noise ratio.
 - **Recognised modes, by relevance** — modes already seen stay listed with their score, number of detections and age; the **▶ Launch** button opens the matching decoder and the **i** icon shows the mode's reference entry.
 - **Recentre & retry** — appears when the signal sits too close to the edge of the filter, where the measurement is unreliable.
-- **📚 Search the signal database** — opens the “Identify a signal” window (section 9.4).
+- **📚 Search the signal database** — opens the “Identify a signal” window (section 9.3).
 
 > [Tip] Automatic analysis is off by default: it only uses CPU while it is on. It never switches decoder by itself: it only makes suggestions.
 
-## 9.4 Identify a signal (Artemis database)
+## 9.3 Identify a signal (Artemis database)
 
 The **📚 Search the signal database** button opens a window that searches **583 reference signals** (Artemis database, from the Signal Identification Wiki) for matches to the current frequency, filter width and demodulation. Signals are ranked by match percentage.
 
@@ -336,7 +355,7 @@ The **📚 Search the signal database** button opens a window that searches **58
 
 Clicking an entry shows its **reference sheet**: reference spectrogram, **audio sample** to compare by ear (the receiver audio is muted while it plays), width, modulation, receive mode, frequency range, category, area, description and a link to the full Signal Identification Wiki page.
 
-## 9.5 FLDIGI decoder (FSK / RTTY and other modes)
+## 9.4 FLDIGI decoder (FSK / RTTY and other modes)
 
 ![FLDIGI decoder, maritime FSK / SITOR variant (NAVTEX 518 kHz).](images/en_p20_0.jpg){w=204,side}
 - **Variant** — maritime FSK / SITOR, weather RTTY, amateur RTTY, PSK31, Olivia, MFSK16·32·64, DominoEX, THOR, THROB, Hellschreiber, MT63, Packet (AX.25), APRS.
@@ -349,7 +368,7 @@ Clicking an entry shows its **reference sheet**: reference spectrogram, **audio 
 
 > [Tip] While running, this decoder takes control of the mode and IF filter: pick a known frequency, then fine-tune until the text stabilises.
 
-## 9.6 HFDL decoder
+## 9.5 HFDL decoder
 
 ![HFDL receiver (dumphfdl decoder in WebAssembly).](images/en_p20_1.jpg){w=204,side}
 - **Ground station** — choose an HFDL station (Shannon, Reykjavik, Canarias, Riverhead, Johannesburg…) and one of its frequencies, then **Tune & set IF**.
@@ -454,7 +473,7 @@ In **USB** and **LSB**, an **SSB audio report** box analyses the modulation over
 - **🎧 Generate a listening report** — downloads an HTML file to send to the other station: frequency, mode, verdicts, spectrum image and the last 20 seconds of audio (WAV).
 - **Static crashes** (short, flat-spectrum clicks) are discarded; their share is shown when it exceeds 10 %.
 
-> [Tip] An operator can analyse their own transmission: listen to yourself on ORSAT with the sound muted, so as not to feed the audio back into the microphone, and read the report.
+> [Tip] An operator can analyse their own transmission: listen to yourself on ORSAT with the sound cut (**MUTE AUDIO** button), so as not to feed the audio back into the microphone, and read the report.
 
 > [Note] Indicative measurement: fading, the receiver filter and weak signals affect it. To judge the bass, the filter must reach down to about 120 Hz; for presence, up to about 2.6 kHz.
 

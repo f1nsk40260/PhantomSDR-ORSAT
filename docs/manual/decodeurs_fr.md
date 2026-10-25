@@ -19,7 +19,7 @@ toc: Sommaire
 
 ## 1.1 Où se trouvent les décodeurs
 
-Tous les décodeurs sont regroupés dans la rangée **Contrôle des décodeurs**, dans la colonne de droite, sous le scanner. Chaque bouton lance un décodeur ; un second clic sur le même bouton l'arrête. **Un seul décodeur fonctionne à la fois** : en lancer un autre arrête le précédent.
+Tous les décodeurs sont regroupés dans la rangée **Contrôle des décodeurs**, dans la colonne centrale, sous la réception en diversité. Chaque bouton lance un décodeur ; un second clic sur le même bouton l'arrête. **Un seul décodeur fonctionne à la fois** : en lancer un autre arrête le précédent.
 
 ![La rangée « Contrôle des décodeurs » et ses onze boutons.](images/dec_rangee.jpg){w=380}
 

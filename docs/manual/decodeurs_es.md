@@ -20,7 +20,7 @@ cover_note: Las capturas muestran la interfaz en francés; los nombres de los bo
 
 ## 1.1 Dónde están los decodificadores
 
-Todos los decodificadores están agrupados en la fila **Control de decodificadores**, en la columna derecha, bajo el escáner. Cada botón inicia un decodificador; un segundo clic en el mismo botón lo detiene. **Solo funciona un decodificador a la vez**: iniciar otro detiene el anterior.
+Todos los decodificadores están agrupados en la fila **Control de decodificadores**, en la columna central, bajo la recepción en diversidad. Cada botón inicia un decodificador; un segundo clic en el mismo botón lo detiene. **Solo funciona un decodificador a la vez**: iniciar otro detiene el anterior.
 
 ![La fila «Control de decodificadores» y sus once botones.](images/dec_rangee.jpg){w=380}
 

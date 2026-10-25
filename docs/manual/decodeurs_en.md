@@ -20,7 +20,7 @@ cover_note: The screenshots show the interface in French; the button names in th
 
 ## 1.1 Where the decoders are
 
-All the decoders are grouped in the **Decoders Control** row, in the right-hand column, below the scanner. Each button starts a decoder; a second click on the same button stops it. **Only one decoder runs at a time**: starting another one stops the previous one.
+All the decoders are grouped in the **Decoders Control** row, in the middle column, below diversity reception. Each button starts a decoder; a second click on the same button stops it. **Only one decoder runs at a time**: starting another one stops the previous one.
 
 ![The “Decoders Control” row and its eleven buttons.](images/dec_rangee.jpg){w=380}
 
