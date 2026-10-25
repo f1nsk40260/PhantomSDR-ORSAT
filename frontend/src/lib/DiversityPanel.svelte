@@ -12,7 +12,7 @@
   import { startDiversity, stopDiversity, getDiversityStatus } from "./backend.js";
   import { normalise } from "../diversityList.js";
   import { lang } from "./i18n.js";
-  import { PARTNERS as BUILTIN, ORSAT_LOCATOR, locatorLatLon, distanceKm, flagSvg } from "./diversityPartners.js";
+  import { PARTNERS as BUILTIN, ORSAT_LOCATOR, locatorLatLon, distanceKm, bearingDeg, flagSvg } from "./diversityPartners.js";
 
   const T = {
     fr: {
@@ -26,7 +26,7 @@
       fail: "Le partenaire ne répond pas", notCovered: "Ce partenaire ne reçoit pas cette fréquence : choisissez-en un autre",
       noAudio: "Pas encore de son du partenaire…",
       signal: "Qualité du signal", onPartner: (p) => `${p} % du temps sur le partenaire`, saves: (n) => `${n} bascule${n > 1 ? "s" : ""}`,
-      tech: "Détails techniques", km: (d) => `${d} km d'ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
+      az: "azimut", tech: "Détails techniques", km: (d) => `${d} km d'ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
       help: "Comment ça marche ?",
       helpText: "Deux récepteurs éloignés de plusieurs centaines de kilomètres ne reçoivent pas les ondes par le même chemin dans l'ionosphère : quand le signal s'évanouit chez l'un, il reste souvent fort chez l'autre. La diversité écoute les deux en même temps, les synchronise, et vous fait entendre à chaque instant celui qui reçoit le mieux. Les décodeurs, eux, restent sur ORSAT.",
       decoders: "Les décodeurs continuent d'utiliser ORSAT seul ; la diversité ne concerne que le son du haut-parleur.",
@@ -45,7 +45,7 @@
       fail: "The partner does not answer", notCovered: "This partner does not receive this frequency: choose another one",
       noAudio: "No audio from the partner yet…",
       signal: "Signal quality", onPartner: (p) => `${p} % of the time on the partner`, saves: (n) => `${n} switch${n > 1 ? "es" : ""}`,
-      tech: "Technical details", km: (d) => `${d} km from ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
+      az: "bearing", tech: "Technical details", km: (d) => `${d} km from ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
       help: "How does it work?",
       helpText: "Two receivers several hundred kilometres apart do not get the waves along the same path through the ionosphere: when the signal fades at one, it often stays strong at the other. Diversity listens to both at once, synchronises them and lets you hear, at every moment, the one receiving best. The decoders stay on ORSAT.",
       decoders: "Decoders keep using ORSAT alone; diversity only affects the speaker audio.",
@@ -64,7 +64,7 @@
       fail: "El receptor asociado no responde", notCovered: "Este receptor no recibe esta frecuencia: elija otro",
       noAudio: "Todavía no hay audio del receptor asociado…",
       signal: "Calidad de la señal", onPartner: (p) => `${p} % del tiempo en el receptor asociado`, saves: (n) => `${n} conmutacion${n > 1 ? "es" : ""}`,
-      tech: "Detalles técnicos", km: (d) => `a ${d} km de ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
+      az: "acimut", tech: "Detalles técnicos", km: (d) => `a ${d} km de ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
       help: "¿Cómo funciona?",
       helpText: "Dos receptores separados varios cientos de kilómetros no reciben las ondas por el mismo camino en la ionosfera: cuando la señal se desvanece en uno, a menudo sigue fuerte en el otro. La diversidad escucha los dos a la vez, los sincroniza y le hace oír en cada momento el que mejor recibe. Los decodificadores siguen en ORSAT.",
       decoders: "Los decodificadores siguen usando solo ORSAT; la diversidad solo afecta al audio del altavoz.",
@@ -234,6 +234,7 @@
         <div class="dv-cards">
           {#each partners as x (x.id)}
             {@const d = distanceKm(home, posOf(x))}
+            {@const az = bearingDeg(home, posOf(x))}
             {@const ad = adviceOf(x, advice, band)}
             <button type="button" class="dv-card" class:sel={partnerId === x.id} class:offline={ad && ad.k === "off"}
                     disabled={running && partnerId !== x.id}
@@ -242,7 +243,7 @@
               {#if ad}<span class="dv-ad {ad.k}">{ad.k === "best" ? D.adBest(band) : ad.k === "ok" ? `${D.adOk} · ${ad.v} %` : ad.k === "low" ? D.adLow(band) : D.adOff}</span>{/if}
               <b>{#if x.country}<span class="dv-flag" title={x.country}>{@html flagSvg(x.country)}</span>{/if}{x.name}{#if x.call}<i> · {x.call}</i>{/if}</b>
               <span>{placeOf(x)}{d != null ? `${placeOf(x) ? " · " : ""}${D.km(d)}` : ""}</span>
-              <em>{D[x.type] || x.type}</em>
+              {#if x.locator || az != null}<em>{x.locator || ""}{x.locator && az != null ? " · " : ""}{az != null ? `${D.az} ${az}°` : ""}</em>{/if}
             </button>
           {/each}
         </div>

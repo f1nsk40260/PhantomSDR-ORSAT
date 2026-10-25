@@ -44,7 +44,7 @@ export const PARTNERS = [
     country: "CH",
     type: "phantom",
     addr: "https://novasdr.rigiremote.ch/",
-    lat: 47.056, lon: 8.485,
+    locator: "JN47FB", lat: 47.056, lon: 8.485,
   },
   {
     id: "heppen",
@@ -54,7 +54,7 @@ export const PARTNERS = [
     country: "BE",
     type: "uber",
     addr: "https://websdr.heppen.be/",
-    lat: 51.10, lon: 5.23,
+    locator: "JO21OC", lat: 51.10, lon: 5.23,
   },
   {
     id: "kiwi21051",
@@ -90,4 +90,13 @@ export function distanceKm(a, b) {
   const h = Math.sin(((b[0] - a[0]) * r) / 2) ** 2
     + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(((b[1] - a[1]) * r) / 2) ** 2;
   return Math.round(2 * 6371 * Math.asin(Math.sqrt(h)));
+}
+
+/** Azimut (degrés, 0–359, depuis a vers b) ; null si une position manque. */
+export function bearingDeg(a, b) {
+  if (!a || !b || a[0] == null || b[0] == null) return null;
+  const r = Math.PI / 180;
+  const y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r);
+  const x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r);
+  return Math.round((Math.atan2(y, x) / r + 360) % 360);
 }
