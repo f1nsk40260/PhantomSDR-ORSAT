@@ -8,6 +8,7 @@ décrites dans le README et dans le projet original.
 ## En cours (après ORSAT 1.0)
 
 ### Interface
+- **Bouton « COUPER L'AUDIO »** : même taille, style adouci (vieil or patiné du bouton « Réglage automatique » du waterfall) ; reste rouge et pulsé quand la coupure est engagée (« SILENCIEUX »).
 - **Diversité, vignettes** : le type de récepteur n'est plus affiché (réservé au panneau admin) ; à la place, locator du partenaire et azimut depuis ORSAT (ex. « JO21OC · azimut 28° »).
 - **Diversité, relais pour les partenaires en http** : une page ouverte en https ne peut pas se connecter à un récepteur en http (la plupart des KiwiSDR). Le proxy relaie alors la connexion (`/divrelay/<id>/…`, websocket et HTTP). Relais fermé : seuls les partenaires inscrits dans le panneau admin sont joignables, aucun cookie ni en-tête de l'auditeur n'est transmis, 30 connexions au plus.
 - **Diversité, partenaire conseillé** : sur chaque carte partenaire, badge pour la bande écoutée — « ★ Conseillé sur 40m », « Possible · 41 % », « Peu utile sur … » ou « Hors ligne » (carte grisée). Calcul fait par le carnet ORSAT-LOG (≥ 1.24.0, `/log/api/public/diversity`) : part de la zone entendue par ORSAT que le partenaire entend aussi (ionosondes KC2G), disponibilité sondée toutes les 10 min. Sans carnet : pas de badge. N'a aucun effet sur l'indice de performance d'ORSAT.

@@ -14658,15 +14658,20 @@ Cliquez à nouveau pour désactiver"
     flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; margin-right: 10px;
     width: max-content; min-width: 168px; height: 44px; padding: 0 14px; border-radius: 10px; cursor: pointer;
     font-size: 14px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap;
-    color: #1a1606; background: linear-gradient(180deg, #e2c95a, rgb(207, 181, 59));
-    border: 2px solid #f0dc80; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    /* même style que le bouton « Réglage automatique » du waterfall : vieil or patiné, discret */
+    color: #f3e7a6; background: linear-gradient(180deg, rgba(207, 181, 59, 0.30), rgba(120, 100, 30, 0.30));
+    border: 1px solid rgba(207, 181, 59, 0.75);
+    box-shadow: 0 0 8px rgba(207, 181, 59, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: background 0.2s;
   }
-  :global(.mute-big:hover) { filter: brightness(1.1); }
+  :global(.mute-big:hover) { background: linear-gradient(180deg, rgba(207, 181, 59, 0.38), rgba(120, 100, 30, 0.38)); }
+  :global(.mute-big .mute-ico) { color: rgb(207, 181, 59); }
   :global(.mute-big.mute-on) {
-    color: #ffffff; background: linear-gradient(180deg, #e04848, #a81e1e); border-color: #ff9a9a;
+    color: #ffffff; background: linear-gradient(180deg, #e04848, #a81e1e); border: 1px solid #ff9a9a;
     box-shadow: 0 0 12px rgba(230, 60, 60, 0.8); animation: mute-pulse 1.6s ease-in-out infinite;
   }
   /* icône à taille fixe : ne jamais la comprimer quand le texte est long (« COUPER LE SON ») */
+  :global(.mute-big.mute-on .mute-ico) { color: #ffffff; }
   :global(.mute-big .mute-ico) { width: 32px !important; height: 32px !important; min-width: 32px; flex: 0 0 32px; }
   :global(.mute-big span) { white-space: nowrap; }
   :global(#volume-slider .slider-container) { flex: 1 1 auto; min-width: 60px; }
