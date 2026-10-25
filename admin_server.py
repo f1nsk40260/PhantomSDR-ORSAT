@@ -2385,7 +2385,7 @@ async function liLive(){
     const d = await (await fetch('/admin/api/listeners/live', {cache:'no-store'})).json();
     const u = d.users || [];
     document.getElementById('li-live-label').textContent = `${u.length} auditeur(s) — ${new Date().toLocaleTimeString('fr-FR')}`;
-    if (!u.length){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="text-align:center;color:var(--text3);">Aucun auditeur connecté</td></tr>`; return; }
+    if (!u.length){ tb.innerHTML = `<tr><td colspan="11" style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;text-align:center;color:var(--text3);">Aucun auditeur connecté</td></tr>`; return; }
     tb.innerHTML = u.map(x => `<tr>
       <td ${liTd}><span style="font-family:monospace;">${liEsc(x.ip)}</span>${x.returning?'<br><span style="color:var(--green);font-size:.6rem;">FIDÈLE</span>':'<br><span style="color:var(--amber);font-size:.6rem;">NOUVEAU</span>'}</td>
       <td ${liTd}>${liFlag(x.cc)} ${liEsc(x.city)}<br><span style="color:var(--text3);">${liEsc(x.region)}${x.region?', ':''}${liEsc(x.country)}</span>${x.lat!=null?`<br><a href="https://www.openstreetmap.org/?mlat=${x.lat}&mlon=${x.lon}&zoom=9" target="_blank" style="font-size:.6rem;color:var(--blue);">carte ≈</a>`:''}</td>
@@ -2398,7 +2398,7 @@ async function liLive(){
       <td ${liTd}>${liEsc(x.lang)}<br><span style="color:var(--text3);">${liEsc(x.tz_browser)}${x.tz_browser&&x.tz_ip&&x.tz_browser!==x.tz_ip?' <span style="color:var(--red);" title="Fuseau du navigateur différent de celui de l’IP (indice de VPN)">≠ IP</span>':''}</span></td>
       <td ${liTd}>${x.src?liEsc(x.src):'<span style="color:var(--text3);">direct / inconnu</span>'}</td>
       <td ${liTd}>${liEsc(x.duration)}</td></tr>`).join('');
-  } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
+  } catch(e){ tb.innerHTML = `<tr><td colspan="11" style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
 }
 function liTop(title, obj, n){
   const arr = Object.entries(obj||{}).sort((a,b) => b[1]-a[1]).slice(0, n||12);
@@ -2461,9 +2461,9 @@ async function liSessions(){
       <td ${liTd}>${x.decoders.length?`<span style="color:var(--amber);">${liEsc(x.decoders.join(', '))}</span>`:'—'}</td>
       <td ${liTd}>${liEsc(x.browser)} ${liEsc(x.os)}</td>
       <td ${liTd}>${x.src?liEsc(x.src):'<span style="color:var(--text3);">direct / inconnu</span>'}</td>
-      <td ${liTd} style="font-family:monospace;color:var(--text3);" title="Identifiant anonyme de l’auditeur : même IP = même ID pendant 90 jours">${liEsc(x.iph)}</td></tr>`).join('')
-      : `<tr><td colspan="11" ${liTd} style="text-align:center;color:var(--text3);">Aucune session</td></tr>`;
-  } catch(e){ tb.innerHTML = `<tr><td colspan="11" ${liTd} style="color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;color:var(--text3);" title="Identifiant anonyme de l’auditeur : même IP = même ID pendant 90 jours">${liEsc(x.iph)}</td></tr>`).join('')
+      : `<tr><td colspan="11" style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;text-align:center;color:var(--text3);">Aucune session</td></tr>`;
+  } catch(e){ tb.innerHTML = `<tr><td colspan="11" style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--red);">Erreur : ${liEsc(e.message)}</td></tr>`; }
 }
 
 let secDays = 7;
@@ -2484,26 +2484,26 @@ async function secLoad(days, btn){
     secRenderAllow();
     const ips = d.ips || [];
     document.getElementById('sec-ips-tbody').innerHTML = ips.length ? ips.map(x => `<tr>
-      <td ${liTd} style="min-width:15rem;">${secDanger(x)}</td>
-      <td ${liTd} style="font-family:monospace;">${liEsc(x.ip)}</td>
-      <td ${liTd} style="font-family:monospace;color:var(--blue);font-size:.62rem;">${liEsc(x.rdns||'—')}</td>
-      <td ${liTd}>${liFlag(x.countryCode)} ${liEsc(x.city||'')}${x.country?', '+liEsc(x.country):''}<br><span style="color:var(--text3);">${liEsc(x.isp||'')} ${liEsc(x.as||'')}</span></td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;width:13rem;min-width:11rem;">${secDanger(x)}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;">${liEsc(x.ip)}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;color:var(--blue);font-size:.62rem;max-width:11rem;word-break:break-all;">${liEsc(x.rdns||'—')}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;max-width:11rem;">${liFlag(x.countryCode)} ${liEsc(x.city||'')}${x.country?', '+liEsc(x.country):''}<br><span style="color:var(--text3);">${liEsc(x.isp||'')} ${liEsc(x.as||'')}</span></td>
       <td ${liTd}>${liBadge(x.net||'?')}</td>
       <td ${liTd}>${x.count}</td>
       <td ${liTd}>${Object.entries(x.cats).map(([c,n]) => secCat(c,n)).join('')}</td>
-      <td ${liTd} style="font-family:monospace;font-size:.6rem;color:var(--text2);">${x.paths.map(liEsc).join('<br>')}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;font-size:.6rem;color:var(--text2);max-width:16rem;word-break:break-all;" title="${liEsc(x.paths.join('\n'))}">${x.paths.slice(0,4).map(p => liEsc(p.length > 60 ? p.slice(0,60)+'…' : p)).join('<br>')}${x.paths.length > 4 ? `<br><span style="color:var(--text3);">+ ${x.paths.length-4} autres (survol)</span>` : ''}</td>
       <td ${liTd}>${liEsc((x.last||'').replace('T',' ').replace('Z',''))}</td>
-      <td ${liTd}>${x.banned?`<button class="btn" style="font-size:.6rem;" onclick="secUnban('${liEsc(x.ip)}')">DÉBANNIR</button>`:`<button class="btn" style="font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',24)">24 H</button> <button class="btn" style="font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',0)">DÉFINITIF</button>`}</td></tr>`).join('')
-      : `<tr><td colspan="10" ${liTd} style="text-align:center;color:var(--text3);">Aucune tentative anormale sur la période</td></tr>`;
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;">${x.banned?`<button class="btn" style="font-size:.6rem;" onclick="secUnban('${liEsc(x.ip)}')">DÉBANNIR</button>`:`<button class="btn" style="font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',24)">24 H</button><br><button class="btn" style="margin-top:.25rem;font-size:.6rem;color:var(--red);border-color:var(--red);" onclick="secBan('${liEsc(x.ip)}',0)">DÉFINITIF</button>`}</td></tr>`).join('')
+      : `<tr><td colspan="10" style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;text-align:center;color:var(--text3);">Aucune tentative anormale sur la période</td></tr>`;
     const ev = d.events || [];
     document.getElementById('sec-ev-tbody').innerHTML = ev.length ? ev.slice(0,200).map(e => `<tr>
       <td ${liTd}>${liEsc((e.ts||'').replace('T',' ').replace('Z',''))}</td>
-      <td ${liTd} style="font-family:monospace;" title="${liEsc(e.rdns||'')}">${liEsc(e.ip)}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;" title="${liEsc(e.rdns||'')}">${liEsc(e.ip)}</td>
       <td ${liTd}>${secCat(e.cat)}</td>
-      <td ${liTd} style="font-family:monospace;font-size:.6rem;word-break:break-all;">${liEsc(e.method)} ${liEsc(e.path)}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;font-size:.6rem;word-break:break-all;">${liEsc(e.method)} ${liEsc(e.path)}</td>
       <td ${liTd}>${liEsc(e.status)}</td>
-      <td ${liTd} style="font-size:.6rem;color:var(--text3);">${liEsc((e.ua||'').slice(0,90))}</td></tr>`).join('')
-      : `<tr><td colspan="6" ${liTd} style="text-align:center;color:var(--text3);">—</td></tr>`;
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-size:.6rem;color:var(--text3);">${liEsc((e.ua||'').slice(0,90))}</td></tr>`).join('')
+      : `<tr><td colspan="6" style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;text-align:center;color:var(--text3);">—</td></tr>`;
   } catch(e){ document.getElementById('sec-kpis').innerHTML = `<div style="color:var(--red);">Erreur : ${liEsc(e.message)}</div>`; }
 }
 const SEC_LVL = {'faible':'var(--green)', 'moyen':'var(--amber)', 'élevé':'var(--red)', 'critique':'#ff2a2a'};
@@ -2519,9 +2519,9 @@ function secRenderAllow(){
   document.getElementById('sec-myip').textContent = secMyIp || '—';
   document.getElementById('sec-allow-count').textContent = secAllow.length ? `${secAllow.length} entrée${secAllow.length>1?'s':''}` : 'vide';
   document.getElementById('sec-allow').innerHTML = secAllow.length ? `<table style="width:100%;border-collapse:collapse;font-size:.68rem;">` + secAllow.map(b => `<tr>
-      <td ${liTd} style="font-family:monospace;color:var(--green);">${liEsc(b.ip)}${b.ip===secMyIp?' <span style="color:var(--text3);">(vous)</span>':''}</td>
-      <td ${liTd} style="color:var(--text2);">${liEsc(b.note||'')}</td>
-      <td ${liTd} style="color:var(--text3);white-space:nowrap;">${b.since?new Date(b.since*1000).toLocaleDateString():''}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;color:var(--green);">${liEsc(b.ip)}${b.ip===secMyIp?' <span style="color:var(--text3);">(vous)</span>':''}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2);">${liEsc(b.note||'')}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text3);white-space:nowrap;">${b.since?new Date(b.since*1000).toLocaleDateString():''}</td>
       <td ${liTd}><button class="btn" style="font-size:.6rem;padding:0 .4rem;" onclick="secAllowRemove('${liEsc(b.ip)}')">RETIRER</button></td></tr>`).join('') + '</table>'
     : `<div style="font-size:.68rem;color:var(--text3);padding:.3rem;">Aucune entrée.</div>`;
 }
@@ -2546,10 +2546,10 @@ function secRenderBans(){
   const list = secBans.filter(b => !q || (b.ip + ' ' + (b.reason||'')).toLowerCase().includes(q));
   document.getElementById('sec-ban-count').textContent = secBans.length ? `${secBans.length} entrée${secBans.length>1?'s':''}` : 'vide';
   box.innerHTML = list.length ? `<table style="width:100%;border-collapse:collapse;font-size:.68rem;">` + list.map(b => `<tr>
-      <td ${liTd} style="font-family:monospace;">${liEsc(b.ip)}</td>
-      <td ${liTd} style="color:var(--text2);">${liEsc(b.reason||'')}</td>
-      <td ${liTd} style="color:var(--text3);white-space:nowrap;">${b.since?new Date(b.since*1000).toLocaleDateString():''}</td>
-      <td ${liTd} style="white-space:nowrap;">${b.until?'jusqu’au '+new Date(b.until*1000).toLocaleString():'définitif'}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;font-family:monospace;">${liEsc(b.ip)}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2);">${liEsc(b.reason||'')}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text3);white-space:nowrap;">${b.since?new Date(b.since*1000).toLocaleDateString():''}</td>
+      <td style="padding:.35rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;">${b.until?'jusqu’au '+new Date(b.until*1000).toLocaleString():'définitif'}</td>
       <td ${liTd}><button class="btn" style="font-size:.6rem;padding:0 .4rem;" onclick="secUnban('${liEsc(b.ip)}')">DÉBANNIR</button></td></tr>`).join('') + '</table>'
     : `<div style="font-size:.68rem;color:var(--text3);padding:.3rem;">${secBans.length ? 'Aucune entrée ne correspond.' : 'Aucune IP bannie.'}</div>`;
 }
