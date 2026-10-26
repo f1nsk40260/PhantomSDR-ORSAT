@@ -54,6 +54,7 @@
     .x-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.6rem;}
     .x-chip{font-size:.65rem;padding:.2rem .55rem;border:1px solid var(--border);border-radius:999px;cursor:pointer;color:var(--text2);background:#030803;}
     .x-chip.on{color:#000;background:var(--green);border-color:var(--green);}
+    .x-ol-tabs .x-chip{font-size:.72rem;padding:.35rem .9rem;letter-spacing:.08em;}
     .x-bar{height:6px;background:#0a1a0a;border-radius:3px;overflow:hidden;}
     .x-bar > div{height:100%;background:var(--green);}
     .x-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin-bottom:1rem;}
@@ -609,6 +610,15 @@
     ' style="width:100%;">' + (hint ? '<div class="x-dim" style="font-size:.6rem;margin-top:.2rem;">' + hint + '</div>' : '') + '</div>';
   const day8 = (d) => (d && d.length === 8 ? d.slice(6) + '/' + d.slice(4, 6) + '/' + d.slice(0, 4) : '—');
 
+  const OL_TABS = [['etat', 'ÉTAT'], ['station', 'STATION'], ['qrz', 'QRZ.COM'], ['sauvegardes', 'SAUVEGARDES'], ['maj', 'MISE À JOUR']];
+  let olTab = 'etat';
+  function olShowTab(k) {
+    if (!OL_TABS.some((t) => t[0] === k)) k = 'etat';
+    olTab = k;
+    document.querySelectorAll('#x-ol-state .x-ol-pane').forEach((p) => (p.style.display = p.dataset.tab === k ? '' : 'none'));
+    document.querySelectorAll('#x-ol-state [data-oltab]').forEach((c) => c.classList.toggle('on', c.dataset.oltab === k));
+  }
+
   async function olRender() {
     const box = $('x-orsatlog');
     box.innerHTML = '<div id="x-ol-state">' + card('CARNET ORSAT-LOG', '<div style="' + small + '">Chargement…</div>') + '</div>';
@@ -618,7 +628,7 @@
     const u = d.unit, st = d.status || {}, cfg = d.settings || {}, bk = (d.backups || {}).items || [];
     const active = u && u.active === 'active';
     const kpi = (l, v) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div></div>';
-    let html = card('ÉTAT',
+    let html = '<div class="x-ol-pane" data-tab="etat">' + card('ÉTAT',
       (d.ok ? '' : '<div class="x-bad" style="margin-bottom:.6rem;">✗ ' + esc(d.msg) + '</div>') +
       '<div class="x-kpis">' +
       kpi('SERVICE', u ? '<span class="' + (active ? 'x-ok' : 'x-bad') + '">' + esc(u.active + ' / ' + u.sub) + '</span>' : '<span class="x-bad">non installé</span>') +
@@ -639,9 +649,9 @@
           : '<span class="x-dim" title="Mettre l\'autorun en service (rubrique Envoi des spots)">autorun arrêté</span>') : '') +
       '</div><div style="' + small + '">Adresse : <a href="/log/" target="_blank" style="color:var(--green);">/log/</a> · dossier ' +
       esc(d.dir) + ' · port interne ' + d.port + (u && u.since ? ' · actif depuis ' + esc(u.since) : '') + '</div>',
-      active ? 'var(--green)' : 'var(--red)');
+      active ? 'var(--green)' : 'var(--red)') + '</div>';
 
-    html += '<div class="grid grid-2">' +
+    html += '<div class="x-ol-pane" data-tab="station">' +
       card('STATION',
         '<form id="x-ol-form">' +
         olField('x-ol-call', 'INDICATIF', cfg.callsign, '', 'class="mono" style="text-transform:uppercase;"') +
@@ -662,6 +672,7 @@
         '</select></div></div>' +
         '<button class="btn btn-green" type="submit" style="margin-top:.4rem;">💾 ENREGISTRER</button>' +
         '<span id="x-ol-saved" style="' + small + 'margin-left:.6rem;"></span></form>', 'var(--green)') +
+      '</div><div class="x-ol-pane" data-tab="sauvegardes">' +
       card('SAUVEGARDES DU CARNET',
         '<p style="' + small + 'margin-bottom:.6rem;">Une copie automatique par jour, gardée ' + ((d.backups || {}).keep_days || 30) + ' jours, dans le dossier data/backups du carnet.</p>' +
         '<a class="btn btn-green" href="/admin/api/orsatlog/backup" style="display:inline-block;text-decoration:none;margin-bottom:.6rem;">💾 TÉLÉCHARGER UNE SAUVEGARDE</a>' +
@@ -675,16 +686,22 @@
         '<div id="x-ol-restore-msg" style="' + small + 'margin-top:.4rem;"></div>', 'var(--amber)') +
       '</div>';
 
-    html += card('SYNCHRONISATION QRZ.COM', '<div id="x-ol-qrz" style="' + small + '">Chargement…</div>', 'var(--green)');
+    html += '<div class="x-ol-pane" data-tab="qrz">' +
+      card('SYNCHRONISATION QRZ.COM', '<div id="x-ol-qrz" style="' + small + '">Chargement…</div>', 'var(--green)') + '</div>';
 
-    html += card('MISE À JOUR DU CARNET',
+    html += '<div class="x-ol-pane" data-tab="maj">' + card('MISE À JOUR DU CARNET',
       '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;">' +
       '<button class="btn btn-green" id="x-ol-check">🔍 VÉRIFIER</button>' +
       '<button class="btn btn-amber" id="x-ol-run">🔄 METTRE À JOUR</button></div>' +
       '<div id="x-ol-info" style="' + small + 'margin-bottom:.6rem;">' + esc(st.commit_subject || '') + '</div>' +
       '<p class="x-dim" style="font-size:.62rem;margin-bottom:.4rem;">Récupère le code, recompile l\'interface en basse priorité, puis redémarre le carnet (le WebSDR n\'est pas touché).</p>' +
-      '<div class="x-log" id="x-ol-log">—</div>', 'var(--amber)');
-    $('x-ol-state').innerHTML = html;
+      '<div class="x-log" id="x-ol-log">—</div>', 'var(--amber)') + '</div>';
+    // onglets : toutes les rubriques restent dans la page (identifiants et boutons inchangés), une seule est affichée
+    const tabs = OL_TABS.map(([k, l]) => '<span class="x-chip' + (k === olTab ? ' on' : '') + '" data-oltab="' + k + '">' + l + '</span>').join('');
+    $('x-ol-state').innerHTML = '<div class="x-chips x-ol-tabs">' + tabs + '</div>' + html;
+    if (d.updating) olTab = 'maj';
+    olShowTab(olTab);
+    $('x-ol-state').querySelectorAll('[data-oltab]').forEach((el) => (el.onclick = () => olShowTab(el.dataset.oltab)));
 
     $('x-ol-form').onsubmit = olSave;
     olQrzRender();
@@ -993,10 +1010,51 @@
     } catch (e) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(e.message) + '</span>'; }
   }
 
+  // ── Tableau de bord : alertes cliquables qui ouvrent la bonne page ──────────
+  function goPage(name) {
+    const el = document.querySelector('.nav-item[onclick*="\'' + name + '\'"]');
+    if (el && window.showPage) window.showPage(name, el);
+  }
+  async function dashAlerts() {
+    const page = $('page-dashboard');
+    if (!page) return;
+    let box = $('x-dash-alerts');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'x-dash-alerts';
+      page.insertBefore(box, page.firstChild);
+    }
+    const out = [];
+    const add = (lvl, txt, target) => out.push({ lvl, txt, target });
+    const [h, ol] = await Promise.all([api('/admin/api/health').catch(() => null), api('/admin/api/orsatlog/status').catch(() => null)]);
+    if (h) {
+      if (h.sdr && h.sdr.running === false) add('bad', 'Serveur radio arrêté', 'health');
+      (h.units || []).filter((u) => u.active === 'failed').forEach((u) => add('bad', 'Service en échec : ' + (u.label || u.name || '?'), 'health'));
+      if (h.cert && !h.cert.ok) add('bad', 'Certificat HTTPS en défaut', 'health');
+      else if (h.cert && h.cert.days < 25) add(h.cert.days < 10 ? 'bad' : 'warn', 'Certificat HTTPS : ' + h.cert.days + ' jours restants', 'health');
+      if (h.disk && h.disk.used / h.disk.total > 0.8) add(h.disk.used / h.disk.total > 0.92 ? 'bad' : 'warn', 'Disque rempli à ' + Math.round(100 * h.disk.used / h.disk.total) + ' %', 'health');
+      if (h.mem && h.mem.MemTotal && h.mem.MemAvailable / h.mem.MemTotal < 0.1) add('warn', 'Mémoire disponible faible', 'health');
+      if (h.crash && String(h.crash).trim()) add('warn', 'Plantage récent dans crash.log', 'health');
+    } else add('warn', 'Santé du serveur illisible', 'health');
+    if (!ol || !ol.unit) add('warn', 'Carnet ORSAT-LOG non installé ou illisible', 'orsatlog');
+    else if (ol.unit.active !== 'active') add('bad', 'Carnet ORSAT-LOG arrêté (' + ol.unit.active + ')', 'orsatlog');
+    else if (!ol.ok) add('warn', 'Carnet ORSAT-LOG injoignable', 'orsatlog');
+    else if (ol.updating) add('warn', 'Mise à jour du carnet en cours', 'orsatlog');
+    box.innerHTML = card(out.length ? 'À VÉRIFIER' : 'TOUT VA BIEN',
+      out.length ? '<div class="x-chips" style="margin:0;">' + out.map((a, i) =>
+        '<span class="x-chip" data-ai="' + i + '" style="border-color:var(--' + (a.lvl === 'bad' ? 'red' : 'amber') + ');color:var(--' +
+        (a.lvl === 'bad' ? 'red' : 'amber') + ');" title="Ouvrir la page concernée">' + (a.lvl === 'bad' ? '✗ ' : '⚠ ') + esc(a.txt) + ' →</span>').join('') + '</div>'
+      : '<div style="' + small + '">Serveur radio, services, certificat, disque et carnet ORSAT-LOG : rien à signaler.</div>',
+      out.some((a) => a.lvl === 'bad') ? 'var(--red)' : out.length ? 'var(--amber)' : 'var(--green)');
+    box.querySelectorAll('[data-ai]').forEach((el) => (el.onclick = () => goPage(out[+el.dataset.ai].target)));
+  }
+  setTimeout(() => { if ($('page-dashboard') && $('page-dashboard').classList.contains('active')) dashAlerts(); }, 300);
+
   // ── Aiguillage depuis showPage() ──────────────────────────────────────
   window.extrasShow = function (name) {
     stopTimers();
-    if (name === 'update') updRender();
+    if (name === 'dashboard') dashAlerts();
+    else if (name === 'update') updRender();
     else if (name === 'backup') bkRender();
     else if (name === 'health') { healthRender(); timers.health = setInterval(() => currentPageIs('health') && healthRender(), 30000); }
     else if (name === 'signal') { sigRender(); timers.signal = setInterval(() => currentPageIs('signal') && sigLoad(), 120000); }

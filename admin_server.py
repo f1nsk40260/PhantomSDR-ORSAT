@@ -1165,6 +1165,12 @@ body{background-image:repeating-linear-gradient(0deg,transparent,transparent 2px
 .nav-item.active{color:var(--green);background:rgba(0,255,65,0.08);
   border-left-color:var(--green);text-shadow:var(--glow);}
 .nav-item .icon{font-size:1rem;width:1.2rem;text-align:center;}
+/* groupes du menu repliables à la souris ; l'entrée de la page ouverte reste visible */
+.nav-label{cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
+.nav-label:hover{color:var(--green2);}
+.nav-caret{font-size:.7rem;transition:transform .15s;}
+.nav-section.collapsed .nav-caret{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-item:not(.active){display:none;}
 
 .sidebar-footer{margin-top:auto;padding:.8rem 1rem;border-top:1px solid var(--border);
   font-size:.65rem;color:var(--text3);}
@@ -1482,14 +1488,14 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <div class="title">PHANTOM<span style="color:var(--amber)">SDR</span></div>
       <div class="sub">ADMIN v5.1.0</div>
     </div>
-    <div class="nav-section">
-      <div class="nav-label">PRINCIPAL</div>
+    <div class="nav-section" data-group="principal">
+      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">PRINCIPAL<span class="nav-caret">▾</span></div>
       <a class="nav-item active" onclick="showPage('dashboard',this)" href="#">
         <span class="icon">⬡</span><span>Tableau de bord</span>
       </a>
     </div>
-    <div class="nav-section">
-      <div class="nav-label">CONFIGURATION</div>
+    <div class="nav-section" data-group="websdr">
+      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">LE WEBSDR<span class="nav-caret">▾</span></div>
       <a class="nav-item" onclick="showPage('config',this)" href="#">
         <span class="icon">⚙</span><span>Éditeur de config</span>
       </a>
@@ -1499,48 +1505,54 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <a class="nav-item" onclick="showPage('markers',this)" href="#">
         <span class="icon">◉</span><span>Marqueurs</span>
       </a>
+      <a class="nav-item" onclick="showPage('wfmsg',this)" href="#">
+        <span class="icon">📢</span><span>Message waterfall</span>
+      </a>
       <a class="nav-item" onclick="showPage('reporting',this)" href="#">
         <span class="icon">📶</span><span>Envoi des spots</span>
       </a>
+      <a class="nav-item" onclick="showPage('diversity',this)" href="#">
+        <span class="icon">📡</span><span>Réception en diversité</span>
+      </a>
     </div>
-    <div class="nav-section">
-      <div class="nav-label">SURVEILLANCE</div>
-      <a class="nav-item" onclick="showPage('logs',this)" href="#">
-        <span class="icon">▤</span><span>Journaux</span>
-      </a>
-      <a class="nav-item" onclick="showPage('chat',this)" href="#">
-        <span class="icon">◫</span><span>Historique du chat</span>
-      </a>
-      <a class="nav-item" onclick="showPage('graphs',this)" href="#">
-        <span class="icon">📈</span><span>Graphiques</span>
-      </a>
+    <div class="nav-section" data-group="auditeurs">
+      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">AUDITEURS<span class="nav-caret">▾</span></div>
       <a class="nav-item" onclick="showPage('users',this)" href="#">
         <span class="icon">👥</span><span>Auditeurs connectés</span>
       </a>
       <a class="nav-item" onclick="showPage('listeners',this)" href="#">
         <span class="icon">🔎</span><span>Analyse auditeurs</span>
       </a>
-      <a class="nav-item" onclick="showPage('wfmsg',this)" href="#">
-        <span class="icon">📢</span><span>Message waterfall</span>
-      </a>
       <a class="nav-item" onclick="showPage('map',this)" href="#">
         <span class="icon">🗺</span><span>Carte auditeurs</span>
       </a>
+      <a class="nav-item" onclick="showPage('chat',this)" href="#">
+        <span class="icon">◫</span><span>Historique du chat</span>
+      </a>
+    </div>
+    <div class="nav-section" data-group="technique">
+      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">SURVEILLANCE TECHNIQUE<span class="nav-caret">▾</span></div>
       <a class="nav-item" onclick="showPage('signal',this)" href="#">
         <span class="icon">📡</span><span>Qualité du signal</span>
       </a>
       <a class="nav-item" onclick="showPage('health',this)" href="#">
         <span class="icon">🩺</span><span>Santé du serveur</span>
       </a>
+      <a class="nav-item" onclick="showPage('graphs',this)" href="#">
+        <span class="icon">📈</span><span>Graphiques</span>
+      </a>
+      <a class="nav-item" onclick="showPage('logs',this)" href="#">
+        <span class="icon">▤</span><span>Journaux</span>
+      </a>
+    </div>
+    <div class="nav-section" data-group="carnet">
+      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">CARNET<span class="nav-caret">▾</span></div>
       <a class="nav-item" onclick="showPage('orsatlog',this)" href="#">
         <span class="icon">📒</span><span>Carnet ORSAT-LOG</span>
       </a>
-      <a class="nav-item" onclick="showPage('diversity',this)" href="#">
-        <span class="icon">📡</span><span>Réception en diversité</span>
-      </a>
     </div>
-    <div class="nav-section">
-      <div class="nav-label">SYSTÈME</div>
+    <div class="nav-section" data-group="systeme">
+      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">SYSTÈME<span class="nav-caret">▾</span></div>
       <a class="nav-item" onclick="showPage('update',this)" href="#">
         <span class="icon">🔄</span><span>Mise à jour</span>
       </a>
@@ -2584,6 +2596,25 @@ async function secUnban(ip){
   const d = await (await fetch('/admin/api/security/ban', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ip, unban:true})})).json();
   toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err'); secLoad(secDays);
 }
+
+// ─── Menu : groupes repliables (état retenu par le navigateur) ───────────────
+function navToggle(label) {
+  const sec = label.parentElement;
+  sec.classList.toggle('collapsed');
+  try {
+    const shut = [...document.querySelectorAll('.nav-section.collapsed')].map(x => x.dataset.group);
+    localStorage.setItem('adminNavCollapsed', JSON.stringify(shut));
+  } catch (e) {}
+}
+(function navRestore() {
+  try {
+    const shut = JSON.parse(localStorage.getItem('adminNavCollapsed') || '[]');
+    document.addEventListener('DOMContentLoaded', () => shut.forEach(g => {
+      const sec = document.querySelector('.nav-section[data-group="' + g + '"]');
+      if (sec) sec.classList.add('collapsed');
+    }));
+  } catch (e) {}
+})();
 
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
