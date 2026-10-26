@@ -1165,12 +1165,19 @@ body{background-image:repeating-linear-gradient(0deg,transparent,transparent 2px
 .nav-item.active{color:var(--green);background:rgba(0,255,65,0.08);
   border-left-color:var(--green);text-shadow:var(--glow);}
 .nav-item .icon{font-size:1rem;width:1.2rem;text-align:center;}
-/* groupes du menu repliables à la souris ; l'entrée de la page ouverte reste visible */
-.nav-label{cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
-.nav-label:hover{color:var(--green2);}
-.nav-caret{font-size:.7rem;transition:transform .15s;}
-.nav-section.collapsed .nav-caret{transform:rotate(-90deg);}
-.nav-section.collapsed .nav-item:not(.active){display:none;}
+/* menu à deux niveaux : une entrée par groupe, les pages du groupe en onglets au-dessus du contenu */
+.sidebar .nav-sub{display:none;}
+.nav-badge{margin-left:auto;font-size:.6rem;min-width:1.1rem;padding:0 .35rem;border-radius:999px;text-align:center;line-height:1.1rem;}
+.nav-badge:empty{display:none;}
+.nav-badge.n{color:var(--green);border:1px solid var(--green2);}
+.nav-badge.warn{color:#000;background:var(--amber);}
+.nav-badge.bad{color:#fff;background:var(--red);}
+.nav-subtabs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem;}
+.nav-subtabs:empty{display:none;}
+.nav-subtabs a{font-size:.7rem;letter-spacing:.06em;padding:.35rem .8rem;border:1px solid var(--border);border-radius:999px;
+  color:var(--text2);text-decoration:none;background:#030803;cursor:pointer;}
+.nav-subtabs a:hover{color:var(--green);border-color:var(--green2);}
+.nav-subtabs a.active{color:#000;background:var(--green);border-color:var(--green);}
 
 .sidebar-footer{margin-top:auto;padding:.8rem 1rem;border-top:1px solid var(--border);
   font-size:.65rem;color:var(--text3);}
@@ -1489,77 +1496,83 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
       <div class="sub">ADMIN v5.1.0</div>
     </div>
     <div class="nav-section" data-group="principal">
-      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">PRINCIPAL<span class="nav-caret">▾</span></div>
-      <a class="nav-item active" onclick="showPage('dashboard',this)" href="#">
-        <span class="icon">⬡</span><span>Tableau de bord</span>
+      <a data-page="dashboard" class="nav-item active" onclick="showPage('dashboard',this)" href="#">
+        <span class="icon">⬡</span><span>Tableau de bord</span><span class="nav-badge" id="nb-dashboard"></span>
       </a>
     </div>
     <div class="nav-section" data-group="websdr">
-      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">LE WEBSDR<span class="nav-caret">▾</span></div>
-      <a class="nav-item" onclick="showPage('config',this)" href="#">
+      <a class="nav-item nav-group" data-group="websdr" onclick="navGroup('websdr');return false;" href="#">
+        <span class="icon">📻</span><span>Le WebSDR</span><span class="nav-badge" id="nb-websdr"></span>
+      </a>
+      <a data-page="config" class="nav-item nav-sub" onclick="showPage('config',this)" href="#">
         <span class="icon">⚙</span><span>Éditeur de config</span>
       </a>
-      <a class="nav-item" onclick="showPage('siteinfo',this)" href="#">
+      <a data-page="siteinfo" class="nav-item nav-sub" onclick="showPage('siteinfo',this)" href="#">
         <span class="icon">◎</span><span>Infos du site</span>
       </a>
-      <a class="nav-item" onclick="showPage('markers',this)" href="#">
+      <a data-page="markers" class="nav-item nav-sub" onclick="showPage('markers',this)" href="#">
         <span class="icon">◉</span><span>Marqueurs</span>
       </a>
-      <a class="nav-item" onclick="showPage('wfmsg',this)" href="#">
+      <a data-page="wfmsg" class="nav-item nav-sub" onclick="showPage('wfmsg',this)" href="#">
         <span class="icon">📢</span><span>Message waterfall</span>
       </a>
-      <a class="nav-item" onclick="showPage('reporting',this)" href="#">
+      <a data-page="reporting" class="nav-item nav-sub" onclick="showPage('reporting',this)" href="#">
         <span class="icon">📶</span><span>Envoi des spots</span>
       </a>
-      <a class="nav-item" onclick="showPage('diversity',this)" href="#">
+      <a data-page="diversity" class="nav-item nav-sub" onclick="showPage('diversity',this)" href="#">
         <span class="icon">📡</span><span>Réception en diversité</span>
       </a>
     </div>
     <div class="nav-section" data-group="auditeurs">
-      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">AUDITEURS<span class="nav-caret">▾</span></div>
-      <a class="nav-item" onclick="showPage('users',this)" href="#">
+      <a class="nav-item nav-group" data-group="auditeurs" onclick="navGroup('auditeurs');return false;" href="#">
+        <span class="icon">👥</span><span>Auditeurs</span><span class="nav-badge" id="nb-auditeurs"></span>
+      </a>
+      <a data-page="users" class="nav-item nav-sub" onclick="showPage('users',this)" href="#">
         <span class="icon">👥</span><span>Auditeurs connectés</span>
       </a>
-      <a class="nav-item" onclick="showPage('listeners',this)" href="#">
+      <a data-page="listeners" class="nav-item nav-sub" onclick="showPage('listeners',this)" href="#">
         <span class="icon">🔎</span><span>Analyse auditeurs</span>
       </a>
-      <a class="nav-item" onclick="showPage('map',this)" href="#">
+      <a data-page="map" class="nav-item nav-sub" onclick="showPage('map',this)" href="#">
         <span class="icon">🗺</span><span>Carte auditeurs</span>
       </a>
-      <a class="nav-item" onclick="showPage('chat',this)" href="#">
+      <a data-page="chat" class="nav-item nav-sub" onclick="showPage('chat',this)" href="#">
         <span class="icon">◫</span><span>Historique du chat</span>
       </a>
     </div>
     <div class="nav-section" data-group="technique">
-      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">SURVEILLANCE TECHNIQUE<span class="nav-caret">▾</span></div>
-      <a class="nav-item" onclick="showPage('signal',this)" href="#">
+      <a class="nav-item nav-group" data-group="technique" onclick="navGroup('technique');return false;" href="#">
+        <span class="icon">🩺</span><span>Surveillance</span><span class="nav-badge" id="nb-technique"></span>
+      </a>
+      <a data-page="signal" class="nav-item nav-sub" onclick="showPage('signal',this)" href="#">
         <span class="icon">📡</span><span>Qualité du signal</span>
       </a>
-      <a class="nav-item" onclick="showPage('health',this)" href="#">
+      <a data-page="health" class="nav-item nav-sub" onclick="showPage('health',this)" href="#">
         <span class="icon">🩺</span><span>Santé du serveur</span>
       </a>
-      <a class="nav-item" onclick="showPage('graphs',this)" href="#">
+      <a data-page="graphs" class="nav-item nav-sub" onclick="showPage('graphs',this)" href="#">
         <span class="icon">📈</span><span>Graphiques</span>
       </a>
-      <a class="nav-item" onclick="showPage('logs',this)" href="#">
+      <a data-page="logs" class="nav-item nav-sub" onclick="showPage('logs',this)" href="#">
         <span class="icon">▤</span><span>Journaux</span>
       </a>
     </div>
     <div class="nav-section" data-group="carnet">
-      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">CARNET<span class="nav-caret">▾</span></div>
-      <a class="nav-item" onclick="showPage('orsatlog',this)" href="#">
-        <span class="icon">📒</span><span>Carnet ORSAT-LOG</span>
+      <a data-page="orsatlog" class="nav-item" onclick="showPage('orsatlog',this)" href="#">
+        <span class="icon">📒</span><span>Carnet ORSAT-LOG</span><span class="nav-badge" id="nb-orsatlog"></span>
       </a>
     </div>
     <div class="nav-section" data-group="systeme">
-      <div class="nav-label" onclick="navToggle(this)" title="Clic : replier / déplier ce groupe">SYSTÈME<span class="nav-caret">▾</span></div>
-      <a class="nav-item" onclick="showPage('update',this)" href="#">
+      <a class="nav-item nav-group" data-group="systeme" onclick="navGroup('systeme');return false;" href="#">
+        <span class="icon">⚙</span><span>Système</span><span class="nav-badge" id="nb-systeme"></span>
+      </a>
+      <a data-page="update" class="nav-item nav-sub" onclick="showPage('update',this)" href="#">
         <span class="icon">🔄</span><span>Mise à jour</span>
       </a>
-      <a class="nav-item" onclick="showPage('backup',this)" href="#">
+      <a data-page="backup" class="nav-item nav-sub" onclick="showPage('backup',this)" href="#">
         <span class="icon">💾</span><span>Sauvegardes</span>
       </a>
-      <a class="nav-item" onclick="showPage('settings',this)" href="#">
+      <a data-page="settings" class="nav-item nav-sub" onclick="showPage('settings',this)" href="#">
         <span class="icon">◧</span><span>Réglages</span>
       </a>
     </div>
@@ -1583,6 +1596,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
     </div>
 
     <div class="content">
+      <div id="nav-subtabs" class="nav-subtabs"></div>
 
       {% if fork_origin %}
       <!-- Installed from a fork — see fork_origin() -->
@@ -2597,24 +2611,46 @@ async function secUnban(ip){
   toast(d.msg || (d.ok ? 'OK' : 'Erreur'), d.ok ? 'ok' : 'err'); secLoad(secDays);
 }
 
-// ─── Menu : groupes repliables (état retenu par le navigateur) ───────────────
-function navToggle(label) {
-  const sec = label.parentElement;
-  sec.classList.toggle('collapsed');
-  try {
-    const shut = [...document.querySelectorAll('.nav-section.collapsed')].map(x => x.dataset.group);
-    localStorage.setItem('adminNavCollapsed', JSON.stringify(shut));
-  } catch (e) {}
+// ─── Menu à deux niveaux ─────────────────────────────────────────────────────
+// Une entrée par groupe dans la barre latérale ; les pages du groupe en onglets au-dessus du contenu.
+// Les entrées des pages restent dans le menu (masquées) : showPage() et le code existant sont inchangés.
+const NAV_GROUPS = {
+  websdr: 'LE WEBSDR', auditeurs: 'AUDITEURS', technique: 'SURVEILLANCE', systeme: 'SYSTÈME'
+};
+function navPageEl(name) { return document.querySelector('.sidebar .nav-item[data-page="' + name + '"]'); }
+function navGroupPages(g) {
+  return [...document.querySelectorAll('.sidebar .nav-section[data-group="' + g + '"] .nav-sub')].map(a => a.dataset.page);
 }
-(function navRestore() {
-  try {
-    const shut = JSON.parse(localStorage.getItem('adminNavCollapsed') || '[]');
-    document.addEventListener('DOMContentLoaded', () => shut.forEach(g => {
-      const sec = document.querySelector('.nav-section[data-group="' + g + '"]');
-      if (sec) sec.classList.add('collapsed');
-    }));
-  } catch (e) {}
-})();
+function navGroupOf(name) {
+  const el = navPageEl(name);
+  return el && el.classList.contains('nav-sub') ? el.closest('.nav-section').dataset.group : null;
+}
+function navGroup(g) {
+  const pages = navGroupPages(g);
+  let last = null;
+  try { last = localStorage.getItem('adminNavLast_' + g); } catch (e) {}
+  const name = pages.includes(last) ? last : pages[0];
+  showPage(name, navPageEl(name));
+}
+function navSync(name) {
+  const g = navGroupOf(name);
+  document.querySelectorAll('.sidebar .nav-group').forEach(x => x.classList.toggle('active', x.dataset.group === g));
+  const bar = document.getElementById('nav-subtabs');
+  if (!bar) return;
+  bar.innerHTML = '';
+  if (!g) return;
+  try { localStorage.setItem('adminNavLast_' + g, name); } catch (e) {}
+  navGroupPages(g).forEach(p => {
+    const src = navPageEl(p), a = document.createElement('a');
+    a.textContent = [...src.querySelectorAll('span:not(.nav-badge)')].map(x => x.textContent).join(' ').trim();
+    a.href = '#';
+    if (p === name) a.className = 'active';
+    a.onclick = () => { showPage(p, navPageEl(p)); return false; };
+    bar.appendChild(a);
+  });
+  const cur = navPageEl(name).querySelector('span:not(.icon):not(.nav-badge)');
+  document.getElementById('page-title').textContent = NAV_GROUPS[g] + ' · ' + (cur ? cur.textContent : name).toUpperCase();
+}
 
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2622,7 +2658,7 @@ function showPage(name, el) {
   document.getElementById('page-' + name).classList.add('active');
   el.classList.add('active');
   // Get label from either sidebar nav-item or bottom-nav link
-  const labelEl = el.querySelector('span:last-child') || el.querySelector('span.bi + span') || el;
+  const labelEl = el.querySelector('span:not(.icon):not(.nav-badge):not(.bi)') || el.querySelector('span.bi + span') || el;
   document.getElementById('page-title').textContent = (labelEl.textContent || name).toUpperCase();
   currentPage = name;
   // Sync bottom nav active state
@@ -2641,6 +2677,7 @@ function showPage(name, el) {
   if (name === 'users')    { loadUsers(); }
   if (name === 'listeners') { liLoadAll(); }
   if (name === 'wfmsg')    { loadWfMsgStatus(); }
+  navSync(name);
   if (window.extrasShow) { window.extrasShow(name); }
   return false;
 }

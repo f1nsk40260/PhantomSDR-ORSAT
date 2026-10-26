@@ -1012,18 +1012,10 @@
 
   // ── Tableau de bord : alertes cliquables qui ouvrent la bonne page ──────────
   function goPage(name) {
-    const el = document.querySelector('.nav-item[onclick*="\'' + name + '\'"]');
+    const el = document.querySelector('.sidebar .nav-item[data-page="' + name + '"]');
     if (el && window.showPage) window.showPage(name, el);
   }
-  async function dashAlerts() {
-    const page = $('page-dashboard');
-    if (!page) return;
-    let box = $('x-dash-alerts');
-    if (!box) {
-      box = document.createElement('div');
-      box.id = 'x-dash-alerts';
-      page.insertBefore(box, page.firstChild);
-    }
+  async function collectAlerts() {
     const out = [];
     const add = (lvl, txt, target) => out.push({ lvl, txt, target });
     const [h, ol] = await Promise.all([api('/admin/api/health').catch(() => null), api('/admin/api/orsatlog/status').catch(() => null)]);
@@ -1040,6 +1032,46 @@
     else if (ol.unit.active !== 'active') add('bad', 'Carnet ORSAT-LOG arrêté (' + ol.unit.active + ')', 'orsatlog');
     else if (!ol.ok) add('warn', 'Carnet ORSAT-LOG injoignable', 'orsatlog');
     else if (ol.updating) add('warn', 'Mise à jour du carnet en cours', 'orsatlog');
+    return out;
+  }
+
+  // pastilles du menu : alertes (rouge / orange) et nombre d'auditeurs en ligne
+  function setBadge(id, text, cls, tip) {
+    const el = $(id);
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = 'nav-badge' + (cls ? ' ' + cls : '');
+    el.title = tip || '';
+  }
+  function badgesFromAlerts(out) {
+    [['nb-technique', 'health'], ['nb-orsatlog', 'orsatlog']].forEach(([id, target]) => {
+      const list = out.filter((a) => a.target === target);
+      setBadge(id, list.length ? String(list.length) : '', list.some((a) => a.lvl === 'bad') ? 'bad' : 'warn',
+        list.map((a) => a.txt).join('\n'));
+    });
+  }
+  async function navBadges() {
+    badgesFromAlerts(await collectAlerts());
+    try {
+      const d = await api('/admin/api/listeners/live');
+      const n = (d.users || []).length;
+      setBadge('nb-auditeurs', n ? String(n) : '', 'n', n + ' auditeur(s) en ligne');
+    } catch (e) {}
+  }
+  navBadges();
+  setInterval(navBadges, 60000);
+
+  async function dashAlerts() {
+    const page = $('page-dashboard');
+    if (!page) return;
+    let box = $('x-dash-alerts');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'x-dash-alerts';
+      page.insertBefore(box, page.firstChild);
+    }
+    const out = await collectAlerts();
+    badgesFromAlerts(out);
     box.innerHTML = card(out.length ? 'À VÉRIFIER' : 'TOUT VA BIEN',
       out.length ? '<div class="x-chips" style="margin:0;">' + out.map((a, i) =>
         '<span class="x-chip" data-ai="' + i + '" style="border-color:var(--' + (a.lvl === 'bad' ? 'red' : 'amber') + ');color:var(--' +
@@ -1048,6 +1080,7 @@
       out.some((a) => a.lvl === 'bad') ? 'var(--red)' : out.length ? 'var(--amber)' : 'var(--green)');
     box.querySelectorAll('[data-ai]').forEach((el) => (el.onclick = () => goPage(out[+el.dataset.ai].target)));
   }
+
   setTimeout(() => { if ($('page-dashboard') && $('page-dashboard').classList.contains('active')) dashAlerts(); }, 300);
 
   // ── Aiguillage depuis showPage() ──────────────────────────────────────
