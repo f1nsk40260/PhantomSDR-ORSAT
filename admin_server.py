@@ -1181,6 +1181,12 @@ body{background-image:repeating-linear-gradient(0deg,transparent,transparent 2px
 .section-head.fold.shut .fold-caret{transform:rotate(-90deg);}
 .section-head.fold.shut{margin-bottom:.6rem;opacity:.75;}
 .fold-body.shut{display:none;}
+.fold-sub{font-size:.65rem;color:var(--text3);letter-spacing:.1em;margin:.2rem 0 .4rem;}
+.fold-head{cursor:pointer;}
+.fold-head .fold-caret{font-size:.65rem;color:var(--green);margin-right:.3rem;display:inline-block;transition:transform .15s;}
+.fold-head.shut .fold-caret{transform:rotate(-90deg);}
+.fold-head.shut{margin-bottom:0 !important;}
+.fold-inner.shut{display:none;}
 .fold-tools{display:flex;gap:.4rem;justify-content:flex-end;margin-bottom:.4rem;}
 .fold-tools a{font-size:.62rem;letter-spacing:.08em;color:var(--text3);text-decoration:none;cursor:pointer;border:1px solid var(--border);border-radius:999px;padding:.15rem .6rem;}
 .fold-tools a:hover{color:var(--green);border-color:var(--green2);}
@@ -2194,7 +2200,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <span style="flex:1"></span>
           <button class="btn btn-amber" onclick="secClear()" title="Efface tout le journal des tentatives ; les IP bannies restent bannies">🗑 VIDER LE JOURNAL</button>
         </div>
-        <div class="card" style="margin-bottom:.8rem;">
+        <div class="card" style="margin-bottom:.8rem;" data-fold="sec-ban" data-fold-shut="1">
           <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem;">
             <span style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;">LISTE DE BANNISSEMENT</span>
             <span id="sec-ban-count" style="font-size:.65rem;color:var(--text2);"></span>
@@ -2215,7 +2221,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           </div>
           <div id="sec-bans" style="max-height:16rem;overflow-y:auto;"></div>
         </div>
-        <div class="card" style="margin-bottom:.8rem;">
+        <div class="card" style="margin-bottom:.8rem;" data-fold="sec-allow" data-fold-shut="1">
           <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem;">
             <span style="font-size:.65rem;color:var(--text3);letter-spacing:.1em;">LISTE BLANCHE</span>
             <span id="sec-allow-count" style="font-size:.65rem;color:var(--text2);"></span>
@@ -2234,18 +2240,20 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <div id="sec-allow" style="max-height:10rem;overflow-y:auto;"></div>
         </div>
         <div id="sec-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.5rem;margin-bottom:.8rem;"></div>
+        <div data-fold="sec-ips"><div class="fold-sub">ADRESSES SUSPECTES</div>
         <div class="card" style="overflow-x:auto;padding:0;margin-bottom:.8rem;">
           <table style="width:100%;border-collapse:collapse;font-size:.7rem;">
             <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DANGER</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">REVERSE DNS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">LIEU / FAI</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">TYPE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ÉVÉNEMENTS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CATÉGORIES</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">EXEMPLES DE CHEMINS</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">DERNIER</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">ACTION</th></tr></thead>
             <tbody id="sec-ips-tbody"></tbody>
           </table>
-        </div>
+        </div></div>
+        <div data-fold="sec-ev"><div class="fold-sub">JOURNAL DES ÉVÉNEMENTS</div>
         <div class="card" style="overflow-x:auto;padding:0;">
           <table style="width:100%;border-collapse:collapse;font-size:.68rem;">
             <thead><tr><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">HEURE (UTC)</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">IP</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CATÉGORIE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">REQUÊTE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">CODE</th><th style="color:var(--text3);font-weight:normal;letter-spacing:.08em;padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;">NAVIGATEUR / OUTIL</th></tr></thead>
             <tbody id="sec-ev-tbody"></tbody>
           </table>
-        </div>
+        </div></div>
       </div>
       <div class="page" id="page-wfmsg">
         <div class="section-head">📢 MESSAGE SUR LE WATERFALL</div>
@@ -2667,8 +2675,8 @@ function navSync(name) {
 // jusqu'au titre suivant. Les éléments sont seulement regroupés (identifiants inchangés). État retenu par
 // le navigateur ; par défaut, seule la première rubrique est ouverte.
 function foldKey(page, head) {
-  if (!head.dataset.fold) head.dataset.fold = 'adminFold_' + page + '_' + head.textContent.trim().slice(0, 40);
-  return head.dataset.fold;
+  if (!head.dataset.foldKey) head.dataset.foldKey = 'adminFold_' + page + '_' + head.textContent.trim().slice(0, 40);
+  return head.dataset.foldKey;
 }
 function foldSet(page, head, body, shut) {
   head.classList.toggle('shut', shut);
@@ -2716,7 +2724,39 @@ function foldInit() {
     heads[0].before(tools);
   });
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', foldInit); else foldInit();
+// Blocs repliables à l'intérieur d'une page : [data-fold="clé"], premier enfant = titre cliquable
+// (les boutons et champs de ce titre gardent leur rôle), data-fold-shut="1" = fermé par défaut.
+function foldBlocksInit() {
+  document.querySelectorAll('[data-fold]').forEach(box => {
+    const head = box.firstElementChild;
+    if (!head) return;
+    const inner = document.createElement('div');
+    inner.className = 'fold-inner';
+    while (head.nextSibling) inner.appendChild(head.nextSibling);
+    box.appendChild(inner);
+    head.classList.add('fold-head');
+    head.title = 'Clic : replier / déplier';
+    const caret = document.createElement('span');
+    caret.className = 'fold-caret';
+    caret.textContent = '▾';
+    head.prepend(caret);
+    const key = 'adminFoldBlock_' + box.dataset.fold;
+    let saved = null;
+    try { saved = localStorage.getItem(key); } catch (e) {}
+    const set = (shut, keep) => {
+      head.classList.toggle('shut', shut);
+      inner.classList.toggle('shut', shut);
+      if (keep) { try { localStorage.setItem(key, shut ? '1' : '0'); } catch (e) {} }
+    };
+    set(saved === null ? box.dataset.foldShut === '1' : saved === '1', false);
+    head.addEventListener('click', ev => {
+      if (ev.target.closest('input,button,a,textarea,select,label')) return;   // les commandes du titre restent utilisables
+      set(!head.classList.contains('shut'), true);
+    });
+  });
+}
+function foldAllInit() { foldInit(); foldBlocksInit(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', foldAllInit); else foldAllInit();
 
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
