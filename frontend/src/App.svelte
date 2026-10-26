@@ -11551,7 +11551,7 @@ Cliquez à nouveau pour désactiver"
                       </div>
 
                       <!-- Réception en diversité (second récepteur) -->
-                      <div class="w-full mt-4"><DiversityPanel freqKhz={frequency} /></div>
+                      <div class="w-full mt-4"><DiversityPanel freqKhz={frequency} decoderActive={activeDecoder !== "none"} mode={demodulation} /></div>
 
                       <!-- Begin Decoders Selection Area — one-touch buttons for
                            the dropdown's decoders (RADEL/RADEU excluded: they

@@ -28,8 +28,8 @@
       signal: "Qualité du signal", onPartner: (p) => `${p} % du temps sur le partenaire`, saves: (n) => `${n} bascule${n > 1 ? "s" : ""}`,
       az: "azimut", tech: "Détails techniques", km: (d) => `${d} km d'ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
       help: "Comment ça marche ?",
-      helpText: "Deux récepteurs éloignés de plusieurs centaines de kilomètres ne reçoivent pas les ondes par le même chemin dans l'ionosphère : quand le signal s'évanouit chez l'un, il reste souvent fort chez l'autre. La diversité écoute les deux en même temps, les synchronise, et vous fait entendre à chaque instant celui qui reçoit le mieux. Les décodeurs, eux, restent sur ORSAT.",
-      decoders: "Les décodeurs continuent d'utiliser ORSAT seul ; la diversité ne concerne que le son du haut-parleur.",
+      helpText: "Deux récepteurs éloignés de plusieurs centaines de kilomètres ne reçoivent pas les ondes par le même chemin dans l'ionosphère : quand le signal s'évanouit chez l'un, il reste souvent fort chez l'autre. La diversité écoute les deux en même temps, les synchronise, et vous fait entendre à chaque instant celui qui reçoit le mieux. La diversité n'est applicable que pour les modes phonie. Elle est désactivée si vous utilisez un décodeur.", helpLatency: "L'utilisation de la réception en diversité augmente sensiblement le temps de latence de la réception.", blockDec: "Diversité désactivée : un décodeur est en marche.", blockMode: "Diversité réservée aux modes phonie (USB, LSB, AM, FM).",
+      decoders: "Lancer un décodeur arrête la diversité ; changer pour un mode autre que la phonie aussi.",
       tLink: "liaison", tAligned: "décalage", tSearch: "recherche", tCorr: "corrélation", tAudio: "son distant", tNone: "aucun",
       adBest: (b) => `★ Conseillé sur ${b}`, adOk: "Possible", adLow: (b) => `Peu utile sur ${b}`, adOff: "Hors ligne", adTip: (v, b) => `Entend environ ${v} % de la zone qu’ORSAT entend en ce moment sur ${b} (ionosondes mesurées), par un autre chemin.`, adOffTip: "Ce récepteur ne répond pas en ce moment (vérifié par le serveur toutes les 10 min).",
       tSnrL: "SNR ORSAT", tSnrR: "SNR partenaire", tTrim: "correction", tSw: "bascules",
@@ -47,8 +47,8 @@
       signal: "Signal quality", onPartner: (p) => `${p} % of the time on the partner`, saves: (n) => `${n} switch${n > 1 ? "es" : ""}`,
       az: "bearing", tech: "Technical details", km: (d) => `${d} km from ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
       help: "How does it work?",
-      helpText: "Two receivers several hundred kilometres apart do not get the waves along the same path through the ionosphere: when the signal fades at one, it often stays strong at the other. Diversity listens to both at once, synchronises them and lets you hear, at every moment, the one receiving best. The decoders stay on ORSAT.",
-      decoders: "Decoders keep using ORSAT alone; diversity only affects the speaker audio.",
+      helpText: "Two receivers several hundred kilometres apart do not get the waves along the same path through the ionosphere: when the signal fades at one, it often stays strong at the other. Diversity listens to both at once, synchronises them and lets you hear, at every moment, the one receiving best. Diversity only applies to voice modes. It is disabled while you use a decoder.", helpLatency: "Using diversity reception noticeably increases the reception latency.", blockDec: "Diversity disabled: a decoder is running.", blockMode: "Diversity is for voice modes only (USB, LSB, AM, FM).",
+      decoders: "Starting a decoder stops diversity; so does switching to a non-voice mode.",
       tLink: "link", tAligned: "delay", tSearch: "searching", tCorr: "correlation", tAudio: "remote audio", tNone: "none",
       adBest: (b) => `★ Recommended on ${b}`, adOk: "Possible", adLow: (b) => `Of little use on ${b}`, adOff: "Offline", adTip: (v, b) => `Hears about ${v} % of the area ORSAT hears right now on ${b} (measured ionosondes), along another path.`, adOffTip: "This receiver is not answering right now (checked by the server every 10 min).",
       tSnrL: "ORSAT SNR", tSnrR: "partner SNR", tTrim: "trim", tSw: "switches",
@@ -66,8 +66,8 @@
       signal: "Calidad de la señal", onPartner: (p) => `${p} % del tiempo en el receptor asociado`, saves: (n) => `${n} conmutacion${n > 1 ? "es" : ""}`,
       az: "acimut", tech: "Detalles técnicos", km: (d) => `a ${d} km de ORSAT`, kiwi: "KiwiSDR", phantom: "PhantomSDR / NovaSDR", uber: "UberSDR", websdr: "WebSDR",
       help: "¿Cómo funciona?",
-      helpText: "Dos receptores separados varios cientos de kilómetros no reciben las ondas por el mismo camino en la ionosfera: cuando la señal se desvanece en uno, a menudo sigue fuerte en el otro. La diversidad escucha los dos a la vez, los sincroniza y le hace oír en cada momento el que mejor recibe. Los decodificadores siguen en ORSAT.",
-      decoders: "Los decodificadores siguen usando solo ORSAT; la diversidad solo afecta al audio del altavoz.",
+      helpText: "Dos receptores separados varios cientos de kilómetros no reciben las ondas por el mismo camino en la ionosfera: cuando la señal se desvanece en uno, a menudo sigue fuerte en el otro. La diversidad escucha los dos a la vez, los sincroniza y le hace oír en cada momento el que mejor recibe. La diversidad solo se aplica a los modos de fonía. Se desactiva si usa un decodificador.", helpLatency: "El uso de la recepción en diversidad aumenta notablemente la latencia de la recepción.", blockDec: "Diversidad desactivada: hay un decodificador en marcha.", blockMode: "Diversidad reservada a los modos de fonía (USB, LSB, AM, FM).",
+      decoders: "Iniciar un decodificador detiene la diversidad; cambiar a un modo que no sea de fonía también.",
       tLink: "enlace", tAligned: "retardo", tSearch: "buscando", tCorr: "correlación", tAudio: "audio remoto", tNone: "ninguno",
       adBest: (b) => `★ Recomendado en ${b}`, adOk: "Posible", adLow: (b) => `Poco útil en ${b}`, adOff: "Fuera de línea", adTip: (v, b) => `Escucha cerca del ${v} % de la zona que ORSAT escucha ahora en ${b} (ionosondas medidas), por otro camino.`, adOffTip: "Este receptor no responde ahora (comprobado por el servidor cada 10 min).",
       tSnrL: "SNR ORSAT", tSnrR: "SNR asociado", tTrim: "corrección", tSw: "conmutaciones",
@@ -79,6 +79,12 @@
   // Pour la bande écoutée : part de la zone entendue par ORSAT que le partenaire entend aussi,
   // et disponibilité (sondée par le serveur toutes les 10 min). Sans carnet : aucun badge.
   export let freqKhz = null;
+  // Diversité réservée à la phonie, et coupée dès qu'un décodeur tourne (App.svelte fournit les deux).
+  export let decoderActive = false;
+  export let mode = "USB";
+  const VOICE = ["USB", "LSB", "AM", "SAM", "QUAM", "FM", "WBFM"];
+  $: blockReason = decoderActive ? "dec" : !VOICE.includes(String(mode || "").toUpperCase()) ? "mode" : "";
+  $: if (blockReason && running) toggle();
   const HAM = [["160m", 1810, 2000], ["80m", 3500, 3800], ["60m", 5351, 5367], ["40m", 7000, 7200],
     ["30m", 10100, 10150], ["20m", 14000, 14350], ["17m", 18068, 18168], ["15m", 21000, 21450],
     ["12m", 24890, 24990], ["10m", 28000, 29700], ["6m", 50000, 52000]];
@@ -181,7 +187,7 @@
       status = { active: false, state: "idle", locked: false };
       return;
     }
-    if (!partner) return;
+    if (!partner || blockReason) return;
     // Page en https, partenaire en http (la plupart des KiwiSDR) : le navigateur refuse la connexion
     // directe ; elle passe par le relais du serveur ORSAT (/divrelay/<id>/, proxy.py).
     const relayed = location.protocol === "https:" && partner.type !== "websdr" && /^(http|ws):/i.test(String(partner.addr).trim());
@@ -229,7 +235,7 @@
         <span class="dv-step">{D.step1}</span>
         <button type="button" class="dv-help-btn" on:click={() => (showHelp = !showHelp)}>{showHelp ? "✕" : "?"} {D.help}</button>
       </div>
-      {#if showHelp}<p class="dv-help">{D.helpText}</p>{/if}
+      {#if showHelp}<p class="dv-help">{D.helpText}<br /><b>{D.helpLatency}</b></p>{/if}
       {#if partners.length}
         <div class="dv-cards">
           {#each partners as x (x.id)}
@@ -252,7 +258,8 @@
       {/if}
 
       <span class="dv-step">{D.step2}</span>
-      <button type="button" class="dv-go" class:stop={running} disabled={!running && !partner} on:click={toggle}>
+      {#if blockReason}<p class="dv-block">{blockReason === "dec" ? D.blockDec : D.blockMode}</p>{/if}
+      <button type="button" class="dv-go" class:stop={running} disabled={!running && (!partner || !!blockReason)} on:click={toggle}>
         {running ? D.stop : partner ? D.start(partnerName) : D.pick}
       </button>
 
@@ -360,6 +367,8 @@
   .dv-note { margin: 0; font-size: 11px; color: #9b9684; }
   .dv-adv-btn { align-self: flex-start; background: transparent; border: 0; color: #b9b39d; cursor: pointer; font-size: 12px; padding: 2px 0; }
   .dv-adv-btn:hover { color: rgb(226, 201, 90); }
+  .dv-block { margin: 0; padding: 6px 10px; border-radius: 8px; font-size: 12.5px; color: #f0c060;
+              background: rgba(224, 160, 48, 0.15); border: 1px solid rgba(224, 160, 48, 0.6); }
   .dv-empty { margin: 0; padding: 8px 10px; border-radius: 8px; color: #f0c060; background: rgba(0, 0, 0, 0.35);
               border: 1px dashed rgba(207, 181, 59, 0.5); }
   .dv-tech { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-family: ui-monospace, monospace; font-size: 11px;
