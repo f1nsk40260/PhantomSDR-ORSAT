@@ -1434,7 +1434,7 @@ def init(app, g):
     def ol_settings():
         data = request.get_json(silent=True) or {}
         keep = ("callsign", "locator", "swl_locator", "tci_enabled", "tci_host", "tci_port",
-                "tci_trx", "weathercloud")
+                "tci_trx", "weathercloud", "blitzortung")
         try:
             saved = _ol_json("PUT", "/api/settings", {k: str(data[k]) for k in keep if k in data})
         except Exception as e:

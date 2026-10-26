@@ -648,6 +648,9 @@
         olField('x-ol-loc', 'LOCATOR STATION (QSO)', cfg.locator, 'Station émettrice (FlexRadio) : distances et azimuts des QSO.') +
         olField('x-ol-swl', 'LOCATOR WEBSDR (SWL)', cfg.swl_locator, 'Récepteur WebSDR : distances et azimuts des écoutes. Vide = locator de la station.') +
         olField('x-ol-wc', 'STATION MÉTÉO WEATHERCLOUD', cfg.weathercloud, 'Identifiant à 10 chiffres ou adresse de la station.') +
+        '<label style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;" ' +
+        'title="Impacts de foudre en temps réel (Blitzortung.org) : panneau Orages et QRN, carte des bandes, analyse du bruit">' +
+        '<input type="checkbox" id="x-ol-blitz"' + (cfg.blitzortung !== '0' ? ' checked' : '') + '> écouter la foudre (Blitzortung.org)</label>' +
         '<div style="margin:.4rem 0 .6rem;font-size:.65rem;color:var(--text3);">CONNEXION TCI À AETHERSDR <span class="x-dim">(faite par le navigateur du poste d\'exploitation)</span></div>' +
         '<label style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem;">' +
         '<input type="checkbox" id="x-ol-tci"' + (cfg.tci_enabled === '1' ? ' checked' : '') + '> suivre AetherSDR</label>' +
@@ -821,6 +824,7 @@
       const d = await post('/admin/api/orsatlog/settings', {
         callsign: v('x-ol-call').toUpperCase(), locator: v('x-ol-loc').toUpperCase(),
         swl_locator: v('x-ol-swl').toUpperCase(), weathercloud: v('x-ol-wc'),
+        blitzortung: $('x-ol-blitz').checked ? '1' : '0',
         tci_enabled: $('x-ol-tci').checked ? '1' : '0', tci_host: v('x-ol-host') || '127.0.0.1',
         tci_port: v('x-ol-port') || '50001', tci_trx: $('x-ol-trx').value,
       });
