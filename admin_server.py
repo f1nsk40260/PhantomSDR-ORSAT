@@ -1508,8 +1508,8 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
   <div class="sidebar">
     <div class="sidebar-logo">
       <div class="icon">📡</div>
-      <div class="title">PHANTOM<span style="color:var(--amber)">SDR</span></div>
-      <div class="sub">ADMIN v5.1.0</div>
+      <div class="title">ORSAT<span style="color:var(--amber)">-SYSTEM</span></div>
+      <div class="sub">v1.0.0</div>
     </div>
     <div class="nav-section" data-group="principal">
       <a data-page="dashboard" class="nav-item active" onclick="showPage('dashboard',this)" href="#">
