@@ -70,7 +70,7 @@ ORSAT compare le **rythme de la parole** des deux sons : la succession des sylla
 
 Comptez donc **10 à 20 secondes** entre l'appui sur **▶ Démarrer** et le moment où la diversité est opérationnelle. Il faut qu'**une station parle** pendant ce temps : sur une porteuse pure ou une fréquence vide, il n'y a pas de rythme à comparer.
 
-> [Astuce] Une fois l'alignement trouvé, le son que vous entendez a environ **0,3 seconde de retard** sur ORSAT seul. C'est le prix de la marge qui permet de basculer sans à-coup ; à l'écoute, on ne le remarque pas.
+> [Attention] **L'utilisation de la réception en diversité augmente sensiblement le temps de latence de la réception.** Le son que vous entendez est retardé (au moins 0,3 seconde, davantage selon le partenaire) pour laisser à ORSAT la marge d'aligner les deux récepteurs et de basculer sans à-coup. Pour un QSO en direct, où chaque fraction de seconde compte, arrêtez la diversité : la latence normale revient aussitôt.
 
 # 4. Utiliser le panneau pas à pas
 
@@ -84,7 +84,7 @@ Le panneau **Réception en diversité** se trouve dans la colonne centrale, sous
 
 ## 4.2 Démarrer
 
-1. **Accordez d'abord ORSAT** sur la station à écouter, dans le bon mode.
+1. **Accordez d'abord ORSAT** sur la station à écouter, dans un **mode phonie** : USB, LSB, AM, SAM, QUAM, FM ou WBFM. Dans tout autre mode, ou si un décodeur est en marche, le bouton de démarrage est grisé et la raison s'affiche au-dessus.
 2. **Choisissez un récepteur partenaire** en cliquant sur sa vignette : elle s'entoure d'or. De préférence celui qui porte le badge **★ Conseillé** (section 5).
 3. Cliquez sur le grand bouton vert **▶ Démarrer avec…**.
 4. Patientez : l'état passe de **Synchronisation…** à **En marche** quand la diversité est opérationnelle.
@@ -165,10 +165,11 @@ Certains récepteurs (souvent des KiwiSDR) ne sont joignables qu'en **http**, ce
 
 # 7. Ce que la diversité ne fait pas
 
-- **Elle n'alimente que le haut-parleur.** Les décodeurs (FT8, CW, RTTY…) continuent d'utiliser **ORSAT seul** : un changement de récepteur en plein créneau ferait échouer un décodage qui exige un son continu.
+- **Elle n'est applicable qu'en phonie.** Elle est désactivée si vous utilisez un décodeur (FT8, CW, RTTY…) : lancer un décodeur l'arrête aussitôt, de même que passer dans un mode autre que la phonie. Un changement de récepteur en plein créneau ferait d'ailleurs échouer un décodage qui exige un son continu.
+- **Elle augmente sensiblement la latence** de la réception (voir section 3.2).
 - **Elle ne remplace pas une bonne antenne.** Si aucun des deux récepteurs n'entend la station, la diversité n'y peut rien.
 - **Elle ne mélange pas les deux sons**, sauf pendant les fondus de 30 ms (voir section 2.2).
-- **Elle ne s'aligne pas sur un signal sans modulation** : il lui faut une voix, du Morse ou tout signal qui varie dans le temps.
+- **Elle ne s'aligne pas sur un signal sans modulation** : il lui faut une voix, avec ses syllabes et ses silences.
 
 # 8. Dépannage
 
@@ -180,6 +181,7 @@ Certains récepteurs (souvent des KiwiSDR) ne sont joignables qu'en **http**, ce
 | Toujours sur ORSAT, 0 bascule | ORSAT est meilleur en ce moment | Normal : la diversité ne passe sur le partenaire que s'il fait mieux |
 | Bascules incessantes | Les deux récepteurs se valent | Sans gêne à l'écoute |
 | Un mot répété ou sauté au basculement | Alignement en cours de recalage | Se corrige seul à la vérification suivante (au plus une minute) |
+| Bouton « Démarrer » grisé, message orange | Un décodeur est en marche, ou le mode n'est pas de la phonie | Arrêtez le décodeur ; passez en USB, LSB, AM ou FM |
 | Aucun badge sur les vignettes | Le serveur n'a pas encore calculé, ou le partenaire n'a pas de locator | Patientez quelques minutes ; le choix reste possible sans badge |
 
 > [Astuce] En cas de doute, cliquez sur **■ Arrêter la diversité** : le son revient immédiatement à ORSAT seul, sans aucune conséquence.

@@ -291,7 +291,11 @@ Sur chaque vignette, un badge donne le conseil du moment **pour la bande écout�
 | Peu utile sur 40m | Il n'entend pas les mêmes stations qu'ORSAT sur cette bande en ce moment |
 | Hors ligne | Le récepteur ne répond pas (vérifié par le serveur toutes les 10 minutes) |
 
-La synchronisation des deux récepteurs prend **10 à 15 secondes** et demande qu'une station transmette. Le partenaire est réglé automatiquement sur la même fréquence, le même mode et le même filtre qu'ORSAT, et suit chaque changement d'accord. Les décodeurs, eux, restent sur ORSAT seul.
+La synchronisation des deux récepteurs prend **10 à 15 secondes** et demande qu'une station transmette. Le partenaire est réglé automatiquement sur la même fréquence, le même mode et le même filtre qu'ORSAT, et suit chaque changement d'accord.
+
+La diversité n'est applicable que pour les **modes phonie** (USB, LSB, AM, SAM, QUAM, FM, WBFM) : elle est désactivée si vous utilisez un décodeur, et s'arrête dès qu'un décodeur démarre ou que vous changez pour un autre mode.
+
+> [Attention] **L'utilisation de la réception en diversité augmente sensiblement le temps de latence de la réception.** Pour un QSO en direct, arrêtez-la.
 
 > [Astuce] Le guide détaillé « Réception en diversité » (menu Informations) explique le principe, la synchronisation, les indicateurs et le dépannage.
 

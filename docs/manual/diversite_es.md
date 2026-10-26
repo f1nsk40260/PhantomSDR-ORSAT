@@ -71,7 +71,7 @@ ORSAT compara el **ritmo del habla** de los dos sonidos: la sucesión de sílaba
 
 Cuente pues **de 10 a 20 segundos** entre la pulsación de **▶ Iniciar** y el momento en que la diversidad está operativa. Es necesario que **alguien hable** durante ese tiempo: en una portadora pura o una frecuencia vacía no hay ritmo que comparar.
 
-> [Consejo] Una vez alineado, el sonido que oye lleva unos **0,3 segundos de retraso** respecto a ORSAT solo. Es el precio del margen que permite conmutar sin brusquedad; al escuchar, no se nota.
+> [Atención] **El uso de la recepción en diversidad aumenta notablemente la latencia de la recepción.** El sonido que oye se retrasa (al menos 0,3 segundos, más según el asociado) para dar a ORSAT el margen de alinear los dos receptores y conmutar sin brusquedad. Para un QSO en directo, donde cada fracción de segundo cuenta, detenga la diversidad: la latencia normal vuelve al instante.
 
 # 4. Usar el panel paso a paso
 
@@ -85,7 +85,7 @@ El panel **Recepción en diversidad** está en la columna central, bajo la sinto
 
 ## 4.2 Iniciar
 
-1. **Sintonice primero ORSAT** en la estación que quiere escuchar, en el modo correcto.
+1. **Sintonice primero ORSAT** en la estación que quiere escuchar, en un **modo de fonía**: USB, LSB, AM, SAM, QUAM, FM o WBFM. En cualquier otro modo, o con un decodificador en marcha, el botón de inicio aparece atenuado y el motivo se muestra encima.
 2. **Elija un receptor asociado** haciendo clic en su tarjeta: se rodea de oro. Preferiblemente el que lleva la insignia **★ Recomendado** (sección 5).
 3. Haga clic en el gran botón verde **▶ Iniciar con…**.
 4. Espere: el estado pasa de **Sincronizando…** a **En marcha** cuando la diversidad está operativa.
@@ -166,10 +166,11 @@ Algunos receptores (a menudo KiwiSDR) solo son accesibles por **http**, lo que u
 
 # 7. Lo que no hace la diversidad
 
-- **Solo alimenta el altavoz.** Los decodificadores (FT8, CW, RTTY…) siguen usando **ORSAT solo**: un cambio de receptor a mitad de intervalo haría fallar una decodificación que necesita un sonido continuo.
+- **Solo se aplica a los modos de fonía.** Se desactiva si usa un decodificador (FT8, CW, RTTY…): iniciar un decodificador la detiene al instante, igual que cambiar a un modo que no sea de fonía. Un cambio de receptor a mitad de intervalo haría además fallar una decodificación que necesita un sonido continuo.
+- **Aumenta notablemente la latencia** de la recepción (ver sección 3.2).
 - **No sustituye a una buena antena.** Si ninguno de los dos receptores oye la estación, la diversidad no puede hacer nada.
 - **No mezcla los dos sonidos**, salvo durante los fundidos de 30 ms (ver sección 2.2).
-- **No puede alinearse con una señal sin modulación**: necesita una voz, Morse o cualquier señal que varíe en el tiempo.
+- **No puede alinearse con una señal sin modulación**: necesita una voz, con sus sílabas y silencios.
 
 # 8. Resolución de problemas
 
@@ -181,6 +182,7 @@ Algunos receptores (a menudo KiwiSDR) solo son accesibles por **http**, lo que u
 | Siempre en ORSAT, 0 conmutaciones | ORSAT es mejor ahora | Normal: la diversidad solo pasa al asociado si lo hace mejor |
 | Conmutaciones constantes | Los dos receptores se equivalen | Sin molestia en la escucha |
 | Una palabra repetida o saltada al conmutar | Alineación en reajuste | Se corrige sola en la siguiente comprobación (un minuto como máximo) |
+| Botón «Iniciar» atenuado, mensaje naranja | Hay un decodificador en marcha, o el modo no es de fonía | Detenga el decodificador; pase a USB, LSB, AM o FM |
 | Ninguna insignia en las tarjetas | El servidor aún no ha calculado, o el asociado no tiene locator | Espere unos minutos; puede elegir igualmente sin insignia |
 
 > [Consejo] En caso de duda, haga clic en **■ Detener la diversidad**: el sonido vuelve inmediatamente a ORSAT solo, sin ninguna consecuencia.

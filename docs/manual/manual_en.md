@@ -291,7 +291,11 @@ On each card, a badge gives the current advice **for the band you are tuned to**
 | Of little use on 40m | It does not hear the same stations as ORSAT on this band right now |
 | Offline | The receiver does not answer (checked by the server every 10 minutes) |
 
-Synchronising the two receivers takes **10 to 15 seconds** and needs a station to be transmitting. The partner is set automatically to the same frequency, mode and filter as ORSAT, and follows every tuning change. The decoders stay on ORSAT alone.
+Synchronising the two receivers takes **10 to 15 seconds** and needs a station to be transmitting. The partner is set automatically to the same frequency, mode and filter as ORSAT, and follows every tuning change.
+
+Diversity only applies to **voice modes** (USB, LSB, AM, SAM, QUAM, FM, WBFM): it is disabled while you use a decoder, and stops as soon as a decoder starts or you switch to another mode.
+
+> [Warning] **Using diversity reception noticeably increases the reception latency.** For a live QSO, stop it.
 
 > [Tip] The detailed “Receive diversity” guide (Information menu) explains the principle, synchronisation, the indicators and troubleshooting.
 

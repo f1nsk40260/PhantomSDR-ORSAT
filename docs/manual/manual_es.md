@@ -291,7 +291,11 @@ En cada tarjeta, una insignia da el consejo del momento **para la banda escuchad
 | Poco útil en 40m | No oye las mismas estaciones que ORSAT en esta banda ahora |
 | Fuera de línea | El receptor no responde (comprobado por el servidor cada 10 minutos) |
 
-La sincronización de los dos receptores tarda **10 a 15 segundos** y necesita que una estación transmita. El asociado se ajusta automáticamente a la misma frecuencia, modo y filtro que ORSAT, y sigue cada cambio de sintonía. Los decodificadores siguen en ORSAT solo.
+La sincronización de los dos receptores tarda **10 a 15 segundos** y necesita que una estación transmita. El asociado se ajusta automáticamente a la misma frecuencia, modo y filtro que ORSAT, y sigue cada cambio de sintonía.
+
+La diversidad solo se aplica a los **modos de fonía** (USB, LSB, AM, SAM, QUAM, FM, WBFM): se desactiva si usa un decodificador, y se detiene en cuanto arranca un decodificador o cambia a otro modo.
+
+> [Atención] **El uso de la recepción en diversidad aumenta notablemente la latencia de la recepción.** Para un QSO en directo, deténgala.
 
 > [Consejo] La guía detallada «Recepción en diversidad» (menú Información) explica el principio, la sincronización, los indicadores y la resolución de problemas.
 

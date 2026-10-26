@@ -71,7 +71,7 @@ ORSAT compares the **rhythm of speech** in the two sounds: the sequence of sylla
 
 Allow **10 to 20 seconds** between pressing **▶ Start** and diversity being operational. **Someone must be talking** during that time: on a bare carrier or an empty frequency there is no rhythm to compare.
 
-> [Tip] Once aligned, the sound you hear is about **0.3 second behind** ORSAT alone. That is the price of the margin that allows smooth switching; when listening, you do not notice it.
+> [Warning] **Using diversity reception noticeably increases the reception latency.** The sound you hear is delayed (at least 0.3 second, more depending on the partner) to give ORSAT the margin to align the two receivers and switch smoothly. For a live QSO, where every fraction of a second counts, stop diversity: normal latency returns at once.
 
 # 4. Using the panel step by step
 
@@ -85,7 +85,7 @@ The **Diversity reception** panel is in the middle column, below fine tuning. It
 
 ## 4.2 Starting
 
-1. **Tune ORSAT first** to the station you want to hear, in the right mode.
+1. **Tune ORSAT first** to the station you want to hear, in a **voice mode**: USB, LSB, AM, SAM, QUAM, FM or WBFM. In any other mode, or while a decoder is running, the start button is greyed out and the reason is shown above it.
 2. **Choose a partner receiver** by clicking its card: it gets a gold outline. Preferably the one carrying the **★ Recommended** badge (section 5).
 3. Click the large green **▶ Start with…** button.
 4. Wait: the state goes from **Synchronising…** to **Running** when diversity is operational.
@@ -166,10 +166,11 @@ Some receivers (often KiwiSDRs) can only be reached over **http**, which a brows
 
 # 7. What diversity does not do
 
-- **It only feeds the speaker.** The decoders (FT8, CW, RTTY…) keep using **ORSAT alone**: a change of receiver mid-slot would break decoding that needs continuous audio.
+- **It only applies to voice modes.** It is disabled while you use a decoder (FT8, CW, RTTY…): starting a decoder stops it at once, and so does switching to a non-voice mode. A change of receiver mid-slot would anyway break decoding that needs continuous audio.
+- **It noticeably increases reception latency** (see section 3.2).
 - **It does not replace a good antenna.** If neither receiver hears the station, diversity cannot help.
 - **It does not mix the two sounds**, except during the 30 ms crossfades (see section 2.2).
-- **It cannot align on an unmodulated signal**: it needs a voice, Morse or any signal that varies over time.
+- **It cannot align on an unmodulated signal**: it needs a voice, with its syllables and silences.
 
 # 8. Troubleshooting
 
@@ -181,6 +182,7 @@ Some receivers (often KiwiSDRs) can only be reached over **http**, which a brows
 | Always on ORSAT, 0 switches | ORSAT is better right now | Normal: diversity only uses the partner when it does better |
 | Constant switching | The two receivers are equivalent | Harmless to listening |
 | A word repeated or skipped at a switch | Alignment being readjusted | Corrects itself at the next check (one minute at most) |
+| “Start” button greyed out, orange message | A decoder is running, or the mode is not a voice mode | Stop the decoder; switch to USB, LSB, AM or FM |
 | No badge on the cards | The server has not computed yet, or the partner has no locator | Wait a few minutes; you can still choose without a badge |
 
 > [Tip] When in doubt, click **■ Stop diversity**: the sound returns immediately to ORSAT alone, with no consequence.
