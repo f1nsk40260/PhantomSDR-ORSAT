@@ -886,7 +886,7 @@ LOGIN_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhantomSDR Admin · Connexion</title>
+<title>ORSAT-SYSTEM · Connexion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -943,7 +943,7 @@ input[type=password]:focus{border-color:var(--green);box-shadow:var(--glow);}
 <div class="login-wrap">
   <div class="logo">
     <div class="logo-icon">📡</div>
-    <div class="logo-title">PHANTOM<span style="color:var(--amber)">SDR</span></div>
+    <div class="logo-title">ORSAT<span style="color:var(--amber)">-SYSTEM</span></div>
     <div class="logo-sub">PANNEAU D'ADMINISTRATION</div>
   </div>
   <div class="card">
@@ -963,7 +963,7 @@ SETUP_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhantomSDR Admin &#183; Installation</title>
+<title>ORSAT-SYSTEM &#183; Installation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -1007,7 +1007,7 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
 <div class="wrap">
   <div class="logo">
     <div class="logo-icon">&#128225;</div>
-    <div class="logo-title">PHANTOM<span style="color:var(--amber)">SDR</span></div>
+    <div class="logo-title">ORSAT<span style="color:var(--amber)">-SYSTEM</span></div>
     <div class="logo-sub">PREMIÈRE CONFIGURATION</div>
   </div>
   <div class="card">
@@ -1123,7 +1123,7 @@ MAIN_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhantomSDR · Panneau d'administration</title>
+<title>ORSAT-SYSTEM · Panneau d'administration</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
