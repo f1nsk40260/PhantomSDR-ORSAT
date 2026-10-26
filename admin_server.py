@@ -1174,6 +1174,16 @@ body{background-image:repeating-linear-gradient(0deg,transparent,transparent 2px
 .nav-badge.bad{color:#fff;background:var(--red);}
 .nav-subtabs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem;}
 .nav-subtabs:empty{display:none;}
+/* rubriques repliables (pages à plusieurs rubriques) : clic sur le titre */
+.section-head.fold{cursor:pointer;user-select:none;display:flex;align-items:center;gap:.5rem;}
+.section-head.fold:hover{text-shadow:var(--glow);}
+.section-head.fold .fold-caret{font-size:.7rem;transition:transform .15s;}
+.section-head.fold.shut .fold-caret{transform:rotate(-90deg);}
+.section-head.fold.shut{margin-bottom:.6rem;opacity:.75;}
+.fold-body.shut{display:none;}
+.fold-tools{display:flex;gap:.4rem;justify-content:flex-end;margin-bottom:.4rem;}
+.fold-tools a{font-size:.62rem;letter-spacing:.08em;color:var(--text3);text-decoration:none;cursor:pointer;border:1px solid var(--border);border-radius:999px;padding:.15rem .6rem;}
+.fold-tools a:hover{color:var(--green);border-color:var(--green2);}
 .nav-subtabs a{font-size:.7rem;letter-spacing:.06em;padding:.35rem .8rem;border:1px solid var(--border);border-radius:999px;
   color:var(--text2);text-decoration:none;background:#030803;cursor:pointer;}
 .nav-subtabs a:hover{color:var(--green);border-color:var(--green2);}
@@ -2651,6 +2661,62 @@ function navSync(name) {
   const cur = navPageEl(name).querySelector('span:not(.icon):not(.nav-badge)');
   document.getElementById('page-title').textContent = NAV_GROUPS[g] + ' · ' + (cur ? cur.textContent : name).toUpperCase();
 }
+
+// ─── Rubriques repliables ────────────────────────────────────────────────────
+// Sur une page à plusieurs titres de rubrique (.section-head), chaque titre replie / déplie ce qui le suit
+// jusqu'au titre suivant. Les éléments sont seulement regroupés (identifiants inchangés). État retenu par
+// le navigateur ; par défaut, seule la première rubrique est ouverte.
+function foldKey(page, head) {
+  if (!head.dataset.fold) head.dataset.fold = 'adminFold_' + page + '_' + head.textContent.trim().slice(0, 40);
+  return head.dataset.fold;
+}
+function foldSet(page, head, body, shut) {
+  head.classList.toggle('shut', shut);
+  body.classList.toggle('shut', shut);
+  try { localStorage.setItem(foldKey(page, head), shut ? '1' : '0'); } catch (e) {}
+}
+function foldInit() {
+  document.querySelectorAll('.page').forEach(pg => {
+    const heads = [...pg.querySelectorAll(':scope > .section-head')];
+    if (heads.length < 2) return;
+    const page = pg.id.replace('page-', ''), pairs = [];
+    heads.forEach((head, i) => {
+      const body = document.createElement('div');
+      body.className = 'fold-body';
+      let n = head.nextSibling;
+      while (n && !(n.nodeType === 1 && n.classList.contains('section-head'))) {
+        const next = n.nextSibling;
+        body.appendChild(n);
+        n = next;
+      }
+      head.after(body);
+      foldKey(page, head);                      // clé figée avant l'ajout de la flèche
+      head.classList.add('fold');
+      head.title = 'Clic : replier / déplier cette rubrique';
+      const caret = document.createElement('span');
+      caret.className = 'fold-caret';
+      caret.textContent = '▾';
+      head.prepend(caret);
+      let saved = null;
+      try { saved = localStorage.getItem(foldKey(page, head)); } catch (e) {}
+      const shut = saved === null ? i > 0 : saved === '1';
+      head.classList.toggle('shut', shut);
+      body.classList.toggle('shut', shut);
+      head.addEventListener('click', () => foldSet(page, head, body, !head.classList.contains('shut')));
+      pairs.push([head, body]);
+    });
+    const tools = document.createElement('div');
+    tools.className = 'fold-tools';
+    [['TOUT DÉPLIER', false], ['TOUT REPLIER', true]].forEach(([label, shut]) => {
+      const a = document.createElement('a');
+      a.textContent = label;
+      a.onclick = () => { pairs.forEach(([h, b]) => foldSet(page, h, b, shut)); return false; };
+      tools.appendChild(a);
+    });
+    heads[0].before(tools);
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', foldInit); else foldInit();
 
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
