@@ -887,6 +887,9 @@ LOGIN_HTML = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ORSAT-SYSTEM · Connexion</title>
+<link rel="icon" type="image/svg+xml" href="/admin/icons/orsat-system-icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/admin/icons/orsat-system-icon-32.png">
+<link rel="apple-touch-icon" href="/admin/icons/orsat-system-apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -964,6 +967,9 @@ SETUP_HTML = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ORSAT-SYSTEM &#183; Installation</title>
+<link rel="icon" type="image/svg+xml" href="/admin/icons/orsat-system-icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/admin/icons/orsat-system-icon-32.png">
+<link rel="apple-touch-icon" href="/admin/icons/orsat-system-apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -1124,6 +1130,9 @@ MAIN_HTML = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ORSAT-SYSTEM · Panneau d'administration</title>
+<link rel="icon" type="image/svg+xml" href="/admin/icons/orsat-system-icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/admin/icons/orsat-system-icon-32.png">
+<link rel="apple-touch-icon" href="/admin/icons/orsat-system-apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>

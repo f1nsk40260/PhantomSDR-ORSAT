@@ -1071,6 +1071,17 @@ def init(app, g):
     lr = g["login_required"]
 
     # ── JavaScript des pages ────────────────────────────────────────────
+    # Icônes ORSAT-SYSTEM (onglet du navigateur, écran d'accueil) : publiques, la page de connexion en a besoin
+    ICONS = BASE / "admin_icons"
+    ICON_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon"}
+
+    @app.route("/admin/icons/<name>")
+    def admin_icon(name):
+        f = ICONS / name
+        if not re.match(r"^[a-z0-9-]+\.(svg|png|ico)$", name) or not f.is_file():
+            return Response("", status=404)
+        return Response(f.read_bytes(), mimetype=ICON_TYPES[f.suffix], headers={"Cache-Control": "public, max-age=86400"})
+
     @app.route("/admin/extras.js")
     @lr
     def extras_js():
