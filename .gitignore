@@ -21,3 +21,4 @@ autorun-spots/
 # Badge SYSOP : adresses du sysop (privé) et empreintes publiées
 /sysop_seen.json
 frontend/dist/sysop.json
+frontend/public/sysop.json

@@ -5604,7 +5604,10 @@ def _sysop_save_and_publish(seen: dict):
     ids = sorted({(ip if LI.is_private(ip) else "h:" + LI.ip_hash(ip)) for ip in seen})
     payload = _json.dumps({"ids": ids})
     seen_dirs = set()
-    for d in (BASE_DIR / "frontend" / "dist", get_sdr_dir() / "frontend" / "dist"):
+    # frontend/public est recopié dans dist à chaque build : le badge survit
+    # ainsi aux mises à jour, qui reconstruisent et vident frontend/dist.
+    for d in (BASE_DIR / "frontend" / "dist", get_sdr_dir() / "frontend" / "dist",
+              BASE_DIR / "frontend" / "public", get_sdr_dir() / "frontend" / "public"):
         try:
             d = d.resolve()
             if d in seen_dirs or not d.is_dir():
@@ -5622,8 +5625,11 @@ def _sysop_touch(force=False):
     if not ip:
         return
     now = time.time()
-    # Une écriture toutes les 10 min suffit : le délai de validité est de 3 jours.
-    if not force and now - _sysop_last_write.get(ip, 0) < 600:
+    # Une écriture toutes les 10 min suffit (validité 3 jours), sauf si le
+    # fichier public a disparu (dist reconstruit par une mise à jour).
+    published = any((d / "frontend" / "dist" / "sysop.json").exists()
+                    for d in (BASE_DIR, get_sdr_dir()))
+    if not force and published and now - _sysop_last_write.get(ip, 0) < 600:
         return
     with _sysop_lock:
         _sysop_last_write[ip] = now
