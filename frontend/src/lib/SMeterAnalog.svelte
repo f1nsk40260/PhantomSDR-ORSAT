@@ -62,6 +62,23 @@ const SMOOTH_TIME_MS = 16; //lower ->faster, higher -> smoother e.g. 120-2000
 // Stop when we're within this many "power" units
 const STOP_EPS = 0.02;
 
+// --- Crête (peak hold) -------------------------------------------------------
+// Une aiguille fine garde la valeur crête PEAK_HOLD_MS, puis redescend
+// doucement vers l'aiguille principale à PEAK_DECAY unités (0..100) par seconde.
+const PEAK_HOLD_MS = 2000;
+const PEAK_DECAY   = 12;
+let peakPower = 0;
+let _peakTs   = 0;
+
+function _updatePeak(value, ts, dt) {
+  if (value >= peakPower) {
+    peakPower = value;
+    _peakTs = ts;
+  } else if (ts - _peakTs > PEAK_HOLD_MS) {
+    peakPower = Math.max(value, peakPower - PEAK_DECAY * dt / 1000);
+  }
+}
+
 // --- S-Meter face theme -----------------------------------------------------
 // 'dark' = original dark brushed metal; 'amber' = light (pale grey) face;
 // 'vintage' = warm aged-amber face. Same light-face artwork for 'amber' and
@@ -112,13 +129,14 @@ function _animateNeedle(ts) {
   // Exponential smoothing with time-constant (frame-rate independent)
   const alpha = 1 - Math.exp(-dt / SMOOTH_TIME_MS);
   currentPower += (targetPower - currentPower) * alpha;
+  if (gated) peakPower = 0; else _updatePeak(currentPower, ts, dt);
 
   // Draw using the smoothed value.  Via the wrapper, not drawSMeterDesktop:
   // this path was written for the desktop face back when it was dead code, and
   // calling it directly would leave the mobile bar frozen.
   drawSMeter(currentPower);
 
-  if (Math.abs(targetPower - currentPower) > STOP_EPS) {
+  if (Math.abs(targetPower - currentPower) > STOP_EPS || peakPower > currentPower + STOP_EPS) {
     requestAnimationFrame(_animateNeedle);
   } else {
     currentPower = targetPower;
@@ -491,6 +509,20 @@ function _animateNeedle(ts) {
 
     // ===== Needle (Deep Metallic Red) =====
     const needleLength = radius - 30;
+
+    // ===== Aiguille de crête (fine, sous l'aiguille principale) =====
+    if (peakPower > powerValue + 0.5) {
+      const peakAngle = startAngle + (Math.min(peakPower, 100) / 100) * totalSweep;
+      ctx.save();
+      ctx.strokeStyle = amber ? "rgba(190,20,20,0.8)" : "rgba(255,200,70,0.85)";
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(centerX + Math.cos(peakAngle) * 35, centerY + Math.sin(peakAngle) * 35);
+      ctx.lineTo(centerX + Math.cos(peakAngle) * needleLength, centerY + Math.sin(peakAngle) * needleLength);
+      ctx.stroke();
+      ctx.restore();
+    }
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,0.8)";
     ctx.shadowBlur = 18;
