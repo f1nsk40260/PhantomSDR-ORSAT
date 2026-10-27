@@ -216,6 +216,7 @@
   import SsbReport from "./lib/SsbReport.svelte";
   import QrssPanel from "./lib/QrssPanel.svelte";
   import VideoAreaSelector from "./lib/VideoAreaSelector.svelte";
+  import { sha256Hex } from "./lib/sha256.js";
   import { connectCatSync, connectCatSyncAny, buildDefaultSources } from "./lib/catsync.js";
   import {
     parseChatLine,
@@ -618,8 +619,35 @@
     );
   }
 
+  // Badge SYSOP : sysop.json (écrit par ORSAT-SYSTEM) liste l'empreinte
+  // SHA-256 des adresses d'où le sysop utilise le panneau admin.
+  let _sysopHashes = new Set();
+  let _sysopFetchedAt = 0;
+  const _ipHashCache = new Map();
+  async function _loadSysopHashes() {
+    if (Date.now() - _sysopFetchedAt < 30000) return;
+    _sysopFetchedAt = Date.now();
+    try {
+      const r = await fetch(withRx("/sysop.json?_=" + Date.now()), { cache: "no-store" });
+      if (!r.ok) { _sysopHashes = new Set(); return; }
+      const d = await r.json();
+      _sysopHashes = new Set(Array.isArray(d && d.h) ? d.h : []);
+    } catch (e) {
+      /* fichier absent ou réseau : on garde l'état précédent */
+    }
+  }
+  function _isSysopIp(ip) {
+    if (!ip || _sysopHashes.size === 0) return false;
+    const raw = ip.trim().replace(/^\[|\]$/g, "");
+    const norm = raw.startsWith("::ffff:") ? raw.slice(7) : raw;
+    let h = _ipHashCache.get(norm);
+    if (!h) { h = sha256Hex("orsat-sysop|" + norm); _ipHashCache.set(norm, h); }
+    return _sysopHashes.has(h);
+  }
+
   async function _fetchClientGeo() {
     try {
+      await _loadSysopHashes();
       const r = await fetch(withRx("/users"), { cache: "no-store" });
       if (!r.ok) return;
       const raw = await r.json();
@@ -639,6 +667,10 @@
       const map = {};
       for (const u of users) {
         if (!u.id) continue;
+        if (_isSysopIp(u.ip)) {
+          map[u.id] = "SYSOP";
+          continue;
+        }
         if (_isLocalIp(u.ip) || u.geo === "Local") {
           map[u.id] = "Local";
           continue;

@@ -224,6 +224,7 @@ def login_required(f):
     def decorated(*args, **kwargs):
         if not session.get("authenticated"):
             return redirect(url_for("login"))
+        _sysop_touch()
         return f(*args, **kwargs)
     return decorated
 
@@ -4670,6 +4671,7 @@ def login_post():
     if check_password(pwd):
         session["authenticated"] = True
         session.permanent = True
+        _sysop_touch(force=True)
         if is_first_run():
             return redirect(url_for("setup"))
         return redirect(url_for("dashboard"))
@@ -4687,6 +4689,8 @@ def dashboard():
 
 @app.route("/admin/logout")
 def logout():
+    if session.get("authenticated"):
+        _sysop_forget()
     session.clear()
     return redirect(url_for("login"))
 
@@ -5567,6 +5571,94 @@ def _wf_write_file(text: str, color: str, until: float = 0) -> str:
         except Exception as e:
             print(f"[wf-msg] Could not write {d}/wf-message.json: {e}")
     return ", ".join(written) if written else "nowhere (no candidate dir found)"
+
+
+# ── Badge SYSOP sur le waterfall ────────────────────────────────────────────────
+# L'adresse d'où le sysop utilise ORSAT-SYSTEM est retenue (sysop_seen.json,
+# privé) ; sysop.json, public dans frontend/dist, n'en publie que l'empreinte
+# SHA-256. La page compare l'empreinte de chaque auditeur de /users et affiche
+# « SYSOP » à la place de son pays/ville. Valable SYSOP_TTL après la dernière
+# visite du panneau ; la déconnexion du panneau retire le badge.
+SYSOP_TTL = 3 * 24 * 3600
+SYSOP_SALT = "orsat-sysop|"
+_sysop_lock = threading.Lock()
+_sysop_last_write = {}
+
+def _sysop_hash(ip: str) -> str:
+    import hashlib
+    return hashlib.sha256((SYSOP_SALT + ip).encode("utf-8")).hexdigest()
+
+def _sysop_load() -> dict:
+    import json as _json
+    try:
+        d = _json.loads((BASE_DIR / "sysop_seen.json").read_text(encoding="utf-8"))
+        return {k: float(v) for k, v in d.items()} if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+def _sysop_save_and_publish(seen: dict):
+    import json as _json
+    now = time.time()
+    seen = {ip: ts for ip, ts in seen.items() if now - ts < SYSOP_TTL}
+    try:
+        (BASE_DIR / "sysop_seen.json").write_text(_json.dumps(seen), encoding="utf-8")
+    except Exception as e:
+        print(f"[sysop] sysop_seen.json: {e}")
+    payload = _json.dumps({"h": sorted(_sysop_hash(ip) for ip in seen)})
+    seen_dirs = set()
+    for d in (BASE_DIR / "frontend" / "dist", get_sdr_dir() / "frontend" / "dist"):
+        try:
+            d = d.resolve()
+            if d in seen_dirs or not d.is_dir():
+                continue
+            seen_dirs.add(d)
+            (d / "sysop.json").write_text(payload, encoding="utf-8")
+        except Exception as e:
+            print(f"[sysop] {d}/sysop.json: {e}")
+
+def _sysop_touch(force=False):
+    try:
+        ip = LI.norm_ip(request.remote_addr or "")
+    except Exception:
+        return
+    if not ip:
+        return
+    now = time.time()
+    # Une écriture toutes les 10 min suffit : le délai de validité est de 3 jours.
+    if not force and now - _sysop_last_write.get(ip, 0) < 600:
+        return
+    with _sysop_lock:
+        _sysop_last_write[ip] = now
+        seen = _sysop_load()
+        seen[ip] = now
+        _sysop_save_and_publish(seen)
+
+def _sysop_forget():
+    try:
+        ip = LI.norm_ip(request.remote_addr or "")
+    except Exception:
+        return
+    with _sysop_lock:
+        _sysop_last_write.pop(ip, None)
+        seen = _sysop_load()
+        seen.pop(ip, None)
+        _sysop_save_and_publish(seen)
+
+def _sysop_expiry_loop():
+    while True:
+        time.sleep(3600)
+        try:
+            with _sysop_lock:
+                _sysop_save_and_publish(_sysop_load())
+        except Exception as e:
+            print(f"[sysop] expiry: {e}")
+
+try:
+    with _sysop_lock:
+        _sysop_save_and_publish(_sysop_load())
+    threading.Thread(target=_sysop_expiry_loop, daemon=True).start()
+except Exception as e:
+    print(f"[sysop] init: {e}")
 
 
 def _wf_expiry_loop():

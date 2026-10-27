@@ -1330,14 +1330,15 @@ export default class SpectrumWaterfall {
         const cityPart = geoVal && geoVal.includes('·')
           ? geoVal.split('·')[1].trim()
           : geoVal
-        const label = geoVal ? cityPart : displayId
+        const isSysop = geoVal === 'SYSOP'
+        const label = isSysop ? 'SYSOP' : (geoVal ? cityPart : displayId)
 
         const textW = this.clientsCtx.measureText(label).width
         const flagW = flagImg ? flagSz + flagGap : 0
         const pillW = hPad + flagW + textW + hPad
         const midX  = this.idxToCanvasX(range[1])
         const pillX = midX - pillW / 2
-        return { fftOffset: range[1], midX, label, flagImg, flagW, flagSz, pillW, pillX, isStar: false }
+        return { fftOffset: range[1], midX, label, flagImg, flagW, flagSz, pillW, pillX, isStar: false, isSysop }
       })
 
     // Add own ★ as a frameless entry so it joins the row-assignment and never
@@ -1346,9 +1347,17 @@ export default class SpectrumWaterfall {
       const myRange = this.clients[this.myId]
       if (myRange[1] < this.waterfallR && myRange[1] >= this.waterfallL) {
         const midX  = this.idxToCanvasX(myRange[1])
-        const starW = this.clientsCtx.measureText('★').width + hPad * 2
-        const pillX = midX - starW / 2
-        entries.push({ fftOffset: myRange[1], midX, pillW: starW, pillX, isStar: true })
+        if (geoMap[this.myId] === 'SYSOP') {
+          // Le sysop se voit comme les autres le voient : pastille « ★ SYSOP ».
+          const label = '★ SYSOP'
+          const pillW = hPad + this.clientsCtx.measureText(label).width + hPad
+          entries.push({ fftOffset: myRange[1], midX, label, flagImg: null, flagW: 0, flagSz,
+                         pillW, pillX: midX - pillW / 2, isStar: false, isSysop: true, isMe: true })
+        } else {
+          const starW = this.clientsCtx.measureText('★').width + hPad * 2
+          const pillX = midX - starW / 2
+          entries.push({ fftOffset: myRange[1], midX, pillW: starW, pillX, isStar: true })
+        }
       }
     }
 
@@ -1374,8 +1383,8 @@ export default class SpectrumWaterfall {
     this.clientsCtx.lineWidth = 1 * scale
     entries.forEach(e => {
       const pillY = padTop + e.row * rowStep
-      this.clientsCtx.strokeStyle = e.isStar
-        ? 'rgba(255,220,0,0.6)'   // faint yellow tick for own position
+      this.clientsCtx.strokeStyle = (e.isStar || e.isSysop)
+        ? 'rgba(255,220,0,0.6)'   // faint yellow tick for own position / sysop
         : 'rgba(255,255,255,0.5)' // white tick for others
       this.clientsCtx.beginPath()
       this.clientsCtx.moveTo(e.midX, pillY)
@@ -1399,16 +1408,16 @@ export default class SpectrumWaterfall {
         return
       }
 
-      this._clientPills.push({ x: e.pillX, y: pillY, w: e.pillW, h: pillH, fftOffset: e.fftOffset })
+      if (!e.isMe) this._clientPills.push({ x: e.pillX, y: pillY, w: e.pillW, h: pillH, fftOffset: e.fftOffset })
 
       // Pill background (opaque — covers any tick line passing through)
-      this.clientsCtx.fillStyle = 'rgba(0,0,0,0.95)'
+      this.clientsCtx.fillStyle = e.isSysop ? 'rgba(207,181,59,0.95)' : 'rgba(0,0,0,0.95)'
       this.clientsCtx.beginPath()
       this.clientsCtx.roundRect(e.pillX, pillY, e.pillW, pillH, 3 * scale)
       this.clientsCtx.fill()
 
       // Pill border
-      this.clientsCtx.strokeStyle = 'rgba(0,200,0,0.7)'
+      this.clientsCtx.strokeStyle = e.isSysop ? 'rgba(255,230,120,0.95)' : 'rgba(0,200,0,0.7)'
       this.clientsCtx.lineWidth   = 1 * scale
       this.clientsCtx.beginPath()
       this.clientsCtx.roundRect(e.pillX, pillY, e.pillW, pillH, 3 * scale)
@@ -1421,7 +1430,7 @@ export default class SpectrumWaterfall {
       }
 
       // Label text
-      this.clientsCtx.fillStyle    = 'rgba(0,220,0,0.95)'
+      this.clientsCtx.fillStyle    = e.isSysop ? 'rgba(0,0,0,0.95)' : 'rgba(0,220,0,0.95)'
       this.clientsCtx.textAlign    = 'left'
       this.clientsCtx.textBaseline = 'middle'
       this.clientsCtx.fillText(e.label, e.pillX + hPad + e.flagW, pillY + pillH / 2)

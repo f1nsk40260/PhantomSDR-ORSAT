@@ -17,3 +17,7 @@ autorun-spots/
 
 # Récepteurs partenaires de la diversité (panneau admin)
 /diversity_partners.json
+
+# Badge SYSOP : adresses du sysop (privé) et empreintes publiées
+/sysop_seen.json
+frontend/dist/sysop.json
