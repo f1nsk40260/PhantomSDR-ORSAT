@@ -9,7 +9,7 @@ const F = 'fill="currentColor" stroke="none"';
 export const MARKER_ICONS = {
   pirate: {
     label: 'Pirate',
-    svg: `<path ${S} d="M12 2a6 6 0 0 0-6 6c0 2 1 3.4 2.5 4.2V15h7v-2.8C17 11.4 18 10 18 8a6 6 0 0 0-6-6z"/><circle ${F} cx="9.6" cy="8" r="1.4"/><circle ${F} cx="14.4" cy="8" r="1.4"/><path ${S} d="M5 17l14 5M19 17L5 22"/>`
+    svg: `<path ${F} fill-rule="evenodd" d="M12 1.5c-4.4 0-8 3.2-8 7.4 0 2.5 1.3 4.4 3.3 5.5V17h9.4v-2.6c2-1.1 3.3-3 3.3-5.5 0-4.2-3.6-7.4-8-7.4zM8.8 7.3a2.1 2.1 0 1 0 0 4.2 2.1 2.1 0 1 0 0-4.2zM15.2 7.3a2.1 2.1 0 1 0 0 4.2 2.1 2.1 0 1 0 0-4.2z"/><path ${S} d="M5 19.5l14 3.5M19 19.5L5 23"/>`
   },
   numerique: {
     label: 'Mode numérique',
@@ -17,19 +17,19 @@ export const MARKER_ICONS = {
   },
   broadcast: {
     label: 'Broadcast',
-    svg: `<circle ${F} cx="12" cy="8" r="1.8"/><path ${S} d="M8.5 4.5a5 5 0 0 0 0 7M15.5 4.5a5 5 0 0 1 0 7M5.6 1.8a9 9 0 0 0 0 12.4M18.4 1.8a9 9 0 0 1 0 12.4M12 10v12M8 22l4-12 4 12"/>`
+    svg: `<circle ${F} cx="12" cy="7" r="2.2"/><path ${S} d="M7.5 3a6.5 6.5 0 0 0 0 8M16.5 3a6.5 6.5 0 0 1 0 8M12 9.5V22M8 22l4-12.5 4 12.5"/>`
   },
   utilitaire: {
     label: 'Utilitaire',
-    svg: `<circle ${S} cx="12" cy="12" r="4.5"/><circle ${F} cx="12" cy="12" r="1.6"/><path ${S} d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>`
+    svg: `<circle ${S} cx="12" cy="12" r="5"/><path ${S} d="M12 2v4M12 18v4M2 12h4M18 12h4"/>`
   },
   balise: {
     label: 'Balise',
-    svg: `<circle ${F} cx="12" cy="12" r="2.5"/><circle ${S} cx="12" cy="12" r="6"/><circle ${S} cx="12" cy="12" r="10" stroke-dasharray="3 3"/>`
+    svg: `<circle ${F} cx="12" cy="12" r="3.5"/><circle ${S} cx="12" cy="12" r="8.5"/>`
   },
   satellite: {
     label: 'Satellite',
-    svg: `<g transform="rotate(-45 12 12)"><rect ${S} x="9.5" y="9" width="5" height="6"/><rect ${S} x="1.5" y="10" width="6" height="4"/><rect ${S} x="16.5" y="10" width="6" height="4"/><path ${S} d="M7.5 12h2M14.5 12h2M12 15v3M9.5 20a3 3 0 0 1 5 0"/></g>`
+    svg: `<g transform="rotate(-45 12 12)"><rect ${F} x="9" y="8.5" width="6" height="7" rx="1"/><rect ${F} x="1" y="9.5" width="6.5" height="5"/><rect ${F} x="16.5" y="9.5" width="6.5" height="5"/></g>`
   },
   meteo: {
     label: 'Météo / fax',
