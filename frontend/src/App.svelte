@@ -216,7 +216,6 @@
   import SsbReport from "./lib/SsbReport.svelte";
   import QrssPanel from "./lib/QrssPanel.svelte";
   import VideoAreaSelector from "./lib/VideoAreaSelector.svelte";
-  import { sha256Hex } from "./lib/sha256.js";
   import { connectCatSync, connectCatSyncAny, buildDefaultSources } from "./lib/catsync.js";
   import {
     parseChatLine,
@@ -619,30 +618,27 @@
     );
   }
 
-  // Badge SYSOP : sysop.json (écrit par ORSAT-SYSTEM) liste l'empreinte
-  // SHA-256 des adresses d'où le sysop utilise le panneau admin.
-  let _sysopHashes = new Set();
+  // Badge SYSOP : sysop.json (écrit par ORSAT-SYSTEM) liste, sous la même
+  // forme que le champ ip de /users (« h:… »), les adresses d'où le sysop
+  // utilise le panneau admin.
+  let _sysopIds = new Set();
   let _sysopFetchedAt = 0;
-  const _ipHashCache = new Map();
   async function _loadSysopHashes() {
     if (Date.now() - _sysopFetchedAt < 30000) return;
     _sysopFetchedAt = Date.now();
     try {
       const r = await fetch(withRx("/sysop.json?_=" + Date.now()), { cache: "no-store" });
-      if (!r.ok) { _sysopHashes = new Set(); return; }
+      if (!r.ok) { _sysopIds = new Set(); return; }
       const d = await r.json();
-      _sysopHashes = new Set(Array.isArray(d && d.h) ? d.h : []);
+      _sysopIds = new Set(Array.isArray(d && d.ids) ? d.ids : []);
     } catch (e) {
       /* fichier absent ou réseau : on garde l'état précédent */
     }
   }
   function _isSysopIp(ip) {
-    if (!ip || _sysopHashes.size === 0) return false;
+    if (!ip || _sysopIds.size === 0) return false;
     const raw = ip.trim().replace(/^\[|\]$/g, "");
-    const norm = raw.startsWith("::ffff:") ? raw.slice(7) : raw;
-    let h = _ipHashCache.get(norm);
-    if (!h) { h = sha256Hex("orsat-sysop|" + norm); _ipHashCache.set(norm, h); }
-    return _sysopHashes.has(h);
+    return _sysopIds.has(raw) || _sysopIds.has(raw.startsWith("::ffff:") ? raw.slice(7) : raw);
   }
 
   async function _fetchClientGeo() {

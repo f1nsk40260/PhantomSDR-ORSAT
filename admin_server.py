@@ -5576,17 +5576,12 @@ def _wf_write_file(text: str, color: str, until: float = 0) -> str:
 # ── Badge SYSOP sur le waterfall ────────────────────────────────────────────────
 # L'adresse d'où le sysop utilise ORSAT-SYSTEM est retenue (sysop_seen.json,
 # privé) ; sysop.json, public dans frontend/dist, n'en publie que l'empreinte
-# SHA-256. La page compare l'empreinte de chaque auditeur de /users et affiche
+# déjà utilisée par /users. La page compare l'adresse de chaque auditeur et affiche
 # « SYSOP » à la place de son pays/ville. Valable SYSOP_TTL après la dernière
 # visite du panneau ; la déconnexion du panneau retire le badge.
 SYSOP_TTL = 3 * 24 * 3600
-SYSOP_SALT = "orsat-sysop|"
 _sysop_lock = threading.Lock()
 _sysop_last_write = {}
-
-def _sysop_hash(ip: str) -> str:
-    import hashlib
-    return hashlib.sha256((SYSOP_SALT + ip).encode("utf-8")).hexdigest()
 
 def _sysop_load() -> dict:
     import json as _json
@@ -5604,7 +5599,10 @@ def _sysop_save_and_publish(seen: dict):
         (BASE_DIR / "sysop_seen.json").write_text(_json.dumps(seen), encoding="utf-8")
     except Exception as e:
         print(f"[sysop] sysop_seen.json: {e}")
-    payload = _json.dumps({"h": sorted(_sysop_hash(ip) for ip in seen)})
+    # Même forme que les adresses de /users (proxy.py, _anon_ip) : l'adresse
+    # telle quelle si elle est privée, sinon « h: » + LI.ip_hash(ip).
+    ids = sorted({(ip if LI.is_private(ip) else "h:" + LI.ip_hash(ip)) for ip in seen})
+    payload = _json.dumps({"ids": ids})
     seen_dirs = set()
     for d in (BASE_DIR / "frontend" / "dist", get_sdr_dir() / "frontend" / "dist"):
         try:
