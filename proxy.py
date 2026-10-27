@@ -789,7 +789,9 @@ async def _public_listener_data(request: web.Request, upstream: str):
             for u in d.get("users", []):
                 ip = u.get("ip", "")
                 if ip:
-                    if u.get("geo") == ip:
+                    if LI.is_sysop(ip):
+                        u["geo"] = "SYSOP"
+                    elif u.get("geo") == ip:
                         u["geo"] = ""
                     u["ip"] = _anon_ip(ip)
             text = json.dumps(d, ensure_ascii=False)
@@ -804,7 +806,9 @@ async def _public_listener_data(request: web.Request, upstream: str):
             except ValueError:
                 continue
             if e.get("ip"):
-                if e.get("geo") == e["ip"]:
+                if LI.is_sysop(e["ip"]):
+                    e["geo"] = "SYSOP"
+                elif e.get("geo") == e["ip"]:
                     e["geo"] = ""
                 e["ip"] = _anon_ip(e["ip"])
             out.append(json.dumps(e, ensure_ascii=False))
@@ -941,6 +945,8 @@ def _mark_trusted(ip: str) -> None:
 
 
 async def _sec_record(request: web.Request, ip: str, cat: str, status: int, extra: dict = None) -> None:
+    if LI.is_sysop(ip):
+        return   # le sysop n'est pas un suspect
     ev = {"ip": LI.norm_ip(ip), "cat": cat, "method": request.method,
           "path": (request.raw_path or "")[:300], "status": status,
           "ua": request.headers.get("User-Agent", "")[:200],

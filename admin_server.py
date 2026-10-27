@@ -6066,7 +6066,7 @@ def api_listeners_live():
         for u in d.get("users", []):
             ip = LI.norm_ip(u.get("ip", ""))
             iph = LI.ip_hash(ip)
-            g = LI.geo(ip)
+            g = {"city": "SYSOP"} if LI.is_sysop(ip) else LI.geo(ip)
             st = usage.get(iph, {})
             vis, hel, dec = st.get("visit", {}), st.get("hello", {}), st.get("decoder", {})
             cur_dec = (dec.get("decoder") or "none")
@@ -6171,7 +6171,8 @@ def api_listeners_sessions():
                 s["end"] = e.get("ts", "")
     rows = []
     for s in sorted(sess.values(), key=lambda x: x["start"], reverse=True)[:500]:
-        g = LI.geo(s.pop("_ip"), allow_lookup=False)
+        _sip = s.pop("_ip")
+        g = {"city": "SYSOP"} if LI.is_sysop(_sip) else LI.geo(_sip, allow_lookup=False)
         st = usage.get(s["iph"], {})
         vis = st.get("visit", {})
         s.update({"city": g.get("city", ""), "country": g.get("country", ""),
@@ -6360,6 +6361,8 @@ def api_security():
     for i in range(days - 1, -1, -1):
         d = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
         for e in LI.read_jsonl(LI.LOGS / ("security_%s.jsonl" % d)):
+            if LI.is_sysop(e.get("ip", "")):
+                continue   # le sysop n'apparaît pas dans l'analyse des menaces
             events.append(e)
             c = e.get("cat", "?")
             cats[c] = cats.get(c, 0) + 1

@@ -401,9 +401,38 @@ def load_allowlist() -> dict:
     return _allow_cache["data"]
 
 
+# sysop_seen.json — adresses d'où le sysop a utilisé ORSAT-SYSTEM ces 3 derniers
+# jours (écrit par admin_server.py). Le sysop n'est jamais banni ni compté comme
+# suspect, et il apparaît partout sous l'étiquette « SYSOP ».
+SYSOP_FILE = Path(__file__).parent.resolve() / "sysop_seen.json"
+SYSOP_TTL = 3 * 24 * 3600
+_sysop_cache = {"mtime": None, "data": {}}
+
+
+def is_sysop(ip: str) -> bool:
+    ip = norm_ip(ip)
+    if not ip:
+        return False
+    try:
+        mt = SYSOP_FILE.stat().st_mtime
+    except FileNotFoundError:
+        return False
+    if mt != _sysop_cache["mtime"]:
+        try:
+            d = json.loads(SYSOP_FILE.read_text(encoding="utf-8"))
+            _sysop_cache.update(mtime=mt, data=d if isinstance(d, dict) else {})
+        except Exception:
+            pass
+    ts = _sysop_cache["data"].get(ip)
+    try:
+        return ts is not None and time.time() - float(ts) < SYSOP_TTL
+    except (TypeError, ValueError):
+        return False
+
+
 def is_allowed(ip: str) -> bool:
     ip = norm_ip(ip)
-    if ip in load_allowlist():
+    if ip in load_allowlist() or is_sysop(ip):
         return True
     nets = _allow_cache.get("nets") or []
     if nets:
