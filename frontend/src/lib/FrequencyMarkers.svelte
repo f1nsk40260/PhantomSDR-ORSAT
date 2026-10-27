@@ -143,7 +143,7 @@
           transition-all ease-linear duration-1000"
           style={frequencyMarker.align === 'left' ? 'right:0;left:auto;'
                : frequencyMarker.align === 'center' ? 'left:0;transform:translateX(-50%);' : 'left:0;'}>
-      {@html markerIconSvg(frequencyMarker.icon, 11)}{frequencyMarker.description}</div>
+      {@html markerIconSvg(frequencyMarker.icon, 15)}{frequencyMarker.description}</div>
   </div>
   {/each}
   

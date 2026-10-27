@@ -65,7 +65,9 @@ export const MARKER_ICONS = {
 export function markerIconSvg(key, size = 12) {
   const icon = key && MARKER_ICONS[key];
   if (!icon) return '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}" style="display:inline-block;vertical-align:-2px;margin-right:2px;flex:none" aria-label="${icon.label}">${icon.svg}</svg>`;
+  // En petite taille, trait plus épais pour rester lisible sur le waterfall.
+  const body = size < 20 ? icon.svg.replaceAll('stroke-width="2"', 'stroke-width="2.8"') : icon.svg;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}" style="display:inline-block;vertical-align:-3px;margin-right:3px;flex:none" aria-label="${icon.label}">${body}</svg>`;
 }
 
 // Position du label par rapport à l'index de fréquence, selon le mode :
