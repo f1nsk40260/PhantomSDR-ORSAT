@@ -1383,8 +1383,8 @@ export default class SpectrumWaterfall {
     this.clientsCtx.lineWidth = 1 * scale
     entries.forEach(e => {
       const pillY = padTop + e.row * rowStep
-      this.clientsCtx.strokeStyle = (e.isStar || e.isSysop)
-        ? 'rgba(255,220,0,0.6)'   // faint yellow tick for own position / sysop
+      this.clientsCtx.strokeStyle = (e.isStar || e.isMe)
+        ? 'rgba(255,220,0,0.6)'   // faint yellow tick for own position
         : 'rgba(255,255,255,0.5)' // white tick for others
       this.clientsCtx.beginPath()
       this.clientsCtx.moveTo(e.midX, pillY)
@@ -1411,13 +1411,13 @@ export default class SpectrumWaterfall {
       if (!e.isMe) this._clientPills.push({ x: e.pillX, y: pillY, w: e.pillW, h: pillH, fftOffset: e.fftOffset })
 
       // Pill background (opaque — covers any tick line passing through)
-      this.clientsCtx.fillStyle = e.isSysop ? 'rgba(207,181,59,0.95)' : 'rgba(0,0,0,0.95)'
+      this.clientsCtx.fillStyle = 'rgba(0,0,0,0.95)'
       this.clientsCtx.beginPath()
       this.clientsCtx.roundRect(e.pillX, pillY, e.pillW, pillH, 3 * scale)
       this.clientsCtx.fill()
 
       // Pill border
-      this.clientsCtx.strokeStyle = e.isSysop ? 'rgba(255,230,120,0.95)' : 'rgba(0,200,0,0.7)'
+      this.clientsCtx.strokeStyle = 'rgba(0,200,0,0.7)'
       this.clientsCtx.lineWidth   = 1 * scale
       this.clientsCtx.beginPath()
       this.clientsCtx.roundRect(e.pillX, pillY, e.pillW, pillH, 3 * scale)
@@ -1430,7 +1430,7 @@ export default class SpectrumWaterfall {
       }
 
       // Label text
-      this.clientsCtx.fillStyle    = e.isSysop ? 'rgba(0,0,0,0.95)' : 'rgba(0,220,0,0.95)'
+      this.clientsCtx.fillStyle    = 'rgba(0,220,0,0.95)'
       this.clientsCtx.textAlign    = 'left'
       this.clientsCtx.textBaseline = 'middle'
       this.clientsCtx.fillText(e.label, e.pillX + hPad + e.flagW, pillY + pillH / 2)
