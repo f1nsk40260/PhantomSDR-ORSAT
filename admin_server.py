@@ -1508,6 +1508,20 @@ table.markers tr:hover td{background:rgba(0,255,65,0.03);}
 table.markers input{width:100%;background:transparent;border:none;
   color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.75rem;}
 table.markers input:focus{background:#071207;outline:1px solid var(--border);}
+/* Marker icon picker */
+.mk-icon-btn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;
+  background:#071207;border:1px solid var(--border);color:var(--green);cursor:pointer;border-radius:4px;}
+.mk-icon-btn:hover{background:#0c200c;}
+.mk-icon-btn svg{width:26px;height:26px;}
+.mk-icon-none{font-size:.6rem;color:var(--text3);}
+#mk-icon-pop{position:fixed;z-index:9999;display:none;background:#030a03;border:1px solid var(--border);
+  padding:.5rem;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.7);}
+#mk-icon-pop .grid{display:grid;grid-template-columns:repeat(5,60px);gap:.4rem;}
+#mk-icon-pop button{width:60px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:#071207;border:1px solid var(--border);color:var(--green);cursor:pointer;border-radius:4px;
+  font-size:.5rem;line-height:1.05;padding:2px;text-align:center;}
+#mk-icon-pop button:hover,#mk-icon-pop button.sel{background:#0f2a0f;border-color:var(--green);}
+#mk-icon-pop button svg{width:28px;height:28px;flex:none;}
 </style>
 </head>
 <body>
@@ -1829,7 +1843,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <table class="markers">
             <thead>
               <tr>
-                <th>FRÉQUENCE (Hz)</th><th>NOM</th><th>MODE</th><th>COULEUR</th><th>ACTION</th>
+                <th>FRÉQUENCE (Hz)</th><th>SYMBOLE</th><th>NOM</th><th>MODE</th><th>COULEUR</th><th>ACTION</th>
               </tr>
             </thead>
             <tbody id="markers-tbody"></tbody>
@@ -1839,6 +1853,7 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <div class="card-header"><div class="dot"></div>APERÇU DU JSON BRUT</div>
           <textarea class="code" id="markers-raw" rows="10" readonly style="opacity:.7;"></textarea>
         </div>
+        <div id="mk-icon-pop"><div class="grid" id="mk-icon-grid"></div></div>
       </div>
 
       <!-- ══════ SPOT REPORTING PAGE ══════ -->
@@ -3412,6 +3427,53 @@ async function saveJsonRaw() {
 // ─── Markers Editor ──────────────────────────────────────────────────────────
 let markersData = [];
 let markersPath = '';
+// Same icon set as frontend/src/lib/markerIcons.js (keep both lists in step).
+const MARKER_ICONS = {"pirate":["Pirate","<path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 2a6 6 0 0 0-6 6c0 2 1 3.4 2.5 4.2V15h7v-2.8C17 11.4 18 10 18 8a6 6 0 0 0-6-6z'/><circle fill='currentColor' stroke='none' cx='9.6' cy='8' r='1.4'/><circle fill='currentColor' stroke='none' cx='14.4' cy='8' r='1.4'/><path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M5 17l14 5M19 17L5 22'/>"],"numerique":["Mode numérique","<path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 16h4V8h4v8h4V8h4v8h4'/>"],"broadcast":["Broadcast","<circle fill='currentColor' stroke='none' cx='12' cy='8' r='1.8'/><path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8.5 4.5a5 5 0 0 0 0 7M15.5 4.5a5 5 0 0 1 0 7M5.6 1.8a9 9 0 0 0 0 12.4M18.4 1.8a9 9 0 0 1 0 12.4M12 10v12M8 22l4-12 4 12'/>"],"utilitaire":["Utilitaire","<circle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='4.5'/><circle fill='currentColor' stroke='none' cx='12' cy='12' r='1.6'/><path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/>"],"balise":["Balise","<circle fill='currentColor' stroke='none' cx='12' cy='12' r='2.5'/><circle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='6'/><circle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='10' stroke-dasharray='3 3'/>"],"satellite":["Satellite","<g transform='rotate(-45 12 12)'><rect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='9.5' y='9' width='5' height='6'/><rect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='1.5' y='10' width='6' height='4'/><rect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='16.5' y='10' width='6' height='4'/><path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7.5 12h2M14.5 12h2M12 15v3M9.5 20a3 3 0 0 1 5 0'/></g>"],"meteo":["Météo / fax","<path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 18a4 4 0 0 1-.6-7.95A5.5 5.5 0 0 1 17 9a4.5 4.5 0 0 1 0 9z'/>"],"aviation":["Aviation","<path fill='currentColor' stroke='none' d='M12 2c.8 0 1.3.7 1.3 1.5V9l7.7 4.5v2l-7.7-2.3V18l2.2 1.7V21L12 20l-3.5 1v-1.3l2.2-1.7v-4.8L3 15.5v-2L10.7 9V3.5C10.7 2.7 11.2 2 12 2z'/>"],"maritime":["Maritime","<circle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='4.5' r='2'/><path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 6.5V21M8 10h8M5 14a7 7 0 0 0 14 0'/>"],"militaire":["Militaire","<path fill='currentColor' stroke='none' d='M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z'/>"],"horaire":["Signal horaire","<circle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/><path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 7v5l3.5 2'/>"],"amateur":["Radioamateur","<path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 3v19M5 6h14M6.5 10h11M8 14h8'/>"],"inconnu":["Inconnu","<circle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9.5'/><path fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M9.5 9.2a2.6 2.6 0 1 1 3.7 2.3c-.7.4-1.2 1-1.2 1.8v.7'/><circle fill='currentColor' stroke='none' cx='12' cy='17.2' r='1.1'/>"]};
+function mkIconSvg(key) {
+  const ic = MARKER_ICONS[key];
+  if (!ic) return '<span class="mk-icon-none">—</span>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' + ic[1] + '</svg>';
+}
+let mkIconRow = -1;
+function openIconPicker(i, btn) {
+  mkIconRow = i;
+  const grid = document.getElementById('mk-icon-grid');
+  const cur = (markersData[i] && markersData[i].icon) || '';
+  let html = '<button type="button" data-k="" class="' + (cur === '' ? 'sel' : '') + '" title="Aucun symbole"><span style="font-size:1.3rem;line-height:28px">∅</span>Aucun</button>';
+  Object.keys(MARKER_ICONS).forEach(k => {
+    html += '<button type="button" data-k="' + k + '" class="' + (cur === k ? 'sel' : '') + '" title="' + MARKER_ICONS[k][0] + '">' + mkIconSvg(k) + MARKER_ICONS[k][0] + '</button>';
+  });
+  grid.innerHTML = html;
+  grid.querySelectorAll('button').forEach(b => b.addEventListener('click', ev => {
+    ev.stopPropagation();
+    if (!markersData[mkIconRow]) return;
+    if (b.dataset.k) markersData[mkIconRow].icon = b.dataset.k; else delete markersData[mkIconRow].icon;
+    closeIconPicker();
+    renderMarkersTable();
+  }));
+  const pop = document.getElementById('mk-icon-pop');
+  pop.style.display = 'block';
+  const r = btn.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let x = r.left, y = r.bottom + 4;
+  if (x + w > window.innerWidth - 8) x = window.innerWidth - w - 8;
+  if (y + h > window.innerHeight - 8) y = r.top - h - 4;
+  pop.style.left = Math.max(8, x) + 'px';
+  pop.style.top = Math.max(8, y) + 'px';
+}
+function closeIconPicker() {
+  const pop = document.getElementById('mk-icon-pop');
+  if (pop) pop.style.display = 'none';
+  mkIconRow = -1;
+}
+document.addEventListener('click', ev => {
+  const pop = document.getElementById('mk-icon-pop');
+  if (pop && pop.style.display === 'block' && !pop.contains(ev.target) && !ev.target.closest('.mk-icon-btn')) closeIconPicker();
+});
+document.addEventListener('scroll', ev => {
+  const pop = document.getElementById('mk-icon-pop');
+  if (pop && !pop.contains(ev.target)) closeIconPicker();
+}, true);
 
 async function loadMarkers() {
   const r = await fetch('/admin/api/markers');
@@ -3428,12 +3490,16 @@ function renderMarkersTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><input type="text" value="${m.frequency||m.freq||''}" data-i="${i}" data-f="frequency"></td>
+      <td><button type="button" class="mk-icon-btn" data-i="${i}" title="${MARKER_ICONS[m.icon] ? MARKER_ICONS[m.icon][0] : 'Choisir un symbole'}">${mkIconSvg(m.icon)}</button></td>
       <td><input type="text" value="${m.name||m.label||''}" data-i="${i}" data-f="name"></td>
       <td><input type="text" value="${m.mode||m.modulation||''}" data-i="${i}" data-f="mode"></td>
       <td><input type="text" value="${m.color||''}" data-i="${i}" data-f="color" style="width:80px"></td>
       <td><button class="btn btn-red" style="padding:.2rem .5rem;font-size:.7rem;" onclick="deleteMarker(${i})">✕</button></td>
     `;
     tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.mk-icon-btn').forEach(b => {
+    b.addEventListener('click', ev => { ev.stopPropagation(); openIconPicker(parseInt(b.dataset.i), b); });
   });
   tbody.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('input', () => {

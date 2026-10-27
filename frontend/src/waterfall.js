@@ -312,7 +312,8 @@ export default class SpectrumWaterfall {
             this.pendingMarkers = markersData.markers.map(marker => ({
               f: marker.frequency,
               d: marker.name,
-              m: marker.mode
+              m: marker.mode,
+              i: marker.icon || ''
             }));
             this.addMarkersToComponent();
           }

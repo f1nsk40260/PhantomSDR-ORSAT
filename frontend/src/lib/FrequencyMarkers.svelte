@@ -3,6 +3,7 @@
   import bounds from 'binary-search-bounds'
 
   import { frequencyToWaterfallOffset, getFrequencyView } from '../lib/backend'
+  import { markerIconSvg, markerLabelAlign } from './markerIcons.js'
 
   const dispatch = createEventDispatcher()
   let markerDiv;
@@ -15,7 +16,8 @@
       frequencyList.push([
         frequency.f || frequency.frequency,
         frequency.d || frequency.description,
-        frequency.m || frequency.modulation
+        frequency.m || frequency.modulation,
+        frequency.i || frequency.icon || ''
       ])
 
     }
@@ -44,6 +46,8 @@
       frequency: x[0],
       description: x[1],
       modulation: x[2],
+      icon: x[3],
+      align: markerLabelAlign(x[2]),
       left: 0
     }))
   }
@@ -136,8 +140,10 @@
           [text-shadow:none]
           border border-yellow-600 transform origin-bottom-left overflow-hidden
           h-auto max-h-full hover:max-h-screen peer-hover:max-h-screen
-          transition-all ease-linear duration-1000">
-      {frequencyMarker.description}</div>
+          transition-all ease-linear duration-1000"
+          style={frequencyMarker.align === 'left' ? 'right:0;left:auto;'
+               : frequencyMarker.align === 'center' ? 'left:0;transform:translateX(-50%);' : 'left:0;'}>
+      {@html markerIconSvg(frequencyMarker.icon, 11)}{frequencyMarker.description}</div>
   </div>
   {/each}
   
