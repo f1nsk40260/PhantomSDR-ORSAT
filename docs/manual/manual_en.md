@@ -136,6 +136,8 @@ The index combines two things:
 - **a forecast**: every 15 minutes, the server reads the measurements of ionosondes worldwide (KC2G network), computes the maximum usable frequency and daytime absorption for every direction and distance, and weighs them with the real pattern of ORSAT's loop antenna;
 - **a real measurement**: every 5 minutes, ORSAT itself listens to each band for a few seconds on its waterfall, counts the signals and notes the best signal-to-noise ratio.
 
+Stations actually heard (cyclic FT8 watch and log, with a locator) correct the forecast: a range where 1 or 2 stations were heard scores at least 60, 3 or more scores 100. No station never lowers a range.
+
 When the measurement is less than 15 minutes old, the index is 40 % forecast and 60 % measurement; otherwise, the forecast alone.
 
 

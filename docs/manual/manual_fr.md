@@ -136,6 +136,8 @@ L'indice combine deux choses :
 - **une prévision** : toutes les 15 minutes, le serveur lit les mesures des ionosondes du monde entier (réseau KC2G), calcule la fréquence maximale utilisable et l'absorption de jour pour chaque direction et chaque distance, et en tient compte avec le diagramme réel de l'antenne loop d'ORSAT ;
 - **une mesure réelle** : toutes les 5 minutes, ORSAT écoute lui-même chaque bande quelques secondes sur sa cascade, compte les signaux et relève le meilleur rapport signal/bruit.
 
+Les stations réellement entendues (veille FT8 cyclique et carnet, avec locator) corrigent la prévision : une tranche où 1 à 2 stations ont été entendues vaut au moins 60, 3 stations ou plus 100. L'absence de station n'abaisse jamais une tranche.
+
 Quand la mesure date de moins de 15 minutes, l'indice vaut 40 % de prévision et 60 % de mesure ; sinon, la prévision seule.
 
 

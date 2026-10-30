@@ -47,10 +47,11 @@
       bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
       predWord: "prévision", measWord: "mesure", noMeas: "pas de mesure récente",
       byDist: "Prévision par distance", measErr: "Mesure réelle indisponible",
+      corrected: (r) => `corrigée par les stations entendues (ionosondes seules : ${r})`,
       ownNote: (loc) => `Mesures et prévisions propres au récepteur ORSAT${loc ? ` (${loc})` : ""} : elles peuvent différer sur votre station et à votre position.`,
       zoneHead: "zone exploitable", zoneSeen: "constatée", zonePred: "prévue", zoneNone: "zone non déterminée (aucune source localisée)",
       heardHead: (h) => `Stations localisées entendues (carnet + veille FT8, ${h} h)`, heardNone: (h) => `Aucune station localisée (carnet, veille FT8) depuis ${h} h.`,
-      farthest: "la plus lointaine", predReach: "Portée prévue (ionosondes)", predClosed: "bande fermée à toutes distances",
+      farthest: "la plus lointaine", predReach: "Portée prévue", predClosed: "bande fermée à toutes distances",
       upTo: (km) => `jusqu'à ${km} km`, beyond: "au-delà de 2500 km",
       activity: "Activité sur la chute d'eau", unlocated: "origine non localisée",
       disUnder: "⚠ La bande est active alors que la prévision la donne fermée : la prévision sous-estime cette bande en ce moment.",
@@ -80,10 +81,11 @@
       bestZone: "best range", noZone: "no really good area",
       predWord: "forecast", measWord: "measurement", noMeas: "no recent measurement",
       byDist: "Forecast by distance", measErr: "Real measurement unavailable",
+      corrected: (r) => `corrected by the stations heard (ionosondes alone: ${r})`,
       ownNote: (loc) => `Measurements and forecasts are specific to the ORSAT receiver${loc ? ` (${loc})` : ""}: they may differ at your station and location.`,
       zoneHead: "usable area", zoneSeen: "observed", zonePred: "forecast", zoneNone: "area undetermined (no located source)",
       heardHead: (h) => `Located stations heard (log + FT8 watch, ${h} h)`, heardNone: (h) => `No located station (log, FT8 watch) for the last ${h} h.`,
-      farthest: "farthest", predReach: "Forecast reach (ionosondes)", predClosed: "band closed at all distances",
+      farthest: "farthest", predReach: "Forecast reach", predClosed: "band closed at all distances",
       upTo: (km) => `up to ${km} km`, beyond: "beyond 2500 km",
       activity: "Waterfall activity", unlocated: "origin not located",
       disUnder: "⚠ The band is active although the forecast says closed: the forecast underestimates this band right now.",
@@ -113,10 +115,11 @@
       bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
       predWord: "previsión", measWord: "medida", noMeas: "sin medida reciente",
       byDist: "Previsión por distancia", measErr: "Medida real no disponible",
+      corrected: (r) => `corregida con las estaciones oídas (solo ionosondas: ${r})`,
       ownNote: (loc) => `Medidas y previsiones propias del receptor ORSAT${loc ? ` (${loc})` : ""}: pueden ser distintas en su estación y en su ubicación.`,
       zoneHead: "zona utilizable", zoneSeen: "constatada", zonePred: "prevista", zoneNone: "zona no determinada (ninguna fuente localizada)",
       heardHead: (h) => `Estaciones localizadas oídas (libro + vigilancia FT8, ${h} h)`, heardNone: (h) => `Ninguna estación localizada (libro, vigilancia FT8) desde hace ${h} h.`,
-      farthest: "la más lejana", predReach: "Alcance previsto (ionosondas)", predClosed: "banda cerrada a todas las distancias",
+      farthest: "la más lejana", predReach: "Alcance previsto", predClosed: "banda cerrada a todas las distancias",
       upTo: (km) => `hasta ${km} km`, beyond: "más de 2500 km",
       activity: "Actividad en la cascada", unlocated: "origen no localizado",
       disUnder: "⚠ La banda está activa aunque la previsión la da cerrada: la previsión subestima esta banda ahora mismo.",
@@ -189,9 +192,14 @@
       } else t += `\n${L.heardNone(H.hours)}`;
     }
     if (x && x.tranches) {
-      const open = TR.filter(([k]) => (x.tranches[k] ?? 0) >= 40);
-      const last = open.length ? open[open.length - 1][1] : 0;
-      t += `\n${L.predReach}${L.sep}` + (!open.length ? L.predClosed : last == null ? L.beyond : L.upTo(last));
+      const reachTxt = (trs) => {
+        const open = TR.filter(([k]) => (trs[k] ?? 0) >= 40);
+        const last = open.length ? open[open.length - 1][1] : 0;
+        return !open.length ? L.predClosed : last == null ? L.beyond : L.upTo(last);
+      };
+      t += `\n${L.predReach}${L.sep}${reachTxt(x.tranches)}`;
+      // prévision relevée par les stations réellement entendues : on garde la trace des ionosondes seules
+      if (x.corrected && x.tranches_iono) t += `\n   ${L.corrected(reachTxt(x.tranches_iono))}`;
     }
     const m = measText(L, b);
     if (m) t += `\n${L.activity}${L.sep}${m} (${L.unlocated})`;
@@ -215,7 +223,7 @@
       blocks: [
         ["1. La prévision de propagation", "Toutes les 15 min, ORSAT lit les mesures des ionosondes du monde entier (réseau KC2G : GIRO, NOAA, INGV…). Pour chaque direction et chaque distance jusqu'à 5000 km, il calcule la fréquence maximale utilisable (MUF) du trajet et l'absorption de jour (couche D), selon la hauteur du Soleil et le flux solaire."],
         ["2. L'antenne réelle d'ORSAT", "Le diagramme de la loop horizontale (80 m de périmètre à 6 m sur sol sablonneux, balun 4:1) a été simulé avec NEC. Pour chaque distance, ORSAT sait sous quel angle arrive le signal et combien la loop le capte : bien près de la verticale (NVIS), moins bien à angle très bas."],
-        ["3. La note par distance", "La zone est découpée en 5 tranches : ≤ 100, ≤ 300, ≤ 900, ≤ 2500 et au-delà de 2500 km. Chaque tranche reçoit une note : bonne écoute 1, moyenne 0,6, faible 0,25, zone de silence ou absorbée 0. Une bande ne s'ouvre jamais partout à la fois (zone de silence) : la prévision vaut 70 % de la meilleure tranche + 30 % de la moyenne des tranches."],
+        ["3. La note par distance", "La zone est découpée en 5 tranches : ≤ 100, ≤ 300, ≤ 900, ≤ 2500 et au-delà de 2500 km. Chaque tranche reçoit une note : bonne écoute 1, moyenne 0,6, faible 0,25, zone de silence ou absorbée 0. Une bande ne s'ouvre jamais partout à la fois (zone de silence) : la prévision vaut 70 % de la meilleure tranche + 30 % de la moyenne des tranches. Les stations réellement entendues (veille FT8 cyclique et carnet, avec locator) corrigent la prévision : une tranche où 1 à 2 stations ont été entendues vaut au moins 60, 3 stations ou plus 100. L'absence de station n'abaisse jamais une tranche."],
         ["4. La mesure réelle", "Toutes les 5 min, ORSAT écoute lui-même chaque bande sur sa chute d'eau, quelques secondes, sans décoder : il compte les signaux qui dépassent le bruit de 10 dB et relève le meilleur rapport signal/bruit (SNR). Note de mesure : jusqu'à 70 points pour le SNR (de 6 à 30 dB) et 30 points pour le nombre de signaux (jusqu'à 10)."],
         ["5. L'indice final", "IP = 40 % prévision + 60 % mesure réelle si la mesure a moins de 15 min ; sinon la prévision seule. La mesure pèse plus : c'est ce que le récepteur entend vraiment."],
       ],
@@ -231,7 +239,7 @@
       blocks: [
         ["1. Propagation forecast", "Every 15 min, ORSAT reads ionosonde measurements from all over the world (KC2G network: GIRO, NOAA, INGV…). For each direction and distance up to 5000 km, it computes the path's maximum usable frequency (MUF) and the daytime absorption (D layer), from the Sun's elevation and the solar flux."],
         ["2. ORSAT's real antenna", "The pattern of the horizontal loop (80 m perimeter, 6 m above sandy ground, 4:1 balun) was simulated with NEC. For each distance, ORSAT knows the arrival angle of the signal and how well the loop picks it up: well near vertical (NVIS), less well at very low angles."],
-        ["3. Score by distance", "The area is split into 5 ranges: ≤ 100, ≤ 300, ≤ 900, ≤ 2500 and beyond 2500 km. Each range is scored: good reception 1, fair 0.6, weak 0.25, skip zone or absorbed 0. A band never opens everywhere at once (skip zone): the forecast is 70 % of the best range + 30 % of the average of the ranges."],
+        ["3. Score by distance", "The area is split into 5 ranges: ≤ 100, ≤ 300, ≤ 900, ≤ 2500 and beyond 2500 km. Each range is scored: good reception 1, fair 0.6, weak 0.25, skip zone or absorbed 0. A band never opens everywhere at once (skip zone): the forecast is 70 % of the best range + 30 % of the average of the ranges. Stations actually heard (cyclic FT8 watch and log, with a locator) correct the forecast: a range where 1 or 2 stations were heard scores at least 60, 3 or more scores 100. No station never lowers a range."],
         ["4. Real measurement", "Every 5 min, ORSAT itself listens to each band on its waterfall for a few seconds, without decoding: it counts the signals 10 dB above the noise and records the best signal-to-noise ratio (SNR). Measurement score: up to 70 points for SNR (6 to 30 dB) and 30 points for the number of signals (up to 10)."],
         ["5. Final index", "PI = 40 % forecast + 60 % real measurement when the measurement is less than 15 min old; otherwise the forecast alone. The measurement weighs more: it is what the receiver actually hears."],
       ],
@@ -247,7 +255,7 @@
       blocks: [
         ["1. La previsión de propagación", "Cada 15 min, ORSAT lee las medidas de las ionosondas de todo el mundo (red KC2G: GIRO, NOAA, INGV…). Para cada dirección y distancia hasta 5000 km, calcula la frecuencia máxima utilizable (MUF) del trayecto y la absorción diurna (capa D), según la altura del Sol y el flujo solar."],
         ["2. La antena real de ORSAT", "El diagrama de la loop horizontal (80 m de perímetro a 6 m sobre suelo arenoso, balun 4:1) se simuló con NEC. Para cada distancia, ORSAT sabe con qué ángulo llega la señal y cuánto la capta la loop: bien cerca de la vertical (NVIS), peor a ángulos muy bajos."],
-        ["3. La nota por distancia", "La zona se divide en 5 tramos: ≤ 100, ≤ 300, ≤ 900, ≤ 2500 y más de 2500 km. Cada tramo recibe una nota: buena recepción 1, aceptable 0,6, débil 0,25, zona de silencio o absorbida 0. Una banda nunca se abre en todas partes a la vez (zona de silencio): la previsión vale 70 % del mejor tramo + 30 % de la media de los tramos."],
+        ["3. La nota por distancia", "La zona se divide en 5 tramos: ≤ 100, ≤ 300, ≤ 900, ≤ 2500 y más de 2500 km. Cada tramo recibe una nota: buena recepción 1, aceptable 0,6, débil 0,25, zona de silencio o absorbida 0. Una banda nunca se abre en todas partes a la vez (zona de silencio): la previsión vale 70 % del mejor tramo + 30 % de la media de los tramos. Las estaciones realmente oídas (vigilancia FT8 cíclica y libro, con locator) corrigen la previsión: un tramo con 1 o 2 estaciones oídas vale al menos 60, con 3 o más vale 100. La ausencia de estaciones nunca baja un tramo."],
         ["4. La medida real", "Cada 5 min, ORSAT escucha él mismo cada banda en su cascada durante unos segundos, sin decodificar: cuenta las señales 10 dB por encima del ruido y anota la mejor relación señal/ruido (SNR). Nota de medida: hasta 70 puntos por la SNR (de 6 a 30 dB) y 30 puntos por el número de señales (hasta 10)."],
         ["5. El índice final", "IR = 40 % previsión + 60 % medida real si la medida tiene menos de 15 min; si no, solo la previsión. La medida pesa más: es lo que el receptor oye de verdad."],
       ],
