@@ -47,6 +47,7 @@
       bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
       predWord: "prévision", measWord: "mesure", noMeas: "pas de mesure récente",
       byDist: "Prévision par distance", measErr: "Mesure réelle indisponible",
+      measIgnored: "non comptée : la veille FT8 n'entend aucune station sur cette bande (parasites probables)",
       rxq: (v) => (v >= 70 ? "bonne réception" : v >= 40 ? "réception moyenne" : "réception faible"),
       corrected: (r) => `corrigée par les stations entendues, pondérées par leur SNR pour la phonie (ionosondes seules : ${r})`,
       ownNote: (loc) => `Mesures et prévisions propres au récepteur ORSAT${loc ? ` (${loc})` : ""} : elles peuvent différer sur votre station et à votre position.`,
@@ -82,6 +83,7 @@
       bestZone: "best range", noZone: "no really good area",
       predWord: "forecast", measWord: "measurement", noMeas: "no recent measurement",
       byDist: "Forecast by distance", measErr: "Real measurement unavailable",
+      measIgnored: "not counted: the FT8 watch hears no station on this band (likely interference)",
       rxq: (v) => (v >= 70 ? "good reception" : v >= 40 ? "fair reception" : "weak reception"),
       corrected: (r) => `corrected by the stations heard, weighted by their SNR for phone (ionosondes alone: ${r})`,
       ownNote: (loc) => `Measurements and forecasts are specific to the ORSAT receiver${loc ? ` (${loc})` : ""}: they may differ at your station and location.`,
@@ -117,6 +119,7 @@
       bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
       predWord: "previsión", measWord: "medida", noMeas: "sin medida reciente",
       byDist: "Previsión por distancia", measErr: "Medida real no disponible",
+      measIgnored: "no contada: la vigilancia FT8 no oye ninguna estación en esta banda (probables parásitos)",
       rxq: (v) => (v >= 70 ? "buena recepción" : v >= 40 ? "recepción media" : "recepción débil"),
       corrected: (r) => `corregida con las estaciones oídas, ponderadas por su SNR para la fonía (solo ionosondas: ${r})`,
       ownNote: (loc) => `Medidas y previsiones propias del receptor ORSAT${loc ? ` (${loc})` : ""}: pueden ser distintas en su estación y en su ubicación.`,
@@ -209,7 +212,7 @@
       if (x.corrected && x.tranches_iono) t += `\n   ${L.corrected(reachTxt(x.tranches_iono))}`;
     }
     const m = measText(L, b);
-    if (m) t += `\n${L.activity}${L.sep}${m} (${L.unlocated})`;
+    if (m) t += `\n${L.activity}${L.sep}${m} (${L.unlocated})` + (x && x.meas_ignored ? `\n   ${L.measIgnored}` : "");
     if (x && x.pred != null && x.meas != null) {
       if (x.pred < 15 && x.meas >= 50) t += `\n\n${L.disUnder}`;
       else if (x.pred >= 50 && x.meas < 15) t += `\n\n${L.disOver}`;
