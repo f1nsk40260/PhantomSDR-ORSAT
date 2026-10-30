@@ -47,6 +47,7 @@
       bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
       predWord: "prévision", measWord: "mesure", noMeas: "pas de mesure récente",
       byDist: "Prévision par distance", measErr: "Mesure réelle indisponible",
+      ownNote: (loc) => `Mesures et prévisions propres au récepteur ORSAT${loc ? ` (${loc})` : ""} : elles peuvent différer sur votre station et à votre position.`,
       zoneHead: "zone exploitable", zoneSeen: "constatée", zonePred: "prévue", zoneNone: "zone non déterminée (aucune source localisée)",
       heardHead: (h) => `Stations localisées entendues (carnet, ${h} h)`, heardNone: (h) => `Aucune station localisée dans le carnet depuis ${h} h.`,
       farthest: "la plus lointaine", predReach: "Portée prévue (ionosondes)", predClosed: "bande fermée à toutes distances",
@@ -79,6 +80,7 @@
       bestZone: "best range", noZone: "no really good area",
       predWord: "forecast", measWord: "measurement", noMeas: "no recent measurement",
       byDist: "Forecast by distance", measErr: "Real measurement unavailable",
+      ownNote: (loc) => `Measurements and forecasts are specific to the ORSAT receiver${loc ? ` (${loc})` : ""}: they may differ at your station and location.`,
       zoneHead: "usable area", zoneSeen: "observed", zonePred: "forecast", zoneNone: "area undetermined (no located source)",
       heardHead: (h) => `Located stations heard (log, ${h} h)`, heardNone: (h) => `No located station in the log for the last ${h} h.`,
       farthest: "farthest", predReach: "Forecast reach (ionosondes)", predClosed: "band closed at all distances",
@@ -111,6 +113,7 @@
       bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
       predWord: "previsión", measWord: "medida", noMeas: "sin medida reciente",
       byDist: "Previsión por distancia", measErr: "Medida real no disponible",
+      ownNote: (loc) => `Medidas y previsiones propias del receptor ORSAT${loc ? ` (${loc})` : ""}: pueden ser distintas en su estación y en su ubicación.`,
       zoneHead: "zona utilizable", zoneSeen: "constatada", zonePred: "prevista", zoneNone: "zona no determinada (ninguna fuente localizada)",
       heardHead: (h) => `Estaciones localizadas oídas (libro, ${h} h)`, heardNone: (h) => `Ninguna estación localizada en el libro desde hace ${h} h.`,
       farthest: "la más lejana", predReach: "Alcance previsto (ionosondas)", predClosed: "banda cerrada a todas las distancias",
@@ -198,7 +201,7 @@
     }
     if (near === b && !inBand) t += "\n" + L.nearest;
     if (data && data.measure_error && !data.measured) t += `\n${L.measErr}${L.sep}${data.measure_error}`;
-    return t;
+    return t + `\n\n${L.ownNote(data && data.locator)}`;
   }
 
 
@@ -264,8 +267,8 @@
 
 {#if data}
   <div class="lb" data-no-i18n role="button" tabindex="-1" on:click={openMap} on:keydown={() => {}}
-       title={L.boxTip(data.radius_km, data.locator)}>
-    <button type="button" class="lbl help-btn" class:open={showHelp} title={H.btnTip}
+       title={`${L.boxTip(data.radius_km, data.locator)}\n${L.ownNote(data.locator)}`}>
+    <button type="button" class="lbl help-btn" class:open={showHelp} title={`${H.btnTip}\n${L.ownNote(data && data.locator)}`}
             on:click|stopPropagation={() => (showHelp = !showHelp)}>{L.ipTitle} <span class="q">?</span></button>
     {#if near}
       {@const v = ipOf(near)}
@@ -292,6 +295,7 @@
       </div>
       <div class="help-body">
         <p class="intro">{H.intro}</p>
+        <p class="own">{L.ownNote(data && data.locator)}</p>
         {#each H.blocks as [h, txt]}<h4>{h}</h4><p>{txt}</p>{/each}
         <h4>{H.legendTitle}</h4>
         <div class="leg">
@@ -346,6 +350,8 @@
   .help-head .t { color: rgb(226, 201, 90); font-weight: 700; font-size: 16px; }
   .help-body { overflow-y: auto; padding: 12px 18px 16px; color: #ece7d4; font-size: 14px; line-height: 1.5; }
   .help-body .intro { font-size: 15px; color: #fff; }
+  .help-body .own { margin: 8px 0 4px; padding: 6px 10px; border-left: 3px solid rgb(207, 181, 59);
+                    background: rgba(207, 181, 59, 0.10); color: #f2eedf; }
   .help-body h4 { margin: 14px 0 4px; color: rgb(226, 201, 90); font-size: 14px; font-weight: 700; }
   .help-body p { margin: 0 0 6px; }
   .help-body .calib { color: #c9c3ad; font-size: 13px; margin-top: 10px; }

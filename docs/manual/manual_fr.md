@@ -127,6 +127,8 @@ Juste au-dessus de la cascade, un bandeau fin indique, **bande par bande**, la c
 - **🗺 Voir la carte** (ou un clic n'importe où sur le bandeau) — ouvre la carte détaillée des zones où ORSAT entend bien, bande par bande ; le bouton **✕ Fermer** la referme.
 - **Indice de performance ?** — le titre est un bouton : il ouvre l'explication complète du calcul.
 
+> [Note] Les mesures et prévisions sont **propres au récepteur ORSAT** (IN93LR, antenne loop) : elles peuvent être différentes sur votre station et à votre position. Cette mention figure aussi dans les infobulles du bandeau.
+
 ![Explication du calcul, ouverte d'un clic sur le titre du bandeau.](images/fr_ip_aide.jpg){w=330}
 
 L'indice combine deux choses :

@@ -127,6 +127,8 @@ Justo encima de la cascada, una banda fina indica, **banda por banda**, la capac
 - **🗺 Ver el mapa** (o un clic en cualquier parte de la banda) — abre el mapa detallado de las zonas donde ORSAT escucha bien, banda por banda; el botón **✕ Cerrar** lo cierra.
 - **Índice de rendimiento ?** — el título es un botón: abre la explicación completa del cálculo.
 
+> [Nota] Las medidas y previsiones son **propias del receptor ORSAT** (IN93LR, antena loop): pueden ser distintas en su estación y en su ubicación. Esta mención figura también en las ayudas emergentes del banner.
+
 ![Explicación del cálculo, abierta con un clic en el título de la banda.](images/es_ip_aide.jpg){w=330}
 
 El índice combina dos cosas:

@@ -127,6 +127,8 @@ Just above the waterfall, a thin banner shows, **band by band**, how well ORSAT 
 - **🗺 Show map** (or a click anywhere on the banner) — opens the detailed map of the areas where ORSAT hears well, band by band; the **✕ Close** button closes it.
 - **Performance index ?** — the title is a button: it opens the full explanation of the computation.
 
+> [Note] Measurements and forecasts are **specific to the ORSAT receiver** (IN93LR, loop antenna): they may differ at your station and location. This notice also appears in the banner tooltips.
+
 ![Explanation of the computation, opened by clicking the banner title.](images/en_ip_aide.jpg){w=330}
 
 The index combines two things:
