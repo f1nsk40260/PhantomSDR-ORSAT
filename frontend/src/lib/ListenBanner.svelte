@@ -47,6 +47,12 @@
       bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
       predWord: "prévision", measWord: "mesure", noMeas: "pas de mesure récente",
       byDist: "Prévision par distance", measErr: "Mesure réelle indisponible",
+      heardHead: (h) => `Stations localisées entendues (carnet, ${h} h)`, heardNone: (h) => `Aucune station localisée dans le carnet depuis ${h} h.`,
+      farthest: "la plus lointaine", predReach: "Portée prévue (ionosondes)", predClosed: "bande fermée à toutes distances",
+      upTo: (km) => `jusqu'à ${km} km`, beyond: "au-delà de 2500 km",
+      activity: "Activité sur la chute d'eau", unlocated: "origine non localisée",
+      disUnder: "⚠ La bande est active alors que la prévision la donne fermée : la prévision sous-estime cette bande en ce moment.",
+      disOver: "⚠ La prévision donne la bande ouverte, mais presque rien n'est entendu.",
       sep: " : ", title: "ORSAT exploitable", radius: (r) => `≤ ${r} km`, see: "🗺 Voir la carte",
       seeTip: "Ouvrir la carte détaillée : où ORSAT entend bien en ce moment, bande par bande",
       lblTip: (r, w) => `Probabilité de réception d'une station située à moins de ${r} km du récepteur ORSAT (calcul de ${w})`,
@@ -72,6 +78,12 @@
       bestZone: "best range", noZone: "no really good area",
       predWord: "forecast", measWord: "measurement", noMeas: "no recent measurement",
       byDist: "Forecast by distance", measErr: "Real measurement unavailable",
+      heardHead: (h) => `Located stations heard (log, ${h} h)`, heardNone: (h) => `No located station in the log for the last ${h} h.`,
+      farthest: "farthest", predReach: "Forecast reach (ionosondes)", predClosed: "band closed at all distances",
+      upTo: (km) => `up to ${km} km`, beyond: "beyond 2500 km",
+      activity: "Waterfall activity", unlocated: "origin not located",
+      disUnder: "⚠ The band is active although the forecast says closed: the forecast underestimates this band right now.",
+      disOver: "⚠ The forecast says the band is open, but almost nothing is heard.",
       sep: ": ", title: "ORSAT usable", radius: (r) => `≤ ${r} km`, see: "🗺 Show map",
       seeTip: "Open the detailed map: where ORSAT hears well right now, band by band",
       lblTip: (r, w) => `Probability of hearing a station located within ${r} km of the ORSAT receiver (computed at ${w})`,
@@ -97,6 +109,12 @@
       bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
       predWord: "previsión", measWord: "medida", noMeas: "sin medida reciente",
       byDist: "Previsión por distancia", measErr: "Medida real no disponible",
+      heardHead: (h) => `Estaciones localizadas oídas (libro, ${h} h)`, heardNone: (h) => `Ninguna estación localizada en el libro desde hace ${h} h.`,
+      farthest: "la más lejana", predReach: "Alcance previsto (ionosondas)", predClosed: "banda cerrada a todas las distancias",
+      upTo: (km) => `hasta ${km} km`, beyond: "más de 2500 km",
+      activity: "Actividad en la cascada", unlocated: "origen no localizado",
+      disUnder: "⚠ La banda está activa aunque la previsión la da cerrada: la previsión subestima esta banda ahora mismo.",
+      disOver: "⚠ La previsión da la banda abierta, pero casi no se oye nada.",
       sep: ": ", title: "ORSAT utilizable", radius: (r) => `≤ ${r} km`, see: "🗺 Ver el mapa",
       seeTip: "Abrir el mapa detallado: dónde ORSAT escucha bien ahora, banda por banda",
       lblTip: (r, w) => `Probabilidad de recibir una estación situada a menos de ${r} km del receptor ORSAT (cálculo de las ${w})`,
@@ -124,13 +142,6 @@
     if (!m) return "";
     return m.signals ? `${m.signals} ${L.sig(m.signals)}, ${L.best} ${Math.round(m.best_snr)} dB` : L.none;
   }
-  function calibText(L) {
-    const c = data && data.calibration;
-    if (!c) return "";
-    const rows = c.buckets.filter((x) => x.n >= 30);
-    if (!rows.length) return "\n" + L.calibWait;
-    return "\n\n" + L.calibHead(c.days, c.snr_min) + "\n" + rows.map(L.calibRow).join("\n");
-  }
   function chipTip(L, b, p) {
     const k = cls(p), m = measText(L, b);
     return `${b}${L.sep}${L.verdict[k]}${p != null ? ` (${L.coverage} ${p} %)` : ""} — ${L.meaning[k]}`
@@ -145,18 +156,38 @@
   const ipWord = (L, v) => L.ipVerdict[v == null ? "na" : v >= 75 ? "ex" : v >= 50 ? "ok" : v >= 25 ? "mid" : "low"];
   const zoneOf = (b) => (IP && IP[b] ? IP[b].zone : null);
   const DIST = [["d100", "≤100"], ["d300", "≤300"], ["d900", "≤900"], ["d2500", "≤2500"], ["dx", ">2500"]];
+  // Bulle d'une bande. Les distances ne viennent que de sources localisées (locator ou lat/long) :
+  // stations du carnet et prévision géographique. L'activité de la chute d'eau, sans origine connue,
+  // est donnée à part, sans distance.
+  const TR = [["d100", 100], ["d300", 300], ["d900", 900], ["d2500", 2500], ["dx", null]];
+  const km = (n) => Math.round(n).toLocaleString("fr-FR");
   function ipTip(L, b) {
-    const v = ipOf(b), z = zoneOf(b), x = IP && IP[b];
-    let t = `${b}${L.sep}${ipWord(L, v)}${v != null ? ` (${L.ipShort} ${v})` : ""} — `
-      + (z ? `${L.bestZone}${L.sep}${L.zoneLong[z]}` : L.noZone);
-    if (x) {
-      t += `\n${L.predWord} ${x.pred ?? "–"} · ${L.measWord} ${x.meas ?? "–"}` + (measText(L, b) ? ` (${measText(L, b)})` : ` (${L.noMeas})`);
-      t += `\n${L.byDist}${L.sep}` + DIST.map(([k, l]) => `${l} ${x.tranches[k] ?? "–"}`).join(" · ") + " km";
+    const v = ipOf(b), x = IP && IP[b];
+    let t = `${b}${L.sep}${ipWord(L, v)}${v != null ? ` (${L.ipShort} ${v})` : ""}`;
+    const H = data && data.heard, h = H && H.bands ? H.bands[b] : null;
+    if (H) {
+      if (h && h.n) {
+        t += `\n${L.heardHead(H.hours)}${L.sep}${h.n}`
+          + `\n   ` + DIST.filter(([k]) => h.tranches[k]).map(([k, l]) => `${l} km : ${h.tranches[k]}`).join(" · ")
+          + `\n   ${L.farthest}${L.sep}${h.far_call}, ${km(h.far_km)} km`;
+      } else t += `\n${L.heardNone(H.hours)}`;
+    }
+    if (x && x.tranches) {
+      const open = TR.filter(([k]) => (x.tranches[k] ?? 0) >= 40);
+      const last = open.length ? open[open.length - 1][1] : 0;
+      t += `\n${L.predReach}${L.sep}` + (!open.length ? L.predClosed : last == null ? L.beyond : L.upTo(last));
+    }
+    const m = measText(L, b);
+    if (m) t += `\n${L.activity}${L.sep}${m} (${L.unlocated})`;
+    if (x && x.pred != null && x.meas != null) {
+      if (x.pred < 15 && x.meas >= 50) t += `\n\n${L.disUnder}`;
+      else if (x.pred >= 50 && x.meas < 15) t += `\n\n${L.disOver}`;
     }
     if (near === b && !inBand) t += "\n" + L.nearest;
     if (data && data.measure_error && !data.measured) t += `\n${L.measErr}${L.sep}${data.measure_error}`;
     return t;
   }
+
 
 
   // Explication de l'IP : panneau ouvert d'un clic sur le titre du bandeau
@@ -225,13 +256,13 @@
             on:click|stopPropagation={() => (showHelp = !showHelp)}>{L.ipTitle} <span class="q">?</span></button>
     {#if near}
       {@const v = ipOf(near)}
-      <span class="sum {ipCls(v)}" title="{ipTip(L, near)}{calibText(L)}">
+      <span class="sum {ipCls(v)}" title={ipTip(L, near)}>
         {near}{L.sep}<b>{ipWord(L, v)}</b>{#if zoneOf(near)}<i>&nbsp;· {L.zoneLong[zoneOf(near)]}</i>{/if}
       </span>
     {/if}
     {#each BANDS as [b]}
       {@const v = ipOf(b)}
-      <span class="chip {ipCls(v)}" class:cur={near === b} title="{ipTip(L, b)}{calibText(L)}">
+      <span class="chip {ipCls(v)}" class:cur={near === b} title={ipTip(L, b)}>
         {near === b && !inBand ? "≈" : ""}{b.replace("m", "")}<small>{v == null ? "–" : v}</small>{#if zoneOf(b)}<em>{L.zoneShort[zoneOf(b)]}</em>{/if}
       </span>
     {/each}
