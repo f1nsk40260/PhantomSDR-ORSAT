@@ -136,7 +136,6 @@ El índice combina dos cosas:
 
 Cuando la medida tiene menos de 15 minutos, el índice vale 40 % de previsión y 60 % de medida; si no, solo la previsión.
 
-> [Atención] Este método es **original y experimental**, propio de ORSAT. Puede dar valores aberrantes, por ejemplo una banda abierta pero vacía puntuada demasiado baja, o una banda inflada por un concurso. Tómelo como una indicación, no como una certeza.
 
 # 4. Dial, bandas, modos y filtros
 

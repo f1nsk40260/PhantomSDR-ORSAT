@@ -136,7 +136,6 @@ L'indice combine deux choses :
 
 Quand la mesure date de moins de 15 minutes, l'indice vaut 40 % de prévision et 60 % de mesure ; sinon, la prévision seule.
 
-> [Attention] Ce procédé est **original et expérimental**, propre à ORSAT. Il peut donner des valeurs aberrantes, par exemple une bande ouverte mais déserte notée trop bas, ou une bande gonflée par un concours. Prenez-le comme une indication, pas comme une certitude.
 
 # 4. Cadran, bandes, modes et filtres
 

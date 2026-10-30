@@ -136,7 +136,6 @@ The index combines two things:
 
 When the measurement is less than 15 minutes old, the index is 40 % forecast and 60 % measurement; otherwise, the forecast alone.
 
-> [Warning] This method is **original and experimental**, specific to ORSAT. It can give aberrant values, for instance an open but empty band scored too low, or a band inflated by a contest. Take it as an indication, not a certainty.
 
 # 4. Dial, bands, modes and filters
 
