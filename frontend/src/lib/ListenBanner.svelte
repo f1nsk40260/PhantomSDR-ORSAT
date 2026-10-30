@@ -52,7 +52,7 @@
       corrected: (r) => `corrigée par les stations entendues, pondérées par leur SNR pour la phonie (ionosondes seules : ${r})`,
       ownNote: (loc) => `Mesures et prévisions propres au récepteur ORSAT${loc ? ` (${loc})` : ""} : elles peuvent différer sur votre station et à votre position.`,
       zoneHead: "zone exploitable", zoneSeen: "constatée", zonePred: "prévue", zoneNone: "zone non déterminée (aucune source localisée)",
-      heardHead: (h) => `Stations localisées entendues (carnet + veille FT8, ${h} h)`, heardNone: (h) => `Aucune station localisée (carnet, veille FT8) depuis ${h} h.`,
+      heardHead: (h) => `Stations localisées entendues (carnet + veille FT8, ${h})`, heardNone: (h) => `Aucune station localisée (carnet, veille FT8) depuis ${h}.`,
       farthest: "la plus lointaine", predReach: "Portée prévue", predClosed: "bande fermée à toutes distances",
       upTo: (km) => `jusqu'à ${km} km`, beyond: "au-delà de 2500 km",
       activity: "Activité sur la chute d'eau", unlocated: "origine non localisée",
@@ -88,7 +88,7 @@
       corrected: (r) => `corrected by the stations heard, weighted by their SNR for phone (ionosondes alone: ${r})`,
       ownNote: (loc) => `Measurements and forecasts are specific to the ORSAT receiver${loc ? ` (${loc})` : ""}: they may differ at your station and location.`,
       zoneHead: "usable area", zoneSeen: "observed", zonePred: "forecast", zoneNone: "area undetermined (no located source)",
-      heardHead: (h) => `Located stations heard (log + FT8 watch, ${h} h)`, heardNone: (h) => `No located station (log, FT8 watch) for the last ${h} h.`,
+      heardHead: (h) => `Located stations heard (log + FT8 watch, ${h})`, heardNone: (h) => `No located station (log, FT8 watch) for the last ${h}.`,
       farthest: "farthest", predReach: "Forecast reach", predClosed: "band closed at all distances",
       upTo: (km) => `up to ${km} km`, beyond: "beyond 2500 km",
       activity: "Waterfall activity", unlocated: "origin not located",
@@ -124,7 +124,7 @@
       corrected: (r) => `corregida con las estaciones oídas, ponderadas por su SNR para la fonía (solo ionosondas: ${r})`,
       ownNote: (loc) => `Medidas y previsiones propias del receptor ORSAT${loc ? ` (${loc})` : ""}: pueden ser distintas en su estación y en su ubicación.`,
       zoneHead: "zona utilizable", zoneSeen: "constatada", zonePred: "prevista", zoneNone: "zona no determinada (ninguna fuente localizada)",
-      heardHead: (h) => `Estaciones localizadas oídas (libro + vigilancia FT8, ${h} h)`, heardNone: (h) => `Ninguna estación localizada (libro, vigilancia FT8) desde hace ${h} h.`,
+      heardHead: (h) => `Estaciones localizadas oídas (libro + vigilancia FT8, ${h})`, heardNone: (h) => `Ninguna estación localizada (libro, vigilancia FT8) desde hace ${h}.`,
       farthest: "la más lejana", predReach: "Alcance previsto", predClosed: "banda cerrada a todas las distancias",
       upTo: (km) => `hasta ${km} km`, beyond: "más de 2500 km",
       activity: "Actividad en la cascada", unlocated: "origen no localizado",
@@ -176,6 +176,8 @@
   // Bulle d'une bande. Les distances ne viennent que de sources localisées (locator ou lat/long) :
   // stations du carnet et prévision géographique. L'activité de la chute d'eau, sans origine connue,
   // est donnée à part, sans distance.
+  // durée de la fenêtre des stations entendues (carnet récent : minutes ; ancien : heures)
+  const win = (H) => (H.minutes ? `${H.minutes} min` : `${H.hours} h`);
   const TR = [["d100", 100], ["d300", 300], ["d900", 900], ["d2500", 2500], ["dx", null]];
   const km = (n) => Math.round(n).toLocaleString("fr-FR");
   function ipTip(L, b) {
@@ -192,10 +194,10 @@
       + (zone ? `${L.zoneHead}${L.sep}${zone}` : L.zoneNone);
     if (H) {
       if (h && h.n) {
-        t += `\n${L.heardHead(H.hours)}${L.sep}${h.n}`
+        t += `\n${L.heardHead(win(H))}${L.sep}${h.n}`
           + `\n   ` + DIST.filter(([k]) => h.tranches[k]).map(([k, l]) => `${l} km : ${h.tranches[k]}`).join(" · ")
           + `\n   ${L.farthest}${L.sep}${h.far_call}, ${km(h.far_km)} km`;
-      } else t += `\n${L.heardNone(H.hours)}`;
+      } else t += `\n${L.heardNone(win(H))}`;
     }
     if (x && x.tranches) {
       // une tranche est atteinte dès que des cases y passent (note > 0) ; une note basse veut dire

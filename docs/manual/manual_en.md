@@ -123,7 +123,7 @@ Just above the waterfall, a thin banner shows, **band by band**, how well ORSAT 
 
 - **Chips** — one per band, with a score from **0 to 100** and its colour, from green to red: **excellent** (85 and above), **good** (70 to 84), **fair** (50 to 69), **average** (30 to 49), **poor** (10 to 29), **closed** (below 10). The band you are tuned to is highlighted.
 - **Area** — **Loc** (up to 300 km), **Reg** (300 to 900 km), **EU** (900 to 2500 km) or **DX** (beyond): the distance at which ORSAT hears best on that band.
-- **Hovering a chip** — the detail: located stations from the log heard in the last 3 hours (count, distance slices, farthest one), forecast reach from the ionosondes, waterfall activity (no distance, its origin not being located) and, when they disagree, an “underestimated” or “overestimated forecast” warning.
+- **Hovering a chip** — the detail: located stations from the log heard in the last 45 minutes (count, distance slices, farthest one), forecast reach from the ionosondes, waterfall activity (no distance, its origin not being located) and, when they disagree, an “underestimated” or “overestimated forecast” warning.
 - **🗺 Show map** (or a click anywhere on the banner) — opens the detailed map of the areas where ORSAT hears well, band by band; the **✕ Close** button closes it.
 - **Performance index ?** — the title is a button: it opens the full explanation of the computation.
 
