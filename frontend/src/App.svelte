@@ -8476,6 +8476,25 @@
     else applyIFEdges(m - v / 2, m, m + v / 2); // symmetric: value = total width
   }
 
+  // ORSAT — rognage du filtre FI : rapproche un seul bord (pas de 50 Hz) pour écarter une station
+  // voisine qui déborde dans la bande passante. side = "l" (bord gauche) ou "r" (bord droit) ;
+  // step > 0 rogne, step < 0 rend de la largeur. Largeur minimale 200 Hz, jamais au-delà du bord opposé.
+  const TRIM_STEP = 50, TRIM_MIN_W = 200;
+  function trimIFEdge(side, step) {
+    try {
+      let [l, m, r] = audio.getAudioRange().map(FFTOffsetToFrequency);
+      if (side === "l") l = Math.min(l + step, r - TRIM_MIN_W);
+      else r = Math.max(r - step, l + TRIM_MIN_W);
+      applyIFEdges(l, m, r);
+      newStaticBandwidth = 0;
+      refreshIFSlider();
+    } catch (e) {}
+  }
+  // molette sur un bouton de rognage : vers le haut rogne, vers le bas rend de la largeur
+  function trimIFWheel(side, e) {
+    trimIFEdge(side, e.deltaY < 0 ? TRIM_STEP : -TRIM_STEP);
+  }
+
   // Reset the passband to the current mode's default offsets
   function resetIFFilter() {
     const [, m] = audio.getAudioRange().map(FFTOffsetToFrequency);
@@ -11425,6 +11444,25 @@ Cliquez à nouveau pour désactiver"
                                       >Reset</button
                                     >
                                   </div>
+                                </div>
+                                <!-- ORSAT : rognage d'un seul bord du filtre (station voisine qui déborde) -->
+                                <div class="w-full mt-4 border-t border-gray-600 pt-3">
+                                  <div class="text-gray-400 text-xs mb-2">Rogner un bord du filtre (station voisine qui déborde) — clic : 50 Hz, molette : plus ou moins</div>
+                                  <div class="flex items-center gap-2">
+                                    <button
+                                      class="retro-button trim-btn text-white font-bold rounded-md flex-1 flex items-center justify-center border border-gray-600 bg-gray-700 hover:bg-gray-600"
+                                      on:click={() => trimIFEdge("l", TRIM_STEP)}
+                                      on:wheel|preventDefault={(e) => trimIFWheel("l", e)}
+                                      title="Remonte le bord gauche du filtre de 50 Hz (molette vers le bas : redonne de la largeur)"
+                                      >&#9654;| Rogner à gauche</button>
+                                    <button
+                                      class="retro-button trim-btn text-white font-bold rounded-md flex-1 flex items-center justify-center border border-gray-600 bg-gray-700 hover:bg-gray-600"
+                                      on:click={() => trimIFEdge("r", TRIM_STEP)}
+                                      on:wheel|preventDefault={(e) => trimIFWheel("r", e)}
+                                      title="Abaisse le bord droit du filtre de 50 Hz (molette vers le bas : redonne de la largeur)"
+                                      >Rogner à droite |&#9664;</button>
+                                  </div>
+                                  <div class="text-gray-500 text-xs mt-1">Largeur actuelle : {bandwidth} kHz — « Reset » ci-dessus rend la largeur normale du mode.</div>
                                 </div>
                                 <!-- Content Ends -->
                               </div>
@@ -16727,4 +16765,6 @@ Cliquez à nouveau pour désactiver"
   .cw-lock-off:not(:disabled):hover { background: rgba(207, 181, 59, 0.25); color: #fff; }
   .cw-lock-on { color: #111827; background: rgb(207, 181, 59); border-color: rgb(207, 181, 59); font-weight: 600; }
   .cw-lock-on:hover { filter: brightness(1.1); }
+  /* ORSAT : boutons de rognage du filtre FI, assez grands pour la souris */
+  :global(.trim-btn) { min-height: 44px; font-size: 15px; padding: 0 12px; }
 </style>
