@@ -47,6 +47,7 @@
       bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
       predWord: "prévision", measWord: "mesure", noMeas: "pas de mesure récente",
       byDist: "Prévision par distance", measErr: "Mesure réelle indisponible",
+      zoneHead: "zone exploitable", zoneSeen: "constatée", zonePred: "prévue", zoneNone: "zone non déterminée (aucune source localisée)",
       heardHead: (h) => `Stations localisées entendues (carnet, ${h} h)`, heardNone: (h) => `Aucune station localisée dans le carnet depuis ${h} h.`,
       farthest: "la plus lointaine", predReach: "Portée prévue (ionosondes)", predClosed: "bande fermée à toutes distances",
       upTo: (km) => `jusqu'à ${km} km`, beyond: "au-delà de 2500 km",
@@ -78,6 +79,7 @@
       bestZone: "best range", noZone: "no really good area",
       predWord: "forecast", measWord: "measurement", noMeas: "no recent measurement",
       byDist: "Forecast by distance", measErr: "Real measurement unavailable",
+      zoneHead: "usable area", zoneSeen: "observed", zonePred: "forecast", zoneNone: "area undetermined (no located source)",
       heardHead: (h) => `Located stations heard (log, ${h} h)`, heardNone: (h) => `No located station in the log for the last ${h} h.`,
       farthest: "farthest", predReach: "Forecast reach (ionosondes)", predClosed: "band closed at all distances",
       upTo: (km) => `up to ${km} km`, beyond: "beyond 2500 km",
@@ -109,6 +111,7 @@
       bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
       predWord: "previsión", measWord: "medida", noMeas: "sin medida reciente",
       byDist: "Previsión por distancia", measErr: "Medida real no disponible",
+      zoneHead: "zona utilizable", zoneSeen: "constatada", zonePred: "prevista", zoneNone: "zona no determinada (ninguna fuente localizada)",
       heardHead: (h) => `Estaciones localizadas oídas (libro, ${h} h)`, heardNone: (h) => `Ninguna estación localizada en el libro desde hace ${h} h.`,
       farthest: "la más lejana", predReach: "Alcance previsto (ionosondas)", predClosed: "banda cerrada a todas las distancias",
       upTo: (km) => `hasta ${km} km`, beyond: "más de 2500 km",
@@ -163,8 +166,16 @@
   const km = (n) => Math.round(n).toLocaleString("fr-FR");
   function ipTip(L, b) {
     const v = ipOf(b), x = IP && IP[b];
-    let t = `${b}${L.sep}${ipWord(L, v)}${v != null ? ` (${L.ipShort} ${v})` : ""}`;
     const H = data && data.heard, h = H && H.bands ? H.bands[b] : null;
+    // zone exploitable : la plus lointaine tranche où le carnet a des stations localisées, sinon la
+    // meilleure zone prévue ; sans source localisée, on le dit plutôt que d'afficher une zone inventée
+    const T2Z = { d100: "loc", d300: "loc", d900: "reg", d2500: "eu", dx: "dx" };
+    const seen = h && h.n ? [...TR].reverse().find(([k]) => h.tranches[k]) : null;
+    const zp = zoneOf(b);
+    const zone = seen ? `${L.zoneLong[T2Z[seen[0]]]}, ${L.zoneSeen}`
+      : zp ? `${L.zoneLong[zp]}, ${L.zonePred}` : null;
+    let t = `${b}${L.sep}${ipWord(L, v)}${v != null ? ` (${L.ipShort} ${v})` : ""} — `
+      + (zone ? `${L.zoneHead}${L.sep}${zone}` : L.zoneNone);
     if (H) {
       if (h && h.n) {
         t += `\n${L.heardHead(H.hours)}${L.sep}${h.n}`
