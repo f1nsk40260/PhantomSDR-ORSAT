@@ -9899,6 +9899,7 @@ Shift + Ctrl + Wheel = snap to .00 KHz"
                     ></canvas>
                     <PassbandTuner
                       on:change={handlePassbandChange}
+                      on:trim={(e) => trimIFEdge(e.detail.side, e.detail.step * TRIM_STEP)}
                       on:wheel={handleWaterfallWheel}
                       bind:this={passbandTunerComponent}
                     ></PassbandTuner>

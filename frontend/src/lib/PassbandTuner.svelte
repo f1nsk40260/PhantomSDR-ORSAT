@@ -254,6 +254,13 @@
       passbandRightOffset = r - m
     }
 
+    // ORSAT — flèches de rognage sur le trapèze : chaque flèche rapproche son bord de 50 Hz
+    // (événement 'trim', traité par App.svelte) ; molette : rogne (haut) ou rend de la largeur (bas).
+    // Masquées quand le trapèze est trop étroit à l'écran pour les loger.
+    $: trimVisible = (passbandRightOffset - passbandLeftOffset) * passbandWidth >= 64
+    function trimClick (side) { dispatch('trim', { side, step: 1 }) }
+    function trimWheel (side, e) { dispatch('trim', { side, step: e.deltaY < 0 ? 1 : -1 }) }
+
     export function updatePassbandLimits () {
       maximumSideband = bandwidthToWaterfallOffset(getMaximumBandwidth())
     }
@@ -300,6 +307,18 @@ on:touchend={handleTouchEnd}/>
               
               role="slider"
               tabindex="-1"></div>
+            {#if trimVisible}
+              <button type="button" class="trim-arrow" style="left: 3px"
+                title="Rogner ce bord de 50 Hz (molette : vers le haut rogne, vers le bas rend de la largeur)"
+                on:mousedown|stopPropagation on:touchstart|stopPropagation
+                on:click|stopPropagation={() => trimClick('l')}
+                on:wheel|stopPropagation|preventDefault={(e) => trimWheel('l', e)}>&#9654;</button>
+              <button type="button" class="trim-arrow" style="right: 3px"
+                title="Rogner ce bord de 50 Hz (molette : vers le haut rogne, vers le bas rend de la largeur)"
+                on:mousedown|stopPropagation on:touchstart|stopPropagation
+                on:click|stopPropagation={() => trimClick('r')}
+                on:wheel|stopPropagation|preventDefault={(e) => trimWheel('r', e)}>&#9664;</button>
+            {/if}
             <svg class="h-5 w-2 inline absolute group cursor-e-resize z-0"
               style="left: 100%"
               on:mousedown={(e) => handleMoveStart(e, Right)}
@@ -317,3 +336,14 @@ on:touchend={handleTouchEnd}/>
         
     </div>
 </div>
+<style>
+  /* ORSAT : flèches de rognage, dans le trapèze, au-dessus de la ligne jaune */
+  .trim-arrow {
+    position: absolute; top: 1px; z-index: 20; width: 22px; height: 18px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; line-height: 1; cursor: pointer; border-radius: 4px;
+    color: #1a1608; background: rgb(207, 181, 59); border: 1px solid rgb(240, 220, 120);
+    opacity: 0.85;
+  }
+  .trim-arrow:hover { opacity: 1; background: rgb(226, 201, 90); }
+</style>

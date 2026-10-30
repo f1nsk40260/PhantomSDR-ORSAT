@@ -6,6 +6,7 @@ Ce journal ne liste que les apports d'ORSAT ; les nouveautés de la base sont
 décrites dans le README et dans le projet original.
 
 ## Rognage du filtre FI (30/10/2026)
+- Flèches dorées ▶ ◀ sur le trapèze sous la chute d'eau : un clic rogne le bord de 50 Hz, la molette dose (masquées si le trapèze est trop étroit à l'écran).
 - Menu des filtres FI : boutons « Rogner à gauche » / « Rogner à droite » (50 Hz par clic, molette pour doser) pour écarter une station voisine qui déborde dans la bande passante.
 
 ## Veille cyclique FT8 (30/10/2026)
