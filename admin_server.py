@@ -1925,6 +1925,27 @@ table.markers input:focus{background:#071207;outline:1px solid var(--border);}
           <p style="color:var(--amber);font-size:.65rem;margin-top:.5rem;">L'envoi est DÉSACTIVÉ par défaut. Rien n'est envoyé tant que vous n'avez pas coché une destination, enregistré puis démarré.</p>
         </div>
 
+        <div class="card" style="margin-bottom:.9rem;">
+          <div class="card-header"><div class="dot"></div>VEILLE CYCLIQUE &#183; ORSAT</div>
+          <label style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;margin:.4rem 0;cursor:pointer;">
+            <input type="checkbox" id="ar-cycle" style="width:20px;height:20px;cursor:pointer;">
+            Écouter les bandes cochées <b>une à la fois</b>, brièvement, puis faire une pause</label>
+          <div style="display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.72rem;margin:.5rem 0;">
+            <label>Écoute par bande
+              <select id="ar-dwell" style="margin-left:.3rem;font-size:.8rem;padding:.25rem;">
+                <option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option>
+                <option value="90">90 s</option><option value="120">120 s</option></select></label>
+            <label>Un tour complet toutes les
+              <select id="ar-period" style="margin-left:.3rem;font-size:.8rem;padding:.25rem;">
+                <option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option>
+                <option value="30">30 min</option><option value="60">60 min</option></select></label>
+          </div>
+          <p style="color:var(--text3);font-size:.65rem;margin-top:.3rem;">Charge minimale : un seul décodeur et une seule
+            prise audio à la fois. Les stations décodées (indicatif, locator) alimentent le bandeau
+            « Indice de performance » via le carnet ORSAT-LOG. Cochez le FT8 des bandes voulues ci-dessous,
+            enregistrez, puis DÉMARRER.</p>
+        </div>
+
         <div class="card">
           <div class="card-header"><div class="dot"></div>BANDES &amp; MODES
             <span style="margin-left:auto;font-size:.62rem;color:var(--text3);">SLOTS MAX
@@ -3549,6 +3570,10 @@ async function autorunLoad() {
     document.getElementById('ar-psk').checked = !!c.reporting.pskreporter;
     document.getElementById('ar-wspr').checked = !!c.reporting.wsprnet;
     document.getElementById('ar-max').value = c.maxSlots || 12;
+    const cy = c.cycle || {};
+    document.getElementById('ar-cycle').checked = !!cy.enabled;
+    document.getElementById('ar-dwell').value = String(cy.dwellS || 45);
+    document.getElementById('ar-period').value = String(cy.periodMin || 15);
     const enabled = new Set((c.slots || []).filter(s => s.enabled).map(s => s.mode + ':' + s.band));
     autorunBuildMatrix(enabled);
     autorunPoll();
@@ -3604,6 +3629,9 @@ async function autorunSave() {
     reporting: { pskreporter: document.getElementById('ar-psk').checked, wsprnet: document.getElementById('ar-wspr').checked },
     maxSlots: parseInt(document.getElementById('ar-max').value || '12', 10),
     slots: autorunGatherSlots(),
+    cycle: { enabled: document.getElementById('ar-cycle').checked,
+             dwellS: parseInt(document.getElementById('ar-dwell').value, 10),
+             periodMin: parseInt(document.getElementById('ar-period').value, 10) },
   };
   const d = await fetch('/admin/api/autorun/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json());
   toast(d.ok ? 'Configuration enregistrée' : d.msg, d.ok ? 'ok' : 'err');
@@ -5134,6 +5162,19 @@ def _autorun_running():
     except Exception:
         return False, []
 
+def _autorun_cycle(c):
+    """ORSAT — veille cyclique : une bande cochée à la fois, écoute courte, puis pause.
+    enabled, dwellS (durée d'écoute par bande, 30–180 s), periodMin (un tour complet, 5–60 min)."""
+    c = c if isinstance(c, dict) else {}
+    def num(k, lo, hi, d):
+        try:
+            return max(lo, min(hi, int(c.get(k, d))))
+        except Exception:
+            return d
+    return {"enabled": bool(c.get("enabled", False)), "dwellS": num("dwellS", 30, 180, 45),
+            "periodMin": num("periodMin", 5, 60, 15)}
+
+
 @app.route("/admin/api/autorun/config", methods=["GET", "POST"])
 @login_required
 def api_autorun_config():
@@ -5158,6 +5199,7 @@ def api_autorun_config():
                               "wsprnet": bool(rep.get("wsprnet", False))},
                 "maxSlots": int(cfg.get("maxSlots", 12)),
                 "slots": cfg.get("slots", []),
+                "cycle": _autorun_cycle(cfg.get("cycle")),
             },
             "defaults": {"callsign": def_call, "grid": def_grid},
             "bands": AUTORUN_BANDS,
@@ -5193,6 +5235,7 @@ def api_autorun_config():
                       "wsprnet": bool(rep.get("wsprnet", False))},
         "maxSlots": max_slots,
         "slots": slots,
+        "cycle": _autorun_cycle(req.get("cycle")),
     }
     # Optional manual CPU-pin override (advanced; usually absent). Accept a
     # taskset core list or none/off/unpinned, else drop it. Preserve any value

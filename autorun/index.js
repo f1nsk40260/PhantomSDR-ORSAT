@@ -22,6 +22,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { AutorunManager } from './manager.js';
+import { CycleManager } from './cycle.js';
 import { PskReporter } from './pskreporter.js';
 import { WsprNet } from './wsprnet.js';
 import { parseFtxSpot, parseJs8Spot, reporterGrid } from './spotparse.js';
@@ -84,7 +85,10 @@ function loadConfig() {
     let port = cfg.server?.port || Number(process.env.AUTORUN_TAP_PORT) || 0;
     if (!port) port = readServerPort() || 8900;
 
-    return { callsign, grid, grid6: (grid || '').slice(0, 6), slots, report, dryRun, host, port };
+    // ORSAT : veille cyclique (une bande à la fois), réglée dans le panneau admin
+    const cycle = { enabled: false, dwellS: 45, periodMin: 15, ...(cfg.cycle || {}) };
+
+    return { callsign, grid, grid6: (grid || '').slice(0, 6), slots, report, dryRun, host, port, cycle };
 }
 
 /** Parse the [server] port out of a TOML file (the port spectrumserver binds). */
@@ -134,7 +138,11 @@ function main() {
 
     const psk = new PskReporter({ callsign: cfg.callsign, grid: cfg.grid6 });
     const wspr = new WsprNet({ callsign: cfg.callsign, grid: cfg.grid6 });
-    const mgr = new AutorunManager({ slots: cfg.slots, poolSize: 4, host: cfg.host, port: cfg.port });
+    const mgr = cfg.cycle.enabled
+        ? new CycleManager({ slots: cfg.slots, host: cfg.host, port: cfg.port,
+                             dwellS: cfg.cycle.dwellS, periodMin: cfg.cycle.periodMin })
+        : new AutorunManager({ slots: cfg.slots, poolSize: 4, host: cfg.host, port: cfg.port });
+    if (cfg.cycle.enabled) console.log(`[autorun] veille cyclique : ${cfg.cycle.dwellS} s par bande, un tour toutes les ${cfg.cycle.periodMin} min`);
 
     const counts = { decodes: 0, pskQueued: 0, wsprQueued: 0, pskSent: 0, wsprSent: 0 };
     // Per-decoder tally for the admin panel. The aggregate counts above cannot
@@ -178,6 +186,7 @@ function main() {
                 updatedAt: Math.floor(Date.now() / 1000),
                 identity: { callsign: cfg.callsign, grid: cfg.grid6 },
                 slots: cfg.slots,
+                cycle: cfg.cycle,
                 reporting: cfg.report,
                 dryRun: cfg.dryRun,
                 counts,

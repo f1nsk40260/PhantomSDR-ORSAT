@@ -5,6 +5,9 @@ PhantomSDR-ORSAT est la version francophone de F1NSK, construite sur
 Ce journal ne liste que les apports d'ORSAT ; les nouveautés de la base sont
 décrites dans le README et dans le projet original.
 
+## Veille cyclique FT8 (30/10/2026)
+- Autorun : option « veille cyclique » dans ORSAT-SYSTEM (onglet Envoi des spots) — une bande cochée à la fois, écoute courte (45 s par défaut), un tour toutes les 15 min. Les stations décodées alimentent le bandeau « Indice de performance ».
+
 ## En cours (après ORSAT 1.0)
 
 ### Interface
