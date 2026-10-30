@@ -8480,6 +8480,10 @@
   // voisine qui déborde dans la bande passante. side = "l" (bord gauche) ou "r" (bord droit) ;
   // step > 0 rogne, step < 0 rend de la largeur. Largeur minimale 200 Hz, jamais au-delà du bord opposé.
   const TRIM_STEP = 50, TRIM_MIN_W = 200;
+  // ce que coupe chaque bord, selon la bande latérale : la porteuse est côté graves
+  $: trimType = (demodulationDefaults[demodulation] || {}).type;
+  $: trimLeftWhat = trimType === "LSB" ? " (aigus)" : trimType === "USB" ? " (graves)" : "";
+  $: trimRightWhat = trimType === "LSB" ? " (graves)" : trimType === "USB" ? " (aigus)" : "";
   function trimIFEdge(side, step) {
     try {
       let [l, m, r] = audio.getAudioRange().map(FFTOffsetToFrequency);
@@ -11454,13 +11458,13 @@ Cliquez à nouveau pour désactiver"
                                       on:click={() => trimIFEdge("l", TRIM_STEP)}
                                       on:wheel|preventDefault={(e) => trimIFWheel("l", e)}
                                       title="Remonte le bord gauche du filtre de 50 Hz (molette vers le bas : redonne de la largeur)"
-                                      >&#9654;| Rogner à gauche</button>
+                                      >&#9654;| Rogner à gauche{trimLeftWhat}</button>
                                     <button
                                       class="retro-button trim-btn text-white font-bold rounded-md flex-1 flex items-center justify-center border border-gray-600 bg-gray-700 hover:bg-gray-600"
                                       on:click={() => trimIFEdge("r", TRIM_STEP)}
                                       on:wheel|preventDefault={(e) => trimIFWheel("r", e)}
                                       title="Abaisse le bord droit du filtre de 50 Hz (molette vers le bas : redonne de la largeur)"
-                                      >Rogner à droite |&#9664;</button>
+                                      >Rogner à droite{trimRightWhat} |&#9664;</button>
                                   </div>
                                   <div class="text-gray-500 text-xs mt-1">Largeur actuelle : {bandwidth} kHz — « Reset » ci-dessus rend la largeur normale du mode.</div>
                                 </div>
