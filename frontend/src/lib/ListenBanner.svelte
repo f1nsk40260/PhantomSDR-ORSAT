@@ -47,6 +47,7 @@
       bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
       predWord: "prévision", measWord: "mesure", noMeas: "pas de mesure récente",
       byDist: "Prévision par distance", measErr: "Mesure réelle indisponible",
+      rxq: (v) => (v >= 70 ? "bonne réception" : v >= 40 ? "réception moyenne" : "réception faible"),
       corrected: (r) => `corrigée par les stations entendues, pondérées par leur SNR pour la phonie (ionosondes seules : ${r})`,
       ownNote: (loc) => `Mesures et prévisions propres au récepteur ORSAT${loc ? ` (${loc})` : ""} : elles peuvent différer sur votre station et à votre position.`,
       zoneHead: "zone exploitable", zoneSeen: "constatée", zonePred: "prévue", zoneNone: "zone non déterminée (aucune source localisée)",
@@ -81,6 +82,7 @@
       bestZone: "best range", noZone: "no really good area",
       predWord: "forecast", measWord: "measurement", noMeas: "no recent measurement",
       byDist: "Forecast by distance", measErr: "Real measurement unavailable",
+      rxq: (v) => (v >= 70 ? "good reception" : v >= 40 ? "fair reception" : "weak reception"),
       corrected: (r) => `corrected by the stations heard, weighted by their SNR for phone (ionosondes alone: ${r})`,
       ownNote: (loc) => `Measurements and forecasts are specific to the ORSAT receiver${loc ? ` (${loc})` : ""}: they may differ at your station and location.`,
       zoneHead: "usable area", zoneSeen: "observed", zonePred: "forecast", zoneNone: "area undetermined (no located source)",
@@ -115,6 +117,7 @@
       bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
       predWord: "previsión", measWord: "medida", noMeas: "sin medida reciente",
       byDist: "Previsión por distancia", measErr: "Medida real no disponible",
+      rxq: (v) => (v >= 70 ? "buena recepción" : v >= 40 ? "recepción media" : "recepción débil"),
       corrected: (r) => `corregida con las estaciones oídas, ponderadas por su SNR para la fonía (solo ionosondas: ${r})`,
       ownNote: (loc) => `Medidas y previsiones propias del receptor ORSAT${loc ? ` (${loc})` : ""}: pueden ser distintas en su estación y en su ubicación.`,
       zoneHead: "zona utilizable", zoneSeen: "constatada", zonePred: "prevista", zoneNone: "zona no determinada (ninguna fuente localizada)",
@@ -192,10 +195,14 @@
       } else t += `\n${L.heardNone(H.hours)}`;
     }
     if (x && x.tranches) {
+      // une tranche est atteinte dès que des cases y passent (note > 0) ; une note basse veut dire
+      // réception faible (gain de la loop à cet angle), pas bande fermée
       const reachTxt = (trs) => {
-        const open = TR.filter(([k]) => (trs[k] ?? 0) >= 40);
-        const last = open.length ? open[open.length - 1][1] : 0;
-        return !open.length ? L.predClosed : last == null ? L.beyond : L.upTo(last);
+        const open = TR.filter(([k]) => (trs[k] ?? 0) > 0);
+        if (!open.length) return L.predClosed;
+        const last = open[open.length - 1][1];
+        const best = Math.max(...open.map(([k]) => trs[k]));
+        return (last == null ? L.beyond : L.upTo(last)) + ` (${L.rxq(best)})`;
       };
       t += `\n${L.predReach}${L.sep}${reachTxt(x.tranches)}`;
       // prévision relevée par les stations réellement entendues : on garde la trace des ionosondes seules
