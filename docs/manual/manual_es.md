@@ -121,7 +121,7 @@ Justo encima de la cascada, una banda fina indica, **banda por banda**, la capac
 
 ![Banda «Índice de rendimiento»: una pastilla por banda, nota de 0 a 100 y zona donde ORSAT escucha mejor; a la derecha, el botón «Ver el mapa».](images/es_ip_bandeau.jpg){w=440}
 
-- **Pastillas** — una por banda, con una nota de **0 a 100** y su color: **verde** excelente (75 o más), **oliva** bueno (50 a 74), **naranja** regular (25 a 49), **gris** débil (menos de 25). La banda que escucha aparece resaltada.
+- **Pastillas** — una por banda, con una nota de **0 a 100** y su color, del verde al rojo: **excelente** (85 o más), **bueno** (70 a 84), **correcto** (50 a 69), **regular** (30 a 49), **débil** (10 a 29), **cerrada** (menos de 10). La banda que escucha aparece resaltada.
 - **Zona** — **Loc** (hasta 300 km), **Reg** (300 a 900 km), **EU** (900 a 2500 km) o **DX** (más allá): la distancia a la que ORSAT escucha mejor en esa banda.
 - **Al pasar sobre una pastilla** — el detalle: estaciones localizadas del libro oídas en las últimas 3 horas (número, tramos de distancia, la más lejana), alcance previsto por las ionosondas, actividad de la cascada (sin distancia, al no estar localizado su origen) y, en caso de desacuerdo, un aviso de previsión subestimada o sobrestimada.
 - **🗺 Ver el mapa** (o un clic en cualquier parte de la banda) — abre el mapa detallado de las zonas donde ORSAT escucha bien, banda por banda; el botón **✕ Cerrar** lo cierra.

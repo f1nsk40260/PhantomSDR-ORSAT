@@ -121,7 +121,7 @@ Juste au-dessus de la cascade, un bandeau fin indique, **bande par bande**, la c
 
 ![Bandeau « Indice de performance » : une pastille par bande, note de 0 à 100 et zone où ORSAT entend le mieux ; à droite, le bouton « Voir la carte ».](images/fr_ip_bandeau.jpg){w=440}
 
-- **Pastilles** — une par bande, avec une note de **0 à 100** et sa couleur : **vert** excellent (75 et plus), **olive** bon (50 à 74), **orange** moyen (25 à 49), **gris** faible (moins de 25). La bande que vous écoutez est mise en évidence.
+- **Pastilles** — une par bande, avec une note de **0 à 100** et sa couleur, du vert au rouge : **excellent** (85 et plus), **bon** (70 à 84), **correct** (50 à 69), **moyen** (30 à 49), **faible** (10 à 29), **fermé** (moins de 10). La bande que vous écoutez est mise en évidence.
 - **Zone** — **Loc** (jusqu'à 300 km), **Rég** (300 à 900 km), **EU** (900 à 2500 km) ou **DX** (au-delà) : la distance à laquelle ORSAT entend le mieux sur cette bande.
 - **Survol d'une pastille** — le détail : stations localisées du carnet entendues ces 3 dernières heures (nombre, tranches de distance, la plus lointaine), portée prévue par les ionosondes, activité de la chute d'eau (sans distance, son origine n'étant pas localisée) et, en cas de désaccord, un avertissement « prévision sous-estimée » ou « surestimée ».
 - **🗺 Voir la carte** (ou un clic n'importe où sur le bandeau) — ouvre la carte détaillée des zones où ORSAT entend bien, bande par bande ; le bouton **✕ Fermer** la referme.

@@ -41,7 +41,7 @@
     fr: {
       ipTitle: "Indice de performance", ipShort: "IP",
       ipTip: (w) => `Indice de performance du récepteur ORSAT, bande par bande (0 à 100, calcul de ${w}).\nPrévision sur toutes les distances (ionosondes mesurées × diagramme de la loop), corrigée par ce qu'ORSAT mesure réellement sur la chute d'eau.\nLettres : zone où ORSAT entend le mieux. Clic : carte détaillée.`,
-      ipVerdict: { ex: "Excellent", ok: "Bon", mid: "Moyen", low: "Faible", na: "Pas de données" },
+      ipVerdict: { l5: "Excellent", l4: "Bon", l3: "Correct", l2: "Moyen", l1: "Faible", l0: "Fermé", na: "Pas de données" },
       zoneShort: { loc: "Loc", reg: "Rég", eu: "EU", dx: "DX" },
       zoneLong: { loc: "local (≤ 300 km)", reg: "régional (300–900 km)", eu: "Europe (900–2500 km)", dx: "DX (au-delà de 2500 km)" },
       bestZone: "meilleure portée", noZone: "aucune zone vraiment bonne",
@@ -73,7 +73,7 @@
     en: {
       ipTitle: "Performance index", ipShort: "PI",
       ipTip: (w) => `Performance index of the ORSAT receiver, band by band (0 to 100, computed at ${w}).\nForecast over all distances (measured ionosondes × loop pattern), corrected by what ORSAT actually measures on the waterfall.\nLetters: area where ORSAT hears best. Click: detailed map.`,
-      ipVerdict: { ex: "Excellent", ok: "Good", mid: "Fair", low: "Poor", na: "No data" },
+      ipVerdict: { l5: "Excellent", l4: "Good", l3: "Fair", l2: "Average", l1: "Poor", l0: "Closed", na: "No data" },
       zoneShort: { loc: "Loc", reg: "Reg", eu: "EU", dx: "DX" },
       zoneLong: { loc: "local (≤ 300 km)", reg: "regional (300–900 km)", eu: "Europe (900–2500 km)", dx: "DX (beyond 2500 km)" },
       bestZone: "best range", noZone: "no really good area",
@@ -105,7 +105,7 @@
     es: {
       ipTitle: "Índice de rendimiento", ipShort: "IR",
       ipTip: (w) => `Índice de rendimiento del receptor ORSAT, banda por banda (0 a 100, cálculo de las ${w}).\nPrevisión sobre todas las distancias (ionosondas medidas × diagrama de la loop), corregida con lo que ORSAT mide realmente en la cascada.\nLetras: zona donde ORSAT escucha mejor. Clic: mapa detallado.`,
-      ipVerdict: { ex: "Excelente", ok: "Bueno", mid: "Regular", low: "Débil", na: "Sin datos" },
+      ipVerdict: { l5: "Excelente", l4: "Bueno", l3: "Correcto", l2: "Regular", l1: "Débil", l0: "Cerrada", na: "Sin datos" },
       zoneShort: { loc: "Loc", reg: "Reg", eu: "EU", dx: "DX" },
       zoneLong: { loc: "local (≤ 300 km)", reg: "regional (300–900 km)", eu: "Europa (900–2500 km)", dx: "DX (más de 2500 km)" },
       bestZone: "mejor alcance", noZone: "ninguna zona realmente buena",
@@ -155,8 +155,10 @@
   // Indice de performance (IP) : fourni par le carnet (data.ip) ; carnet plus ancien : couverture à 800 km
   $: IP = data && data.ip ? data.ip : null;
   const ipOf = (b) => (IP ? (IP[b] ? IP[b].ip : null) : data && data.bands ? data.bands[b] : null);
-  const ipCls = (v) => (v == null ? "na" : v >= 75 ? "hi" : v >= 50 ? "mid" : v >= 25 ? "lo" : "off");
-  const ipWord = (L, v) => L.ipVerdict[v == null ? "na" : v >= 75 ? "ex" : v >= 50 ? "ok" : v >= 25 ? "mid" : "low"];
+  // six niveaux d'IP, du rouge (fermé) au vert (excellent) ; le calcul de l'IP lui-même est inchangé
+  const IP_STEPS = [[85, "l5"], [70, "l4"], [50, "l3"], [30, "l2"], [10, "l1"], [0, "l0"]];
+  const ipCls = (v) => (v == null ? "na" : IP_STEPS.find(([lim]) => v >= lim)[1]);
+  const ipWord = (L, v) => L.ipVerdict[ipCls(v)];
   const zoneOf = (b) => (IP && IP[b] ? IP[b].zone : null);
   const DIST = [["d100", "≤100"], ["d300", "≤300"], ["d900", "≤900"], ["d2500", "≤2500"], ["dx", ">2500"]];
   // Bulle d'une bande. Les distances ne viennent que de sources localisées (locator ou lat/long) :
@@ -215,7 +217,7 @@
         ["5. L'indice final", "IP = 40 % prévision + 60 % mesure réelle si la mesure a moins de 15 min ; sinon la prévision seule. La mesure pèse plus : c'est ce que le récepteur entend vraiment."],
       ],
       legendTitle: "Lecture",
-      legend: ["Excellent : 75 et plus", "Bon : 50 à 74", "Moyen : 25 à 49", "Faible : moins de 25"],
+      legend: ["Excellent : 85 et plus", "Bon : 70 à 84", "Correct : 50 à 69", "Moyen : 30 à 49", "Faible : 10 à 29", "Fermé : moins de 10"],
       zones: "Lettres : où ORSAT entend le mieux — Loc ≤ 300 km · Rég 300–900 km · EU 900–2500 km · DX au-delà.",
       calib: "Étalonnage : chaque mesure est comparée à la prévision du même instant. Au fil des jours, l'infobulle des bandes indique ce qui a été constaté (« prévision 70–100 → signal exploitable 92 % du temps »).",
       close: "✕ Fermer", btnTip: "Comment ORSAT calcule son indice de performance (clic)",
@@ -231,7 +233,7 @@
         ["5. Final index", "PI = 40 % forecast + 60 % real measurement when the measurement is less than 15 min old; otherwise the forecast alone. The measurement weighs more: it is what the receiver actually hears."],
       ],
       legendTitle: "Reading",
-      legend: ["Excellent: 75 and above", "Good: 50 to 74", "Fair: 25 to 49", "Poor: below 25"],
+      legend: ["Excellent: 85 and above", "Good: 70 to 84", "Fair: 50 to 69", "Average: 30 to 49", "Poor: 10 to 29", "Closed: below 10"],
       zones: "Letters: where ORSAT hears best — Loc ≤ 300 km · Reg 300–900 km · EU 900–2500 km · DX beyond.",
       calib: "Calibration: each measurement is compared with the forecast made at the same time. Over the days, the band tooltips show what was observed (\"forecast 70–100 → usable signal 92 % of the time\").",
       close: "✕ Close", btnTip: "How ORSAT computes its performance index (click)",
@@ -247,7 +249,7 @@
         ["5. El índice final", "IR = 40 % previsión + 60 % medida real si la medida tiene menos de 15 min; si no, solo la previsión. La medida pesa más: es lo que el receptor oye de verdad."],
       ],
       legendTitle: "Lectura",
-      legend: ["Excelente: 75 o más", "Bueno: 50 a 74", "Regular: 25 a 49", "Débil: menos de 25"],
+      legend: ["Excelente: 85 o más", "Bueno: 70 a 84", "Correcto: 50 a 69", "Regular: 30 a 49", "Débil: 10 a 29", "Cerrada: menos de 10"],
       zones: "Letras: dónde ORSAT escucha mejor — Loc ≤ 300 km · Reg 300–900 km · EU 900–2500 km · DX más allá.",
       calib: "Calibración: cada medida se compara con la previsión del mismo instante. Con los días, la ayuda de las bandas muestra lo constatado («previsión 70–100 → señal utilizable 92 % del tiempo»).",
       close: "✕ Cerrar", btnTip: "Cómo calcula ORSAT su índice de rendimiento (clic)",
@@ -293,10 +295,12 @@
         {#each H.blocks as [h, txt]}<h4>{h}</h4><p>{txt}</p>{/each}
         <h4>{H.legendTitle}</h4>
         <div class="leg">
-          <span class="chip hi">75+</span>{H.legend[0]}
-          <span class="chip mid">50+</span>{H.legend[1]}
-          <span class="chip lo">25+</span>{H.legend[2]}
-          <span class="chip off">&lt;25</span>{H.legend[3]}
+          <span class="chip l5">85+</span>{H.legend[0]}
+          <span class="chip l4">70+</span>{H.legend[1]}
+          <span class="chip l3">50+</span>{H.legend[2]}
+          <span class="chip l2">30+</span>{H.legend[3]}
+          <span class="chip l1">10+</span>{H.legend[4]}
+          <span class="chip l0">&lt;10</span>{H.legend[5]}
         </div>
         <p>{H.zones}</p>
         <p class="calib">{H.calib}</p>
@@ -354,16 +358,19 @@
   .chip small { font-size: 11px; font-weight: 500; }
   .chip em { font-style: normal; font-size: 10px; font-weight: 700; opacity: 0.9; padding-left: 1px; }
   .sum { min-width: 0; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1 !important; }
-  .chip.hi { background: #2f7d3a; }
-  .chip.mid { background: #8a8a22; }
-  .chip.lo { background: #a5601c; }
-  .chip.off { background: #2b2a25; color: #9b9684; }
+  .chip.l5 { background: #1f8a3c; }
+  .chip.l4 { background: #5a962a; }
+  .chip.l3 { background: #8f8f1a; }
+  .chip.l2 { background: #b07a18; }
+  .chip.l1 { background: #b4521e; }
+  .chip.l0 { background: #9e2b2b; }
   .chip.na { background: transparent; color: #9b9684; }
   .chip.cur { border-color: rgb(226, 201, 90); box-shadow: 0 0 0 1px rgb(226, 201, 90), 0 0 8px rgba(226, 201, 90, 0.7); }
   .sum { flex-shrink: 0; padding: 3px 9px; border-radius: 11px; white-space: nowrap; margin-right: 6px;
          border: 1px solid rgba(207, 181, 59, 0.6); background: #221f15; color: #f2eedf; }
   .sum b { font-weight: 800; }
-  .sum.hi b { color: #7fe08c; } .sum.mid b { color: #e3e36a; } .sum.lo b { color: #f0a25a; } .sum.off b { color: #9b9684; }
+  .sum.l5 b { color: #5fe07a; } .sum.l4 b { color: #a6dd5c; } .sum.l3 b { color: #e8e060; }
+  .sum.l2 b { color: #f0b450; } .sum.l1 b { color: #f08a50; } .sum.l0 b { color: #f06a6a; }
   .sum i { font-style: normal; color: #cfc9b2; font-size: 12px; }
   .lbl .r { color: #b9b39d; font-weight: 500; margin-left: 4px; }
   .see {
