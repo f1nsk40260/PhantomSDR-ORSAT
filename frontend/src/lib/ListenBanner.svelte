@@ -281,7 +281,9 @@
   $: H = HELP[$lang] || HELP.fr;
   // carte détaillée : fenêtre par-dessus la page du WebSDR (cadre vers /log/ecoute), bouton Fermer bien visible
   let showMap = false;
-  function openMap() { showMap = true; }
+  // la carte s'ouvre sur la bande écoutée au moment du clic (figée ensuite : pas de rechargement en tournant le VFO)
+  let mapBand = "";
+  function openMap() { mapBand = near || ""; showMap = true; }
   function closeMap() { showMap = false; }
 </script>
 
@@ -340,7 +342,7 @@
         <span class="t">{L.mapTitle}</span>
         <button type="button" class="close" on:click={closeMap} title={L.closeTip}>{L.close}</button>
       </div>
-      <iframe src="/log/ecoute?lang={$lang}" title={L.mapTitle}></iframe>
+      <iframe src="/log/ecoute?lang={$lang}{mapBand ? `&band=${mapBand}` : ''}" title={L.mapTitle}></iframe>
     </div>
   </div>
 {/if}
