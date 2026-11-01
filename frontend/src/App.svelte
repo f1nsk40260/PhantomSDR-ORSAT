@@ -9107,9 +9107,15 @@
                         type="text"
                         name="q"
                         value=""
-                        size="6"
-                        style=" background-color: #2D3B4F; color: rgb(0, 255, 255); border-style: groove; border-color: grey; text-align:center; font-size: 84%;"
-                        on:click={() => this.form.q.select().focus()}
+                        size="9"
+                        maxlength="12"
+                        class="callsign-input"
+                        placeholder="F1ABC"
+                        title="Saisir un indicatif puis Entrée ou « Rechercher » (ouvre QRZCQ dans un nouvel onglet)"
+                        aria-label="Indicatif à rechercher"
+                        autocomplete="off"
+                        spellcheck="false"
+                        on:focus={(e) => e.currentTarget.select()}
                       />&nbsp;&nbsp;&nbsp;
                       <input type="hidden" name="action" value="search" />
                       <input
@@ -9117,6 +9123,7 @@
                         type="submit"
                         name="page"
                         value="Search"
+                        title="Rechercher l'indicatif sur QRZCQ"
                         style="color:rgba(207, 181, 59, 0.993)"
                       />
                     </form>
@@ -14928,6 +14935,42 @@ Cliquez à nouveau pour désactiver"
   .glass-button:hover {
     background: rgba(207, 181, 59, 0.1);
     border-color: rgba(207, 181, 59, 0.2);
+  }
+
+  /* Champ « Recherche d'indicatif » : bordure et halo vieil or, texte lisible */
+  .callsign-input {
+    background: rgba(20, 18, 10, 0.85);
+    color: #f3dc7a;
+    border: 1px solid rgba(207, 181, 59, 0.75);
+    border-radius: 6px;
+    box-shadow:
+      0 0 6px rgba(207, 181, 59, 0.35),
+      inset 0 1px 3px rgba(0, 0, 0, 0.6);
+    padding: 2px 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    caret-color: #f3dc7a;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .callsign-input::placeholder {
+    color: rgba(207, 181, 59, 0.5);
+    font-weight: 400;
+  }
+  .callsign-input:hover {
+    border-color: rgba(230, 200, 80, 0.9);
+  }
+  .callsign-input:focus {
+    outline: none;
+    border-color: #e6c850;
+    box-shadow:
+      0 0 0 2px rgba(207, 181, 59, 0.35),
+      0 0 12px rgba(230, 200, 80, 0.6),
+      inset 0 1px 3px rgba(0, 0, 0, 0.6);
   }
 
   .glass-slider {
