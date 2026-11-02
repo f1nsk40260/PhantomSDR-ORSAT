@@ -103,6 +103,11 @@ export default class CWDecoder {
     this.toneLocked = false; // verrou : la recherche reste à ±LOCK_HZ du ton accroché
     this.specAvg = null; this.specFrames = 0;
     this.fftBuf = new Float32Array(this.FFT_N); this.fftFill = 0;
+    // Raw-audio history: the tone is only recognised after a couple of FFT
+    // blocks, so the start of the first character has already gone by. On the
+    // first tone lock this history is replayed through the mixer (see feed()).
+    this.pcmHist = new Float32Array(this.PCM_HIST); this.pcmPos = 0; this.pcmCount = 0;
+    this.toneJustLocked = false;
 
     // NCO + I/Q low-pass
     this.oscC = 1; this.oscS = 0; this.oscNorm = 0;
@@ -126,6 +131,7 @@ export default class CWDecoder {
     // estimator updates. Anchored to onLvl/offLvl; null until the first lock.
     this.onLvlLocal = null; this.offLvlLocal = null;
     this.framesSinceEst = 0;
+    this.replayPending = false;  // rewind & re-decode the buffer (gate just opened)
 
     // Keying state
     this.keyOn = false;
@@ -144,6 +150,7 @@ export default class CWDecoder {
   _configure() {
     const sr = this.sr;
     this.FFT_N   = 2048;                                 // ~0.17 s @ 12 kHz
+    this.PCM_HIST = Math.round(sr * 2.5);                // 2.5 s raw-audio history
     this.hop     = Math.max(1, Math.round(sr * 0.002));  // ~2 ms frames
     this.frameMs = (this.hop / sr) * 1000;
     this._setToneCoeffs(this.toneHz || 700);
@@ -176,6 +183,34 @@ export default class CWDecoder {
       if (this.fftFill >= this.FFT_N) { this._detectTone(); this.fftFill = 0; }
       if (Math.abs(this.toneHz - this.oscFreq) > 1.5) this._setToneCoeffs(this.toneHz);
 
+      // First tone lock: the beginning of the transmission (the first letters)
+      // went by while the tone was still unknown and nothing was demodulated.
+      // Run the buffered raw audio through the mixer now, at the right tone.
+      if (this.toneJustLocked) {
+        this.toneJustLocked = false;
+        this._replayPcm();
+      }
+      this.pcmHist[this.pcmPos] = x;
+      this.pcmPos = (this.pcmPos + 1) % this.PCM_HIST;
+      if (this.pcmCount < this.PCM_HIST) this.pcmCount++;
+
+      this._mix(x);
+    }
+  }
+
+  // Re-demodulate the raw-audio history (oldest → newest) from a clean state.
+  _replayPcm() {
+    this.oscC = 1; this.oscS = 0; this.oscNorm = 0;
+    this.lpI1 = 0; this.lpI2 = 0; this.lpQ1 = 0; this.lpQ2 = 0;
+    this.hopCount = 0; this.magAccum = 0;
+    const H = this.PCM_HIST;
+    let i = (this.pcmPos - this.pcmCount + H) % H;
+    for (let k = 0; k < this.pcmCount; k++) { this._mix(this.pcmHist[i]); if (++i >= H) i = 0; }
+  }
+
+  // (2)–(3) Downconvert one sample, low-pass, and emit an envelope frame per hop.
+  _mix(x) {
+    {
       // (2) Complex downconvert by e^{-jωn} via incremental rotator.
       const c = this.oscC, s = this.oscS;
       const iIn = x * c, qIn = -x * s;
@@ -253,6 +288,15 @@ export default class CWDecoder {
         if (this.specFrames < 2) { this._emitFreq(); return; }
         this.toneHz = hz; this.toneValid = true;
         this._resetTiming();   // discard pre-lock garbage
+        this.toneJustLocked = true;  // feed() replays the raw history at this tone
+      } else if (!this.sigOpen && Math.abs(hz - this.toneHz) > 10) {
+        // The tone moved to a new peak before any signal was confirmed: the
+        // first lock was most often a noise bin picked up during the silence
+        // before the transmission. Restart at the real tone and replay the
+        // raw history, otherwise the first letters were demodulated off-tone.
+        this.toneHz = hz;
+        this._resetTiming();
+        this.toneJustLocked = true;
       } else {
         this.toneHz = hz;      // averaged spectrum is stable; follow directly
       }
@@ -273,6 +317,10 @@ export default class CWDecoder {
     this.keyOn = false; this.markFrames = 0; this.spaceFrames = 0;
     this.curElems = []; this.charFlushed = true; this.wordEmitted = true;
     this.silent = false; this.gapHist = []; this._wordThrCache = 0; this.sigOpen = false;
+    this.replayPending = false;
+    // Back to the wide default front-end filter: any narrowing came from a
+    // speed estimate on the old (noise) lock and would smear the real signal.
+    this.lpA = 1 - Math.exp(-2 * Math.PI * 50 / this.sr);
   }
 
   _emitFreq() {
@@ -292,21 +340,53 @@ export default class CWDecoder {
     this.frameNo++;
 
     // Periodic speed / threshold estimation.
-    const hadTd = this.Td;
     if (++this.framesSinceEst >= this.EST_PERIOD || (this.Td === 0 && this.envCount >= this.EST_MIN)) {
       if (this.envCount >= this.EST_MIN) { this._estimateSpeed(); this.framesSinceEst = 0; }
     }
     if (this.Td === 0) { this.decodePos = this.frameNo; return; }  // keep pointer at "now"
 
-    // #3 look-back: on the FIRST speed lock, rewind the decode pointer to the
-    // oldest buffered frame and replay everything captured during acquisition,
-    // recovering the first word/character otherwise lost to the ~1.5 s lock
-    // latency. Td/levels from the lock are applied to those buffered frames.
-    if (hadTd === 0) this.decodePos = this.frameNo - this.envCount;
+    // #3 look-back: characters are only printed while the signal gate is open,
+    // and the gate only opens once the estimator has seen enough of the signal
+    // (≈1.5 s on the first lock, longer after a silence, when the window is
+    // still full of noise). Everything decoded meanwhile was dropped — the
+    // first letters of each transmission. So when the gate opens, rewind the
+    // decode pointer and re-decode the buffered frames with the fresh Td and
+    // levels. Nothing was printed from them, so nothing is printed twice.
+    // Wait until two estimates agree on the speed: the one that opened the gate
+    // may still be skewed by the noise before the transmission. Decoding is
+    // simply held meanwhile (the buffer is 12 s long), so nothing is lost.
+    if (this.replayPending && !this.tdStable && this.replayWait < 3) return;
+    if (this.replayPending) {
+      this.replayPending = false;
+      this.decodePos = this._replayStart();
+      this.keyOn = false; this.markFrames = 0; this.spaceFrames = 0;
+      this.curElems = []; this.charFlushed = true; this.wordEmitted = true;
+      this.silent = false;
+      // Gaps measured while the gate was shut were sliced with stale levels
+      // and speed (often noise): they would push the word threshold too high.
+      this.gapHist = []; this._wordThrCache = 0;
+      this.onLvlLocal = this.onLvl; this.offLvlLocal = this.offLvl;
+    }
 
     // Decode all frames up to the current one (normally just the newest; a whole
     // buffer's worth on the first-lock replay).
     while (this.decodePos < this.frameNo) { this._decodeFrame(this.decodePos); this.decodePos++; }
+  }
+
+  // Where the look-back replay starts: just after the last stretch of silence
+  // (≥ 10 dots without a dot-long mark) in the buffer, i.e. the start of the
+  // current transmission. Replaying the noise before it would print junk.
+  _replayStart() {
+    const oldest = this.frameNo - Math.min(this.envCount, this.EST_WIN);
+    const T = this.Td, win = this.mfWin;
+    const thr = this.offLvl + 0.5 * (this.onLvl - this.offLvl);
+    const minMark = Math.max(2, Math.round(0.6 * T)), quiet = 10 * T;
+    let run = 0, offRun = 0;
+    for (let p = this.frameNo - 1; p >= oldest; p--) {
+      if (this._boxcarAt(p, win) > thr) { run++; if (run >= minMark) offRun = 0; }
+      else { run = 0; if (++offRun >= quiet) return Math.max(oldest, p + offRun - 2 * T); }
+    }
+    return oldest;
   }
 
   // Slice + edge-detect one buffered frame (absolute index p) through the
@@ -514,6 +594,8 @@ export default class CWDecoder {
     if (bestTd === 0 || bestScore < 0.35) { this.sigOpen = false; return; }   // no confident CW
 
     // Adopt / smooth the estimate.
+    this.tdStable = this.Td > 0 && Math.abs(bestTd - this.Td) <= 0.15 * this.Td;
+    if (this.replayPending) this.replayWait++;
     if (this.Td === 0 || Math.abs(bestTd - this.Td) > 0.3 * this.Td) this.Td = bestTd;
     else this.Td = Math.round(0.6 * this.Td + 0.4 * bestTd);
 
@@ -547,7 +629,9 @@ export default class CWDecoder {
     // at SIG_OPEN = 2.2 two hours of noise opened it never, and weak-signal
     // copy did not change. Close below SIG_CLOSE (hysteresis).
     const ratio = this.onLvl / Math.max(1e-12, this.offLvl);
-    if (!this.sigOpen && ratio >= SIG_OPEN) this.sigOpen = true;
+    if (!this.sigOpen && ratio >= SIG_OPEN) {
+      this.sigOpen = true; this.replayPending = true; this.replayWait = 0; this.tdStable = false;
+    }
     else if (this.sigOpen && ratio < SIG_CLOSE) this.sigOpen = false;
     // Seed the fast local followers on the first lock; afterwards leave them to
     // track QSB on their own (nudge only if they've drifted implausibly far).
