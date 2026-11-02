@@ -855,7 +855,7 @@
       : '<span class="x-dim">jamais synchronisé</span>';
     if (!keepForm || !$('x-ol-eqsl-form')) {
       box.innerHTML =
-        '<p style="margin-bottom:.6rem;">Les QSO du carnet de trafic partent vers eQSL.cc (les écoutes SWL ne partent jamais) : ' +
+        '<p style="margin-bottom:.6rem;">Les QSO du carnet de trafic partent vers eQSL.cc (jamais les QSO de groupe ni les écoutes SWL) : ' +
         'chaque contact saisi part dans les secondes qui suivent, puis un passage toutes les 15 min. Toutes les 3 h, les eQSL reçues ' +
         'sont relues et marquent le QSO correspondant comme confirmé (même indicatif, date et bande, à 30 min près). ' +
         'eQSL ne permet ni de corriger ni de supprimer par l\'API : un QSO corrigé repart, l\'ancienne version est à supprimer à la main sur eQSL.cc.</p>' +
