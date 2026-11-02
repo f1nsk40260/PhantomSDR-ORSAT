@@ -1516,6 +1516,28 @@ def init(app, g):
         except Exception as e:
             return jsonify({"ok": False, "msg": str(e)})
 
+    # Synchronisation avec eQSL.cc (le mot de passe est gardé par le carnet, jamais renvoyé)
+    @app.route("/admin/api/orsatlog/eqsl", methods=["GET", "POST"])
+    @lr
+    def ol_eqsl():
+        try:
+            if request.method == "GET":
+                return jsonify({"ok": True, **_ol_json("GET", "/api/admin/eqsl")})
+            data = request.get_json(silent=True) or {}
+            body = {k: data[k] for k in ("user", "password", "nickname", "since", "enabled") if k in data}
+            return jsonify({"ok": True, **_ol_json("POST", "/api/admin/eqsl", body, timeout=60)})
+        except Exception as e:
+            return jsonify({"ok": False, "msg": str(e)})
+
+    @app.route("/admin/api/orsatlog/eqsl/run", methods=["POST"])
+    @lr
+    def ol_eqsl_run():
+        retry = "true" if (request.get_json(silent=True) or {}).get("retry") else "false"
+        try:
+            return jsonify({"ok": True, **_ol_json("POST", "/api/admin/eqsl/run?retry=" + retry)})
+        except Exception as e:
+            return jsonify({"ok": False, "msg": str(e)})
+
     @app.route("/admin/api/orsatlog/check", methods=["POST"])
     @lr
     def ol_check():

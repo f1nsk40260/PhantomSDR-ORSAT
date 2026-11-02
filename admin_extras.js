@@ -610,7 +610,7 @@
     ' style="width:100%;">' + (hint ? '<div class="x-dim" style="font-size:.6rem;margin-top:.2rem;">' + hint + '</div>' : '') + '</div>';
   const day8 = (d) => (d && d.length === 8 ? d.slice(6) + '/' + d.slice(4, 6) + '/' + d.slice(0, 4) : '—');
 
-  const OL_TABS = [['etat', 'ÉTAT'], ['station', 'STATION'], ['qrz', 'QRZ.COM'], ['sauvegardes', 'SAUVEGARDES'], ['maj', 'MISE À JOUR']];
+  const OL_TABS = [['etat', 'ÉTAT'], ['station', 'STATION'], ['qrz', 'QRZ.COM'], ['eqsl', 'EQSL'], ['sauvegardes', 'SAUVEGARDES'], ['maj', 'MISE À JOUR']];
   let olTab = 'etat';
   function olShowTab(k) {
     if (!OL_TABS.some((t) => t[0] === k)) k = 'etat';
@@ -689,6 +689,9 @@
     html += '<div class="x-ol-pane" data-tab="qrz">' +
       card('SYNCHRONISATION QRZ.COM', '<div id="x-ol-qrz" style="' + small + '">Chargement…</div>', 'var(--green)') + '</div>';
 
+    html += '<div class="x-ol-pane" data-tab="eqsl">' +
+      card('SYNCHRONISATION EQSL.CC', '<div id="x-ol-eqsl" style="' + small + '">Chargement…</div>', 'var(--green)') + '</div>';
+
     html += '<div class="x-ol-pane" data-tab="maj">' + card('MISE À JOUR DU CARNET',
       '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;">' +
       '<button class="btn btn-green" id="x-ol-check">🔍 VÉRIFIER</button>' +
@@ -705,6 +708,7 @@
 
     $('x-ol-form').onsubmit = olSave;
     olQrzRender();
+    olEqslRender();
     $('x-ol-restore').onchange = olRestore;
     $('x-ol-check').onclick = olCheck;
     $('x-ol-run').onclick = olRun;
@@ -829,6 +833,99 @@
       const d = await post('/admin/api/orsatlog/qrz/run', { full: !!full });
       if (!d.ok) { notify(d.msg, 'err'); return; }
       olQrzRender(true);
+    } catch (err) { notify(err.message, 'err'); }
+  }
+
+  // ── Synchronisation eQSL.cc (QSO du carnet de trafic seulement) ─────
+  let olEqslTimer = null;
+  let olEqslLast = {};
+  const isoDay = (d) => (d && d.length === 8 ? d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6) : '');
+  async function olEqslRender(keepForm) {
+    const box = $('x-ol-eqsl');
+    if (!box) return;
+    let d;
+    try { d = await api('/admin/api/orsatlog/eqsl'); } catch (e) { box.innerHTML = '<span class="x-bad">' + esc(e.message) + '</span>'; return; }
+    if (!d.ok) { box.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+    olEqslLast = d;
+    const kpi = (l, v) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div></div>';
+    const etat = d.running ? '<span class="x-warn">synchronisation en cours…</span>'
+      : d.last_error ? '<span class="x-bad">✗ ' + esc(d.last_error) + '</span>'
+      : d.last_ok ? '<span class="x-ok">✓ dernière synchronisation réussie : ' + esc(d.last_ok) + '</span>' +
+        (d.last_inbox ? ' <span class="x-dim">· eQSL reçues relues : ' + esc(d.last_inbox) + '</span>' : '')
+      : '<span class="x-dim">jamais synchronisé</span>';
+    if (!keepForm || !$('x-ol-eqsl-form')) {
+      box.innerHTML =
+        '<p style="margin-bottom:.6rem;">Les QSO du carnet de trafic partent vers eQSL.cc (les écoutes SWL ne partent jamais) : ' +
+        'chaque contact saisi part dans les secondes qui suivent, puis un passage toutes les 15 min. Toutes les 3 h, les eQSL reçues ' +
+        'sont relues et marquent le QSO correspondant comme confirmé (même indicatif, date et bande, à 30 min près). ' +
+        'eQSL ne permet ni de corriger ni de supprimer par l\'API : un QSO corrigé repart, l\'ancienne version est à supprimer à la main sur eQSL.cc.</p>' +
+        // pas de <form> ni de champ « password » : voir la carte QRZ (gestionnaire de mots de passe du navigateur)
+        '<div id="x-ol-eqsl-form">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">' +
+        olField('x-ol-eqsl-user', 'IDENTIFIANT EQSL', d.user || '', d.password_set ? 'Vérifié et enregistré. Vider pour effacer.' : 'Votre indicatif, en général.',
+          'class="mono" style="text-transform:uppercase;" autocomplete="off" data-lpignore="true" data-1p-ignore spellcheck="false"') +
+        olField('x-ol-eqsl-pwd', 'MOT DE PASSE EQSL', '', d.password_set ? 'Enregistré. Laisser vide pour le garder.' : 'Vérifié auprès d\'eQSL.cc avant d\'être enregistré.',
+          'type="text" class="x-secret" autocomplete="off" data-lpignore="true" data-1p-ignore spellcheck="false" placeholder="' + (d.password_set ? '••••••••' : '') + '"') +
+        olField('x-ol-eqsl-nick', 'QTH NICKNAME (FACULTATIF)', d.nickname || '', 'Seulement si le compte eQSL a plusieurs QTH. Sinon, laisser vide.',
+          'autocomplete="off" data-lpignore="true" data-1p-ignore spellcheck="false"') +
+        // première mise en service : proposé à partir d'aujourd'hui (l'historique ne part pas sans le vouloir)
+        olField('x-ol-eqsl-since', 'ENVOYER LES QSO À PARTIR DU', isoDay(d.since) || (d.enabled || d.synced ? '' : new Date().toISOString().slice(0, 10)), 'Les QSO plus anciens ne partent pas. Vide = tout le carnet (chaque correspondant reçoit alors une eQSL).',
+          'type="date"') +
+        '</div>' +
+        '<label style="font-size:.7rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;">' +
+        '<input type="checkbox" id="x-ol-eqsl-on"' + (d.enabled ? ' checked' : '') + '> synchronisation automatique</label>' +
+        '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
+        '<button class="btn btn-green" type="button" id="x-ol-eqsl-save">💾 ENREGISTRER</button>' +
+        '<button class="btn btn-amber" type="button" id="x-ol-eqsl-run">🔄 SYNCHRONISER MAINTENANT</button>' +
+        '<button class="btn" type="button" id="x-ol-eqsl-retry" title="Renvoyer les QSO refusés par eQSL (après correction dans le carnet ou sur eQSL.cc)">RENVOYER LES REFUSÉS</button>' +
+        '</div><div id="x-ol-eqsl-msg" style="margin-top:.4rem;"></div></div>' +
+        '<style>.x-secret{-webkit-text-security:disc;text-security:disc;}</style>' +
+        '<div id="x-ol-eqsl-state" style="margin-top:.8rem;"></div>' +
+        '<div id="x-ol-eqsl-refused" style="margin-top:.6rem;"></div>' +
+        '<div class="x-log" id="x-ol-eqsl-log" style="margin-top:.6rem;max-height:220px;">—</div>';
+      $('x-ol-eqsl-save').onclick = olEqslSave;
+      $('x-ol-eqsl-run').onclick = () => olEqslRun(false);
+      $('x-ol-eqsl-retry').onclick = () => olEqslRun(true);
+    }
+    $('x-ol-eqsl-state').innerHTML = '<div class="x-kpis">' +
+      kpi('ENVOYÉS', d.synced) + kpi('EN ATTENTE', d.pending) +
+      kpi('REFUSÉS PAR EQSL', d.errors ? '<span class="x-bad">' + d.errors + '</span>' : 0) +
+      kpi('EQSL REÇUES', d.received) +
+      kpi('SYNCHRO AUTO', d.enabled ? '<span class="x-ok">activée</span>' : '<span class="x-dim">désactivée</span>') +
+      '</div><div>' + etat + '</div>';
+    const ref = d.refused || [];
+    $('x-ol-eqsl-refused').innerHTML = ref.length
+      ? '<table class="x-tbl"><tr><th>QSO REFUSÉ</th><th>DATE</th><th>BANDE</th><th>MOTIF D\'EQSL</th></tr>' + ref.map((q) =>
+        '<tr><td class="mono">' + esc(q.call) + '</td><td>' + day8(q.qso_date) + ' ' + esc((q.time_on || '').slice(0, 2) + ':' + (q.time_on || '').slice(2, 4)) +
+        '</td><td>' + esc(q.band || '') + ' ' + esc(q.mode || '') + '</td><td>' + esc(q.eqsl_error || '') + '</td></tr>').join('') + '</table>'
+      : '';
+    const log = $('x-ol-eqsl-log');
+    log.textContent = (d.journal || []).join('\n') || '—';
+    log.scrollTop = log.scrollHeight;
+    clearTimeout(olEqslTimer);
+    if (d.running) olEqslTimer = setTimeout(() => currentPageIs('orsatlog') && olEqslRender(true), 2000);
+  }
+
+  async function olEqslSave() {
+    const msg = $('x-ol-eqsl-msg');
+    const body = { enabled: $('x-ol-eqsl-on').checked,
+      nickname: $('x-ol-eqsl-nick').value.trim(), since: $('x-ol-eqsl-since').value };
+    const u = $('x-ol-eqsl-user').value.trim().toUpperCase(), p = $('x-ol-eqsl-pwd').value;
+    if (u !== (olEqslLast.user || '') || p) { body.user = u; if (p) body.password = p; }
+    msg.innerHTML = '<span class="x-dim">' + (body.user ? 'Vérification auprès d\'eQSL.cc…' : 'Enregistrement…') + '</span>';
+    try {
+      const d = await post('/admin/api/orsatlog/eqsl', body);
+      if (!d.ok) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(d.msg) + '</span>'; return; }
+      msg.innerHTML = '<span class="x-ok">✓ Enregistré</span>';
+      olEqslRender();
+    } catch (err) { msg.innerHTML = '<span class="x-bad">✗ ' + esc(err.message) + '</span>'; }
+  }
+
+  async function olEqslRun(retry) {
+    try {
+      const d = await post('/admin/api/orsatlog/eqsl/run', { retry: !!retry });
+      if (!d.ok) { notify(d.msg, 'err'); return; }
+      olEqslRender(true);
     } catch (err) { notify(err.message, 'err'); }
   }
 
