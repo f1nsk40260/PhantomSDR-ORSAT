@@ -136,6 +136,8 @@ const D = [
   ["Passages des satellites radioamateurs", "Amateur radio satellite passes", "Pasos de satélites de radioaficionado"],
   ["Synchroniser le récepteur avec le DX cluster", "Sync the receiver with the DX cluster", "Sincronizar el receptor con el DX cluster"],
   ["Accorder le récepteur sur une fréquence du DX cluster", "Tune the receiver to a DX cluster frequency", "Sintonizar el receptor en una frecuencia del DX cluster"],
+  ["Météo Mondiale - Temps réel et Prévision", "World Weather - Real Time and Forecast", "Meteorología Mundial - Tiempo real y Previsión"],
+  ["Ouvrir la carte météo mondiale Windy : temps réel et prévisions", "Open the Windy world weather map: real time and forecasts", "Abrir el mapa meteorológico mundial Windy: tiempo real y previsiones"],
   ["Version & configuration :", "Version & Configuration:", "Versión y configuración:"],
   ["avec", "with", "con"],
   ["et", "and", "y"],

@@ -9371,6 +9371,13 @@
                     title="Accorder le récepteur sur une fréquence du DX cluster"
                     on:click={openDxCluster}
                   ><svg class="hamdash-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4M5.5 22v-4h4"/><circle cx="12" cy="12" r="2"/></svg>Sync the receiver with the DX cluster</button>
+                  <a
+                    href="https://www.windy.com/?45.014,-1.430,5"
+                    target="_blank"
+                    rel="noopener"
+                    class="glass-button gold-button dx-sync-button weather-button"
+                    title="Ouvrir la carte météo mondiale Windy : temps réel et prévisions"
+                  ><svg class="hamdash-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v2M4.93 4.93l1.41 1.41M2 12h2M19.07 4.93l-1.41 1.41"/><path d="M15.95 9.5A4 4 0 0 0 8.1 10.3"/><path d="M17.5 21H9a5 5 0 1 1 4.6-7h1.4a3.5 3.5 0 0 1 2.5 7z"/></svg>Météo Mondiale - Temps réel et Prévision<svg class="hamdash-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 16.6A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19v2M8 13v2M16 19v2M16 13v2M12 21v2M12 15v2"/></svg></a>
                 </div>
                 <div class="columns">
                   <div class="first-column">
@@ -16464,6 +16471,13 @@ Cliquez à nouveau pour désactiver"
   }
   @media (prefers-reduced-motion: reduce) {
     .gold-button.dx-sync-button { animation: none; }
+  }
+  /* ORSAT : bouton Météo Mondiale (Windy), même style que la synchro DX,
+     sans pulsation. */
+  .gold-button.dx-sync-button.weather-button {
+    margin-top: 8px;
+    text-decoration: none;
+    animation: none;
   }
 
   .hamdash-icon {
