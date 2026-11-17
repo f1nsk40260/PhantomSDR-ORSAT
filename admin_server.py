@@ -2602,7 +2602,19 @@ function secDanger(x){
   const why = (x.why || []).map(w => `<li>${liEsc(w)}</li>`).join('');
   return `<div><span style="border:1px solid ${c};color:${c};border-radius:3px;padding:0 .35rem;font-size:.62rem;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;">${liEsc(x.level||'?')}</span> <span style="color:var(--text3);font-size:.6rem;">score ${x.score||0}</span></div>` +
     (why ? `<ul style="margin:.25rem 0 .2rem 1rem;padding:0;font-size:.62rem;color:var(--text2);">${why}</ul>` : '') +
-    `<div style="font-size:.6rem;color:${c};">${liEsc(x.advice||'')}</div>`;
+    `<div style="font-size:.6rem;color:${x.banned?'var(--text2)':c};">${liEsc(x.advice||'')}</div>` + secBanState(x);
+}
+// Etat du bannissement : date, durée, et ce que l'IP a fait depuis (vieil or).
+function secBanState(x){
+  if (!x.banned) return '';
+  const fmt = t => liEsc((t||'').replace('T',' ').replace('Z','').slice(0,16));
+  const duree = x.banned_until ? `jusqu'au ${fmt(new Date(x.banned_until*1000).toISOString())}` : 'définitif';
+  const head = `<div style="margin-top:.3rem;font-size:.6rem;font-weight:bold;letter-spacing:.06em;color:#d4af37;text-shadow:0 0 4px rgba(212,175,55,.45);" title="Le proxy répond 403 à cette IP. Les lignes au-dessus sont l'historique des jours affichés, avant le bannissement.">⛔ BANNIE${x.banned_since?' le '+fmt(x.banned_since):''} (${duree})</div>`;
+  if (!x.banned_since) return head;
+  const after = x.refused_after
+    ? `<div style="font-size:.6rem;color:#d4af37;" title="Une ligne au plus par tranche de 10 minutes : le nombre réel de requêtes refusées peut être plus élevé.">Revenue ${x.refused_after} fois depuis, toujours refusée (403). Dernière : ${fmt(x.last_after)}</div>`
+    : `<div style="font-size:.6rem;color:#d4af37;" title="Aucune requête de cette IP n'est arrivée depuis le bannissement.">Aucune tentative depuis le bannissement.</div>`;
+  return head + after;
 }
 let secAllow = [], secMyIp = '';
 function secRenderAllow(){
@@ -6301,6 +6313,9 @@ def _sec_assess(x: dict) -> None:
         if score < limit:
             x["level"], x["advice"] = lvl, advice
             break
+    if x.get("banned"):
+        x["advice"] = ("Déjà bannie : chaque requête de cette IP est refusée (403) "
+                       "avant d'atteindre le WebSDR.")
     x["score"], x["why"], x["research"] = int(score), why, research
 
 
@@ -6415,6 +6430,7 @@ def api_security():
             x["count"] += 1
             x["cats"][c] = x["cats"].get(c, 0) + 1
             x["last"] = e.get("ts", "")
+            x.setdefault("_ts", []).append((e.get("ts", ""), c))
             for k in ("city", "country", "countryCode", "isp", "as", "net", "rdns"):
                 if e.get(k):
                     x[k] = e[k]
@@ -6427,6 +6443,17 @@ def api_security():
         b = bl.get(x["ip"])
         x["banned_until"] = b.get("until") if b and (not b.get("until") or b["until"] > now) else None
         x["banned"] = bool(b) and (not b.get("until") or b["until"] > now)
+        # Ce qui s'est passé APRÈS le bannissement : le tableau garde l'historique
+        # des jours affichés, il ne faut pas confondre les anciennes tentatives
+        # avec de nouvelles. Une IP bannie qui revient reçoit un 403 et laisse une
+        # ligne « blocked » (au plus une par tranche de 10 min, voir proxy.py).
+        tss = x.pop("_ts", [])
+        if x["banned"] and b.get("since"):
+            since = datetime.utcfromtimestamp(b["since"]).strftime("%Y-%m-%dT%H:%M:%SZ")
+            after = [t for t, c in tss if t >= since]
+            x["banned_since"] = since
+            x["refused_after"] = len(after)
+            x["last_after"] = after[-1] if after else ""
     for x in per_ip.values():
         _sec_assess(x)
     ips = sorted(per_ip.values(), key=lambda x: (x["score"], x["count"]), reverse=True)[:100]
